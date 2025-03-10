@@ -1,75 +1,102 @@
-
-import { useState, useEffect } from 'react';
-import { Project } from '@/lib/types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getProjects, addProject, updateProject, deleteProject } from '../lib/data';
+import { Project } from '../lib/types';
 
-// Mock API functions - in a real app, these would connect to your backend
-const fetchProjects = async (): Promise<Project[]> => {
-  // For demo, retrieving from localStorage
-  const storedProjects = localStorage.getItem('projects');
-  return storedProjects ? JSON.parse(storedProjects) : [];
-};
-
-const createProject = async (project: Project): Promise<Project> => {
-  const projects = await fetchProjects();
-  const newProjects = [...projects, project];
-  localStorage.setItem('projects', JSON.stringify(newProjects));
-  return project;
-};
-
-const updateProject = async (project: Project): Promise<Project> => {
-  const projects = await fetchProjects();
-  const updatedProjects = projects.map(p => 
-    p.id === project.id ? project : p
-  );
-  localStorage.setItem('projects', JSON.stringify(updatedProjects));
-  return project;
-};
-
-const deleteProject = async (id: string): Promise<string> => {
-  const projects = await fetchProjects();
-  const filteredProjects = projects.filter(p => p.id !== id);
-  localStorage.setItem('projects', JSON.stringify(filteredProjects));
-  return id;
+// Query keys for React Query
+const QUERY_KEYS = {
+  projects: ['projects'] as const,
+  project: (id: string) => ['project', id] as const,
 };
 
 export function useProjects() {
   const queryClient = useQueryClient();
 
-  // Fetch projects
-  const { 
-    data: projects = [], 
-    isLoading, 
+  // Fetch projects with optimized caching
+  const {
+    data: projects = [],
+    isLoading,
     isError,
     error,
-    isFetching
+    isFetching,
   } = useQuery({
-    queryKey: ['projects'],
-    queryFn: fetchProjects
+    queryKey: QUERY_KEYS.projects,
+    queryFn: getProjects,
+    select: (data) => data.sort((a, b) => 
+      new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
+    ),
   });
 
-  // Add project mutation
-  const { mutate: addProject, isPending: isAddingProject } = useMutation({
-    mutationFn: createProject,
-    onSuccess: (newProject) => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-    }
+  // Add project with optimistic updates
+  const addProjectMutation = useMutation({
+    mutationFn: addProject,
+    onMutate: async (newProject) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.projects });
+
+      // Snapshot the previous value
+      const previousProjects = queryClient.getQueryData(QUERY_KEYS.projects);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(QUERY_KEYS.projects, (old: Project[] = []) => [newProject, ...old]);
+
+      // Return a context object with the snapshotted value
+      return { previousProjects };
+    },
+    onError: (err, newProject, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData(QUERY_KEYS.projects, context?.previousProjects);
+      console.error('Failed to add project:', err);
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure cache synchronization
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.projects });
+    },
   });
 
-  // Update project mutation
-  const { mutate: updateProjectMutation, isPending: isUpdatingProject } = useMutation({
+  // Update project with optimistic updates
+  const updateProjectMutation = useMutation({
     mutationFn: updateProject,
-    onSuccess: (updatedProject) => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-    }
+    onMutate: async (updatedProject) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.projects });
+      const previousProjects = queryClient.getQueryData(QUERY_KEYS.projects);
+
+      queryClient.setQueryData(QUERY_KEYS.projects, (old: Project[] = []) =>
+        old.map((project) =>
+          project.id === updatedProject.id ? { ...project, ...updatedProject } : project
+        )
+      );
+
+      return { previousProjects };
+    },
+    onError: (err, updatedProject, context) => {
+      queryClient.setQueryData(QUERY_KEYS.projects, context?.previousProjects);
+      console.error('Failed to update project:', err);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.projects });
+    },
   });
 
-  // Delete project mutation
-  const { mutate: deleteProjectMutation, isPending: isDeletingProject } = useMutation({
+  // Delete project with optimistic updates
+  const deleteProjectMutation = useMutation({
     mutationFn: deleteProject,
-    onSuccess: (deletedId) => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-    }
+    onMutate: async (projectId) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.projects });
+      const previousProjects = queryClient.getQueryData(QUERY_KEYS.projects);
+
+      queryClient.setQueryData(QUERY_KEYS.projects, (old: Project[] = []) =>
+        old.filter((project) => project.id !== projectId)
+      );
+
+      return { previousProjects };
+    },
+    onError: (err, projectId, context) => {
+      queryClient.setQueryData(QUERY_KEYS.projects, context?.previousProjects);
+      console.error('Failed to delete project:', err);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.projects });
+    },
   });
 
   return {
@@ -78,11 +105,11 @@ export function useProjects() {
     isError,
     error,
     isFetching,
-    addProject,
-    isAddingProject,
-    updateProject: updateProjectMutation,
-    isUpdatingProject,
-    deleteProject: deleteProjectMutation,
-    isDeletingProject
+    addProject: addProjectMutation.mutate,
+    updateProject: updateProjectMutation.mutate,
+    deleteProject: deleteProjectMutation.mutate,
+    isAddingProject: addProjectMutation.isPending,
+    isUpdatingProject: updateProjectMutation.isPending,
+    isDeletingProject: deleteProjectMutation.isPending,
   };
 }
