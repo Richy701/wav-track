@@ -1,3 +1,4 @@
+
 import express from 'express';
 import compression from 'compression';
 import { handler as ssrHandler } from './dist/server/entry-server.js';
@@ -5,7 +6,7 @@ import fs from 'fs';
 import path from 'path';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 const BASE_URL = '/wav-track';
 
 // Compression middleware
@@ -28,7 +29,10 @@ const cacheControl = (req, res, next) => {
   // HTML and JSON responses
   else if (req.url.match(/\.(html|json)$/)) {
     // No cache for HTML and JSON
-    res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Clear-Site-Data', '"cache"');
   }
   
   // Service Worker
@@ -63,6 +67,13 @@ app.use(BASE_URL, express.static('dist/client', {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
+    
+    // For HTML files, set no-cache
+    if (path.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
   }
 }));
 
@@ -77,7 +88,7 @@ app.use('*', async (req, res) => {
     }
     
     // Remove the base URL from the path for SSR
-    const pathWithoutBase = url.replace(BASE_URL, '');
+    const pathWithoutBase = url.replace(BASE_URL, '') || '/';
     
     const template = fs.readFileSync(
       path.resolve('dist/client/index.html'),
@@ -90,6 +101,11 @@ app.use('*', async (req, res) => {
       template
     });
     
+    // Set cache control for HTML content
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
     res.status(200).set({ 'Content-Type': 'text/html' }).end(rendered);
   } catch (e) {
     console.error(e);
@@ -98,5 +114,5 @@ app.use('*', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-}); 
+  console.log(`Server running at http://localhost:${PORT}${BASE_URL}`);
+});
