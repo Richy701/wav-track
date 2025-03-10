@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProjects } from '@/hooks/useProjects';
-import UserMenu from '@/components/UserMenu';
+import UserAvatar from '@/components/UserAvatar';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import CreateProjectDialog from '@/components/project/CreateProjectDialog';
 import { Plus } from '@phosphor-icons/react';
@@ -22,16 +22,11 @@ export default function HeaderActions({
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { projects, refreshProjects } = useProjects();
+  const { projects } = useProjects();
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   
   const handleNavigate = (path: string) => {
     navigate(path);
-  };
-
-  const handleProjectCreated = () => {
-    // Refresh the projects list
-    refreshProjects();
   };
 
   const isMainPage = location.pathname === '/';
@@ -60,8 +55,12 @@ export default function HeaderActions({
         </Button>
       ))}
 
-      <div className={orientation === 'vertical' ? "self-start" : ""}>
+      <div className={cn(
+        "flex items-center gap-2",
+        orientation === 'vertical' ? "self-start" : ""
+      )}>
         <ThemeSwitcher />
+        {user && <UserAvatar />}
       </div>
 
       {user ? (
@@ -99,12 +98,13 @@ export default function HeaderActions({
         </>
       )}
 
-      <CreateProjectDialog 
-        isOpen={isCreateProjectOpen}
-        onOpenChange={setIsCreateProjectOpen}
-        projectsCount={projects.length}
-        onProjectCreated={handleProjectCreated}
-      />
+      {isMainPage && (
+        <CreateProjectDialog 
+          isOpen={isCreateProjectOpen}
+          onOpenChange={setIsCreateProjectOpen}
+          projectsCount={projects.length}
+        />
+      )}
     </nav>
   );
 }

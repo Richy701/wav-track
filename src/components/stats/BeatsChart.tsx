@@ -10,6 +10,7 @@ type ChartView = 'bar' | 'line';
 interface BeatsChartProps {
   timeRange: 'day' | 'week' | 'month' | 'year';
   projects: Project[];
+  selectedProject?: Project | null;
 }
 
 type ChartData = {
@@ -18,9 +19,11 @@ type ChartData = {
   cumulative?: number;
 };
 
-export function BeatsChart({ timeRange, projects }: BeatsChartProps) {
+export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartProps) {
   const [beatsData, setBeatsData] = useState<ChartData[]>(() => {
-    const initialData = projects.length > 0 ? getBeatsDataForChart(timeRange) : Array(6).fill({ label: '-', value: 0 });
+    const initialData = projects.length > 0 
+      ? getBeatsDataForChart(timeRange, selectedProject?.id) 
+      : Array(6).fill({ label: '-', value: 0 });
     console.log('Initial chart data:', initialData);
     return initialData;
   });
@@ -41,10 +44,12 @@ export function BeatsChart({ timeRange, projects }: BeatsChartProps) {
     return acc;
   }, [] as ChartData[]);
 
-  // Update data when beats are added
+  // Update data when beats are added or project selection changes
   useEffect(() => {
     console.log('BeatsChart effect running - updating data');
-    const newData = projects.length > 0 ? getBeatsDataForChart(timeRange) : Array(6).fill({ label: '-', value: 0 });
+    const newData = projects.length > 0 
+      ? getBeatsDataForChart(timeRange, selectedProject?.id) 
+      : Array(6).fill({ label: '-', value: 0 });
     console.log('New chart data:', newData);
     setBeatsData(newData);
 
@@ -58,7 +63,7 @@ export function BeatsChart({ timeRange, projects }: BeatsChartProps) {
       setHighlightedBar(newData[newData.length - 1].label);
       setTimeout(() => setHighlightedBar(null), 2000); // Remove highlight after 2s
     }
-  }, [timeRange, projects]);
+  }, [timeRange, projects, selectedProject]);
 
   const CustomTooltip = ({ 
     active, 

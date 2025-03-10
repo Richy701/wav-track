@@ -5,6 +5,7 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://ewenoruuogtoqyaxelgm.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV3ZW5vcnV1b2d0b3F5YXhlbGdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDExMzcwODIsImV4cCI6MjA1NjcxMzA4Mn0.-isMcYtlGLmSegcgZnfiVhmzwmzLrtXCQuQk3x1X0j8";
 const SITE_URL = "https://wavtrack.lovable.app";
+const BASE_URL = "/wav-track";
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +38,6 @@ supabase.auth.onAuthStateChange((event, session) => {
   if (event === 'SIGNED_OUT') {
     console.log('User signed out');
     localStorage.clear();
-    window.location.href = '/login';
+    window.location.href = `${BASE_URL}/login`;
   }
 });

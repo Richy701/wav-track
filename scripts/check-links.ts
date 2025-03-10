@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 
 async function main() {
-  const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+  const baseUrl = process.env.BASE_URL || 'http://localhost:3000/wav-track';
   const excludePaths = [
     '/api/',
     '/admin/',

@@ -33,22 +33,28 @@ import { useProjects } from '@/hooks/useProjects';
 import { DndContext, DragEndEvent, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { SortableProjectCard } from '@/components/project/SortableProjectCard';
+import { Loading } from '@/components/ui/loading';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ProjectListProps {
   title?: string;
   onDragEnd?: (activeId: string, overId: string) => void;
+  onProjectSelect?: (project: Project | null) => void;
 }
 
 type SortOption = 'newest' | 'oldest' | 'name' | 'completion';
 
 const ProjectList: React.FC<ProjectListProps> = ({ 
   title = "Recent Projects",
-  onDragEnd 
+  onDragEnd,
+  onProjectSelect
 }) => {
+  const queryClient = useQueryClient();
   const [isClearDialogOpen, setIsClearDialogOpen] = React.useState(false);
-  const { projects, refreshProjects } = useProjects();
+  const { projects, isLoading, isFetching, error } = useProjects();
   const [filter, setFilter] = useState<Project['status'] | 'all'>('all');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   // Configure DnD sensors
   const sensors = useSensors(
@@ -70,7 +76,7 @@ const ProjectList: React.FC<ProjectListProps> = ({
   const handleClearAllProjects = () => {
     try {
       clearAllProjects();
-      refreshProjects();
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       setIsClearDialogOpen(false);
       toast.success("All projects deleted", {
         description: "Your project list has been cleared."
@@ -84,11 +90,17 @@ const ProjectList: React.FC<ProjectListProps> = ({
   };
 
   const handleProjectUpdated = () => {
-    refreshProjects();
+    queryClient.invalidateQueries({ queryKey: ['projects'] });
   };
 
   const handleProjectDeleted = () => {
-    refreshProjects();
+    queryClient.invalidateQueries({ queryKey: ['projects'] });
+  };
+
+  // Handle project selection
+  const handleProjectSelect = (project: Project) => {
+    setSelectedProjectId(selectedProjectId === project.id ? null : project.id);
+    onProjectSelect?.(selectedProjectId === project.id ? null : project);
   };
 
   const statuses: { value: Project['status'] | 'all'; label: string; className?: string }[] = [
@@ -141,9 +153,9 @@ const ProjectList: React.FC<ProjectListProps> = ({
   const currentSortDisplay = getSortOptionDisplay(sortBy);
 
   return (
-    <section className="animate-fade-in">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-medium">{title}</h2>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
         
         <div className="flex items-center space-x-3">
           <div className="bg-card rounded-lg p-1 flex shadow-sm">
@@ -202,6 +214,69 @@ const ProjectList: React.FC<ProjectListProps> = ({
         </div>
       </div>
 
+      {error ? (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+          <p className="text-sm text-destructive">
+            Error loading projects. Please try again later.
+          </p>
+        </div>
+      ) : null}
+
+      <Loading 
+        isLoading={isLoading} 
+        timeout={10000}
+        onTimeout={() => {
+          toast.error("Loading is taking longer than expected", {
+            description: "Please check your connection and try again."
+          });
+        }}
+      />
+
+      {!isLoading && filteredAndSortedProjects.length === 0 ? (
+        <div className="rounded-lg border border-border p-8 text-center">
+          <p className="text-sm text-muted-foreground">No projects found.</p>
+          {filter !== 'all' && (
+            <p className="mt-2 text-sm text-muted-foreground">
+              Try changing your filter or creating a new project.
+            </p>
+          )}
+        </div>
+      ) : null}
+
+      {!isLoading && filteredAndSortedProjects.length > 0 ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="relative">
+            {isFetching && !isLoading ? (
+              <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/80">
+                <Loading 
+                  isLoading={true}
+                  loadingText="Refreshing..."
+                  className="bg-background/95 shadow-lg rounded-lg"
+                />
+              </div>
+            ) : null}
+            <SortableContext items={filteredAndSortedProjects.map(p => p.id)} strategy={rectSortingStrategy}>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredAndSortedProjects.map((project) => (
+                  <SortableProjectCard
+                    key={project.id}
+                    project={project}
+                    onProjectUpdated={handleProjectUpdated}
+                    onProjectDeleted={handleProjectDeleted}
+                    onProjectSelect={handleProjectSelect}
+                    isSelected={selectedProjectId === project.id}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </div>
+        </DndContext>
+      ) : null}
+
       <AlertDialog open={isClearDialogOpen} onOpenChange={setIsClearDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -221,50 +296,7 @@ const ProjectList: React.FC<ProjectListProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
-      {filteredAndSortedProjects.length > 0 ? (
-        <>
-          <div className="flex items-center mb-6">
-            <span className="text-sm mr-2">Sorting by:</span>
-            <div className="bg-secondary/50 rounded-full px-3 py-1 text-xs flex items-center">
-              {currentSortDisplay.icon}
-              <span className="ml-1">{currentSortDisplay.text}</span>
-            </div>
-          </div>
-          
-          <DndContext 
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext 
-              items={filteredAndSortedProjects.map(p => p.id)}
-              strategy={rectSortingStrategy}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredAndSortedProjects.map((project) => (
-                  <SortableProjectCard
-                    key={project.id}
-                    project={project}
-                    onProjectUpdated={handleProjectUpdated}
-                    onProjectDeleted={handleProjectDeleted}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
-        </>
-      ) : (
-        <div className="bg-card rounded-xl p-8 text-center">
-          <h3 className="text-xl font-medium mb-2">No projects found</h3>
-          <p className="text-muted-foreground mb-6">
-            {filter === 'all' 
-              ? "You haven't created any projects yet. Create your first project using the \"New Beat\" button in the header."
-              : `You don't have any projects with status "${filter}".`}
-          </p>
-        </div>
-      )}
-    </section>
+    </div>
   );
 };
 

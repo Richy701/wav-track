@@ -16,6 +16,7 @@ const Profile = React.lazy(() => import('./pages/Profile'));
 const ProfileSettings = React.lazy(() => import('./pages/ProfileSettings'));
 const Index = React.lazy(() => import('./pages/Index'));
 const Callback = React.lazy(() => import('./pages/auth/Callback'));
+const ScrollDemo = React.lazy(() => import('./pages/ScrollDemo'));
 
 // Create a client
 const queryClient = new QueryClient({
@@ -50,6 +51,7 @@ function App() {
                       <ProfileSettings />
                     </ProtectedRoute>
                   } />
+                  <Route path="/scroll-demo" element={<ScrollDemo />} />
                   <Route path="/" element={<Index />} />
                 </Routes>
               </Suspense>

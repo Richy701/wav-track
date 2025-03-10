@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Project } from '@/lib/types';
-import { deleteProject } from '@/lib/data';
 import { toast } from 'sonner';
+import { useProjects } from '@/hooks/useProjects';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +26,21 @@ export default function DeleteProjectDialog({
   onOpenChange,
   onConfirm
 }: DeleteProjectDialogProps) {
+  const { deleteProject, isDeletingProject } = useProjects();
+
+  const handleDelete = async () => {
+    try {
+      await deleteProject(project.id);
+      onConfirm();
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      toast.error("Failed to delete project", {
+        description: "An error occurred while deleting the project."
+      });
+    }
+  };
+
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -37,8 +52,12 @@ export default function DeleteProjectDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-            Delete
+          <AlertDialogAction 
+            onClick={handleDelete} 
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            disabled={isDeletingProject}
+          >
+            {isDeletingProject ? 'Deleting...' : 'Delete'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

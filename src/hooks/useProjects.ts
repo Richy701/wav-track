@@ -1,78 +1,115 @@
-import { useState, useEffect } from 'react';
-import { getProjects } from '@/lib/data';
-import type { Project } from '@/lib/types';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getProjects, addProject, updateProject, deleteProject } from '../lib/data';
+import { Project } from '../lib/types';
+
+// Query keys for React Query
+const QUERY_KEYS = {
+  projects: ['projects'] as const,
+  project: (id: string) => ['project', id] as const,
+};
 
 export function useProjects() {
-  const [projects, setProjects] = useState<Project[]>(() => {
-    // Try to load from localStorage first
-    const storedProjects = localStorage.getItem('projects');
-    if (storedProjects) {
-      try {
-        return JSON.parse(storedProjects);
-      } catch (error) {
-        console.error('Error parsing stored projects:', error);
-      }
-    }
-    
-    // If no stored projects or error, use initial projects
-    return getProjects();
+  const queryClient = useQueryClient();
+
+  // Fetch projects with optimized caching
+  const {
+    data: projects = [],
+    isLoading,
+    isError,
+    error,
+    isFetching,
+  } = useQuery({
+    queryKey: QUERY_KEYS.projects,
+    queryFn: getProjects,
+    select: (data) => data.sort((a, b) => 
+      new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
+    ),
   });
-  
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
 
-  // Save projects to localStorage whenever they change
-  useEffect(() => {
-    try {
-      localStorage.setItem('projects', JSON.stringify(projects));
-    } catch (error) {
-      console.error('Error saving projects to localStorage:', error);
-    }
-  }, [projects]);
+  // Add project with optimistic updates
+  const addProjectMutation = useMutation({
+    mutationFn: addProject,
+    onMutate: async (newProject) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.projects });
 
-  // Load projects from storage on mount and when needed
-  const refreshProjects = () => {
-    const loadedProjects = getProjects();
-    setProjects(loadedProjects);
-  };
+      // Snapshot the previous value
+      const previousProjects = queryClient.getQueryData(QUERY_KEYS.projects);
 
-  useEffect(() => {
-    let mounted = true;
+      // Optimistically update to the new value
+      queryClient.setQueryData(QUERY_KEYS.projects, (old: Project[] = []) => [newProject, ...old]);
 
-    const loadProjects = async () => {
-      if (!mounted) return;
-      
-      setIsLoading(true);
-      try {
-        // Load projects from storage
-        const loadedProjects = getProjects();
-        if (mounted) {
-          setProjects(loadedProjects);
-        }
-        setError(null);
-      } catch (err) {
-        if (mounted) {
-          setError(err instanceof Error ? err : new Error('Failed to load projects'));
-        }
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
-      }
-    };
+      // Return a context object with the snapshotted value
+      return { previousProjects };
+    },
+    onError: (err, newProject, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData(QUERY_KEYS.projects, context?.previousProjects);
+      console.error('Failed to add project:', err);
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure cache synchronization
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.projects });
+    },
+  });
 
-    loadProjects();
+  // Update project with optimistic updates
+  const updateProjectMutation = useMutation({
+    mutationFn: updateProject,
+    onMutate: async (updatedProject) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.projects });
+      const previousProjects = queryClient.getQueryData(QUERY_KEYS.projects);
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+      queryClient.setQueryData(QUERY_KEYS.projects, (old: Project[] = []) =>
+        old.map((project) =>
+          project.id === updatedProject.id ? { ...project, ...updatedProject } : project
+        )
+      );
+
+      return { previousProjects };
+    },
+    onError: (err, updatedProject, context) => {
+      queryClient.setQueryData(QUERY_KEYS.projects, context?.previousProjects);
+      console.error('Failed to update project:', err);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.projects });
+    },
+  });
+
+  // Delete project with optimistic updates
+  const deleteProjectMutation = useMutation({
+    mutationFn: deleteProject,
+    onMutate: async (projectId) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.projects });
+      const previousProjects = queryClient.getQueryData(QUERY_KEYS.projects);
+
+      queryClient.setQueryData(QUERY_KEYS.projects, (old: Project[] = []) =>
+        old.filter((project) => project.id !== projectId)
+      );
+
+      return { previousProjects };
+    },
+    onError: (err, projectId, context) => {
+      queryClient.setQueryData(QUERY_KEYS.projects, context?.previousProjects);
+      console.error('Failed to delete project:', err);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.projects });
+    },
+  });
 
   return {
     projects,
     isLoading,
+    isError,
     error,
-    setProjects,
-    refreshProjects,
+    isFetching,
+    addProject: addProjectMutation.mutate,
+    updateProject: updateProjectMutation.mutate,
+    deleteProject: deleteProjectMutation.mutate,
+    isAddingProject: addProjectMutation.isPending,
+    isUpdatingProject: updateProjectMutation.isPending,
+    isDeletingProject: deleteProjectMutation.isPending,
   };
 }

@@ -1,24 +1,126 @@
 import { Project, Sample, Session, Note, BeatActivity } from './types';
+import { cache } from './cache';
+import { format as formatDate } from 'date-fns';
 
-// Load data from localStorage or use empty arrays if not found
-const loadFromStorage = <T>(key: string, defaultValue: T[]): T[] => {
+// Batch size for storage operations
+const BATCH_SIZE = 50;
+
+// Type for pending writes
+interface PendingWrites {
+  [key: string]: unknown[];
+}
+
+interface ChartData {
+  label: string;
+  value: number;
+  cumulative?: number;
+}
+
+// Load data from localStorage with caching
+const loadFromStorage = async <T>(key: string, defaultValue: T[]): Promise<T[]> => {
   try {
-    const storedData = localStorage.getItem(key);
-    return storedData ? JSON.parse(storedData) : defaultValue;
+    // Check cache first
+    const cachedData = cache.get<T[]>(key);
+    if (cachedData) {
+      return cachedData;
+    }
+
+    // Use requestAnimationFrame to avoid blocking the main thread
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        const storedData = localStorage.getItem(key);
+        const data = storedData ? JSON.parse(storedData) : defaultValue;
+        
+        // Cache the loaded data
+        cache.set(key, data);
+        
+        resolve(data);
+      });
+    });
   } catch (error) {
     console.error(`Error loading ${key} from localStorage:`, error);
     return defaultValue;
   }
 };
 
-// Save data to localStorage
-const saveToStorage = <T>(key: string, data: T[]): void => {
+// Save data to localStorage with debouncing and batching
+const saveTimeouts: { [key: string]: number } = {};
+const pendingWrites: PendingWrites = {};
+
+const saveToStorage = async <T>(key: string, data: T[]): Promise<void> => {
   try {
-    localStorage.setItem(key, JSON.stringify(data));
+    // Clear any pending save for this key
+    if (saveTimeouts[key]) {
+      window.clearTimeout(saveTimeouts[key]);
+    }
+
+    // Add to pending writes
+    pendingWrites[key] = data;
+
+    // Debounce saves to prevent rapid successive writes
+    return new Promise((resolve) => {
+      saveTimeouts[key] = window.setTimeout(() => {
+        requestAnimationFrame(() => {
+          // Process in batches if data is large
+          if (data.length > BATCH_SIZE) {
+            const chunks = [];
+            for (let i = 0; i < data.length; i += BATCH_SIZE) {
+              chunks.push(data.slice(i, i + BATCH_SIZE));
+            }
+            
+            // Save each chunk with a small delay to prevent blocking
+            chunks.forEach((chunk, index) => {
+              setTimeout(() => {
+                const partialKey = `${key}_part_${index}`;
+                localStorage.setItem(partialKey, JSON.stringify(chunk));
+              }, index * 50);
+            });
+
+            // Save the chunk info
+            localStorage.setItem(`${key}_chunks`, String(chunks.length));
+          } else {
+            localStorage.setItem(key, JSON.stringify(data));
+          }
+
+          // Update cache
+          cache.set(key, data);
+          
+          // Clear pending writes
+          delete pendingWrites[key];
+          
+          resolve();
+        });
+      }, 150); // Debounce time
+    });
   } catch (error) {
     console.error(`Error saving ${key} to localStorage:`, error);
+    throw error;
   }
 };
+
+// Initialize arrays with data from localStorage or empty arrays
+let projects: Project[] = [];
+let samples: Sample[] = [];
+let sessions: Session[] = [];
+let notes: Note[] = [];
+let beatActivities: BeatActivity[] = [];
+
+// Initialize all data asynchronously
+Promise.all([
+  loadFromStorage<Project>('projects', []),
+  loadFromStorage<Sample>('samples', []),
+  loadFromStorage<Session>('sessions', []),
+  loadFromStorage<Note>('notes', []),
+  loadFromStorage<BeatActivity>('beatActivities', [])
+]).then(([loadedProjects, loadedSamples, loadedSessions, loadedNotes, loadedActivities]) => {
+  projects = loadedProjects;
+  samples = loadedSamples;
+  sessions = loadedSessions;
+  notes = loadedNotes;
+  beatActivities = loadedActivities;
+});
+
+export { projects, samples, sessions, notes, beatActivities };
 
 // Status to completion percentage mapping
 export const statusToCompletion = {
@@ -29,29 +131,42 @@ export const statusToCompletion = {
   'completed': 100
 };
 
-// Initialize arrays with data from localStorage or empty arrays
-let projects: Project[] = loadFromStorage('projects', []);
-export { projects };
-export const samples: Sample[] = loadFromStorage('samples', []);
-export const sessions: Session[] = loadFromStorage('sessions', []);
-export const notes: Note[] = loadFromStorage('notes', []);
-export const beatActivities: BeatActivity[] = loadFromStorage('beatActivities', []);
+// Get projects with caching
+export const getProjects = (): Project[] => {
+  const cachedProjects = cache.get<Project[]>('projects');
+  if (cachedProjects) {
+    return [...cachedProjects];
+  }
+  return [...projects];
+};
 
-// Wrapper functions to modify arrays and update localStorage
-export const addProject = (project: Project): void => {
+// Add project with optimistic updates
+export const addProject = async (project: Project): Promise<Project> => {
   // Ensure the completion percentage matches the status
   if (project.status in statusToCompletion) {
     project.completionPercentage = statusToCompletion[project.status];
   }
   
-  // Create a new array with the new project
+  // Update memory state
   projects = [project, ...projects];
   
-  // Save to storage
-  saveToStorage('projects', projects);
+  // Update cache immediately
+  cache.set('projects', projects);
+  
+  // Record initial beat activity for the new project
+  recordBeatCreation(project.id, 0);
+  
+  // Save to storage asynchronously
+  await saveToStorage('projects', projects);
+  
+  return project;
 };
 
-export const updateProject = (updatedProject: Project): void => {
+export const updateProject = async (updatedProject: Project): Promise<void> => {
+  // Find the existing project to check for status change
+  const existingProject = projects.find(p => p.id === updatedProject.id);
+  const statusChanged = existingProject && existingProject.status !== updatedProject.status;
+  
   // Create a new array with the updated project
   projects = projects.map(p => 
     p.id === updatedProject.id 
@@ -59,24 +174,33 @@ export const updateProject = (updatedProject: Project): void => {
       : p
   );
   
+  // If status changed, record a new beat activity
+  if (statusChanged) {
+    // Record beat activity with count 1 to show progress
+    recordBeatCreation(updatedProject.id, 1);
+  }
+  
+  // Update cache
+  cache.set('projects', projects);
+  
   // Save the updated projects to localStorage
-  saveToStorage('projects', projects);
+  await saveToStorage('projects', projects);
 };
 
-export const deleteProject = (projectId: string): void => {
+export const deleteProject = async (projectId: string): Promise<void> => {
   // Create a new array without the deleted project
   projects = projects.filter(p => p.id !== projectId);
   
   // Save to storage
-  saveToStorage('projects', projects);
+  await saveToStorage('projects', projects);
 };
 
-export const clearAllProjects = (): void => {
+export const clearAllProjects = async (): Promise<void> => {
   // Clear all projects
   projects = [];
   
   // Save empty array to storage
-  saveToStorage('projects', projects);
+  await saveToStorage('projects', projects);
 };
 
 export const getProjectById = (id: string): Project | undefined => {
@@ -106,7 +230,8 @@ export const getProjectsByStatus = (status: Project['status']): Project[] => {
 // Beat activity tracking functions
 export const recordBeatCreation = (projectId: string, count: number = 1, customDate?: Date) => {
   // Prevent recording if project doesn't exist
-  if (!projects.some(p => p.id === projectId)) {
+  const project = projects.find(p => p.id === projectId);
+  if (!project) {
     console.warn(`Attempted to record beats for non-existent project: ${projectId}`);
     return;
   }
@@ -121,22 +246,27 @@ export const recordBeatCreation = (projectId: string, count: number = 1, customD
   );
   
   if (existingEntry) {
-    // Update existing entry
-    existingEntry.count += count;
-    existingEntry.timestamp = now.getTime(); // Update timestamp when updating count
-    console.log('Updated existing beat entry:', existingEntry);
+    // Only update count if it's greater than 0 (ignore initial creation)
+    if (count > 0) {
+      existingEntry.count += count;
+      existingEntry.timestamp = now.getTime(); // Update timestamp when updating count
+      console.log('Updated existing beat entry:', existingEntry);
+    }
   } else {
-    // Create new entry
+    // Create new entry with at least count 1 for status changes
     const newEntry: BeatActivity = {
       id: crypto.randomUUID(),
       projectId,
       date,
-      count,
+      count: Math.max(1, count), // Ensure at least 1 count for new entries
       timestamp: now.getTime()
     };
     beatActivities.push(newEntry);
     console.log('Created new beat entry:', newEntry);
   }
+  
+  // Update cache
+  cache.set('beatActivities', beatActivities);
   
   // Save updated beat activities to localStorage
   saveToStorage('beatActivities', beatActivities);
@@ -192,164 +322,116 @@ export const getBeatsCreatedInRange = (
   return filteredActivities;
 };
 
-export const getTotalBeatsInTimeRange = (
-  timeRange: 'day' | 'week' | 'month' | 'year'
-): number => {
-  // Return 0 if no projects exist
-  if (projects.length === 0) {
-    return 0;
-  }
-  
+export const getTotalBeatsInTimeRange = (timeRange: 'day' | 'week' | 'month' | 'year', projectId?: string | null): number => {
   const now = new Date();
-  const startDate = new Date(now);
-  
+  let startDate: Date;
+
   switch (timeRange) {
     case 'day':
-      startDate.setHours(0, 0, 0, 0);
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       break;
     case 'week':
-      startDate.setDate(now.getDate() - now.getDay());
-      startDate.setHours(0, 0, 0, 0);
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
       break;
     case 'month':
-      startDate.setDate(1);
-      startDate.setHours(0, 0, 0, 0);
+      startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
       break;
     case 'year':
-      startDate.setMonth(0, 1);
-      startDate.setHours(0, 0, 0, 0);
+      startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
       break;
+    default:
+      startDate = new Date(0);
   }
-  
-  const activities = getBeatsCreatedInRange(startDate, now);
-  return activities.reduce((total, activity) => total + activity.count, 0);
+
+  return beatActivities
+    .filter(activity => {
+      const activityDate = new Date(activity.date);
+      const isInRange = activityDate >= startDate && activityDate <= now;
+      if (projectId) {
+        return isInRange && activity.projectId === projectId;
+      }
+      return isInRange;
+    })
+    .length;
 };
 
-export const getBeatsDataForChart = (
-  timeRange: 'day' | 'week' | 'month' | 'year'
-): { label: string; value: number }[] => {
-  // Return empty data if no projects exist
-  if (projects.length === 0) {
-    return [];
-  }
-  
+export const getBeatsDataForChart = (timeRange: 'day' | 'week' | 'month' | 'year', projectId?: string | null): ChartData[] => {
   const now = new Date();
-  const result = [];
-  
-  if (timeRange === 'day') {
-    // Start from the beginning of the current day (midnight)
-    const dayStart = new Date(now);
-    dayStart.setHours(0, 0, 0, 0);
-    
-    console.log('Generating daily chart data:', {
-      now: now.toISOString(),
-      dayStart: dayStart.toISOString()
-    });
-    
-    // Create 6 four-hour blocks
-    for (let i = 0; i < 6; i++) {
-      const blockStart = new Date(dayStart);
-      blockStart.setHours(i * 4, 0, 0, 0);
-      
-      const blockEnd = new Date(blockStart);
-      blockEnd.setHours(blockStart.getHours() + 4, 0, 0, 0);
-      
-      // Format the time label
-      let hours = blockStart.getHours();
-      const ampm = hours >= 12 ? 'pm' : 'am';
-      hours = hours % 12;
-      hours = hours ? hours : 12; // Convert 0 to 12
-      const timeLabel = `${hours}${ampm}`;
-      
-      // Count beats created in this 4-hour block
-      const activities = getBeatsCreatedInRange(blockStart, blockEnd);
-      const count = activities.reduce((total, activity) => total + activity.count, 0);
-      
-      console.log('Block data:', {
-        timeLabel,
-        blockStart: blockStart.toISOString(),
-        blockEnd: blockEnd.toISOString(),
-        activities,
-        count
-      });
-      
-      result.push({
-        label: timeLabel,
-        value: count
-      });
-    }
-  } else if (timeRange === 'week') {
-    // Last 7 days
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    for (let i = 6; i >= 0; i--) {
-      const dayStart = new Date(now);
-      dayStart.setDate(now.getDate() - i);
-      dayStart.setHours(0, 0, 0, 0);
-      
-      const dayEnd = new Date(dayStart);
-      dayEnd.setHours(23, 59, 59, 999);
-      
-      const dayName = days[dayStart.getDay()];
-      
-      // Count beats created on this day
-      const activities = getBeatsCreatedInRange(dayStart, dayEnd);
-      const count = activities.reduce((total, activity) => total + activity.count, 0);
-      
-      result.push({
-        label: dayName,
-        value: count
-      });
-    }
-  } else if (timeRange === 'month') {
-    // Last 4 weeks
-    for (let i = 3; i >= 0; i--) {
-      const weekStart = new Date(now);
-      weekStart.setDate(now.getDate() - (i * 7) - 6);
-      weekStart.setHours(0, 0, 0, 0);
-      
-      const weekEnd = new Date(now);
-      weekEnd.setDate(now.getDate() - (i * 7));
-      weekEnd.setHours(23, 59, 59, 999);
-      
-      const label = `${weekStart.getDate()}/${weekStart.getMonth() + 1} - ${weekEnd.getDate()}/${weekEnd.getMonth() + 1}`;
-      
-      // Count beats created in this week
-      const activities = getBeatsCreatedInRange(weekStart, weekEnd);
-      const count = activities.reduce((total, activity) => total + activity.count, 0);
-      
-      result.push({
-        label,
-        value: count
-      });
-    }
-  } else if (timeRange === 'year') {
-    // Last 12 months
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    for (let i = 11; i >= 0; i--) {
-      const monthStart = new Date(now);
-      monthStart.setMonth(now.getMonth() - i, 1);
-      monthStart.setHours(0, 0, 0, 0);
-      
-      const monthEnd = new Date(monthStart);
-      monthEnd.setMonth(monthStart.getMonth() + 1, 0);
-      monthEnd.setHours(23, 59, 59, 999);
-      
-      const monthName = months[monthStart.getMonth()];
-      
-      // Count beats created in this month
-      const activities = getBeatsCreatedInRange(monthStart, monthEnd);
-      const count = activities.reduce((total, activity) => total + activity.count, 0);
-      
-      result.push({
-        label: monthName,
-        value: count
-      });
-    }
-  }
-  
-  return result;
-};
+  const data: ChartData[] = [];
+  let formatPattern: string;
+  const intervals: number = timeRange === 'day' ? 24 
+    : timeRange === 'week' ? 7 
+    : timeRange === 'month' ? 30 
+    : 12;
 
-export const getProjects = (): Project[] => {
-  return [...projects];
+  switch (timeRange) {
+    case 'day':
+      formatPattern = 'ha';
+      break;
+    case 'week':
+      formatPattern = 'EEE';
+      break;
+    case 'month':
+      formatPattern = 'MMM d';
+      break;
+    case 'year':
+      formatPattern = 'MMM';
+      break;
+    default:
+      formatPattern = 'MMM d';
+  }
+
+  // Generate intervals
+  for (let i = intervals - 1; i >= 0; i--) {
+    const date = new Date();
+    switch (timeRange) {
+      case 'day':
+        date.setHours(date.getHours() - i);
+        break;
+      case 'week':
+        date.setDate(date.getDate() - i);
+        break;
+      case 'month':
+        date.setDate(date.getDate() - i);
+        break;
+      case 'year':
+        date.setMonth(date.getMonth() - i);
+        break;
+    }
+
+    const label = formatDate(date, formatPattern);
+    const startOfInterval = new Date(date);
+    const endOfInterval = new Date(date);
+
+    switch (timeRange) {
+      case 'day':
+        startOfInterval.setMinutes(0, 0, 0);
+        endOfInterval.setMinutes(59, 59, 999);
+        break;
+      case 'week':
+      case 'month':
+        startOfInterval.setHours(0, 0, 0, 0);
+        endOfInterval.setHours(23, 59, 59, 999);
+        break;
+      case 'year':
+        startOfInterval.setDate(1);
+        startOfInterval.setHours(0, 0, 0, 0);
+        endOfInterval.setMonth(endOfInterval.getMonth() + 1, 0);
+        endOfInterval.setHours(23, 59, 59, 999);
+        break;
+    }
+
+    const value = beatActivities.filter(activity => {
+      const activityDate = new Date(activity.date);
+      const isInRange = activityDate >= startOfInterval && activityDate <= endOfInterval;
+      if (projectId) {
+        return isInRange && activity.projectId === projectId;
+      }
+      return isInRange;
+    }).length;
+
+    data.push({ label, value });
+  }
+
+  return data;
 };

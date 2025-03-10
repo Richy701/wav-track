@@ -62,9 +62,19 @@ export async function checkLinks({
             for (const link of newLinks) {
               const absoluteUrl = new URL(link, result.url).toString();
               
-              if (!visited.has(absoluteUrl) && 
-                  (includeExternal || absoluteUrl.startsWith(baseUrl)) &&
-                  !excludePaths.some(path => absoluteUrl.includes(path))) {
+              // Ensure internal links include the base URL
+              if (absoluteUrl.startsWith('/') && !absoluteUrl.startsWith(baseUrl)) {
+                const baseUrlObj = new URL(baseUrl);
+                const fullUrl = `${baseUrlObj.origin}${baseUrl}${absoluteUrl}`;
+                if (!visited.has(fullUrl) && 
+                    (includeExternal || fullUrl.startsWith(baseUrl)) &&
+                    !excludePaths.some(path => fullUrl.includes(path))) {
+                  visited.add(fullUrl);
+                  queue.push({ url: fullUrl, pageFound: result.url });
+                }
+              } else if (!visited.has(absoluteUrl) && 
+                        (includeExternal || absoluteUrl.startsWith(baseUrl)) &&
+                        !excludePaths.some(path => absoluteUrl.includes(path))) {
                 visited.add(absoluteUrl);
                 queue.push({ url: absoluteUrl, pageFound: result.url });
               }

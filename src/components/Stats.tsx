@@ -25,17 +25,19 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
+import { Badge } from './ui/badge';
 
 interface StatsProps {
   projects: Project[];
   sessions: Session[];
+  selectedProject?: Project | null;
 }
 
-export default function Stats({ projects, sessions }: StatsProps) {
+export default function Stats({ projects, sessions, selectedProject }: StatsProps) {
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month' | 'year'>('week');
   const [lastBeatUpdate, setLastBeatUpdate] = useState(Date.now());
   
-  // Update when new beats are added
+  // Update when new beats are added or project is selected
   useEffect(() => {
     const checkForNewBeats = () => {
       const latestBeat = beatActivities[beatActivities.length - 1];
@@ -53,12 +55,14 @@ export default function Stats({ projects, sessions }: StatsProps) {
   const completedProjects = projects.filter(project => project.status === 'completed').length;
   
   // Calculate total beats in current period - only if projects exist
-  const totalBeatsInPeriod = projects.length > 0 ? getTotalBeatsInTimeRange(timeRange) : 0;
+  const totalBeatsInPeriod = projects.length > 0 ? getTotalBeatsInTimeRange(timeRange, selectedProject?.id) : 0;
   
-  // Calculate total beats across all projects - only if projects exist
-  const totalBeatsCreated = projects.length > 0 ? projects.reduce((total, project) => {
-    return total + getBeatsCreatedByProject(project.id);
-  }, 0) : 0;
+  // Calculate total beats across all projects or selected project
+  const totalBeatsCreated = selectedProject 
+    ? getBeatsCreatedByProject(selectedProject.id)
+    : projects.length > 0 
+      ? projects.reduce((total, project) => total + getBeatsCreatedByProject(project.id), 0)
+      : 0;
   
   // Calculate productivity score
   const productivityScore = projects.length > 0 || sessions.length > 0 
@@ -273,12 +277,19 @@ export default function Stats({ projects, sessions }: StatsProps) {
               <div className="p-1.5 rounded-md bg-primary/10">
                 <PhTrophy className="h-4 w-4 text-primary" weight="fill" />
               </div>
+              {selectedProject && (
+                <Badge variant="outline" className="text-xs">
+                  {selectedProject.title}
+                </Badge>
+              )}
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl sm:text-3xl lg:text-4xl font-bold">{totalBeatsInPeriod}</span>
               <span className="text-xs sm:text-sm text-muted-foreground">this {timeRange}</span>
             </div>
-            <h3 className="font-medium text-foreground text-sm sm:text-base">Beats Created</h3>
+            <h3 className="font-medium text-foreground text-sm sm:text-base">
+              {selectedProject ? "Project Beats" : "Total Beats"}
+            </h3>
           </div>
           
           <TimeRangeSelector 
@@ -289,7 +300,11 @@ export default function Stats({ projects, sessions }: StatsProps) {
         </div>
         
         <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
-          <BeatsChart timeRange={timeRange} projects={projects} />
+          <BeatsChart 
+            timeRange={timeRange} 
+            projects={projects} 
+            selectedProject={selectedProject} 
+          />
         </div>
 
         {/* Achievements Section */}

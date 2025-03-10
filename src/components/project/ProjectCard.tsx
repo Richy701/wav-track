@@ -16,8 +16,9 @@ import {
 } from '@phosphor-icons/react';
 import { Project } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { updateProject, deleteProject } from '@/lib/data';
+import { updateProject } from '@/lib/data';
 import { toast } from 'sonner';
+import { useProjects } from '@/hooks/useProjects';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,9 +36,18 @@ interface ProjectCardProps {
   project: Project;
   onProjectUpdated: () => void;
   onProjectDeleted: () => void;
+  onProjectSelect?: (project: Project) => void;
+  isSelected?: boolean;
 }
 
-export default function ProjectCard({ project, onProjectUpdated, onProjectDeleted }: ProjectCardProps) {
+export default function ProjectCard({ 
+  project, 
+  onProjectUpdated, 
+  onProjectDeleted,
+  onProjectSelect,
+  isSelected = false 
+}: ProjectCardProps) {
+  const { deleteProject, isDeletingProject } = useProjects();
   const [isHovered, setIsHovered] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -78,7 +88,6 @@ export default function ProjectCard({ project, onProjectUpdated, onProjectDelete
   const handleDelete = () => {
     try {
       deleteProject(project.id);
-      onProjectDeleted();
       setIsDeleteDialogOpen(false);
       toast.success("Project deleted", {
         description: `"${project.title}" has been removed.`
@@ -154,15 +163,31 @@ export default function ProjectCard({ project, onProjectUpdated, onProjectDelete
     setIsPlaying(false);
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger if clicking on buttons or menu
+    if (
+      e.target instanceof HTMLElement && 
+      (e.target.closest('button') || e.target.closest('[role="menuitem"]'))
+    ) {
+      return;
+    }
+    onProjectSelect?.(project);
+  };
+
   return (
     <div 
       className={cn(
-        "group relative bg-card rounded-xl overflow-hidden transition-all duration-300",
+        "group relative bg-card rounded-xl overflow-hidden transition-all duration-300 cursor-pointer",
         isHovered ? "shadow-lg transform -translate-y-1" : "shadow hover:shadow-md",
-        "border border-border"
+        "border border-border",
+        isSelected && "ring-2 ring-primary",
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      aria-pressed={isSelected}
     >
       <div className="p-5">
         <div className="flex justify-between items-start mb-3">
@@ -190,9 +215,10 @@ export default function ProjectCard({ project, onProjectUpdated, onProjectDelete
               <DropdownMenuItem 
                 onClick={() => setIsDeleteDialogOpen(true)}
                 className="text-red-600 dark:text-red-400"
+                disabled={isDeletingProject}
               >
                 <Trash className="mr-2 h-4 w-4" />
-                Delete Project
+                {isDeletingProject ? 'Deleting...' : 'Delete Project'}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

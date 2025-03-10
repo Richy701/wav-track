@@ -1,46 +1,78 @@
 import * as React from "react"
-import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
-
 import { cn } from "@/lib/utils"
 
-const ScrollArea = React.forwardRef<
-  React.ElementRef<typeof ScrollAreaPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>
->(({ className, children, ...props }, ref) => (
-  <ScrollAreaPrimitive.Root
-    ref={ref}
-    className={cn("relative overflow-hidden", className)}
-    {...props}
-  >
-    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">
-      {children}
-    </ScrollAreaPrimitive.Viewport>
-    <ScrollBar />
-    <ScrollAreaPrimitive.Corner />
-  </ScrollAreaPrimitive.Root>
-))
-ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName
+interface ScrollAreaProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: "default" | "thin" | "rounded" | "hide"
+  orientation?: "vertical" | "horizontal" | "both"
+}
 
-const ScrollBar = React.forwardRef<
-  React.ElementRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,
-  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>
->(({ className, orientation = "vertical", ...props }, ref) => (
-  <ScrollAreaPrimitive.ScrollAreaScrollbar
-    ref={ref}
-    orientation={orientation}
-    className={cn(
-      "flex touch-none select-none transition-colors",
-      orientation === "vertical" &&
-        "h-full w-2.5 border-l border-l-transparent p-[1px]",
-      orientation === "horizontal" &&
-        "h-2.5 flex-col border-t border-t-transparent p-[1px]",
+const ScrollArea = React.forwardRef<HTMLDivElement, ScrollAreaProps>(
+  ({ className, variant = "default", orientation = "vertical", children, ...props }, ref) => {
+    const scrollClasses = cn(
+      // Base styles
+      "relative",
+      // Orientation styles
+      orientation === "vertical" && "overflow-y-auto overflow-x-hidden",
+      orientation === "horizontal" && "overflow-x-auto overflow-y-hidden",
+      orientation === "both" && "overflow-auto",
+      // Variant styles
+      variant === "thin" && "scrollbar-thin",
+      variant === "rounded" && "scrollbar-rounded",
+      variant === "hide" && "scrollbar-hide",
       className
-    )}
-    {...props}
-  >
-    <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-border" />
-  </ScrollAreaPrimitive.ScrollAreaScrollbar>
-))
-ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName
+    )
 
-export { ScrollArea, ScrollBar }
+    return (
+      <div ref={ref} className={scrollClasses} {...props}>
+        {children}
+      </div>
+    )
+  }
+)
+
+ScrollArea.displayName = "ScrollArea"
+
+export { ScrollArea }
+
+// Example usage component
+export const ScrollableDemo = () => {
+  return (
+    <div className="space-y-4">
+      {/* Default Scrollbar */}
+      <ScrollArea className="h-[200px] w-full rounded-lg border border-border bg-card p-4">
+        <div className="space-y-4">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div key={i} className="h-[40px] rounded-lg bg-muted/50" />
+          ))}
+        </div>
+      </ScrollArea>
+
+      {/* Thin Scrollbar */}
+      <ScrollArea variant="thin" className="h-[200px] w-full rounded-lg border border-border bg-card p-4">
+        <div className="space-y-4">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div key={i} className="h-[40px] rounded-lg bg-muted/50" />
+          ))}
+        </div>
+      </ScrollArea>
+
+      {/* Rounded Scrollbar */}
+      <ScrollArea variant="rounded" className="h-[200px] w-full rounded-lg border border-border bg-card p-4">
+        <div className="space-y-4">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div key={i} className="h-[40px] rounded-lg bg-muted/50" />
+          ))}
+        </div>
+      </ScrollArea>
+
+      {/* Hide Scrollbar */}
+      <ScrollArea variant="hide" className="h-[200px] w-full rounded-lg border border-border bg-card p-4">
+        <div className="space-y-4">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div key={i} className="h-[40px] rounded-lg bg-muted/50" />
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
+  )
+}

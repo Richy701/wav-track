@@ -7,9 +7,17 @@ interface SortableProjectCardProps {
   project: Project;
   onProjectUpdated: () => void;
   onProjectDeleted: () => void;
+  onProjectSelect?: (project: Project) => void;
+  isSelected?: boolean;
 }
 
-export function SortableProjectCard({ project, onProjectUpdated, onProjectDeleted }: SortableProjectCardProps) {
+export function SortableProjectCard({ 
+  project, 
+  onProjectUpdated, 
+  onProjectDeleted,
+  onProjectSelect,
+  isSelected 
+}: SortableProjectCardProps) {
   const {
     attributes,
     listeners,
@@ -32,6 +40,8 @@ export function SortableProjectCard({ project, onProjectUpdated, onProjectDelete
         project={project}
         onProjectUpdated={onProjectUpdated}
         onProjectDeleted={onProjectDeleted}
+        onProjectSelect={onProjectSelect}
+        isSelected={isSelected}
       />
     </div>
   );

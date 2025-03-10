@@ -6,6 +6,7 @@ import path from 'path';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const BASE_URL = '/wav-track';
 
 // Compression middleware
 app.use(compression());
@@ -48,8 +49,13 @@ const cacheControl = (req, res, next) => {
 // Apply cache control
 app.use(cacheControl);
 
+// Redirect root to /wav-track/
+app.get('/', (req, res) => {
+  res.redirect(BASE_URL);
+});
+
 // Serve static files from dist with appropriate headers
-app.use(express.static('dist/client', {
+app.use(BASE_URL, express.static('dist/client', {
   etag: true, // Enable ETag
   lastModified: true, // Enable Last-Modified
   setHeaders: (res, path) => {
@@ -60,16 +66,25 @@ app.use(express.static('dist/client', {
   }
 }));
 
-// Handle SSR
+// Handle SSR with base URL
 app.use('*', async (req, res) => {
   try {
     const url = req.originalUrl;
+    
+    // If the URL doesn't start with the base URL, redirect
+    if (!url.startsWith(BASE_URL)) {
+      return res.redirect(BASE_URL + url);
+    }
+    
+    // Remove the base URL from the path for SSR
+    const pathWithoutBase = url.replace(BASE_URL, '');
+    
     const template = fs.readFileSync(
       path.resolve('dist/client/index.html'),
       'utf-8'
     );
     
-    const rendered = await ssrHandler(url, {
+    const rendered = await ssrHandler(pathWithoutBase, {
       request: req,
       response: res,
       template
