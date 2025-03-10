@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -11,7 +12,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { Project } from '@/lib/types';
 
 const Index = () => {
-  const { projects, isLoading, error, setProjects } = useProjects();
+  const { projects, isLoading, error, isFetching } = useProjects();
   const [orderedProjects, setOrderedProjects] = useState<Project[]>([]);
 
   // Update orderedProjects when projects change
@@ -20,6 +21,9 @@ const Index = () => {
   }, [projects]);
 
   const handleDragEnd = (activeId: string, overId: string) => {
+    // Since we can't directly modify projects via setProjects, we'll just
+    // update the UI order for now. In a real app, you would want to
+    // persist this order change to your backend or state management.
     const oldIndex = orderedProjects.findIndex(p => p.id === activeId);
     const newIndex = orderedProjects.findIndex(p => p.id === overId);
 
@@ -28,8 +32,7 @@ const Index = () => {
     newProjects.splice(newIndex, 0, movedProject);
 
     setOrderedProjects(newProjects);
-    // Update the projects in your data store
-    setProjects(newProjects);
+    // Note: We're removing the setProjects call since it doesn't exist in useProjects hook
   };
 
   if (isLoading) {

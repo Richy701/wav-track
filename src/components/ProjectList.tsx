@@ -97,7 +97,6 @@ const ProjectList: React.FC<ProjectListProps> = ({
     queryClient.invalidateQueries({ queryKey: ['projects'] });
   };
 
-  // Handle project selection
   const handleProjectSelect = (project: Project) => {
     setSelectedProjectId(selectedProjectId === project.id ? null : project.id);
     onProjectSelect?.(selectedProjectId === project.id ? null : project);
@@ -112,14 +111,11 @@ const ProjectList: React.FC<ProjectListProps> = ({
     { value: 'completed', label: 'Completed', className: 'bg-emerald-500/20 text-emerald-500 dark:text-emerald-400' }
   ];
 
-  // Apply both filtering and sorting
   const filteredAndSortedProjects = useMemo(() => {
-    // First filter
     const filtered = filter === 'all' 
       ? projects 
       : projects.filter(project => project.status === filter);
     
-    // Then sort
     return [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'newest':
@@ -136,7 +132,6 @@ const ProjectList: React.FC<ProjectListProps> = ({
     });
   }, [projects, filter, sortBy]);
 
-  // Get the appropriate icon and text for the current sort option
   const getSortOptionDisplay = (option: SortOption) => {
     switch (option) {
       case 'newest':
