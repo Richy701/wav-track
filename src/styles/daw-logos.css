@@ -1,0 +1,24 @@
+.daw-logo {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  transform: scale(1.2);
+}
+
+.daw-logo-with-bg {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  transform: scale(1.2);
+  background-color: white;
+}
+
+.progress-bar {
+  transition: width 0.3s ease-in-out;
+}
+
+.chart-label {
+  color: var(--foreground);
+}
+
+.flex-end {
+  align-items: flex-end;
+} 

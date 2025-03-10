@@ -1,0 +1,350 @@
+import { RegisterForm } from '@/components/auth/RegisterForm';
+import { useNavigate } from 'react-router-dom';
+import { Icons } from '@/components/icons';
+import { useState } from 'react';
+import { useTheme } from '@/lib/ThemeContext';
+import { cn } from '@/lib/utils';
+
+export default function Register() {
+  const navigate = useNavigate();
+  const [timeRange, setTimeRange] = useState('week');
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const [isLineChart, setIsLineChart] = useState(true);
+
+  const handleSuccess = () => {
+    navigate('/auth/verify');
+  };
+
+  // Sample data for different time ranges
+  const chartData = {
+    day: {
+      labels: ['12am', '4am', '8am', '12pm', '4pm', '8pm', '11pm'],
+      values: [0, 1, 2, 3, 2, 1, 0],
+      total: 9
+    },
+    week: {
+      labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+      values: [2, 4, 3, 5, 1, 2, 1],
+      total: 18
+    },
+    month: {
+      labels: ['W1', 'W2', 'W3', 'W4'],
+      values: [12, 15, 18, 14],
+      total: 59
+    },
+    year: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      values: [8, 6, 12, 9, 15, 11, 13, 10, 14, 12, 9, 7],
+      total: 126
+    }
+  };
+
+  const currentData = chartData[timeRange];
+
+  // Calculate max value for scaling
+  const maxValue = Math.max(...currentData.values);
+
+  return (
+    <div className={cn(
+      "container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0",
+      isDark ? "bg-background" : "bg-white"
+    )}>
+      {/* Back button */}
+      <button 
+        onClick={() => navigate('/login')}
+        className={cn(
+          "absolute top-4 left-4 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 disabled:pointer-events-none z-50",
+          isDark 
+            ? "text-white/60 hover:text-white focus:ring-white/20" 
+            : "text-zinc-600 hover:text-zinc-900 focus:ring-zinc-200"
+        )}
+      >
+        <Icons.chevronLeft className="mr-2 h-4 w-4" />
+        Back to login
+      </button>
+
+      {/* Decorative background for larger screens */}
+      <div className="relative hidden h-full flex-col bg-gradient-to-b from-muted/50 to-muted p-10 text-white dark:border-r lg:flex">
+        <div className="absolute inset-0 bg-zinc-900">
+          {/* Animated gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 via-purple-500/20 to-pink-500/20 animate-gradient-slow" />
+          <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20" />
+        </div>
+        
+        {/* Logo and Brand */}
+        <div className="relative z-20 flex flex-col items-center text-center space-y-2">
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight bg-gradient-to-b from-white via-white to-white/70 bg-clip-text text-transparent">
+            WavTrack
+          </h1>
+        </div>
+
+        {/* App Visualization */}
+        <div className="relative z-20 mt-8 rounded-lg border border-white/10 bg-black/20 backdrop-blur-sm overflow-hidden hover:border-white/20 transition-colors duration-300">
+          {/* Dashboard Header */}
+          <div className="p-6">
+            {/* Time Period Selector */}
+            <div className="flex justify-center items-center mb-8">
+              <div className="inline-flex rounded-lg bg-white/5 p-1 backdrop-blur-sm">
+                <button 
+                  onClick={() => setTimeRange('day')}
+                  className={`px-4 py-1.5 text-sm transition-colors ${
+                    timeRange === 'day' 
+                      ? 'bg-white/10 rounded-md text-white shadow-sm' 
+                      : 'text-white/60 hover:text-white/80'
+                  }`}
+                >
+                  Day
+                </button>
+                <button 
+                  onClick={() => setTimeRange('week')}
+                  className={`px-4 py-1.5 text-sm transition-colors ${
+                    timeRange === 'week' 
+                      ? 'bg-white/10 rounded-md text-white shadow-sm' 
+                      : 'text-white/60 hover:text-white/80'
+                  }`}
+                >
+                  Week
+                </button>
+                <button 
+                  onClick={() => setTimeRange('month')}
+                  className={`px-4 py-1.5 text-sm transition-colors ${
+                    timeRange === 'month' 
+                      ? 'bg-white/10 rounded-md text-white shadow-sm' 
+                      : 'text-white/60 hover:text-white/80'
+                  }`}
+                >
+                  Month
+                </button>
+                <button 
+                  onClick={() => setTimeRange('year')}
+                  className={`px-4 py-1.5 text-sm transition-colors ${
+                    timeRange === 'year' 
+                      ? 'bg-white/10 rounded-md text-white shadow-sm' 
+                      : 'text-white/60 hover:text-white/80'
+                  }`}
+                >
+                  Year
+                </button>
+              </div>
+            </div>
+
+            {/* Beats Created Counter */}
+            <div className="text-center space-y-1 mb-8">
+              <div className="flex items-center justify-center gap-3">
+                <div className="rounded-lg bg-gradient-to-br from-white/10 to-white/5 p-2 shadow-lg backdrop-blur-sm">
+                  <Icons.trophy className="h-5 w-5 text-white/80" />
+                </div>
+                <span className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">
+                  {currentData.total}
+                </span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-base text-white/60">this {timeRange}</span>
+                <span className="text-sm text-emerald-500">↑ 50%</span>
+              </div>
+              <h2 className="text-xl font-semibold text-white">Beats Created</h2>
+            </div>
+
+            {/* Chart Area */}
+            <div className="mt-6 h-[180px] w-full max-w-3xl mx-auto px-8">
+              <div className={`grid h-full w-full items-end gap-3 ${
+                timeRange === 'year' ? 'grid-cols-12' :
+                timeRange === 'month' ? 'grid-cols-4' :
+                'grid-cols-7'
+              }`}>
+                {currentData.values.map((value, i) => (
+                  <div
+                    key={i}
+                    className="relative h-full group"
+                  >
+                    <div className="absolute bottom-0 left-0 right-0 transition-all duration-500 ease-out"
+                         style={{ height: `${(value / maxValue) * 100}%` }}>
+                      <div className={`h-full w-full rounded-md transition-all duration-300 backdrop-blur-sm border border-white/10 ${
+                        i === currentData.values.length - 1
+                          ? 'bg-gradient-to-t from-violet-500/20 to-violet-400/40' 
+                          : i === currentData.values.length - 2
+                            ? 'bg-gradient-to-t from-violet-500/30 to-violet-400/50'
+                            : 'bg-gradient-to-t from-violet-500/40 to-violet-400/60'
+                      } group-hover:from-violet-500/50 group-hover:to-violet-400/70`} />
+                    </div>
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <div className="bg-white/10 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-medium text-white/90 border border-white/10">
+                        {value} {value === 1 ? 'beat' : 'beats'}
+                      </div>
+                    </div>
+                    <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-medium text-white/50">
+                      {currentData.labels[i]}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Chart Legend */}
+            <div className="mt-10 flex items-center justify-between text-xs max-w-3xl mx-auto px-8">
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-violet-400/60" />
+                <span className="text-white/60 font-medium">Beats Created</span>
+              </div>
+              <div className="text-white/40 font-medium">
+                {timeRange === 'day' ? 'Last 24 hours' : 
+                 timeRange === 'week' ? 'Last 7 days' : 
+                 timeRange === 'month' ? 'This month' : 
+                 '2024'} • Total: {currentData.total}
+              </div>
+            </div>
+          </div>
+
+          {/* Achievements Section */}
+          <div className="border-t border-white/10 p-6 bg-gradient-to-b from-transparent to-white/5">
+            <h3 className="text-xl font-semibold text-white mb-4">Achievements</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="rounded-lg bg-gradient-to-br from-white/10 to-white/5 p-4 text-center backdrop-blur-sm hover:from-white/15 hover:to-white/10 transition-colors duration-300">
+                <div className="mx-auto mb-2 h-8 w-8 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-500/10 flex items-center justify-center">
+                  <Icons.star className="h-4 w-4 text-amber-500/80" />
+                </div>
+                <h4 className="text-sm font-medium text-white">First Beat</h4>
+                <p className="mt-1 text-xs text-white/60">Created your first project</p>
+                <div className="mt-2 text-xs text-emerald-500">Unlocked</div>
+              </div>
+              
+              <div className="rounded-lg bg-gradient-to-br from-white/10 to-white/5 p-4 text-center backdrop-blur-sm hover:from-white/15 hover:to-white/10 transition-colors duration-300">
+                <div className="mx-auto mb-2 h-8 w-8 rounded-full bg-gradient-to-br from-violet-500/20 to-violet-500/10 flex items-center justify-center">
+                  <Icons.trophy className="h-4 w-4 text-violet-500/80" />
+                </div>
+                <h4 className="text-sm font-medium text-white">Beat Master</h4>
+                <p className="mt-1 text-xs text-white/60">Created 10+ beats</p>
+                <div className="mt-2 text-xs text-violet-500">8/10 beats</div>
+              </div>
+              
+              <div className="rounded-lg bg-gradient-to-br from-white/10 to-white/5 p-4 text-center backdrop-blur-sm hover:from-white/15 hover:to-white/10 transition-colors duration-300">
+                <div className="mx-auto mb-2 h-8 w-8 rounded-full bg-gradient-to-br from-sky-500/20 to-sky-500/10 flex items-center justify-center">
+                  <Icons.target className="h-4 w-4 text-sky-500/80" />
+                </div>
+                <h4 className="text-sm font-medium text-white">Finisher</h4>
+                <p className="mt-1 text-xs text-white/60">Completed 5+ projects</p>
+                <div className="mt-2 text-xs text-sky-500">3/5 completed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Feature Highlights */}
+        <div className="relative z-20 mt-auto">
+          <div className="space-y-6">
+            <p className="text-base font-medium leading-relaxed text-white/80 tracking-wide">
+              Start your beat-making journey. Track progress, connect with producers, and level up your craft.
+            </p>
+            <div className="flex items-center gap-4">
+              <div className="h-px flex-1 bg-white/20" />
+              <span className="text-sm font-medium text-white/60">WavTrack Team</span>
+            </div>
+          </div>
+          
+          <div className="mt-8 grid gap-4">
+            <div className="flex items-center gap-4 text-white/80">
+              <div className="rounded-full bg-white/10 p-2 backdrop-blur-sm">
+                <Icons.daw className="h-4 w-4" />
+              </div>
+              <p className="text-sm">Track your progress across any DAW</p>
+            </div>
+            <div className="flex items-center gap-4 text-white/80">
+              <div className="rounded-full bg-white/10 p-2 backdrop-blur-sm">
+                <Icons.microphone className="h-4 w-4" />
+              </div>
+              <p className="text-sm">Connect with other producers</p>
+            </div>
+            <div className="flex items-center gap-4 text-white/80">
+              <div className="rounded-full bg-white/10 p-2 backdrop-blur-sm">
+                <Icons.genres className="h-4 w-4" />
+              </div>
+              <p className="text-sm">Explore different genres and styles</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Registration form */}
+      <div className={cn(
+        "relative p-4 md:p-8",
+        isDark ? "bg-background" : "bg-white"
+      )}>
+        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px] lg:w-[400px]">
+          {/* Mobile Logo (shown only on small screens) */}
+          <div className="flex flex-col items-center text-center space-y-2 lg:hidden mb-6">
+            <h1 className={cn(
+              "text-3xl font-bold tracking-tight bg-gradient-to-r",
+              isDark 
+                ? "from-white via-white to-white/70" 
+                : "from-zinc-900 via-zinc-800 to-zinc-700"
+            )}>
+              WavTrack
+            </h1>
+          </div>
+
+          <div className="flex flex-col space-y-2 text-center">
+            <h1 className={cn(
+              "text-xl sm:text-2xl font-semibold tracking-tight",
+              isDark ? "text-white" : "text-zinc-900"
+            )}>
+              Create your producer profile
+            </h1>
+            <p className={cn(
+              "text-sm",
+              isDark ? "text-zinc-400" : "text-zinc-600"
+            )}>
+              Join the community and start tracking your music production journey
+            </p>
+          </div>
+
+          {/* Card wrapper for the form */}
+          <div className={cn(
+            "rounded-lg border shadow-sm",
+            isDark 
+              ? "bg-zinc-900/50 border-zinc-800" 
+              : "bg-white border-zinc-200"
+          )}>
+            <div className="p-4 sm:p-6">
+              <RegisterForm onSuccess={handleSuccess} />
+            </div>
+          </div>
+
+          <p className={cn(
+            "px-2 sm:px-8 text-center text-xs sm:text-sm",
+            isDark ? "text-zinc-400" : "text-zinc-600"
+          )}>
+            By clicking create account, you agree to our{" "}
+            <a 
+              href="/terms" 
+              className="underline underline-offset-4 hover:text-primary transition-colors"
+            >
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a 
+              href="/privacy" 
+              className="underline underline-offset-4 hover:text-primary transition-colors"
+            >
+              Privacy Policy
+            </a>
+            .
+          </p>
+        </div>
+
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+          <div className={cn(
+            "absolute left-[40%] top-0 h-[1000px] w-[1000px] rounded-full blur-3xl opacity-20 lg:opacity-100",
+            isDark ? "bg-purple-500/10" : "bg-purple-500/5"
+          )} />
+          <div className={cn(
+            "absolute right-0 bottom-0 h-[800px] w-[800px] rounded-full blur-3xl opacity-20 lg:opacity-100",
+            isDark ? "bg-violet-500/10" : "bg-violet-500/5"
+          )} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
