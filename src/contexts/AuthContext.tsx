@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import type { ToastProps } from '@/components/ui/toast';
@@ -389,11 +388,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return true;
       }
       
-      // Replace toast.error with showErrorToast
-      showErrorToast(
-        'Login Failed',
-        'No user data received'
-      );
+      toast.error('Login failed', {
+        description: 'No user data received'
+      });
       return false;
     } catch (error) {
       console.error('Login error:', error);
