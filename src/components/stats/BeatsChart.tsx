@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { getBeatsDataForChart } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { Project } from '@/lib/types';
-import { ChartBar, LineChart as LineChartIcon } from 'lucide-react';
+import { BarChart3, LineChart as LineChartIcon } from 'lucide-react';
 
 type ChartView = 'bar' | 'line';
 
@@ -102,7 +102,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
             )}
             title="Bar chart"
           >
-            <ChartBar className="w-4 h-4" />
+            <BarChart3 className="w-4 h-4" />
           </button>
           <button
             onClick={() => setChartView('line')}
