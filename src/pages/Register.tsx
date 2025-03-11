@@ -46,6 +46,12 @@ export default function Register() {
   // Calculate max value for scaling
   const maxValue = Math.max(...currentData.values);
 
+  // Helper function to get height class
+  const getHeightClass = (value: number) => {
+    const percentage = Math.round((value / maxValue) * 100 / 10) * 10;
+    return styles[`h-${percentage}`];
+  };
+
   return (
     <div className={cn(
       "container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0",
@@ -160,8 +166,10 @@ export default function Register() {
                     className="relative h-full group"
                   >
                     <div 
-                      className={styles.chartBar}
-                      style={{ height: `${(value / maxValue) * 100}%` }}
+                      className={cn(
+                        styles.chartBar,
+                        getHeightClass(value)
+                      )}
                     >
                       <div className={cn(
                         styles.chartBarInner,
