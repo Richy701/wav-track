@@ -5,7 +5,7 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: process.env.NODE_ENV === 'production' ? '/' : '/wav-track/',
+  base: '/wav-track/',  // Set base to repository name for GitHub Pages
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
