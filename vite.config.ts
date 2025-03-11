@@ -5,13 +5,15 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: process.env.NODE_ENV === 'production' ? '/' : '/wav-track/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
   server: {
-    port: 8080
+    port: 8080,
+    open: true // Automatically open browser
   },
   build: {
     outDir: 'dist',

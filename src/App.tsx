@@ -34,7 +34,7 @@ function App() {
       <ThemeProvider>
         <ThemeTransition />
         <TooltipProvider>
-          <Router>
+          <Router basename={import.meta.env.PROD ? '/' : '/wav-track'}>
             <AuthProvider>
               <Suspense fallback={<LoadingScreen />}>
                 <Routes>
