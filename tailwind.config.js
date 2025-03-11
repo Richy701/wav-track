@@ -1,11 +1,11 @@
 /** @type {import('tailwindcss').Config} */
-import { fontFamily } from "tailwindcss/defaultTheme";
+import animate from "tailwindcss-animate"
 
 export default {
   darkMode: ["class"],
   content: [
-    './src/**/*.{js,jsx,ts,tsx}',
-    './index.html',
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     container: {
@@ -16,13 +16,7 @@ export default {
       },
     },
     extend: {
-      fontFamily: {
-        sans: ["Inter var", ...fontFamily.sans],
-        display: ["Clash Display", ...fontFamily.sans],
-        mono: ["JetBrains Mono", ...fontFamily.mono],
-      },
       fontSize: {
-        // Fluid typography scale
         "fluid-sm": "clamp(0.8rem, 0.17vw + 0.76rem, 0.89rem)",
         "fluid-base": "clamp(1rem, 0.34vw + 0.91rem, 1.19rem)",
         "fluid-lg": "clamp(1.25rem, 0.61vw + 1.1rem, 1.58rem)",
@@ -69,21 +63,12 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
-      keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
-        },
-      },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+      fontFamily: {
+        sans: ["Inter var", "Inter", "sans-serif"],
+        display: ["Clash Display", "sans-serif"],
+        mono: ["JetBrains Mono", "monospace"],
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [animate],
 } 
