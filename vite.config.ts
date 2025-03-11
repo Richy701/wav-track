@@ -17,16 +17,23 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false, // Disable sourcemaps for production
     assetsDir: 'assets',
     modulePreload: {
       polyfill: true
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) {
+              return 'react-vendor';
+            }
+            if (id.includes('@radix-ui')) {
+              return 'ui-vendor';
+            }
+            return 'vendor';
+          }
         },
         assetFileNames: (assetInfo) => {
           if (!assetInfo.name) return 'assets/[name].[hash][extname]';
