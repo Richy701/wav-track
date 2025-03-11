@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>WavTrack</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#8B5CF6" />
+    <meta property="og:image" content="/wav-track/og-image.png" />
+    <link rel="icon" type="image/svg+xml" href="/wav-track/favicon.svg" />
+    <link rel="manifest" href="/wav-track/manifest.json" />
+    <meta name="description" content="Track your beat production journey" />
+    <link rel="apple-touch-icon" href="/wav-track/apple-touch-icon.png" />
+    <meta name="author" content="Lovable" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <script>
+      // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.add('light')
+      }
+    </script>
+    <script type="module" crossorigin src="/wav-track/assets/index-7r94SV5T.js"></script>
+    <link rel="stylesheet" crossorigin href="/wav-track/assets/index--flhZTW6.css">
+  </head>
+
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
