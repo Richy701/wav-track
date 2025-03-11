@@ -34,7 +34,7 @@ function App() {
       <ThemeProvider>
         <ThemeTransition />
         <TooltipProvider>
-          <Router basename="/wav-track">
+          <Router>
             <AuthProvider>
               <Suspense fallback={<LoadingScreen />}>
                 <Routes>
