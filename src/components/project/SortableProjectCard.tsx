@@ -2,6 +2,8 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import ProjectCard from './ProjectCard';
 import { Project } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import styles from './SortableProjectCard.module.css';
 
 interface SortableProjectCardProps {
   project: Project;
@@ -27,15 +29,21 @@ export function SortableProjectCard({
     isDragging,
   } = useSortable({ id: project.id });
 
-  const style = {
+  const cardStyle = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    cursor: 'grab',
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div 
+      ref={setNodeRef} 
+      className={cn(
+        styles.sortableCard,
+        isDragging ? styles.dragging : styles.notDragging
+      )}
+      style={cardStyle} 
+      {...attributes} 
+      {...listeners}
+    >
       <ProjectCard
         project={project}
         onProjectUpdated={onProjectUpdated}
