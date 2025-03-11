@@ -5,7 +5,7 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: './',  // Changed from '/wav-track/' to './' for relative paths
+  base: '/wav-track/',  // Changed back to match Router basename
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
