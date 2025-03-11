@@ -34,7 +34,7 @@ function App() {
       <ThemeProvider>
         <ThemeTransition />
         <TooltipProvider>
-          <Router basename={import.meta.env.BASE_URL}>
+          <Router basename="">
             <AuthProvider>
               <Suspense fallback={<LoadingScreen />}>
                 <Routes>

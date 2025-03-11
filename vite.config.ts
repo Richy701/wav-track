@@ -5,7 +5,7 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/wav-track/',  // Set base to repository name for GitHub Pages
+  base: './',  // Changed from '/wav-track/' to './' for relative paths
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -36,21 +36,21 @@ export default defineConfig({
           }
         },
         assetFileNames: (assetInfo) => {
-          if (!assetInfo.name) return 'assets/[name].[hash][extname]';
+          if (!assetInfo.name) return './assets/[name].[hash][extname]';
           
           if (/\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/i.test(assetInfo.name)) {
-            return `assets/media/[name].[hash][extname]`;
+            return `./assets/media/[name].[hash][extname]`;
           }
           if (/\.(png|jpe?g|gif|svg|webp|avif)(\?.*)?$/i.test(assetInfo.name)) {
-            return `assets/images/[name].[hash][extname]`;
+            return `./assets/images/[name].[hash][extname]`;
           }
           if (/\.(woff2?|eot|ttf|otf)(\?.*)?$/i.test(assetInfo.name)) {
-            return `assets/fonts/[name].[hash][extname]`;
+            return `./assets/fonts/[name].[hash][extname]`;
           }
-          return `assets/[name].[hash][extname]`;
+          return `./assets/[name].[hash][extname]`;
         },
-        chunkFileNames: 'assets/js/[name].[hash].js',
-        entryFileNames: 'assets/js/[name].[hash].js',
+        chunkFileNames: './assets/js/[name].[hash].js',
+        entryFileNames: './assets/js/[name].[hash].js',
       },
     },
   },
