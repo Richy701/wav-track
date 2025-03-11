@@ -1,14 +1,13 @@
-import { createRoot } from 'react-dom/client'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import App from './App.tsx'
-import './index.css'
+import { createRoot } from 'react-dom/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import App from './App.tsx';
+import './index.css';
 
 // Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 30, // Data is fresh for 30 seconds
-      // gcTime: 1000 * 60 * 5, // Cache is kept for 5 minutes
       refetchOnWindowFocus: true, // Refetch when window gains focus
       retry: 2, // Retry failed requests twice
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
@@ -18,7 +17,7 @@ const queryClient = new QueryClient({
       refetchIntervalInBackground: true, // Continue refetching even when tab is in background
     },
   },
-})
+});
 
 // Add detailed error logging
 window.onerror = function(msg, url, lineNo, columnNo, error) {
@@ -27,7 +26,7 @@ window.onerror = function(msg, url, lineNo, columnNo, error) {
     url: url,
     lineNo: lineNo,
     columnNo: columnNo,
-    error: error
+    error: error,
   });
   return false;
 };
@@ -35,16 +34,16 @@ window.onerror = function(msg, url, lineNo, columnNo, error) {
 // Register service worker for PWA support
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(registration => {
+    navigator.serviceWorker.register('/sw.js').then((registration) => {
       console.log('SW registered: ', registration);
-    }).catch(registrationError => {
+    }).catch((registrationError) => {
       console.log('SW registration failed: ', registrationError);
     });
   });
 }
 
 // Add error boundary
-const rootElement = document.getElementById("root");
+const rootElement = document.getElementById('root');
 if (!rootElement) {
   console.error('Root element not found');
   throw new Error('Failed to find the root element');
@@ -73,15 +72,16 @@ try {
 
 // Clear service worker cache in development
 if (import.meta.env.DEV) {
+  console.log('Development mode: clearing service worker and caches');
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(registrations => {
-      registrations.forEach(registration => registration.unregister());
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => registration.unregister());
     });
   }
   // Clear browser cache
   if ('caches' in window) {
-    caches.keys().then(keys => {
-      keys.forEach(key => caches.delete(key));
+    caches.keys().then((keys) => {
+      keys.forEach((key) => caches.delete(key));
     });
   }
 }

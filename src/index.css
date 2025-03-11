@@ -6,7 +6,8 @@
 @import './styles/daw-logos.css';
 
 @tailwind base;
-@tailwind components;
+
+@import 'tailwindcss/components';
 @tailwind utilities;
 
 @layer base {
@@ -116,7 +117,37 @@
 
   /* Firefox */
   * {
-    scrollbar-width: thin;
+    scrollbar-width: thin; /* For Firefox */
+    /* Fallback for browsers that do not support scrollbar-width */
+    &::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    &::-webkit-scrollbar-track {
+      @apply bg-secondary/30 rounded-lg;
+    }
+    &::-webkit-scrollbar-thumb {
+      @apply bg-secondary rounded-lg border-2 border-background transition-colors;
+      background-clip: padding-box;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      @apply bg-muted-foreground/50;
+    }
+    /* For Chrome, Safari, and other WebKit browsers */
+    &::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    &::-webkit-scrollbar-track {
+      @apply bg-secondary/30 rounded-lg;
+    }
+    &::-webkit-scrollbar-thumb {
+      @apply bg-secondary rounded-lg border-2 border-background transition-colors;
+      background-clip: padding-box;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      @apply bg-muted-foreground/50;
+    }
     scrollbar-color: hsl(var(--secondary)) hsl(var(--secondary)/0.3);
   }
 
@@ -168,16 +199,18 @@
 
   h1 {
     @apply text-fluid-2xl font-bold mb-4;
-    text-wrap: balance;
+    overflow-wrap: break-word;
   }
 
   h2 {
     @apply text-fluid-xl font-semibold mb-3;
-    text-wrap: balance;
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
 
   h3 {
     @apply text-fluid-lg font-medium mb-2;
+    overflow-wrap: break-word;
     text-wrap: balance;
   }
 
@@ -187,7 +220,7 @@
 
   p {
     @apply text-fluid-base leading-relaxed mb-4;
-    text-wrap: pretty;
+    overflow-wrap: break-word;
   }
 
   .text-balance {
@@ -195,7 +228,7 @@
   }
 
   .text-pretty {
-    text-wrap: pretty;
+    overflow-wrap: break-word;
   }
 
   /* Code blocks */

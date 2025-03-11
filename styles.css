@@ -1,0 +1,32 @@
+/* ...existing code... */
+
+/* For browsers that support scrollbar-width */
+.scrollable-element {
+  scrollbar-width: thin; /* or 'auto' or 'none' */
+  -webkit-scrollbar-width: thin; /* for older WebKit browsers */
+  scrollbar-color: #888 #fff; /* thumb color and track color */
+  /* Fallback for browsers that do not support scrollbar-color */
+  -webkit-scrollbar-width: thin;
+  scrollbar-width: thin;
+  -webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 10px;
+  }
+  -webkit-scrollbar-track {
+    background-color: #fff;
+  }
+}
+
+/* For WebKit browsers (Chrome, Safari, etc.) */
+.scrollable-element::-webkit-scrollbar {
+  width: 8px; /* width of the scrollbar */
+}
+
+.scrollable-element::-webkit-scrollbar-thumb {
+  background-color: #888; /* color of the scrollbar thumb */
+  border-radius: 10px; /* roundness of the scrollbar thumb */
+}
+
+.scrollable-element::-webkit-scrollbar-track {
+  background-color: #fff; /* color of the scrollbar track */
+}

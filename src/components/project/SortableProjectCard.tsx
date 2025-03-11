@@ -29,10 +29,6 @@ export function SortableProjectCard({
     isDragging,
   } = useSortable({ id: project.id });
 
-  const cardStyle = {
-    transform: CSS.Transform.toString(transform),
-  };
-
   return (
     <div 
       ref={setNodeRef} 
@@ -40,7 +36,9 @@ export function SortableProjectCard({
         styles.sortableCard,
         isDragging ? styles.dragging : styles.notDragging
       )}
-      style={cardStyle} 
+      style={{ 
+        '--dnd-transform': transform ? CSS.Transform.toString(transform) : 'none'
+      } as React.CSSProperties}
       {...attributes} 
       {...listeners}
     >
@@ -53,4 +51,4 @@ export function SortableProjectCard({
       />
     </div>
   );
-} 
+}

@@ -70,5 +70,9 @@ export default {
       },
     },
   },
-  plugins: [animate],
-} 
+  plugins: [
+    animate,
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
+  ],
+}
