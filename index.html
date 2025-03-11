@@ -6,6 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Wav Track</title>
     <meta name="theme-color" content="#8B5CF6" />
+    <script>
+      // Fallback for browsers that do not support meta[name=theme-color]
+      (function() {
+        var themeColor = '#8B5CF6';
+        var metaThemeColor = document.querySelector('meta[name=theme-color]');
+        if (!metaThemeColor) {
+          metaThemeColor = document.createElement('meta');
+          metaThemeColor.name = 'theme-color';
+          document.head.appendChild(metaThemeColor);
+        }
+        metaThemeColor.content = themeColor;
+      })();
+    </script>
     <meta property="og:image" content="/wav-track/og-image.png" />
     <link rel="manifest" href="/wav-track/manifest.json" />
     <meta name="description" content="Track your beat production journey" />

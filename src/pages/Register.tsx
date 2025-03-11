@@ -4,6 +4,7 @@ import { Icons } from '@/components/icons';
 import { useState } from 'react';
 import { useTheme } from '@/lib/ThemeContext';
 import { cn } from '@/lib/utils';
+import styles from './Register.module.css';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -158,22 +159,25 @@ export default function Register() {
                     key={i}
                     className="relative h-full group"
                   >
-                    <div className="absolute bottom-0 left-0 right-0 transition-all duration-500 ease-out"
-                         style={{ height: `${(value / maxValue) * 100}%` }}>
-                      <div className={`h-full w-full rounded-md transition-all duration-300 backdrop-blur-sm border border-white/10 ${
-                        i === currentData.values.length - 1
-                          ? 'bg-gradient-to-t from-violet-500/20 to-violet-400/40' 
-                          : i === currentData.values.length - 2
-                            ? 'bg-gradient-to-t from-violet-500/30 to-violet-400/50'
-                            : 'bg-gradient-to-t from-violet-500/40 to-violet-400/60'
-                      } group-hover:from-violet-500/50 group-hover:to-violet-400/70`} />
+                    <div 
+                      className={styles.chartBar}
+                      style={{ height: `${(value / maxValue) * 100}%` }}
+                    >
+                      <div className={cn(
+                        styles.chartBarInner,
+                        i === currentData.values.length - 1 && styles.chartBarLatest,
+                        i === currentData.values.length - 2 && styles.chartBarSecondLatest,
+                        i < currentData.values.length - 2 && styles.chartBarDefault,
+                        'group-hover:' + styles.chartBarHover
+                      )} />
                     </div>
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <div className="bg-white/10 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-medium text-white/90 border border-white/10">
-                        {value} {value === 1 ? 'beat' : 'beats'}
-                      </div>
+                    <div className={cn(
+                      styles.tooltip,
+                      "bg-white/10 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-medium text-white/90 border border-white/10"
+                    )}>
+                      {value} {value === 1 ? 'beat' : 'beats'}
                     </div>
-                    <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-medium text-white/50">
+                    <div className={styles.label}>
                       {currentData.labels[i]}
                     </div>
                   </div>

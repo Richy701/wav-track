@@ -111,7 +111,7 @@
     "tsx": "^4.19.3",
     "typescript": "^5.3.2",
     "typescript-eslint": "^8.26.1",
-    "vite": "^5.0.12",
+    "vite": "^6.2.1",
     "vite-imagetools": "^7.0.5",
     "vite-plugin-compression": "^0.5.1",
     "vite-plugin-pwa": "^0.21.1"
