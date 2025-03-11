@@ -173,16 +173,15 @@ export default function ProjectCard({
     }
     onProjectSelect?.(project);
   };
-
   return (
     <div 
       className={cn(
         "group relative bg-card rounded-xl overflow-hidden transition-all duration-300 cursor-pointer",
         isHovered ? "shadow-lg transform -translate-y-1" : "shadow hover:shadow-md",
         "border border-border",
-        isSelected && "ring-2 ring-primary",
+        isSelected && "ring-2 ring-primary"
       )}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={() => setIsHovered(true)} 
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleCardClick}
       role="button"

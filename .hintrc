@@ -8,5 +8,21 @@
     "not and_ff <= 135",
     "not firefox <= 135",
     "not opera <= 114"
-  ]
+  ],
+  "hints": {
+    "axe/keyboard": [
+      "default",
+      {
+        "nested-interactive": "off"
+      }
+    ],
+    "compat-api/css": [
+      "default",
+      {
+        "ignore": [
+          "text-wrap"
+        ]
+      }
+    ]
+  }
 }
