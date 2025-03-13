@@ -21,6 +21,8 @@ export default defineConfig(({ mode }) => ({
         name: 'WavTrack',
         short_name: 'WavTrack',
         theme_color: '#ffffff',
+        start_url: '/wav-track/',
+        scope: '/wav-track/',
         icons: [
           {
             src: '/android-chrome-192x192.png',
@@ -53,7 +55,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: 'dist',
-    sourcemap: false,
+    sourcemap: true,
     assetsDir: 'assets',
     modulePreload: {
       polyfill: true
@@ -62,8 +64,8 @@ export default defineConfig(({ mode }) => ({
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true,
-        drop_debugger: true
+        drop_console: mode === 'production',
+        drop_debugger: mode === 'production'
       }
     },
     rollupOptions: {
