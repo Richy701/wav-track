@@ -19,7 +19,7 @@ export function StatCard({
 }: StatCardProps) {
   return (
     <div className={cn(
-      "bg-card rounded-lg p-3 sm:p-4 transition-all hover:shadow-lg",
+      "bg-card rounded-lg p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50",
       className
     )}>
       <div className="flex justify-between items-start mb-3 sm:mb-4">

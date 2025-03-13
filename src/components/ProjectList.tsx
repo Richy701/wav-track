@@ -73,9 +73,9 @@ const ProjectList: React.FC<ProjectListProps> = ({
     }
   };
 
-  const handleClearAllProjects = () => {
+  const handleClearAllProjects = async () => {
     try {
-      clearAllProjects();
+      await clearAllProjects();
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       setIsClearDialogOpen(false);
       toast.success("All projects deleted", {
@@ -288,7 +288,10 @@ const ProjectList: React.FC<ProjectListProps> = ({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={handleClearAllProjects}
+              onClick={(e) => {
+                e.preventDefault();
+                handleClearAllProjects();
+              }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Clear All Projects

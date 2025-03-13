@@ -30,8 +30,8 @@ export default function Header() {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out",
         scrolled 
-          ? "bg-background/80 backdrop-blur-md shadow-sm" 
-          : "bg-transparent",
+          ? "backdrop-blur-md" 
+          : "",
         "px-4 py-3 md:px-6 md:py-4"
       )}
     >

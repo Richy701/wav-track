@@ -33,7 +33,10 @@ import {
   Star,
   Headphones,
   Guitar,
-  SoundcloudLogo
+  SoundcloudLogo,
+  Globe,
+  Bell as PhBell,
+  MusicNotes
 } from '@phosphor-icons/react';
 import { useAuth } from '../contexts/AuthContext';
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +55,50 @@ import {
   projects
 } from '@/lib/data';
 import { toast } from 'sonner';
+import { FLStudioIcon, AbletonIcon, LogicProIcon, ProToolsIcon, StudioOneIcon, BitwigIcon, ReaperIcon } from '@/components/DawIcons';
+
+const dawOptions = [
+  {
+    value: "fl-studio",
+    label: "FL Studio",
+    icon: <FLStudioIcon className="h-4 w-4" />
+  },
+  {
+    value: "ableton",
+    label: "Ableton Live",
+    icon: <AbletonIcon className="h-4 w-4" />
+  },
+  {
+    value: "logic-pro",
+    label: "Logic Pro",
+    icon: <LogicProIcon className="h-4 w-4" />
+  },
+  {
+    value: "pro-tools",
+    label: "Pro Tools",
+    icon: <ProToolsIcon className="h-4 w-4" />
+  },
+  {
+    value: "studio-one",
+    label: "Studio One",
+    icon: <StudioOneIcon className="h-4 w-4" />
+  },
+  {
+    value: "bitwig",
+    label: "Bitwig",
+    icon: <BitwigIcon className="h-4 w-4" />
+  },
+  {
+    value: "reaper",
+    label: "Reaper",
+    icon: <ReaperIcon className="h-4 w-4" />
+  },
+  {
+    value: "other",
+    label: "Other",
+    icon: <MusicNote className="h-4 w-4" />
+  }
+];
 
 const Profile = () => {
   const { profile, logout, refreshProfile } = useAuth();
@@ -227,6 +274,11 @@ const Profile = () => {
       icon: <PhMapPin weight="fill" className="h-4 w-4" />,
       label: 'Location',
       value: profile?.location || 'Add location'
+    },
+    {
+      icon: <Globe weight="fill" className="h-4 w-4" />,
+      label: 'Website',
+      value: profile?.website || 'Add website'
     }
   ];
 
@@ -267,35 +319,26 @@ const Profile = () => {
     { name: "Electronic", level: 45 }
   ];
 
-  // Add new sections for the About Me card
+  // Update producer info to match settings
   const producerInfo = {
     equipment: [
-      { name: "DAW", value: profile?.daw || "Add your DAW" },
-      { name: "Audio Interface", value: "Universal Audio Apollo" },
-      { name: "Monitors", value: "KRK Rokit 5" }
+      { 
+        name: "DAW", 
+        value: profile?.daw || "Add your DAW",
+        icon: dawOptions.find(option => option.value === profile?.daw)?.icon || <MusicNote className="h-4 w-4" />
+      }
     ],
+    genres: profile?.genres || [],
     specialties: [
       { icon: <MusicNote className="h-4 w-4" />, label: "Beat Making" },
       { icon: <Microphone className="h-4 w-4" />, label: "Vocal Production" },
       { icon: <WaveSquare className="h-4 w-4" />, label: "Sound Design" }
     ],
-    recentActivity: [
-      { 
-        icon: <MusicNote className="h-4 w-4 text-primary" />,
-        text: "Created a new beat",
-        time: "2 hours ago"
-      },
-      { 
-        icon: <PhCheckCircle className="h-4 w-4 text-green-500" />,
-        text: "Completed project 'Summer Vibes'",
-        time: "1 day ago"
-      },
-      { 
-        icon: <PhTrophy className="h-4 w-4 text-yellow-500" />,
-        text: "Reached 50 beats milestone",
-        time: "3 days ago"
-      }
-    ]
+    notifications: {
+      newFollowers: profile?.notifications?.newFollowers ?? true,
+      beatComments: profile?.notifications?.beatComments ?? true,
+      collaborationRequests: profile?.notifications?.collaborationRequests ?? true
+    }
   };
 
   // Get recent activities
@@ -449,26 +492,59 @@ const Profile = () => {
                           <div className="grid gap-2">
                             {producerInfo.equipment.map((item, index) => (
                               <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
-                                <span className="text-sm font-medium">{item.name}</span>
+                                <div className="flex items-center gap-2">
+                                  {item.icon}
+                                  <span className="text-sm font-medium">{item.name}</span>
+                                </div>
                                 <span className="text-sm text-muted-foreground">{item.value}</span>
                               </div>
                             ))}
                           </div>
                         </div>
 
-                        {/* Specialties Section */}
+                        {/* Genres Section */}
                         <div>
                           <h4 className="font-medium mb-3 flex items-center gap-2">
-                            <Star className="h-4 w-4 text-muted-foreground" />
-                            Specialties
+                            <MusicNotes className="h-4 w-4 text-muted-foreground" />
+                            Genres
                           </h4>
                           <div className="flex flex-wrap gap-2">
-                            {producerInfo.specialties.map((specialty, index) => (
-                              <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                                {specialty.icon}
-                                {specialty.label}
+                            {producerInfo.genres.map((genre, index) => (
+                              <Badge key={index} variant="secondary">
+                                {genre}
                               </Badge>
                             ))}
+                            {producerInfo.genres.length === 0 && (
+                              <span className="text-sm text-muted-foreground">No genres added yet</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Notification Preferences */}
+                        <div>
+                          <h4 className="font-medium mb-3 flex items-center gap-2">
+                            <PhBell className="h-4 w-4 text-muted-foreground" />
+                            Notification Preferences
+                          </h4>
+                          <div className="grid gap-2">
+                            <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                              <span className="text-sm font-medium">New Followers</span>
+                              <Badge variant={producerInfo.notifications.newFollowers ? "default" : "secondary"}>
+                                {producerInfo.notifications.newFollowers ? "Enabled" : "Disabled"}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                              <span className="text-sm font-medium">Beat Comments</span>
+                              <Badge variant={producerInfo.notifications.beatComments ? "default" : "secondary"}>
+                                {producerInfo.notifications.beatComments ? "Enabled" : "Disabled"}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                              <span className="text-sm font-medium">Collaboration Requests</span>
+                              <Badge variant={producerInfo.notifications.collaborationRequests ? "default" : "secondary"}>
+                                {producerInfo.notifications.collaborationRequests ? "Enabled" : "Disabled"}
+                              </Badge>
+                            </div>
                           </div>
                         </div>
 
@@ -574,7 +650,10 @@ const Profile = () => {
                   </TabsContent>
 
                   <TabsContent value="projects">
-                    <ProjectList projects={profile?.projects || []} title="My Projects" />
+                    <ProjectList 
+                      title="My Projects"
+                      onProjectSelect={() => {}}
+                    />
                   </TabsContent>
 
                   <TabsContent value="achievements" className="space-y-6">

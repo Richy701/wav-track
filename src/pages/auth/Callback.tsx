@@ -1,76 +1,65 @@
 import { useEffect } from 'react';
-import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const Callback = () => {
   console.log('Callback component mounted');
-  
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const location = useLocation();
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Get the current session
+        // Get the current URL parameters
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        const type = params.get('type');
+        const refreshToken = params.get('refresh_token');
+
+        // If we have token and type, handle email verification
+        if (token && type) {
+          console.log('Verifying email with token...');
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: token,
+            type: type as any
+          });
+
+          if (verifyError) {
+            console.error('Verification error:', verifyError);
+            toast.error('Email verification failed');
+            navigate('/login');
+            return;
+          }
+
+          // After verification, try to get the session
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          
+          if (sessionError || !session) {
+            console.error('Session error after verification:', sessionError);
+            toast.success('Email verified successfully. Please log in.');
+            navigate('/login');
+            return;
+          }
+
+          // Session exists after verification
+          console.log('Session established after verification');
+          toast.success('Email verified and logged in successfully');
+          navigate('/');
+          return;
+        }
+
+        // If no token/type, check for existing session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (sessionError) {
-          console.error('Session error:', sessionError);
+        if (sessionError || !session) {
+          console.error('No session found:', sessionError);
           toast.error('Authentication failed');
           navigate('/login');
           return;
         }
 
-        if (!session?.user) {
-          // No session found, redirect to login
-          toast.error('Authentication failed', {
-            description: 'Please try logging in again'
-          });
-          navigate('/login');
-          return;
-        }
-
-        // Check if profile exists
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (profileError && profileError.code !== 'PGRST116') {
-          console.error('Profile fetch error:', profileError);
-          toast.error('Failed to fetch profile');
-          navigate('/login');
-          return;
-        }
-        
-        // If no profile exists, create one
-        if (!profile) {
-          const { error: createError } = await supabase
-            .from('profiles')
-            .insert([
-              {
-                id: session.user.id,
-                name: session.user.user_metadata.name || session.user.email?.split('@')[0] || 'User',
-                email: session.user.email,
-                join_date: new Date().toISOString(),
-                timezone: 'UTC'
-              }
-            ]);
-          
-          if (createError) {
-            console.error('Profile creation error:', createError);
-            toast.error('Profile setup failed', {
-              description: 'Please try updating your profile later'
-            });
-          } else {
-            toast.success('Profile created successfully');
-          }
-        }
-
-        // Redirect to home page instead of profile
+        // Existing session found
+        console.log('Existing session found');
         toast.success('Authentication successful');
         navigate('/');
       } catch (error) {
@@ -80,12 +69,7 @@ const Callback = () => {
       }
     };
 
-    // Add a small delay to ensure Supabase has time to process the authentication
-    const timer = setTimeout(() => {
-      handleCallback();
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    handleCallback();
   }, [navigate]);
 
   return (

@@ -44,7 +44,7 @@
     /* Borders and inputs */
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --ring: 240 10% 3.9%;
     
     /* Sidebar specific colors */
     --sidebar-background: 210 40% 98%;
@@ -65,24 +65,24 @@
   
   .dark {
     /* Dark mode colors remain unchanged */
-    --background: 240 10% 3.9%;
+    --background: 240 10% 4.5%;
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    --card: 240 10% 6.5%;
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 240 10% 6.5%;
     --popover-foreground: 0 0% 98%;
     --primary: 0 0% 98%;
     --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
+    --secondary: 240 4% 12%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
+    --muted: 240 4% 16%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
+    --accent: 240 4% 16%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
     --ring: 240 4.9% 83.9%;
 
     --sidebar-background: 270 50% 10%;
@@ -148,6 +148,27 @@
       @apply bg-muted-foreground/50;
     }
     scrollbar-color: hsl(var(--secondary)) hsl(var(--secondary)/0.3);
+  }
+
+  /* For browsers that support scrollbar-color */
+  * {
+    scrollbar-color: #888 #f0f0f0; /* thumb color, track color */
+    scrollbar-width: thin;
+  }
+
+  /* For WebKit browsers (Chrome, Safari, etc.) */
+  *::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: #f0f0f0;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 10px;
+    border: 3px solid #f0f0f0;
   }
 
   /* Hide scrollbar for Chrome, Safari and Opera when not hovering */
@@ -453,4 +474,186 @@ html {
 
 html.theme-transition-ready * {
   transition: var(--theme-transition) !important;
+}
+
+/* Custom styles */
+.dark {
+  --card-border: rgba(255, 255, 255, 0.1);
+  --hover-bg: rgba(255, 255, 255, 0.05);
+  --active-bg: rgba(255, 255, 255, 0.08);
+}
+
+/* Card styles */
+.dark .card {
+  background-color: hsl(240 10% 8%);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.dark .card:hover {
+  background-color: var(--hover-bg);
+}
+
+/* Button styles */
+.dark .button {
+  border: none;
+  background-color: hsl(240 10% 8%);
+}
+
+.dark .button:not(.button-outline) {
+  border: none;
+}
+
+.dark .button-ghost {
+  background-color: transparent;
+  border: none;
+}
+
+.dark .button-ghost:hover {
+  background-color: var(--hover-bg);
+}
+
+.dark .button-outline {
+  border: 1px solid var(--card-border);
+  background-color: transparent;
+}
+
+.dark .button-primary {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: none;
+}
+
+.dark .button-secondary {
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border: none;
+}
+
+/* Update other button variants */
+.dark .button-destructive {
+  background-color: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+  border: none;
+}
+
+.dark .button-link {
+  background-color: transparent;
+  border: none;
+}
+
+/* Keep the hover effects */
+.dark .button:hover:not(.button-ghost):not(.button-link) {
+  background-color: color-mix(in srgb, currentColor 5%, var(--hover-bg));
+}
+
+.dark .button:active:not(.button-ghost):not(.button-link) {
+  background-color: color-mix(in srgb, currentColor 10%, var(--active-bg));
+}
+
+/* Input styles */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: hsl(240 10% 6%);
+  border: 1px solid var(--card-border);
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Table styles */
+.dark table {
+  border-color: var(--card-border);
+}
+
+.dark tr {
+  border-bottom: 1px solid var(--card-border);
+}
+
+.dark td,
+.dark th {
+  border-right: 1px solid var(--card-border);
+}
+
+/* Dialog and modal styles */
+.dark .dialog,
+.dark .modal {
+  background-color: hsl(240 10% 8%);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Navigation styles */
+.dark nav {
+  /* border-bottom: 1px solid var(--card-border);
+  background-color: hsl(240 10% 7%); */
+}
+
+/* Scrollbar styles */
+.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: hsl(240 10% 6%);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: hsl(240 10% 15%);
+  border-radius: 5px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: hsl(240 10% 20%);
+}
+
+/* Chart and graph styles */
+.dark .recharts-cartesian-grid-horizontal line,
+.dark .recharts-cartesian-grid-vertical line {
+  stroke: var(--card-border);
+}
+
+.dark .recharts-tooltip {
+  background-color: hsl(240 10% 8%) !important;
+  border: 1px solid var(--card-border) !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* List and menu styles */
+.dark .list-item {
+  border-bottom: 1px solid var(--card-border);
+}
+
+.dark .menu {
+  background-color: hsl(240 10% 8%);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Form group styles */
+.dark .form-group {
+  border: 1px solid var(--card-border);
+  background-color: hsl(240 10% 6%);
+}
+
+/* Status indicator styles */
+.dark .status-indicator {
+  border: 1px solid var(--card-border);
+}
+
+/* Divider styles */
+.dark hr {
+  border-color: var(--card-border);
+}
+
+/* Badge styles */
+.dark .badge {
+  background-color: hsl(240 10% 12%);
+  border: 1px solid var(--card-border);
 }

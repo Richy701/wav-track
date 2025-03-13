@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useTheme } from '@/lib/ThemeContext';
 import { cn } from '@/lib/utils';
 import styles from './Register.module.css';
+import ThemeSwitcher from '@/components/ThemeSwitcher';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ export default function Register() {
   const [isLineChart, setIsLineChart] = useState(true);
 
   const handleSuccess = () => {
-    navigate('/auth/verify');
+    navigate('/login');
   };
 
   // Sample data for different time ranges
@@ -63,13 +64,18 @@ export default function Register() {
         className={cn(
           "absolute top-4 left-4 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 disabled:pointer-events-none z-50",
           isDark 
-            ? "text-white/60 hover:text-white focus:ring-white/20" 
-            : "text-zinc-600 hover:text-zinc-900 focus:ring-zinc-200"
+            ? "text-white hover:text-white/90 focus:ring-white/20" 
+            : "text-white hover:text-white/90 focus:ring-white/20"
         )}
       >
         <Icons.chevronLeft className="mr-2 h-4 w-4" />
         Back to login
       </button>
+
+      {/* Theme Switcher */}
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeSwitcher />
+      </div>
 
       {/* Decorative background for larger screens */}
       <div className="relative hidden h-full flex-col bg-gradient-to-b from-muted/50 to-muted p-10 text-white dark:border-r lg:flex">

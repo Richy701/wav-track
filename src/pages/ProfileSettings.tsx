@@ -194,7 +194,8 @@ const ProfileSettings = () => {
         birthday: profile.birthday || '',
         timezone: profile.timezone || 'UTC',
         artist_name: profile.artist_name || '',
-        genres: profile.genres || [],
+        genres: Array.isArray(profile.genres) ? profile.genres : 
+               (profile.genres ? JSON.parse(profile.genres) : []),
         daw: profile.daw || '',
         bio: profile.bio || '',
         social: {
@@ -265,8 +266,8 @@ const ProfileSettings = () => {
       // Prepare update data
       const dataToUpdate = {
         ...formData,
-        // Ensure these fields are properly formatted
-        genres: formData.genres,
+        // Convert genres array to string for database
+        genres: JSON.stringify(formData.genres),
         social: {
           ...formData.social
         },

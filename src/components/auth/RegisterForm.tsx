@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -14,6 +15,7 @@ import {
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/lib/ThemeContext';
+import { X } from 'lucide-react';
 import { FLStudioIcon, AbletonIcon, LogicProIcon, ProToolsIcon, StudioOneIcon, BitwigIcon, ReaperIcon } from '@/components/DawIcons';
 
 interface RegisterFormProps {
@@ -64,7 +66,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
     email: '',
     password: '',
     artist_name: '',
-    genres: '',
+    genres: [] as string[],
     daw: '',
     bio: '',
     location: '',
@@ -80,7 +82,19 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
   };
 
   const handleGenreChange = (value: string) => {
-    setFormData(prev => ({ ...prev, genres: value }));
+    if (!formData.genres.includes(value)) {
+      setFormData(prev => ({
+        ...prev,
+        genres: [...prev.genres, value]
+      }));
+    }
+  };
+
+  const removeGenre = (genre: string) => {
+    setFormData(prev => ({
+      ...prev,
+      genres: prev.genres.filter(g => g !== genre)
+    }));
   };
 
   const handleDAWChange = (value: string) => {
@@ -210,7 +224,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         </FormField>
 
         <FormField label="Genres" icon={Icons.genres}>
-          <Select name="genres" value={formData.genres} onValueChange={handleGenreChange}>
+          <Select name="genres" onValueChange={handleGenreChange}>
             <SelectTrigger className={cn(
               "h-9 sm:h-10 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
               isDark ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
@@ -237,6 +251,27 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
               <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
+          {formData.genres.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {formData.genres.map((genre) => (
+                <Badge
+                  key={genre}
+                  variant="secondary"
+                  className="flex items-center gap-1 px-2 py-1"
+                >
+                  {genre.replace(/_/g, ' ')}
+                  <button
+                    type="button"
+                    className="ml-1 hover:text-destructive"
+                    onClick={() => removeGenre(genre)}
+                    aria-label={`Remove ${genre} genre`}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
         </FormField>
 
         <FormField label="Preferred DAW" icon={Icons.daw}>
@@ -337,10 +372,10 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       <Button 
         type="submit" 
         className={cn(
-          "w-full h-9 sm:h-10 transition-colors text-sm font-medium",
+          "w-full h-9 sm:h-10 transition-colors text-sm font-medium text-white",
           isDark
-            ? "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white"
-            : "bg-primary hover:bg-primary/90 text-white"
+            ? "bg-black hover:bg-black/90"
+            : "bg-primary hover:bg-primary/90"
         )}
         disabled={isLoading}
       >

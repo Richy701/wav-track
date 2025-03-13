@@ -7,81 +7,56 @@ import { Project } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { Session } from '@supabase/supabase-js';
+import { Json, Database } from '@/integrations/supabase/types';
+import { PostgrestSingleResponse, PostgrestError } from '@supabase/supabase-js';
 
 export interface Profile {
   id: string;
   email: string;
-  name: string;
-  username?: string;
-  avatar_url?: string;
-  artist_name?: string;
-  genres?: string[];
-  daw?: string;
-  bio?: string;
-  location?: string;
-  phone?: string;
-  website?: string;
-  birthday?: string;
-  timezone?: string;
-  productivityScore: number;
-  totalBeats: number;
-  completedProjects: number;
-  completionRate: number;
-  followers: number;
-  following: number;
-  collaborations: number;
-  projects?: Project[];
-  social?: {
+  name: string | null;
+  avatar_url: string | null;
+  artist_name: string | null;
+  genres: string | null;
+  daw: string | null;
+  bio: string | null;
+  location: string | null;
+  phone: string | null;
+  website: string | null;
+  birthday: string | null;
+  timezone: string | null;
+  productivity_score: number | null;
+  beats_created: number | null;
+  completed_projects: number | null;
+  completion_rate: number | null;
+  total_beats: number | null;
+  join_date: string | null;
+  updated_at: string | null;
+  social_links: {
     instagram?: string;
     instagram_username?: string;
     twitter?: string;
     twitter_username?: string;
     youtube?: string;
     youtube_username?: string;
-  };
-  notifications?: {
+  } | null;
+  notification_preferences: {
     newFollowers: boolean;
     beatComments: boolean;
     collaborationRequests: boolean;
-  };
+  } | null;
 }
 
-interface DatabaseProfile {
-  id: string;
-  email: string;
-  name: string;
-  avatar_url?: string;
-  artist_name?: string;
-  genres?: string;
-  daw?: string;
-  bio?: string;
-  location?: string;
-  phone?: string;
-  website?: string;
-  birthday?: string;
-  timezone?: string;
-  productivity_score?: number;
-  total_beats?: number;
-  completed_projects?: number;
-  completion_rate?: number;
-  follower_count?: number;
-  following_count?: number;
-  collaboration_count?: number;
-  social_links?: Record<string, string>;
-  notification_preferences?: {
-    newFollowers: boolean;
-    beatComments: boolean;
-    collaborationRequests: boolean;
-  };
-  updated_at?: string;
-}
+type DbProfile = Database['public']['Tables']['profiles']['Row'];
+type DbProfileUpdate = Database['public']['Tables']['profiles']['Update'];
+type ProfileUpdate = Omit<DbProfileUpdate, 'id'>;
+type DbProfileInsert = Database['public']['Tables']['profiles']['Insert'];
 
 interface RegisterData {
   name: string;
   email: string;
   password: string;
   artist_name?: string;
-  genres?: string;
+  genres?: string[];
   daw?: string;
   bio?: string;
   location?: string;
@@ -99,6 +74,22 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateUserProfile: (userData: Partial<Profile>) => Promise<Profile>;
   refreshProfile: () => Promise<void>;
+}
+
+interface ProfileUpdateData {
+  name?: string | null;
+  email?: string;
+  artist_name?: string | null;
+  genres?: string | null;
+  daw?: string | null;
+  bio?: string | null;
+  location?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  birthday?: string | null;
+  timezone?: string | null;
+  social_links?: Profile['social_links'];
+  notification_preferences?: Profile['notification_preferences'];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -138,51 +129,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     const { data, error } = await supabase
       .from('profiles')
-      .select(`
-        id,
-        email,
-        name
-      `)
+      .select('*')
       .eq('id', userId)
       .single();
 
     if (error) {
-      showErrorToast(
-        'Profile Error',
-        'Failed to fetch profile data. Please try again.'
-      );
+      toast({
+        variant: "destructive",
+        title: 'Profile Error',
+        description: 'Failed to fetch profile data. Please try again.'
+      });
       throw error;
     }
-    if (!data) return null;
 
-    return {
-      id: data.id,
-      email: data.email,
-      name: data.name,
-      avatar_url: null,
-      artist_name: '',
-      genres: [],
-      daw: '',
-      bio: '',
-      location: '',
-      phone: '',
-      website: '',
-      birthday: '',
-      timezone: 'UTC',
-      productivityScore: 0,
-      totalBeats: 0,
-      completedProjects: 0,
-      completionRate: 0,
-      social: {},
-      notifications: {
-        newFollowers: true,
-        beatComments: true,
-        collaborationRequests: true
-      },
-      followers: 0,
-      following: 0,
-      collaborations: 0
-    };
+    return data ? convertProfileFromDb(data) : null;
   };
 
   useEffect(() => {
@@ -194,7 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         console.log('[Auth] Starting initialization...');
         setIsLoading(true);
-        setIsInitialized(false); // Reset initialization state
+        setIsInitialized(false);
         
         const { data: { session }, error } = await supabase.auth.getSession();
         console.log('[Auth] Session check:', session ? 'Found session' : 'No session', error ? `Error: ${error.message}` : '');
@@ -229,42 +189,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('[Auth] Fetching profile...');
         try {
           const profileData = await fetchProfile(session.user.id);
-          console.log('[Auth] Profile fetch result:', profileData ? 'Success' : 'Not found');
           
           if (!mounted) return;
 
-          if (profileData) {
-            setProfile(profileData);
-          } else {
-            console.log('[Auth] Creating default profile...');
-            const defaultProfile: Profile = {
-              id: session.user.id,
-              email: session.user.email || '',
-              name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || '',
-              productivityScore: 0,
-              totalBeats: 0,
-              completedProjects: 0,
-              completionRate: 0,
-              followers: 0,
-              following: 0,
-              collaborations: 0
-            };
-            setProfile(defaultProfile);
-            
-            const { error: createError } = await supabase
+          if (!profileData) {
+            console.log('[Auth] No profile found, creating default profile...');
+            const defaultProfile = createDefaultProfile(
+              session.user.id,
+              session.user.email!,
+              session.user.user_metadata?.name || session.user.email?.split('@')[0] || null
+            );
+
+            const { data: newProfile, error: createError } = await supabase
               .from('profiles')
-              .insert([{
-                id: session.user.id,
-                email: session.user.email,
-                name: defaultProfile.name,
-              }]);
-              
+              .insert([defaultProfile])
+              .select()
+              .single();
+
             if (createError) {
-              console.error('[Auth] Error creating profile:', createError);
+              console.error('[Auth] Profile creation error:', createError);
+              if (mounted) {
+                setProfile(null);
+              }
+            } else if (newProfile) {
+              console.log('[Auth] New profile created:', newProfile);
+              if (mounted) {
+                setProfile(convertProfileFromDb(newProfile));
+              }
+            }
+          } else {
+            console.log('[Auth] Setting existing profile');
+            if (mounted) {
+              setProfile(profileData);
             }
           }
         } catch (error) {
-          console.error('[Auth] Profile fetch error:', error);
+          console.error('[Auth] Profile handling error:', error);
           if (mounted) {
             setProfile(null);
           }
@@ -290,20 +250,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('[Auth] Auth state changed:', event, session?.user?.id);
       
       if (session?.user) {
+        console.log('[Auth] User session found:', session.user.email);
         setUser(session.user);
         setIsLoading(true);
         
         try {
-          const profileData = await fetchProfile(session.user.id);
+          console.log('[Auth] Attempting to fetch profile for user:', session.user.id);
+          let profileData = await fetchProfile(session.user.id);
+          console.log('[Auth] Profile fetch result:', profileData);
+          
           if (!mounted) return;
           
+          if (!profileData) {
+            console.log('[Auth] No profile found, creating default profile...');
+            const defaultProfile = createDefaultProfile(
+              session.user.id,
+              session.user.email!,
+              session.user.user_metadata?.name || session.user.email?.split('@')[0] || null
+            );
+            
+            console.log('[Auth] Inserting default profile:', defaultProfile);
+            const { data: insertData, error: createError } = await supabase
+              .from('profiles')
+              .insert([defaultProfile])
+              .select()
+              .single();
+              
+            if (createError) {
+              console.error('[Auth] Error creating profile:', createError);
+              toast({
+                variant: "destructive",
+                title: "Profile Creation Failed",
+                description: "Failed to create profile. Please try logging out and back in."
+              });
+              setProfile(null);
+            } else if (insertData) {
+              console.log('[Auth] Profile created successfully:', insertData);
+              profileData = convertProfileFromDb(insertData);
+            }
+          }
+          
           if (profileData) {
+            console.log('[Auth] Setting profile in state:', profileData);
             setProfile(profileData);
           } else {
+            console.log('[Auth] No profile available, setting null');
             setProfile(null);
           }
         } catch (error) {
-          console.error('[Auth] Profile fetch error on auth change:', error);
+          console.error('[Auth] Profile fetch/create error:', error);
+          toast({
+            variant: "destructive",
+            title: "Profile Error",
+            description: "Error setting up profile. Please try logging out and back in."
+          });
           if (mounted) {
             setProfile(null);
           }
@@ -373,10 +373,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
-        showErrorToast(
-          'Login Failed',
-          error.message || 'An error occurred during login'
-        );
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: error.message || 'An error occurred during login'
+        });
         return false;
       }
 
@@ -388,16 +389,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return true;
       }
       
-      toast.error('Login failed', {
-        description: 'No user data received'
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: "No user data received"
       });
       return false;
     } catch (error) {
       console.error('Login error:', error);
-      showErrorToast(
-        'Login Failed',
-        error instanceof Error ? error.message : 'An unexpected error occurred'
-      );
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error instanceof Error ? error.message : 'An unexpected error occurred'
+      });
       return false;
     } finally {
       setIsLoading(false);
@@ -415,63 +419,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             name: registerData.name
           },
-          emailRedirectTo: 'https://wavtrack.lovable.app/auth/callback'
+          emailRedirectTo: `${window.location.origin}/wav-track/auth/callback`
         }
       });
 
       if (error) {
-        showErrorToast(
-          'Registration Failed',
-          error.message || 'An error occurred during registration'
-        );
+        toast({
+          variant: "destructive",
+          title: "Registration Failed",
+          description: error.message || 'An error occurred during registration'
+        });
         return false;
       }
 
       if (data.user) {
+        const defaultProfile = createDefaultProfile(
+          data.user.id,
+          registerData.email,
+          registerData.name
+        );
+
+        // Add registration-specific fields
+        const profileData: DbProfileInsert = {
+          ...defaultProfile,
+          artist_name: registerData.artist_name || null,
+          genres: registerData.genres ? JSON.stringify(registerData.genres) : null,
+          daw: registerData.daw || null,
+          bio: registerData.bio || null,
+          location: registerData.location || null,
+          phone: registerData.phone || null,
+          website: registerData.website || null
+        };
+
         const { error: profileError } = await supabase
           .from('profiles')
-          .insert({
-            id: data.user.id,
-            name: registerData.name,
-            email: registerData.email,
-            artist_name: registerData.artist_name || null,
-            genres: registerData.genres || null,
-            daw: registerData.daw || null,
-            bio: registerData.bio || null,
-            location: registerData.location || null,
-            phone: registerData.phone || null,
-            website: registerData.website || null,
-            join_date: new Date().toISOString(),
-            timezone: 'UTC'
-          });
+          .insert([profileData]);
 
         if (profileError) {
           console.error('Profile creation error:', profileError);
-          showErrorToast(
-            'Account Created',
-            'Your account was created but some profile information could not be saved. You can update it after logging in.'
-          );
+          toast({
+            variant: "destructive",
+            title: "Account Created",
+            description: "Your account was created but some profile information could not be saved. You can update it after logging in."
+          });
           return true;
         }
 
-        showSuccessToast(
-          'Registration Successful',
-          'Welcome to the community! Please check your email to verify your account.'
-        );
+        toast({
+          title: "Registration Successful",
+          description: "Welcome to the community! Please check your email to verify your account.",
+          className: "bg-gradient-to-r from-primary/10 via-primary/5 to-background border-primary/20"
+        });
         return true;
       }
       
-      showErrorToast(
-        'Registration Failed',
-        'No user data received'
-      );
+      toast({
+        variant: "destructive",
+        title: "Registration Failed",
+        description: "No user data received"
+      });
       return false;
     } catch (error) {
       console.error('Registration error:', error);
-      showErrorToast(
-        'Registration Failed',
-        error instanceof Error ? error.message : 'An unexpected error occurred'
-      );
+      toast({
+        variant: "destructive",
+        title: "Registration Failed",
+        description: error instanceof Error ? error.message : 'An unexpected error occurred'
+      });
       return false;
     } finally {
       setIsLoading(false);
@@ -504,17 +518,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateUserProfile = async (userData: Partial<Profile>): Promise<Profile> => {
+  const updateUserProfile = async (userData: ProfileUpdateData): Promise<Profile> => {
     if (!user || !profile) {
       throw new Error('No user or profile found');
     }
 
     try {
-      console.log('[Auth] Starting profile update with data:', userData);
-      
-      const updateData: { name?: string; email?: string } = {};
-      if (userData.name !== undefined) updateData.name = userData.name;
-      if (userData.email !== undefined) updateData.email = userData.email;
+      const updateData: DbProfileUpdate = {
+        name: userData.name ?? profile.name,
+        email: userData.email ?? profile.email,
+        artist_name: userData.artist_name ?? profile.artist_name,
+        genres: userData.genres ?? profile.genres,
+        daw: userData.daw ?? profile.daw,
+        bio: userData.bio ?? profile.bio,
+        location: userData.location ?? profile.location,
+        phone: userData.phone ?? profile.phone,
+        website: userData.website ?? profile.website,
+        birthday: userData.birthday ?? profile.birthday,
+        timezone: userData.timezone ?? profile.timezone,
+        social_links: userData.social_links ?? profile.social_links,
+        notification_preferences: userData.notification_preferences ?? profile.notification_preferences,
+        updated_at: new Date().toISOString()
+      };
 
       const { data, error } = await supabase
         .from('profiles')
@@ -524,47 +549,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        showErrorToast(
-          'Update Failed',
-          'Failed to update profile'
-        );
+        console.error('[Auth] Profile update error:', error);
+        toast({
+          variant: "destructive",
+          title: 'Update Failed',
+          description: error.message
+        });
         throw error;
       }
-      if (!data) throw new Error('No data returned from update');
 
-      const updatedProfile: Profile = {
-        ...profile,
-        ...userData,
-        id: data.id,
-        email: data.email,
-        name: data.name,
-        avatar_url: profile.avatar_url,
-        artist_name: userData.artist_name || profile.artist_name,
-        genres: userData.genres || profile.genres,
-        daw: userData.daw || profile.daw,
-        bio: userData.bio || profile.bio,
-        location: userData.location || profile.location,
-        phone: userData.phone || profile.phone,
-        website: userData.website || profile.website,
-        birthday: userData.birthday || profile.birthday,
-        timezone: userData.timezone || profile.timezone,
-        social: userData.social || profile.social,
-        notifications: userData.notifications || profile.notifications
-      };
+      if (!data) {
+        const msg = 'No data returned from update';
+        console.error('[Auth] Profile update error:', msg);
+        toast({
+          variant: "destructive",
+          title: 'Update Failed',
+          description: msg
+        });
+        throw new Error(msg);
+      }
 
+      const updatedProfile = convertProfileFromDb(data);
       setProfile(updatedProfile);
-      showSuccessToast(
-        'Profile Updated',
-        'Your profile has been successfully updated'
-      );
+      
+      toast({
+        title: 'Profile Updated',
+        description: 'Your profile has been successfully updated'
+      });
 
       return updatedProfile;
     } catch (error) {
       console.error('[Auth] Profile update error:', error);
-      showErrorToast(
-        'Update Failed',
-        'Failed to update profile'
-      );
+      toast({
+        variant: "destructive",
+        title: 'Update Failed',
+        description: error instanceof Error ? error.message : 'Failed to update profile'
+      });
       throw error;
     }
   };
@@ -601,7 +621,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         <div className="flex flex-col gap-1">
           <p className="font-medium">Ready to create something amazing?</p>
           <p className="text-sm text-muted-foreground">
-            Last session: {formatDistanceToNow(new Date(session.user.last_sign_in_at))} ago
+            Last session: {formatDistanceToNow(new Date(session.user.last_sign_in_at || Date.now()))} ago
           </p>
           <div className="mt-1 text-xs flex items-center gap-2">
             <div className="h-1 w-1 rounded-full bg-primary/50 animate-pulse" />
@@ -630,3 +650,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </AuthContext.Provider>
   );
 };
+
+// Helper function to convert form genres to DB format
+const convertGenresToDb = (genres: string[] | undefined): string | null => {
+  return genres ? JSON.stringify(genres) : null;
+};
+
+// Helper function to convert DB genres to form format
+const convertGenresFromDb = (genres: string | null): string[] => {
+  if (!genres) return [];
+  try {
+    const parsed = JSON.parse(genres);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const convertProfileFromDb = (data: DbProfile): Profile => {
+  return {
+    id: data.id,
+    email: data.email,
+    name: data.name,
+    avatar_url: data.avatar_url,
+    artist_name: data.artist_name,
+    genres: data.genres,
+    daw: data.daw,
+    bio: data.bio,
+    location: data.location,
+    phone: data.phone,
+    website: data.website,
+    birthday: data.birthday,
+    timezone: data.timezone,
+    productivity_score: data.productivity_score,
+    beats_created: data.beats_created,
+    completed_projects: data.completed_projects,
+    completion_rate: data.completion_rate,
+    total_beats: data.total_beats,
+    join_date: data.join_date,
+    updated_at: data.updated_at,
+    social_links: data.social_links as Profile['social_links'],
+    notification_preferences: data.notification_preferences as Profile['notification_preferences'] ?? {
+      newFollowers: true,
+      beatComments: true,
+      collaborationRequests: true
+    }
+  };
+};
+
+const createDefaultProfile = (userId: string, email: string, name: string | null): Profile => ({
+  id: userId,
+  email: email,
+  name: name,
+  avatar_url: null,
+  artist_name: null,
+  genres: null,
+  daw: null,
+  bio: null,
+  location: null,
+  phone: null,
+  website: null,
+  birthday: null,
+  timezone: 'UTC',
+  productivity_score: 0,
+  beats_created: 0,
+  completed_projects: 0,
+  completion_rate: 0,
+  total_beats: 0,
+  join_date: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  social_links: null,
+  notification_preferences: {
+    newFollowers: true,
+    beatComments: true,
+    collaborationRequests: true
+  }
+});

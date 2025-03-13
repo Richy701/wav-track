@@ -13,27 +13,27 @@ import { BeatsStar } from './icons/BeatsStar';
 
 const Footer = () => {
   return (
-    <footer className="w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-border border-border/20">
-      <div className="container py-12">
+    <footer className="w-full border-t border-border/50">
+      <div className="py-12">
         <div className="max-w-4xl mx-auto">
           <div className="grid grid-cols-3 gap-x-12 gap-y-8">
             {/* Create */}
             <div className="text-center">
-              <h4 className="text-sm font-medium mb-4 flex items-center justify-center gap-2 text-foreground/90">
+              <h4 className="text-sm font-medium mb-4 flex items-center justify-center gap-2">
                 <MusicNote weight="fill" className="h-4 w-4 text-primary" />
                 Create
               </h4>
               <nav className="flex flex-col space-y-3">
-                <Link to="/beats" className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors">
+                <Link to="/beats" className="text-sm hover:text-primary transition-colors">
                   My Beats
                 </Link>
-                <Link to="/studio" className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors">
+                <Link to="/studio" className="text-sm hover:text-primary transition-colors">
                   Studio
                 </Link>
-                <Link to="/projects" className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors">
+                <Link to="/projects" className="text-sm hover:text-primary transition-colors">
                   Projects
                 </Link>
-                <Link to="/samples" className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors">
+                <Link to="/samples" className="text-sm hover:text-primary transition-colors">
                   Samples
                 </Link>
               </nav>
@@ -41,21 +41,21 @@ const Footer = () => {
 
             {/* Community */}
             <div className="text-center">
-              <h4 className="text-sm font-medium mb-4 flex items-center justify-center gap-2 text-foreground/90">
+              <h4 className="text-sm font-medium mb-4 flex items-center justify-center gap-2">
                 <PhUsers weight="fill" className="h-4 w-4 text-primary" />
                 Community
               </h4>
               <nav className="flex flex-col space-y-3">
-                <Link to="/producers" className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors">
+                <Link to="/producers" className="text-sm hover:text-primary transition-colors">
                   Producers
                 </Link>
-                <Link to="/collaborate" className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors">
+                <Link to="/collaborate" className="text-sm hover:text-primary transition-colors">
                   Collaborate
                 </Link>
-                <Link to="/showcase" className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors">
+                <Link to="/showcase" className="text-sm hover:text-primary transition-colors">
                   Showcase
                 </Link>
-                <Link to="/forum" className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors">
+                <Link to="/forum" className="text-sm hover:text-primary transition-colors">
                   Forum
                 </Link>
               </nav>
@@ -63,21 +63,21 @@ const Footer = () => {
 
             {/* Resources */}
             <div className="text-center">
-              <h4 className="text-sm font-medium mb-4 flex items-center justify-center gap-2 text-foreground/90">
+              <h4 className="text-sm font-medium mb-4 flex items-center justify-center gap-2">
                 <Headphones weight="fill" className="h-4 w-4 text-primary" />
                 Resources
               </h4>
               <nav className="flex flex-col space-y-3">
-                <Link to="/learn" className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors">
+                <Link to="/learn" className="text-sm hover:text-primary transition-colors">
                   Learn
                 </Link>
-                <Link to="/tutorials" className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors">
+                <Link to="/tutorials" className="text-sm hover:text-primary transition-colors">
                   Tutorials
                 </Link>
-                <Link to="/support" className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors">
+                <Link to="/support" className="text-sm hover:text-primary transition-colors">
                   Support
                 </Link>
-                <Link to="/blog" className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors">
+                <Link to="/blog" className="text-sm hover:text-primary transition-colors">
                   Blog
                 </Link>
               </nav>
@@ -90,7 +90,7 @@ const Footer = () => {
               href="https://github.com" 
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground/70 hover:text-foreground transition-colors"
+              className="hover:text-primary transition-colors"
             >
               <GithubLogo weight="fill" className="h-5 w-5" />
             </a>
@@ -98,7 +98,7 @@ const Footer = () => {
               href="https://twitter.com"
               target="_blank"
               rel="noopener noreferrer" 
-              className="text-muted-foreground/70 hover:text-foreground transition-colors"
+              className="hover:text-primary transition-colors"
             >
               <TwitterLogo weight="fill" className="h-5 w-5" />
             </a>
@@ -106,7 +106,7 @@ const Footer = () => {
               href="https://instagram.com"
               target="_blank"
               rel="noopener noreferrer" 
-              className="text-muted-foreground/70 hover:text-foreground transition-colors"
+              className="hover:text-primary transition-colors"
             >
               <InstagramLogo weight="fill" className="h-5 w-5" />
             </a>
@@ -114,7 +114,7 @@ const Footer = () => {
               href="https://youtube.com"
               target="_blank"
               rel="noopener noreferrer" 
-              className="text-muted-foreground/70 hover:text-foreground transition-colors"
+              className="hover:text-primary transition-colors"
             >
               <YoutubeLogo weight="fill" className="h-5 w-5" />
             </a>

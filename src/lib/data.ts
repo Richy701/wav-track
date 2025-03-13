@@ -26,10 +26,10 @@ const loadFromStorage = async <T>(key: string, defaultValue: T[]): Promise<T[]> 
     }
 
     // Use requestAnimationFrame to avoid blocking the main thread
-    return new Promise((resolve) => {
+    return new Promise<T[]>((resolve) => {
       requestAnimationFrame(() => {
         const storedData = localStorage.getItem(key);
-        const data = storedData ? JSON.parse(storedData) : defaultValue;
+        const data: T[] = storedData ? JSON.parse(storedData) : defaultValue;
         
         // Cache the loaded data
         cache.set(key, data);
@@ -191,16 +191,32 @@ export const deleteProject = async (projectId: string): Promise<void> => {
   // Create a new array without the deleted project
   projects = projects.filter(p => p.id !== projectId);
   
+  // Remove all beat activities associated with this project
+  beatActivities = beatActivities.filter(activity => activity.projectId !== projectId);
+  
+  // Update cache
+  cache.invalidateAll();
+  
   // Save to storage
-  await saveToStorage('projects', projects);
+  await Promise.all([
+    saveToStorage<Project>('projects', projects),
+    saveToStorage<BeatActivity>('beatActivities', beatActivities)
+  ]);
 };
 
 export const clearAllProjects = async (): Promise<void> => {
-  // Clear all projects
+  // Clear all projects and beat activities from memory
   projects = [];
+  beatActivities = [];
   
-  // Save empty array to storage
-  await saveToStorage('projects', projects);
+  // Clear cache
+  cache.invalidateAll();
+  
+  // Save empty arrays to storage
+  await Promise.all([
+    saveToStorage<Project>('projects', []),
+    saveToStorage<BeatActivity>('beatActivities', [])
+  ]);
 };
 
 export const getProjectById = (id: string): Project | undefined => {
@@ -358,79 +374,108 @@ export const getTotalBeatsInTimeRange = (timeRange: 'day' | 'week' | 'month' | '
 export const getBeatsDataForChart = (timeRange: 'day' | 'week' | 'month' | 'year', projectId?: string | null): ChartData[] => {
   const now = new Date();
   const data: ChartData[] = [];
-  let formatPattern: string;
-  const intervals: number = timeRange === 'day' ? 24 
-    : timeRange === 'week' ? 7 
-    : timeRange === 'month' ? 30 
-    : 12;
 
   switch (timeRange) {
-    case 'day':
-      formatPattern = 'ha';
-      break;
-    case 'week':
-      formatPattern = 'EEE';
-      break;
-    case 'month':
-      formatPattern = 'MMM d';
-      break;
-    case 'year':
-      formatPattern = 'MMM';
-      break;
-    default:
-      formatPattern = 'MMM d';
-  }
+    case 'month': {
+      // Get the start of the current month
+      const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      // Get the end of the current month
+      const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      
+      // Generate data for each day of the month
+      for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+        const dayStart = new Date(date);
+        const dayEnd = new Date(date);
+        dayEnd.setHours(23, 59, 59, 999);
 
-  // Generate intervals
-  for (let i = intervals - 1; i >= 0; i--) {
-    const date = new Date();
-    switch (timeRange) {
-      case 'day':
-        date.setHours(date.getHours() - i);
-        break;
-      case 'week':
-        date.setDate(date.getDate() - i);
-        break;
-      case 'month':
-        date.setDate(date.getDate() - i);
-        break;
-      case 'year':
-        date.setMonth(date.getMonth() - i);
-        break;
-    }
+        const activities = beatActivities.filter(activity => {
+          const activityDate = new Date(activity.date);
+          return activityDate >= dayStart && 
+                 activityDate <= dayEnd &&
+                 (!projectId || activity.projectId === projectId);
+        });
 
-    const label = formatDate(date, formatPattern);
-    const startOfInterval = new Date(date);
-    const endOfInterval = new Date(date);
+        const value = activities.reduce((sum, activity) => sum + activity.count, 0);
 
-    switch (timeRange) {
-      case 'day':
-        startOfInterval.setMinutes(0, 0, 0);
-        endOfInterval.setMinutes(59, 59, 999);
-        break;
-      case 'week':
-      case 'month':
-        startOfInterval.setHours(0, 0, 0, 0);
-        endOfInterval.setHours(23, 59, 59, 999);
-        break;
-      case 'year':
-        startOfInterval.setDate(1);
-        startOfInterval.setHours(0, 0, 0, 0);
-        endOfInterval.setMonth(endOfInterval.getMonth() + 1, 0);
-        endOfInterval.setHours(23, 59, 59, 999);
-        break;
-    }
-
-    const value = beatActivities.filter(activity => {
-      const activityDate = new Date(activity.date);
-      const isInRange = activityDate >= startOfInterval && activityDate <= endOfInterval;
-      if (projectId) {
-        return isInRange && activity.projectId === projectId;
+        data.push({
+          label: formatDate(date, 'MMM d'),
+          value: value
+        });
       }
-      return isInRange;
-    }).length;
+      break;
+    }
+    
+    case 'week': {
+      // Get dates for the last 7 days
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        
+        const dayStart = new Date(date.setHours(0, 0, 0, 0));
+        const dayEnd = new Date(date.setHours(23, 59, 59, 999));
 
-    data.push({ label, value });
+        const activities = beatActivities.filter(activity => {
+          const activityDate = new Date(activity.date);
+          return activityDate >= dayStart && 
+                 activityDate <= dayEnd &&
+                 (!projectId || activity.projectId === projectId);
+        });
+
+        const value = activities.reduce((sum, activity) => sum + activity.count, 0);
+
+        data.push({
+          label: formatDate(date, 'EEE'),
+          value: value
+        });
+      }
+      break;
+    }
+
+    case 'year': {
+      // Get data for each month of the year
+      for (let i = 11; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+        const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+        const activities = beatActivities.filter(activity => {
+          const activityDate = new Date(activity.date);
+          return activityDate >= monthStart && 
+                 activityDate <= monthEnd &&
+                 (!projectId || activity.projectId === projectId);
+        });
+
+        const value = activities.reduce((sum, activity) => sum + activity.count, 0);
+
+        data.push({
+          label: formatDate(date, 'MMM'),
+          value: value
+        });
+      }
+      break;
+    }
+
+    default: { // day
+      // Get data for each hour of the day
+      for (let i = 0; i < 24; i++) {
+        const hourStart = new Date(now.setHours(i, 0, 0, 0));
+        const hourEnd = new Date(now.setHours(i, 59, 59, 999));
+
+        const activities = beatActivities.filter(activity => {
+          const activityDate = new Date(activity.date);
+          return activityDate >= hourStart && 
+                 activityDate <= hourEnd &&
+                 (!projectId || activity.projectId === projectId);
+        });
+
+        const value = activities.reduce((sum, activity) => sum + activity.count, 0);
+
+        data.push({
+          label: formatDate(hourStart, 'HH:mm'),
+          value: value
+        });
+      }
+    }
   }
 
   return data;

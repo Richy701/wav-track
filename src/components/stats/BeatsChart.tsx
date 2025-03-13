@@ -21,11 +21,9 @@ type ChartData = {
 
 export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartProps) {
   const [beatsData, setBeatsData] = useState<ChartData[]>(() => {
-    const initialData = projects.length > 0 
+    return projects.length > 0 
       ? getBeatsDataForChart(timeRange, selectedProject?.id) 
       : Array(6).fill({ label: '-', value: 0 });
-    console.log('Initial chart data:', initialData);
-    return initialData;
   });
   const [highlightedBar, setHighlightedBar] = useState<string | null>(null);
   const [chartView, setChartView] = useState<ChartView>('bar');
@@ -36,7 +34,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
 
   // Calculate cumulative data for line chart
   const cumulativeData = beatsData.reduce((acc, curr) => {
-    const lastValue = acc.length > 0 ? acc[acc.length - 1].cumulative : 0;
+    const lastValue = acc.length > 0 ? acc[acc.length - 1]?.cumulative ?? 0 : 0;
     acc.push({
       ...curr,
       cumulative: lastValue + curr.value
@@ -46,23 +44,10 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
 
   // Update data when beats are added or project selection changes
   useEffect(() => {
-    console.log('BeatsChart effect running - updating data');
     const newData = projects.length > 0 
-      ? getBeatsDataForChart(timeRange, selectedProject?.id) 
+      ? getBeatsDataForChart(timeRange, selectedProject?.id)
       : Array(6).fill({ label: '-', value: 0 });
-    console.log('New chart data:', newData);
     setBeatsData(newData);
-
-    // If the latest data point has changed, highlight it
-    const latestOldValue = beatsData[beatsData.length - 1]?.value;
-    const latestNewValue = newData[newData.length - 1]?.value;
-    
-    console.log('Comparing values:', { latestOldValue, latestNewValue });
-    
-    if (latestNewValue > latestOldValue) {
-      setHighlightedBar(newData[newData.length - 1].label);
-      setTimeout(() => setHighlightedBar(null), 2000); // Remove highlight after 2s
-    }
   }, [timeRange, projects, selectedProject]);
 
   const CustomTooltip = ({ 
@@ -75,11 +60,11 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
       const isHighlighted = props.isHighlighted;
       return (
         <div className={cn(
-          "bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg p-3",
+          "bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg p-3",
           "animate-in fade-in zoom-in duration-200",
-          isHighlighted && "ring-2 ring-violet-500 dark:ring-violet-500"
+          isHighlighted && "ring-2 ring-violet-500 dark:ring-violet-400"
         )}>
-          <div className="text-sm font-medium text-zinc-900 dark:text-zinc-200">
+          <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
             {payload[0].value}
           </div>
         </div>
@@ -158,14 +143,14 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                 strokeDasharray="3 3" 
                 vertical={false} 
                 stroke="currentColor"
-                opacity={0.05}
-                className="dark:stroke-violet-500"
+                opacity={0.1}
+                className="dark:stroke-zinc-300/20"
               />
               <XAxis 
                 dataKey="label" 
                 axisLine={false}
                 tickLine={false}
-                interval={0}
+                interval={timeRange === 'month' ? 3 : timeRange === 'day' ? 2 : 0}
                 tick={(props) => {
                   const { x, y, payload } = props;
                   return (
@@ -176,9 +161,9 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                         dy={12}
                         textAnchor="middle"
                         fill="currentColor"
-                        opacity={0.5}
+                        opacity={0.9}
                         fontSize={11}
-                        className="dark:text-zinc-400 font-medium"
+                        className="dark:text-zinc-100 font-medium"
                       >
                         {payload.value}
                       </text>
@@ -186,16 +171,21 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                   );
                 }}
                 height={40}
-                className="dark:text-zinc-400"
+                className="dark:text-zinc-100"
               />
               <YAxis 
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 11, fill: 'currentColor', opacity: 0.5 }}
+                tick={{ 
+                  fontSize: 11, 
+                  fill: 'currentColor', 
+                  opacity: 0.9,
+                  className: "dark:text-zinc-100 font-medium"
+                }}
                 domain={[0, yAxisMax]}
                 dx={-8}
                 tickCount={Math.min(yAxisMax + 1, 5)}
-                className="dark:text-zinc-400 font-medium"
+                className="dark:text-zinc-100 font-medium"
               />
               <Tooltip 
                 cursor={false}
@@ -203,11 +193,11 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                   if (active && payload && payload.length) {
                     return (
                       <div className={cn(
-                        "bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg p-3",
+                        "bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg p-3",
                         "animate-in fade-in zoom-in duration-200",
-                        label === highlightedBar && "ring-2 ring-violet-500 dark:ring-violet-500"
+                        label === highlightedBar && "ring-2 ring-violet-500 dark:ring-violet-400"
                       )}>
-                        <div className="text-sm font-medium text-zinc-900 dark:text-zinc-200">
+                        <div className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
                           {payload[0].value}
                         </div>
                       </div>
@@ -224,6 +214,12 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                 animationDuration={300}
                 className="transition-all duration-300 hover:filter hover:brightness-110"
               >
+                <defs>
+                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="rgb(139, 92, 246)" stopOpacity={0.9} />
+                    <stop offset="100%" stopColor="rgb(139, 92, 246)" stopOpacity={0.5} />
+                  </linearGradient>
+                </defs>
                 {beatsData.map((entry, index) => (
                   <LabelList 
                     key={entry.label}
@@ -234,8 +230,8 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                       : "currentColor"}
                     fontSize={entry.label === highlightedBar ? 12 : 10}
                     className={cn(
-                      "transition-all duration-300 opacity-50 dark:text-zinc-400 font-medium",
-                      entry.label === highlightedBar && "font-semibold text-violet-500 opacity-100"
+                      "transition-all duration-300 dark:text-zinc-100 font-medium",
+                      entry.label === highlightedBar && "font-semibold text-violet-500 dark:text-violet-400 opacity-100"
                     )}
                     formatter={(value: number) => (value > 0 ? value : '')}
                   />
@@ -250,8 +246,8 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
             >
               <defs>
                 <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity={1} />
-                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.5} />
+                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.6} />
                 </linearGradient>
               </defs>
               <CartesianGrid
@@ -259,13 +255,13 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                 vertical={false}
                 stroke="currentColor"
                 opacity={0.1}
-                className="dark:stroke-violet-500"
+                className="dark:stroke-zinc-300/20"
               />
               <XAxis
                 dataKey="label"
                 axisLine={false}
                 tickLine={false}
-                interval={0}
+                interval={timeRange === 'month' ? 3 : timeRange === 'day' ? 2 : 0}
                 tick={(props) => {
                   const { x, y, payload } = props;
                   return (
@@ -276,9 +272,9 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                         dy={12}
                         textAnchor="middle"
                         fill="currentColor"
-                        opacity={0.7}
-                        fontSize={12}
-                        className="dark:text-zinc-400"
+                        opacity={0.9}
+                        fontSize={11}
+                        className="dark:text-zinc-100 font-medium"
                       >
                         {payload.value}
                       </text>
@@ -286,15 +282,15 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                   );
                 }}
                 height={40}
-                className="dark:text-zinc-400"
+                className="dark:text-zinc-100"
               />
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.7 }}
+                tick={{ fontSize: 11, fill: 'currentColor', opacity: 0.9 }}
                 dx={-8}
                 tickCount={Math.min(Math.max(...cumulativeData.map(d => d.cumulative || 0)) + 1, 5)}
-                className="dark:text-zinc-400"
+                className="dark:text-zinc-100 font-medium"
               />
               <Tooltip content={CustomTooltip} />
               <Line
@@ -308,7 +304,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                   fill: '#8b5cf6',
                   strokeWidth: 2,
                   stroke: '#fff',
-                  className: "transition-all duration-200"
+                  className: "dark:stroke-zinc-900 transition-all duration-200"
                 }}
                 className="transition-all duration-200"
               />
