@@ -151,6 +151,10 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   const handleCreateBeat = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!validateForm()) {
+      return;
+    }
+    
     try {
       const newProject: Project = {
         id: crypto.randomUUID(),
@@ -158,10 +162,15 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
         lastModified: new Date().toISOString(),
       };
 
-      await addProject(newProject);
+      // First, create the project and wait for it to be saved
+      const createdProject = await addProject(newProject);
       
-      // Record beat creation
-      recordBeatCreation(newProject.id);
+      if (!createdProject) {
+        throw new Error('Failed to create project');
+      }
+
+      // Then record the beat activity with the created project's ID
+      await recordBeatCreation(createdProject.id, 1);
       
       // Reset form
       setFormData({
@@ -246,12 +255,19 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                     <PhTag weight="fill" className="h-4 w-4 text-pink-500" />
                   </div>
                 </div>
-                <Select value={formData.genre} onValueChange={handleGenreChange}>
+                <Select 
+                  value={formData.genre} 
+                  onValueChange={handleGenreChange}
+                  name="genre"
+                >
                   <SelectTrigger 
+                    id="genre"
                     className={cn(
                       "pl-12 transition-colors",
                       errors.genre ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"
                     )}
+                    aria-label="Select project genre"
+                    aria-describedby={errors.genre ? "genre-error" : undefined}
                   >
                     <SelectValue placeholder="Select genre" />
                   </SelectTrigger>
@@ -259,13 +275,22 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                     <SelectGroup>
                       <SelectLabel>Genres</SelectLabel>
                       {genreOptions.map(genre => (
-                        <SelectItem key={genre} value={genre}>{genre}</SelectItem>
+                        <SelectItem 
+                          key={genre} 
+                          value={genre}
+                          role="option"
+                          aria-selected={formData.genre === genre}
+                        >
+                          {genre}
+                        </SelectItem>
                       ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
                 {errors.genre && (
-                  <p className="text-sm text-destructive mt-1.5 animate-in fade-in slide-in-from-top-1">{errors.genre}</p>
+                  <p id="genre-error" className="text-sm text-destructive mt-1.5 animate-in fade-in slide-in-from-top-1">
+                    {errors.genre}
+                  </p>
                 )}
               </div>
             </div>
@@ -365,38 +390,71 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                     <PhQueue weight="fill" className="h-4 w-4 text-indigo-500" />
                   </div>
                 </div>
-                <Select value={formData.status} onValueChange={handleStatusChange}>
-                  <SelectTrigger className="pl-12 focus-visible:ring-primary">
+                <Select 
+                  value={formData.status} 
+                  onValueChange={handleStatusChange}
+                  name="status"
+                >
+                  <SelectTrigger 
+                    id="status"
+                    className="pl-12 focus-visible:ring-primary"
+                    aria-label="Select project status"
+                  >
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel className="text-xs font-medium text-muted-foreground">Project Status</SelectLabel>
-                      <SelectItem value="idea" className="text-sm">
+                      <SelectItem 
+                        value="idea" 
+                        className="text-sm"
+                        role="option"
+                        aria-selected={formData.status === 'idea'}
+                      >
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 rounded-full bg-zinc-400" />
                           Idea
                         </div>
                       </SelectItem>
-                      <SelectItem value="in-progress" className="text-sm">
+                      <SelectItem 
+                        value="in-progress" 
+                        className="text-sm"
+                        role="option"
+                        aria-selected={formData.status === 'in-progress'}
+                      >
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 rounded-full bg-blue-500" />
                           In Progress
                         </div>
                       </SelectItem>
-                      <SelectItem value="mixing" className="text-sm">
+                      <SelectItem 
+                        value="mixing" 
+                        className="text-sm"
+                        role="option"
+                        aria-selected={formData.status === 'mixing'}
+                      >
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 rounded-full bg-amber-500" />
                           Mixing
                         </div>
                       </SelectItem>
-                      <SelectItem value="mastering" className="text-sm">
+                      <SelectItem 
+                        value="mastering" 
+                        className="text-sm"
+                        role="option"
+                        aria-selected={formData.status === 'mastering'}
+                      >
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 rounded-full bg-violet-500" />
                           Mastering
                         </div>
                       </SelectItem>
-                      <SelectItem value="completed" className="text-sm">
+                      <SelectItem 
+                        value="completed" 
+                        className="text-sm"
+                        role="option"
+                        aria-selected={formData.status === 'completed'}
+                      >
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 rounded-full bg-emerald-500" />
                           Completed

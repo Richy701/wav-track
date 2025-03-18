@@ -2,13 +2,14 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import type { ToastProps } from '@/components/ui/toast';
 import { User } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { Project } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { Session } from '@supabase/supabase-js';
 import { Json, Database } from '@/integrations/supabase/types';
 import { PostgrestSingleResponse, PostgrestError } from '@supabase/supabase-js';
+import { useQueryClient } from '@tanstack/react-query';
 
 export interface Profile {
   id: string;
@@ -108,6 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const showErrorToast = (title: string, description: string) => {
     toast({

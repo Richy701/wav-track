@@ -1,9 +1,10 @@
 import { Project, Sample, Session, Note, BeatActivity } from './types';
 import { cache } from './cache';
 import { format as formatDate } from 'date-fns';
+import { supabase } from './supabase';
 
 // Batch size for storage operations
-const BATCH_SIZE = 50;
+const BATCH_SIZE = 100;
 
 // Type for pending writes
 interface PendingWrites {
@@ -14,6 +15,11 @@ interface ChartData {
   label: string;
   value: number;
   cumulative?: number;
+}
+
+interface ChartDataPoint {
+  label: string;
+  value: number;
 }
 
 // Load data from localStorage with caching
@@ -28,7 +34,7 @@ const loadFromStorage = async <T>(key: string, defaultValue: T[]): Promise<T[]> 
     // Use requestAnimationFrame to avoid blocking the main thread
     return new Promise<T[]>((resolve) => {
       requestAnimationFrame(() => {
-        const storedData = localStorage.getItem(key);
+    const storedData = localStorage.getItem(key);
         const data: T[] = storedData ? JSON.parse(storedData) : defaultValue;
         
         // Cache the loaded data
@@ -63,9 +69,9 @@ const saveToStorage = async <T>(key: string, data: T[]): Promise<void> => {
         requestAnimationFrame(() => {
           // Process in batches if data is large
           if (data.length > BATCH_SIZE) {
-            const chunks = [];
+            const chunks: T[][] = [];
             for (let i = 0; i < data.length; i += BATCH_SIZE) {
-              chunks.push(data.slice(i, i + BATCH_SIZE));
+              chunks.push(data.slice(i, Math.min(i + BATCH_SIZE, data.length)));
             }
             
             // Save each chunk with a small delay to prevent blocking
@@ -79,7 +85,7 @@ const saveToStorage = async <T>(key: string, data: T[]): Promise<void> => {
             // Save the chunk info
             localStorage.setItem(`${key}_chunks`, String(chunks.length));
           } else {
-            localStorage.setItem(key, JSON.stringify(data));
+    localStorage.setItem(key, JSON.stringify(data));
           }
 
           // Update cache
@@ -132,91 +138,238 @@ export const statusToCompletion = {
 };
 
 // Get projects with caching
-export const getProjects = (): Project[] => {
-  const cachedProjects = cache.get<Project[]>('projects');
-  if (cachedProjects) {
-    return [...cachedProjects];
+export const getProjects = async (): Promise<Project[]> => {
+  try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.error('No user found');
+      return [];
+    }
+
+    // Fetch from Supabase
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('last_modified', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching projects:', error);
+      throw error;
+    }
+
+    if (!data) {
+      return [];
+    }
+
+    // Transform the data to match our Project interface
+    return data.map(project => {
+      const now = new Date().toISOString();
+      return {
+        ...project,
+        dateCreated: project.created_at || now,
+        lastModified: project.last_modified || now,
+        bpm: project.bpm ?? 120,
+        key: project.key ?? 'C',
+        genre: project.genre ?? '',
+        tags: project.tags ?? [],
+        completionPercentage: statusToCompletion[project.status]
+      };
+    });
+  } catch (error) {
+    console.error('Error in getProjects:', error);
+    throw error; // Re-throw the error to be handled by React Query
   }
-  return [...projects];
 };
 
 // Add project with optimistic updates
 export const addProject = async (project: Project): Promise<Project> => {
-  // Ensure the completion percentage matches the status
-  if (project.status in statusToCompletion) {
-    project.completionPercentage = statusToCompletion[project.status];
+  try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('No user found');
+    }
+
+    const now = new Date().toISOString();
+
+    // Create the project object that matches the database schema
+    const projectToInsert = {
+      title: project.title,
+      description: project.description,
+      status: project.status,
+      user_id: user.id,
+      created_at: now,
+      last_modified: now
+    };
+
+    // Insert into Supabase
+    const { data, error } = await supabase
+      .from('projects')
+      .insert([projectToInsert])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding project:', error);
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('No data returned from insert');
+    }
+
+    // Ensure we have valid dates
+    const created_at = data.created_at || now;
+    const last_modified = data.last_modified || now;
+
+    // Transform the Supabase response to match our Project interface
+    const newProject: Project = {
+      ...data,
+      dateCreated: created_at,
+      lastModified: last_modified,
+      bpm: 120,
+      key: 'C',
+      genre: '',
+      tags: [],
+      completionPercentage: statusToCompletion[data.status]
+    };
+
+    return newProject;
+  } catch (error) {
+    console.error('Error in addProject:', error);
+    throw error;
   }
-  
-  // Update memory state
-  projects = [project, ...projects];
-  
-  // Update cache immediately
-  cache.set('projects', projects);
-  
-  // Record initial beat activity for the new project
-  recordBeatCreation(project.id, 0);
-  
-  // Save to storage asynchronously
-  await saveToStorage('projects', projects);
-  
-  return project;
 };
 
-export const updateProject = async (updatedProject: Project): Promise<void> => {
-  // Find the existing project to check for status change
-  const existingProject = projects.find(p => p.id === updatedProject.id);
-  const statusChanged = existingProject && existingProject.status !== updatedProject.status;
-  
-  // Create a new array with the updated project
-  projects = projects.map(p => 
-    p.id === updatedProject.id 
-      ? { ...updatedProject, status: updatedProject.status as Project['status'] }
-      : p
-  );
-  
-  // If status changed, record a new beat activity
-  if (statusChanged) {
-    // Record beat activity with count 1 to show progress
-    recordBeatCreation(updatedProject.id, 1);
+export const updateProject = async (updatedProject: Project): Promise<Project> => {
+  try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('No user found');
+    }
+
+    const now = new Date().toISOString();
+
+    // Only include fields that exist in the database
+    const projectToUpdate = {
+      title: updatedProject.title,
+      description: updatedProject.description,
+      status: updatedProject.status,
+      last_modified: now
+    };
+
+    // Update in Supabase
+    const { data, error } = await supabase
+      .from('projects')
+      .update(projectToUpdate)
+      .eq('id', updatedProject.id)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating project:', error);
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('No data returned from update');
+    }
+
+    // Ensure we have valid dates
+    const created_at = data.created_at || updatedProject.dateCreated;
+    const last_modified = data.last_modified || now;
+
+    // Transform the response to match our Project interface
+    const updatedData: Project = {
+      ...data,
+      dateCreated: created_at,
+      lastModified: last_modified,
+      bpm: updatedProject.bpm ?? 120,
+      key: updatedProject.key ?? 'C',
+      genre: updatedProject.genre ?? '',
+      tags: updatedProject.tags ?? [],
+      completionPercentage: statusToCompletion[data.status]
+    };
+
+    return updatedData;
+  } catch (error) {
+    console.error('Error in updateProject:', error);
+    throw error;
   }
-  
-  // Update cache
-  cache.set('projects', projects);
-  
-  // Save the updated projects to localStorage
-  await saveToStorage('projects', projects);
 };
 
 export const deleteProject = async (projectId: string): Promise<void> => {
-  // Create a new array without the deleted project
-  projects = projects.filter(p => p.id !== projectId);
-  
-  // Remove all beat activities associated with this project
-  beatActivities = beatActivities.filter(activity => activity.projectId !== projectId);
-  
-  // Update cache
-  cache.invalidateAll();
-  
-  // Save to storage
-  await Promise.all([
-    saveToStorage<Project>('projects', projects),
-    saveToStorage<BeatActivity>('beatActivities', beatActivities)
-  ]);
+  try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('No user found');
+    }
+
+    // Delete from Supabase
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', projectId)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error deleting project:', error);
+      throw error;
+    }
+
+    // Clear the cache to force a fresh fetch
+    cache.delete(`projects-${user.id}`);
+  } catch (error) {
+    console.error('Error in deleteProject:', error);
+    throw error;
+  }
 };
 
 export const clearAllProjects = async (): Promise<void> => {
-  // Clear all projects and beat activities from memory
-  projects = [];
-  beatActivities = [];
-  
-  // Clear cache
-  cache.invalidateAll();
-  
-  // Save empty arrays to storage
-  await Promise.all([
-    saveToStorage<Project>('projects', []),
-    saveToStorage<BeatActivity>('beatActivities', [])
-  ]);
+  try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('No user found');
+    }
+
+    // Delete all projects from Supabase
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error clearing projects:', error);
+      throw error;
+    }
+
+    // Clear all projects and beat activities from memory
+    projects = [];
+    beatActivities = [];
+    
+    // Clear cache
+    cache.invalidateAll();
+    
+    // Save empty arrays to storage
+    await Promise.all([
+      saveToStorage<Project>('projects', []),
+      saveToStorage<BeatActivity>('beatActivities', [])
+    ]);
+  } catch (error) {
+    console.error('Error in clearAllProjects:', error);
+    throw error;
+  }
 };
 
 export const getProjectById = (id: string): Project | undefined => {
@@ -244,66 +397,131 @@ export const getProjectsByStatus = (status: Project['status']): Project[] => {
 };
 
 // Beat activity tracking functions
-export const recordBeatCreation = (projectId: string, count: number = 1, customDate?: Date) => {
-  // Prevent recording if project doesn't exist
-  const project = projects.find(p => p.id === projectId);
-  if (!project) {
-    console.warn(`Attempted to record beats for non-existent project: ${projectId}`);
+export const recordBeatCreation = async (projectId: string, count: number = 1, customDate?: Date) => {
+  try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.warn('No user found when recording beat creation');
     return;
   }
   
-  // Use the provided date or current date with time
-  const now = customDate || new Date();
-  const date = now.toISOString().split('T')[0]; // YYYY-MM-DD format
-  
-  // Check if there's already an entry for this date and project
-  const existingEntry = beatActivities.find(
-    entry => entry.date === date && entry.projectId === projectId
-  );
-  
-  if (existingEntry) {
-    // Only update count if it's greater than 0 (ignore initial creation)
-    if (count > 0) {
-      existingEntry.count += count;
-      existingEntry.timestamp = now.getTime(); // Update timestamp when updating count
-      console.log('Updated existing beat entry:', existingEntry);
-    }
-  } else {
-    // Create new entry with at least count 1 for status changes
-    const newEntry: BeatActivity = {
-      id: crypto.randomUUID(),
+    console.log('Recording beat creation:', {
       projectId,
+      count,
+      userId: user.id,
+      customDate
+    });
+
+    // Safely create date object
+    let now: Date;
+    try {
+      now = customDate || new Date();
+      if (isNaN(now.getTime())) {
+        throw new Error('Invalid date');
+      }
+    } catch (error) {
+      console.error('Invalid date provided:', error);
+      now = new Date(); // Fallback to current date
+    }
+
+    const date = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const timestamp = now.getTime();
+
+    console.log('Preparing to insert beat activity:', {
       date,
-      count: Math.max(1, count), // Ensure at least 1 count for new entries
-      timestamp: now.getTime()
-    };
-    beatActivities.push(newEntry);
-    console.log('Created new beat entry:', newEntry);
+      timestamp,
+      count
+    });
+
+    // Only record if count is greater than 0 (ignore initial creation)
+    if (count > 0) {
+      const beatActivity = {
+        id: crypto.randomUUID(),
+        project_id: projectId,
+        user_id: user.id,
+      date,
+      count,
+        timestamp
+      };
+
+      console.log('Inserting beat activity:', beatActivity);
+
+      const { data: insertedData, error: insertError } = await supabase
+        .from('beat_activities')
+        .insert([beatActivity])
+        .select()
+        .single();
+
+      if (insertError) {
+        // If the table doesn't exist, create it
+        if (insertError.code === '42P01') { // undefined_table error code
+          console.log('Beat activities table does not exist yet, skipping activity recording');
+          return;
+        }
+        console.error('Error recording beat activity:', {
+          error: insertError,
+          beatActivity
+        });
+      } else {
+        console.log('Successfully inserted beat activity:', insertedData);
+        // Update the in-memory array
+        beatActivities.push({
+          id: insertedData.id,
+          projectId: insertedData.project_id,
+          date: insertedData.date,
+          count: insertedData.count,
+          timestamp: insertedData.timestamp
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error in recordBeatCreation:', error);
   }
-  
-  // Update cache
-  cache.set('beatActivities', beatActivities);
-  
-  // Save updated beat activities to localStorage
-  saveToStorage('beatActivities', beatActivities);
-  console.log('Current beat activities:', beatActivities);
 };
 
-export const getBeatsCreatedByProject = (projectId: string): number => {
-  // Check if the project exists first
-  if (!projects.some(p => p.id === projectId)) {
+export const getBeatsCreatedByProject = async (projectId: string): Promise<number> => {
+  try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return 0;
+    }
+
+    // Fetch beat activities from Supabase
+    const { data, error } = await supabase
+      .from('beat_activities')
+      .select('count')
+      .eq('project_id', projectId)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error fetching beat activities:', error);
+      return 0;
+    }
+
+    // Sum up all the counts
+    return data?.reduce((total, activity) => total + (activity.count || 0), 0) || 0;
+  } catch (error) {
+    console.error('Error in getBeatsCreatedByProject:', error);
     return 0;
   }
-  
-  return beatActivities
-    .filter(activity => activity.projectId === projectId)
-    .reduce((total, activity) => total + activity.count, 0);
 };
 
-export const getBeatsCreatedInRange = (
+export const getBeatsCreatedInRange = async (
   startDate: Date, 
   endDate: Date
-): BeatActivity[] => {
+): Promise<BeatActivity[]> => {
+  try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return [];
+    }
+
   // Convert dates to timestamps for accurate comparison
   const startTimestamp = startDate.getTime();
   const endTimestamp = endDate.getTime();
@@ -315,168 +533,350 @@ export const getBeatsCreatedInRange = (
     endTimestamp
   });
   
-  const filteredActivities = beatActivities.filter(activity => {
-    // Make sure the project still exists
-    if (!projects.some(p => p.id === activity.projectId)) {
-      return false;
+    // Fetch beat activities from Supabase
+    const { data: activities, error } = await supabase
+      .from('beat_activities')
+      .select('*')
+      .eq('user_id', user.id)
+      .gte('timestamp', startTimestamp)
+      .lte('timestamp', endTimestamp)
+      .order('timestamp', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching beat activities:', error);
+      return [];
     }
-    
-    // Get the timestamp, either from the activity or from the date
-    const activityTimestamp = activity.timestamp || new Date(activity.date).getTime();
-    
-    const isInRange = activityTimestamp >= startTimestamp && activityTimestamp <= endTimestamp;
-    console.log('Activity check:', {
-      activity,
-      activityTimestamp,
-      isInRange
-    });
-    
-    return isInRange;
-  });
-  
-  console.log('Found activities in range:', filteredActivities);
-  return filteredActivities;
+
+    // Transform the data to match our BeatActivity interface
+    return activities.map(activity => ({
+      id: activity.id,
+      projectId: activity.project_id,
+      date: activity.date,
+      count: activity.count,
+      timestamp: activity.timestamp
+    }));
+  } catch (error) {
+    console.error('Error in getBeatsCreatedInRange:', error);
+    return [];
+  }
 };
 
-export const getTotalBeatsInTimeRange = (timeRange: 'day' | 'week' | 'month' | 'year', projectId?: string | null): number => {
+export const getTotalBeatsInTimeRange = async (timeRange: 'day' | 'week' | 'month' | 'year', projectId?: string | null): Promise<number> => {
+  try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+    return 0;
+  }
+  
   const now = new Date();
-  let startDate: Date;
-
+    let startDate: Date;
+  
   switch (timeRange) {
     case 'day':
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       break;
     case 'week':
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
       break;
     case 'month':
-      startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
       break;
     case 'year':
-      startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
       break;
-    default:
-      startDate = new Date(0);
-  }
+      default:
+        startDate = new Date(0);
+    }
 
-  return beatActivities
-    .filter(activity => {
-      const activityDate = new Date(activity.date);
-      const isInRange = activityDate >= startDate && activityDate <= now;
-      if (projectId) {
-        return isInRange && activity.projectId === projectId;
-      }
-      return isInRange;
-    })
-    .length;
+    // Build the query
+    let query = supabase
+      .from('beat_activities')
+      .select('count')
+      .eq('user_id', user.id)
+      .gte('date', startDate.toISOString().split('T')[0])
+      .lte('date', now.toISOString().split('T')[0]);
+
+    // Add project filter if specified
+    if (projectId) {
+      query = query.eq('project_id', projectId);
+    }
+
+    // Execute the query
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching total beats:', error);
+      return 0;
+    }
+
+    // Sum up all the counts
+    return data?.reduce((sum, activity) => sum + (activity.count || 0), 0) || 0;
+  } catch (error) {
+    console.error('Error in getTotalBeatsInTimeRange:', error);
+    return 0;
+  }
 };
 
-export const getBeatsDataForChart = (timeRange: 'day' | 'week' | 'month' | 'year', projectId?: string | null): ChartData[] => {
-  const now = new Date();
-  const data: ChartData[] = [];
-
-  switch (timeRange) {
-    case 'month': {
-      // Get the start of the current month
-      const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      // Get the end of the current month
-      const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      
-      // Generate data for each day of the month
-      for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
-        const dayStart = new Date(date);
-        const dayEnd = new Date(date);
-        dayEnd.setHours(23, 59, 59, 999);
-
-        const activities = beatActivities.filter(activity => {
-          const activityDate = new Date(activity.date);
-          return activityDate >= dayStart && 
-                 activityDate <= dayEnd &&
-                 (!projectId || activity.projectId === projectId);
-        });
-
-        const value = activities.reduce((sum, activity) => sum + activity.count, 0);
-
-        data.push({
-          label: formatDate(date, 'MMM d'),
-          value: value
-        });
-      }
-      break;
-    }
+export const getBeatsDataForChart = async (timeRange: 'day' | 'week' | 'month' | 'year', projectId?: string | null): Promise<ChartData[]> => {
+  try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
     
-    case 'week': {
-      // Get dates for the last 7 days
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - i);
-        
-        const dayStart = new Date(date.setHours(0, 0, 0, 0));
-        const dayEnd = new Date(date.setHours(23, 59, 59, 999));
-
-        const activities = beatActivities.filter(activity => {
-          const activityDate = new Date(activity.date);
-          return activityDate >= dayStart && 
-                 activityDate <= dayEnd &&
-                 (!projectId || activity.projectId === projectId);
-        });
-
-        const value = activities.reduce((sum, activity) => sum + activity.count, 0);
-
-        data.push({
-          label: formatDate(date, 'EEE'),
-          value: value
-        });
-      }
-      break;
-    }
-
-    case 'year': {
-      // Get data for each month of the year
-      for (let i = 11; i >= 0; i--) {
-        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
-        const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-
-        const activities = beatActivities.filter(activity => {
-          const activityDate = new Date(activity.date);
-          return activityDate >= monthStart && 
-                 activityDate <= monthEnd &&
-                 (!projectId || activity.projectId === projectId);
-        });
-
-        const value = activities.reduce((sum, activity) => sum + activity.count, 0);
-
-        data.push({
-          label: formatDate(date, 'MMM'),
-          value: value
-        });
-      }
-      break;
-    }
-
-    default: { // day
-      // Get data for each hour of the day
-      for (let i = 0; i < 24; i++) {
-        const hourStart = new Date(now.setHours(i, 0, 0, 0));
-        const hourEnd = new Date(now.setHours(i, 59, 59, 999));
-
-        const activities = beatActivities.filter(activity => {
-          const activityDate = new Date(activity.date);
-          return activityDate >= hourStart && 
-                 activityDate <= hourEnd &&
-                 (!projectId || activity.projectId === projectId);
-        });
-
-        const value = activities.reduce((sum, activity) => sum + activity.count, 0);
-
-        data.push({
-          label: formatDate(hourStart, 'HH:mm'),
-          value: value
-        });
-      }
-    }
+    if (!user) {
+      console.log('No user found when fetching beat data');
+    return [];
   }
+  
+    console.log('Fetching beat data for chart:', {
+      timeRange,
+      projectId,
+      userId: user.id
+    });
+  
+    const now = new Date();
+    const data: ChartData[] = [];
 
-  return data;
+    // Base query for beat activities
+    let query = supabase
+      .from('beat_activities')
+      .select('*')  // Select all fields to ensure we have everything we need
+      .eq('user_id', user.id);
+
+    // Add project filter if specified
+    if (projectId) {
+      query = query.eq('project_id', projectId);
+    }
+
+    console.log('Base query constructed:', {
+      hasProjectFilter: !!projectId,
+      projectId
+    });
+
+    switch (timeRange) {
+      case 'month': {
+        // Get the start of the current month
+        const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        // Get the end of the current month
+        const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        
+        console.log('Fetching monthly data:', {
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString()
+        });
+
+        // Fetch all beat activities for the month
+        const { data: activities, error } = await query
+          .gte('date', startDate.toISOString().split('T')[0])
+          .lte('date', endDate.toISOString().split('T')[0])
+          .order('date', { ascending: true });
+
+        if (error) {
+          console.error('Error fetching monthly beat activities:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+          });
+          return [];
+        }
+
+        console.log('Monthly activities fetched:', {
+          count: activities?.length || 0,
+          activities
+        });
+
+        // Generate data for each day of the month
+        for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+          const dayStr = date.toISOString().split('T')[0];
+          const dayActivities = activities.filter(activity => activity.date === dayStr);
+          const value = dayActivities.reduce((sum, activity) => sum + (activity.count || 0), 0);
+
+          data.push({
+            label: formatDate(date, 'MMM d'),
+            value: value
+          });
+        }
+        break;
+      }
+      
+      case 'week': {
+        const weekStart = new Date(now);
+        weekStart.setDate(weekStart.getDate() - 6);
+        weekStart.setHours(0, 0, 0, 0);
+
+        console.log('Fetching weekly data:', {
+          weekStart: weekStart.toISOString(),
+          now: now.toISOString()
+        });
+
+        // Fetch all beat activities for the week
+        const { data: activities, error } = await query
+          .gte('date', weekStart.toISOString().split('T')[0])
+          .lte('date', now.toISOString().split('T')[0])
+          .order('date', { ascending: true });
+
+        if (error) {
+          console.error('Error fetching weekly beat activities:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+          });
+          return [];
+        }
+
+        console.log('Weekly activities fetched:', {
+          count: activities?.length || 0,
+          activities
+        });
+
+        // Get dates for the last 7 days
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date(now);
+          date.setDate(date.getDate() - i);
+          const dayStr = date.toISOString().split('T')[0];
+          
+          const dayActivities = activities.filter(activity => activity.date === dayStr);
+          const value = dayActivities.reduce((sum, activity) => sum + (activity.count || 0), 0);
+
+          data.push({
+            label: formatDate(date, 'EEE'),
+            value: value
+          });
+        }
+        break;
+      }
+
+      case 'year': {
+        const yearStart = new Date(now.getFullYear(), 0, 1);
+        
+        console.log('Fetching yearly data:', {
+          yearStart: yearStart.toISOString(),
+          now: now.toISOString()
+        });
+
+        // Fetch all beat activities for the year
+        const { data: activities, error } = await query
+          .gte('date', yearStart.toISOString().split('T')[0])
+          .lte('date', now.toISOString().split('T')[0])
+          .order('date', { ascending: true });
+
+        if (error) {
+          console.error('Error fetching yearly beat activities:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+          });
+          return [];
+        }
+
+        console.log('Yearly activities fetched:', {
+          count: activities?.length || 0,
+          activities
+        });
+
+        // Get data for each month of the year
+        for (let i = 11; i >= 0; i--) {
+          const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+          
+          const monthStr = monthStart.toISOString().split('T')[0].substring(0, 7); // YYYY-MM
+          const monthActivities = activities.filter(activity => activity.date.startsWith(monthStr));
+          const value = monthActivities.reduce((sum, activity) => sum + (activity.count || 0), 0);
+
+          data.push({
+            label: formatDate(monthStart, 'MMM'),
+            value: value
+          });
+        }
+        break;
+      }
+
+      default: { // day
+        const dayStart = new Date(now);
+        dayStart.setHours(0, 0, 0, 0);
+        
+        console.log('Fetching daily data:', {
+          dayStart: dayStart.toISOString(),
+          now: now.toISOString()
+        });
+
+        // Fetch all beat activities for today
+        const { data: activities, error } = await query
+          .gte('date', dayStart.toISOString().split('T')[0])
+          .lte('date', now.toISOString().split('T')[0])
+          .order('timestamp', { ascending: true });
+
+        if (error) {
+          console.error('Error fetching daily beat activities:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+          });
+          return [];
+        }
+
+        console.log('Daily activities fetched:', {
+          count: activities?.length || 0,
+          activities
+        });
+
+        // Create 8 intervals (24 hours / 3 hours per interval)
+        for (let i = 0; i < 8; i++) {
+          const intervalStart = new Date(dayStart);
+          intervalStart.setHours(i * 3, 0, 0, 0);
+          
+          const intervalEnd = new Date(dayStart);
+          intervalEnd.setHours((i * 3) + 2, 59, 59, 999);
+
+          const intervalActivities = activities.filter(activity => {
+            const activityTime = activity.timestamp;
+            return activityTime >= intervalStart.getTime() && activityTime <= intervalEnd.getTime();
+          });
+
+          const value = intervalActivities.reduce((sum, activity) => sum + (activity.count || 0), 0);
+
+          data.push({
+            label: formatDate(intervalStart, 'HH:mm'),
+            value: value
+          });
+        }
+        break;
+      }
+    }
+
+    console.log('Final chart data:', data);
+    return data;
+  } catch (error) {
+    console.error('Error in getBeatsDataForChart:', error);
+    return [];
+  }
 };
+
+export function chunkData<T>(data: T[], size: number = BATCH_SIZE): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < data.length; i += size) {
+    chunks.push(data.slice(i, Math.min(i + size, data.length)));
+  }
+  return chunks;
+}
+
+export async function processDataInBatches<T>(
+  data: T[],
+  processFn: (batch: T[]) => Promise<void>
+): Promise<void> {
+  const chunks = chunkData(data);
+  
+  try {
+    for (const chunk of chunks) {
+      await processFn(chunk);
+    }
+  } catch (error) {
+    console.error('Error processing data chunks:', error);
+    throw error;
+  }
+}

@@ -3,13 +3,17 @@ export interface Project {
   title: string;
   description: string;
   status: 'idea' | 'in-progress' | 'mixing' | 'mastering' | 'completed';
+  user_id?: string;
+  created_at?: string;
+  last_modified?: string;
+  // Client-side fields
   dateCreated: string;
   lastModified: string;
-  bpm: number;
-  key: string;
-  genre: string;
-  tags: string[];
-  completionPercentage: number;
+  bpm?: number;
+  key?: string;
+  genre?: string;
+  tags?: string[];
+  completionPercentage?: number;
   audioFile?: {
     name: string;
     size: number;

@@ -147,10 +147,10 @@ const Profile = () => {
 
   // Memoize stats calculations
   const stats = useMemo(() => ({
-    productivityScore: profile?.productivityScore || 0,
-    totalBeats: profile?.totalBeats || 0,
-    completedProjects: profile?.completedProjects || 0,
-    completionRate: profile?.completionRate || 0
+    productivityScore: profile?.productivity_score || 0,
+    totalBeats: profile?.total_beats || 0,
+    completedProjects: profile?.completed_projects || 0,
+    completionRate: profile?.completion_rate || 0
   }), [profile]);
 
   // Memoize overview stats
@@ -230,8 +230,8 @@ const Profile = () => {
     {
       name: 'Instagram',
       icon: <InstagramLogo weight="fill" className="h-4 w-4" />,
-      href: profile?.social?.instagram || '#',
-      username: profile?.social?.instagram_username || 'Add Instagram'
+      href: profile?.instagram || '#',
+      username: profile?.instagram_username || 'Add Instagram'
     },
     {
       name: 'Twitter',
@@ -408,7 +408,7 @@ const Profile = () => {
               {/* Avatar with Upload Button */}
               <div className="relative group">
                 <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
-                  <AvatarImage src={profile?.avatar_url} />
+                  <AvatarImage src={profile?.avatar_url || undefined} />
                   <AvatarFallback className="text-2xl">{getInitials()}</AvatarFallback>
                 </Avatar>
                 <button
@@ -509,7 +509,7 @@ const Profile = () => {
                             Genres
                           </h4>
                           <div className="flex flex-wrap gap-2">
-                            {producerInfo.genres.map((genre, index) => (
+                            {(Array.isArray(producerInfo.genres) ? producerInfo.genres : []).map((genre, index) => (
                               <Badge key={index} variant="secondary">
                                 {genre}
                               </Badge>

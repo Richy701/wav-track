@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, LabelList, LineChart, Line, TooltipProps } from 'recharts';
-import { getBeatsDataForChart } from '@/lib/data';
+import { getBeatsDataForChart, getBeatsCreatedByProject } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { Project } from '@/lib/types';
 import { BarChart3, LineChart as LineChartIcon } from 'lucide-react';
@@ -20,17 +20,15 @@ type ChartData = {
 };
 
 export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartProps) {
-  const [beatsData, setBeatsData] = useState<ChartData[]>(() => {
-    return projects.length > 0 
-      ? getBeatsDataForChart(timeRange, selectedProject?.id) 
-      : Array(6).fill({ label: '-', value: 0 });
-  });
+  const [beatsData, setBeatsData] = useState<ChartData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [highlightedBar, setHighlightedBar] = useState<string | null>(null);
   const [chartView, setChartView] = useState<ChartView>('bar');
+  const [refreshKey, setRefreshKey] = useState(0);
   
   // Calculate max value for YAxis domain
   const maxValue = Math.max(...beatsData.map(d => d.value));
-  const yAxisMax = maxValue === 0 ? 2 : Math.max(2, Math.ceil(maxValue * 1.2));
+  const yAxisMax = maxValue === 0 ? 0 : Math.max(1, Math.ceil(maxValue * 1.2));
 
   // Calculate cumulative data for line chart
   const cumulativeData = beatsData.reduce((acc, curr) => {
@@ -42,13 +40,28 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
     return acc;
   }, [] as ChartData[]);
 
-  // Update data when beats are added or project selection changes
+  // Update refreshKey when projects change
   useEffect(() => {
-    const newData = projects.length > 0 
-      ? getBeatsDataForChart(timeRange, selectedProject?.id)
-      : Array(6).fill({ label: '-', value: 0 });
-    setBeatsData(newData);
-  }, [timeRange, projects, selectedProject]);
+    setRefreshKey(prev => prev + 1);
+  }, [projects]);
+
+  // Fetch data when timeRange, project selection, or refreshKey changes
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getBeatsDataForChart(timeRange, selectedProject?.id);
+        setBeatsData(data);
+      } catch (error) {
+        console.error('Error fetching beats data:', error);
+        setBeatsData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [timeRange, selectedProject, refreshKey]);
 
   const CustomTooltip = ({ 
     active, 
@@ -72,6 +85,24 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
     }
     return null;
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500" />
+      </div>
+    );
+  }
+
+  // If there's no data, show a message
+  if (beatsData.length === 0 || maxValue === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+        <p className="text-sm">No beats recorded yet</p>
+        <p className="text-xs mt-1">Create a beat to see your activity</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 w-full">
@@ -298,13 +329,13 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                 dataKey="cumulative"
                 stroke="url(#lineGradient)"
                 strokeWidth={2}
-                dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 4 }}
+                dot={false}
                 activeDot={{ 
-                  r: 6, 
+                  r: 5, 
                   fill: '#8b5cf6',
                   strokeWidth: 2,
-                  stroke: '#fff',
-                  className: "dark:stroke-zinc-900 transition-all duration-200"
+                  stroke: 'white',
+                  className: "dark:stroke-zinc-900 drop-shadow-md transition-all duration-200"
                 }}
                 className="transition-all duration-200"
               />

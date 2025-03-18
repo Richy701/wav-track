@@ -35,14 +35,54 @@ interface StatsProps {
 
 export default function Stats({ projects, sessions, selectedProject }: StatsProps) {
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month' | 'year'>('week');
+  const [totalBeatsCreated, setTotalBeatsCreated] = useState(0);
+  const [totalBeatsInPeriod, setTotalBeatsInPeriod] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const [lastBeatUpdate, setLastBeatUpdate] = useState(Date.now());
+  const [refreshKey, setRefreshKey] = useState(0);
   
+  // Fetch beat counts when projects or selected project changes
+  useEffect(() => {
+    const fetchBeatCounts = async () => {
+      setIsLoading(true);
+      try {
+        if (projects.length === 0) {
+          setTotalBeatsCreated(0);
+          setTotalBeatsInPeriod(0);
+          return;
+        }
+
+        // Calculate total beats across all projects or selected project
+        if (selectedProject) {
+          const beats = await getBeatsCreatedByProject(selectedProject.id);
+          setTotalBeatsCreated(beats);
+          setTotalBeatsInPeriod(beats); // For now, use the same count
+        } else {
+          const beatPromises = projects.map(project => getBeatsCreatedByProject(project.id));
+          const beatCounts = await Promise.all(beatPromises);
+          const total = beatCounts.reduce((sum, count) => sum + count, 0);
+          setTotalBeatsCreated(total);
+          setTotalBeatsInPeriod(total); // For now, use the same count
+        }
+      } catch (error) {
+        console.error('Error fetching beat counts:', error);
+        setTotalBeatsCreated(0);
+        setTotalBeatsInPeriod(0);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBeatCounts();
+  }, [projects, selectedProject, refreshKey]);
+
   // Update when new beats are added or project is selected
   useEffect(() => {
     const checkForNewBeats = () => {
       const latestBeat = beatActivities[beatActivities.length - 1];
       if (latestBeat && new Date(latestBeat.date).getTime() > lastBeatUpdate) {
         setLastBeatUpdate(Date.now());
+        setRefreshKey(prev => prev + 1);
       }
     };
 
@@ -53,16 +93,6 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
   
   // Count completed projects
   const completedProjects = projects.filter(project => project.status === 'completed').length;
-  
-  // Calculate total beats in current period - only if projects exist
-  const totalBeatsInPeriod = projects.length > 0 ? getTotalBeatsInTimeRange(timeRange, selectedProject?.id) : 0;
-  
-  // Calculate total beats across all projects or selected project
-  const totalBeatsCreated = selectedProject 
-    ? getBeatsCreatedByProject(selectedProject.id)
-    : projects.length > 0 
-      ? projects.reduce((total, project) => total + getBeatsCreatedByProject(project.id), 0)
-      : 0;
   
   // Calculate productivity score
   const productivityScore = projects.length > 0 || sessions.length > 0 
@@ -301,6 +331,7 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
         
         <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
           <BeatsChart 
+            key={refreshKey}
             timeRange={timeRange} 
             projects={projects} 
             selectedProject={selectedProject} 

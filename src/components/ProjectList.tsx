@@ -35,6 +35,7 @@ import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { SortableProjectCard } from '@/components/project/SortableProjectCard';
 import { Loading } from '@/components/ui/loading';
 import { useQueryClient } from '@tanstack/react-query';
+import { EmptyState } from './EmptyState';
 
 interface ProjectListProps {
   title?: string;
@@ -151,6 +152,14 @@ const ProjectList: React.FC<ProjectListProps> = ({
   };
 
   const currentSortDisplay = getSortOptionDisplay(sortBy);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (projects.length === 0) {
+    return <EmptyState />;
+  }
 
   return (
     <div className="space-y-4">

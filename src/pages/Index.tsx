@@ -4,40 +4,92 @@ import Footer from '@/components/Footer';
 import ProjectList from '@/components/ProjectList';
 import Timer from '@/components/Timer';
 import Stats from '@/components/Stats';
-import { sessions } from '@/lib/data';
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useProjects } from '@/hooks/useProjects';
-import { Project } from '@/lib/types';
+import { Project, Session } from '@/lib/types';
+import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 const Index = () => {
-  const { projects, isLoading, error, setProjects } = useProjects();
-  const [orderedProjects, setOrderedProjects] = useState<Project[]>([]);
+  const { projects, isLoading, error, updateProject } = useProjects();
+  const { user, profile, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
-  // Update orderedProjects when projects change
   useEffect(() => {
-    setOrderedProjects(projects);
-  }, [projects]);
+    if (!user && !authLoading) {
+      navigate('/login');
+      return;
+    }
+  }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    if (!user || authLoading) return;
+
+    const fetchSessions = async () => {
+      try {
+        console.log('Fetching sessions for user:', user.id);
+
+        const { data, error } = await supabase
+          .from('sessions')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
+
+        console.log('Fetched sessions:', data);
+        setSessions(data || []);
+      } catch (error) {
+        console.error('Error fetching sessions:', error);
+        toast.error('Failed to load sessions');
+      }
+    };
+
+    fetchSessions();
+  }, [user, authLoading]);
+
+  // Add debug render log
+  console.log('Render state:', { 
+    authLoading, 
+    hasUser: !!user, 
+    projectsCount: projects?.length || 0,
+    sessionsCount: sessions.length 
+  });
 
   const handleDragEnd = (activeId: string, overId: string) => {
-    const oldIndex = orderedProjects.findIndex(p => p.id === activeId);
-    const newIndex = orderedProjects.findIndex(p => p.id === overId);
+    if (!projects) return;
+    
+    const oldIndex = projects.findIndex(p => p.id === activeId);
+    const newIndex = projects.findIndex(p => p.id === overId);
 
-    const newProjects = [...orderedProjects];
+    const newProjects = [...projects];
     const [movedProject] = newProjects.splice(oldIndex, 1);
     newProjects.splice(newIndex, 0, movedProject);
 
-    setOrderedProjects(newProjects);
-    // Update the projects in your data store
-    setProjects(newProjects);
+    // Update the project with new last_modified timestamp
+    const projectToUpdate = {
+      ...movedProject,
+      last_modified: new Date().toISOString()
+    };
+
+    updateProject(projectToUpdate).catch(error => {
+      console.error('Error updating project order:', error);
+      toast.error('Failed to update project order');
+    });
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
+  if (authLoading || !user || !profile) {
+    return <DashboardSkeleton />;
   }
 
   if (error) {
@@ -55,7 +107,7 @@ const Index = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-10 flex-1">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10 md:mb-12">
           <div className="lg:col-span-2">
-            <Stats projects={projects} sessions={sessions} />
+            <Stats projects={projects || []} sessions={sessions} selectedProject={selectedProject} />
           </div>
           <div className="grid grid-cols-1 gap-6">
             <Timer />
@@ -118,7 +170,11 @@ const Index = () => {
         </div>
         
         <div className="mb-12">
-          <ProjectList onDragEnd={handleDragEnd} />
+          <ProjectList
+            projects={projects || []}
+            isLoading={isLoading}
+            onProjectSelect={setSelectedProject}
+          />
         </div>
       </main>
 
