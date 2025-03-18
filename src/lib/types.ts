@@ -68,3 +68,42 @@ export interface AudioProcessingState {
 }
 
 export type StemType = 'vocals' | 'instrumental' | 'bass' | 'drums';
+
+export interface Profile {
+  id: string;
+  username: string;
+  name: string;
+  artist_name?: string;
+  avatar_url?: string;
+  bio?: string;
+  website?: string;
+  location?: string;
+  email?: string;
+  phone?: string;
+  daw?: string;
+  genres: string[];
+  followers: number;
+  following: number;
+  collaborations: number;
+  productivity_score?: number;
+  total_beats?: number;
+  completed_projects?: number;
+  completion_rate?: number;
+  instagram?: string;
+  instagram_username?: string;
+  social?: {
+    twitter?: string;
+    twitter_username?: string;
+    youtube?: string;
+    youtube_username?: string;
+    linkedin?: string;
+    github?: string;
+  };
+  notifications?: {
+    newFollowers?: boolean;
+    beatComments?: boolean;
+    collaborationRequests?: boolean;
+    email?: boolean;
+    push?: boolean;
+  };
+}

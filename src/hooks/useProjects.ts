@@ -31,7 +31,7 @@ const sortProjects = (projects: Project[]) => {
 
 export function useProjects() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
 
   // Fetch projects with optimized caching
   const {
@@ -75,9 +75,11 @@ export function useProjects() {
       queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], context?.previousProjects);
       console.error('Failed to add project:', err);
     },
-    onSettled: () => {
+    onSettled: async () => {
       // Always refetch after error or success to ensure cache synchronization
       queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] });
+      // Refresh profile data to update stats
+      await refreshProfile();
     },
   });
 
@@ -101,8 +103,10 @@ export function useProjects() {
       queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], context?.previousProjects);
       console.error('Failed to update project:', err);
     },
-    onSettled: () => {
+    onSettled: async () => {
       queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] });
+      // Refresh profile data to update stats
+      await refreshProfile();
     },
   });
 
@@ -110,22 +114,30 @@ export function useProjects() {
   const deleteProjectMutation = useMutation({
     mutationFn: deleteProject,
     onMutate: async (projectId) => {
+      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] });
+
+      // Snapshot the previous value
       const previousProjects = queryClient.getQueryData([...QUERY_KEYS.projects, user?.id]);
 
+      // Optimistically update to the new value
       queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], (old: Project[] = []) => {
-        const updatedProjects = old.filter((project) => project.id !== projectId);
-        return sortProjects(updatedProjects);
+        return old.filter((project) => project.id !== projectId);
       });
 
+      // Return a context object with the snapshotted value
       return { previousProjects };
     },
     onError: (err, projectId, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
       queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], context?.previousProjects);
       console.error('Failed to delete project:', err);
     },
-    onSettled: () => {
+    onSettled: async () => {
+      // Always refetch after error or success to ensure cache synchronization
       queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] });
+      // Refresh profile data to update stats
+      await refreshProfile();
     },
   });
 

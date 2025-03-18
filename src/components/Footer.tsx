@@ -13,9 +13,9 @@ import { BeatsStar } from './icons/BeatsStar';
 
 const Footer = () => {
   return (
-    <footer className="w-full border-t border-border/50">
-      <div className="py-12">
-        <div className="max-w-4xl mx-auto">
+    <footer className="w-full border-t border-border/50 mt-24 bg-muted/40">
+      <div className="py-16">
+        <div className="max-w-4xl mx-auto px-6">
           <div className="grid grid-cols-3 gap-x-12 gap-y-8">
             {/* Create */}
             <div className="text-center">

@@ -222,6 +222,40 @@ export const addProject = async (project: Project): Promise<Project> => {
       throw new Error('No data returned from insert');
     }
 
+    // Get all projects to update profile stats
+    const { data: allProjects } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('user_id', user.id);
+
+    if (allProjects) {
+      const totalProjects = allProjects.length;
+      const completedProjects = allProjects.filter(p => p.status === 'completed').length;
+      const completionRate = Math.round((completedProjects / totalProjects) * 100);
+      const productivityScore = Math.min(100, Math.round((totalProjects * 10) + (completedProjects * 5)));
+
+      // Get total beats from beat activities
+      const { data: beatActivities } = await supabase
+        .from('beat_activities')
+        .select('count')
+        .eq('user_id', user.id);
+
+      // Add 1 to account for the initial beat that will be created
+      const totalBeats = (beatActivities ? beatActivities.reduce((sum, activity) => sum + activity.count, 0) : 0) + 1;
+
+      // Update profile stats
+      await supabase
+        .from('profiles')
+        .update({
+          total_beats: totalBeats,
+          completed_projects: completedProjects,
+          completion_rate: completionRate,
+          productivity_score: productivityScore,
+          updated_at: now
+        })
+        .eq('id', user.id);
+    }
+
     // Ensure we have valid dates
     const created_at = data.created_at || now;
     const last_modified = data.last_modified || now;
@@ -282,6 +316,42 @@ export const updateProject = async (updatedProject: Project): Promise<Project> =
       throw new Error('No data returned from update');
     }
 
+    // Update profile stats if status changed to completed
+    if (data.status === 'completed') {
+      // Get all projects to calculate stats
+      const { data: allProjects } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (allProjects) {
+        const totalProjects = allProjects.length;
+        const completedProjects = allProjects.filter(p => p.status === 'completed').length;
+        const completionRate = Math.round((completedProjects / totalProjects) * 100);
+        const productivityScore = Math.min(100, Math.round((totalProjects * 10) + (completedProjects * 5)));
+
+        // Get total beats from beat activities
+        const { data: beatActivities } = await supabase
+          .from('beat_activities')
+          .select('count')
+          .eq('user_id', user.id);
+
+        const totalBeats = beatActivities ? beatActivities.reduce((sum, activity) => sum + activity.count, 0) : 0;
+
+        // Update profile stats
+        await supabase
+          .from('profiles')
+          .update({
+            total_beats: totalBeats,
+            completed_projects: completedProjects,
+            completion_rate: completionRate,
+            productivity_score: productivityScore,
+            updated_at: now
+          })
+          .eq('id', user.id);
+      }
+    }
+
     // Ensure we have valid dates
     const created_at = data.created_at || updatedProject.dateCreated;
     const last_modified = data.last_modified || now;
@@ -314,20 +384,48 @@ export const deleteProject = async (projectId: string): Promise<void> => {
       throw new Error('No user found');
     }
 
-    // Delete from Supabase
+    // Delete the project
     const { error } = await supabase
       .from('projects')
       .delete()
-      .eq('id', projectId)
-      .eq('user_id', user.id);
+      .eq('id', projectId);
 
     if (error) {
-      console.error('Error deleting project:', error);
       throw error;
     }
 
-    // Clear the cache to force a fresh fetch
-    cache.delete(`projects-${user.id}`);
+    // Get all remaining projects to calculate stats
+    const { data: allProjects } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('user_id', user.id);
+
+    if (allProjects) {
+      const totalProjects = allProjects.length;
+      const completedProjects = allProjects.filter(p => p.status === 'completed').length;
+      const completionRate = totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0;
+      const productivityScore = Math.min(100, Math.round((totalProjects * 10) + (completedProjects * 5)));
+
+      // Get total beats from beat activities (beat activities are automatically deleted due to CASCADE)
+      const { data: beatActivities } = await supabase
+        .from('beat_activities')
+        .select('count')
+        .eq('user_id', user.id);
+
+      const totalBeats = beatActivities ? beatActivities.reduce((sum, activity) => sum + activity.count, 0) : 0;
+
+      // Update profile stats
+      await supabase
+        .from('profiles')
+        .update({
+          total_beats: totalBeats,
+          completed_projects: completedProjects,
+          completion_rate: completionRate,
+          productivity_score: productivityScore,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+    }
   } catch (error) {
     console.error('Error in deleteProject:', error);
     throw error;
@@ -426,7 +524,7 @@ export const recordBeatCreation = async (projectId: string, count: number = 1, c
       now = new Date(); // Fallback to current date
     }
 
-    const date = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+  const date = now.toISOString().split('T')[0]; // YYYY-MM-DD format
     const timestamp = now.getTime();
 
     console.log('Preparing to insert beat activity:', {
@@ -438,7 +536,7 @@ export const recordBeatCreation = async (projectId: string, count: number = 1, c
     // Only record if count is greater than 0 (ignore initial creation)
     if (count > 0) {
       const beatActivity = {
-        id: crypto.randomUUID(),
+      id: crypto.randomUUID(),
         project_id: projectId,
         user_id: user.id,
       date,

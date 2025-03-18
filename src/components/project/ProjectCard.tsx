@@ -186,7 +186,7 @@ export default function ProjectCard({
       onClick={handleCardClick}
       role="button"
       tabIndex={0}
-      aria-pressed={isSelected}
+      aria-pressed="false"
     >
       <div className="p-5">
         <div className="flex justify-between items-start mb-3">

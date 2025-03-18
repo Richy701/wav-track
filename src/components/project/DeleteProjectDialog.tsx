@@ -31,8 +31,11 @@ export default function DeleteProjectDialog({
   const handleDelete = async () => {
     try {
       await deleteProject(project.id);
-      onConfirm();
       onOpenChange(false);
+      onConfirm();
+      toast.success("Project deleted", {
+        description: `"${project.title}" has been removed.`
+      });
     } catch (error) {
       console.error('Error deleting project:', error);
       toast.error("Failed to delete project", {

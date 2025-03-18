@@ -96,6 +96,10 @@ const ProjectList: React.FC<ProjectListProps> = ({
 
   const handleProjectDeleted = () => {
     queryClient.invalidateQueries({ queryKey: ['projects'] });
+    if (selectedProjectId) {
+      setSelectedProjectId(null);
+      onProjectSelect?.(null);
+    }
   };
 
   // Handle project selection

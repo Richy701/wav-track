@@ -17,7 +17,7 @@ export interface Profile {
   name: string | null;
   avatar_url: string | null;
   artist_name: string | null;
-  genres: string | null;
+  genres: string[];
   daw: string | null;
   bio: string | null;
   location: string | null;
@@ -33,12 +33,12 @@ export interface Profile {
   join_date: string | null;
   updated_at: string | null;
   social_links: {
-    instagram?: string;
-    instagram_username?: string;
-    twitter?: string;
-    twitter_username?: string;
-    youtube?: string;
-    youtube_username?: string;
+    instagram: string | null;
+    instagram_username: string | null;
+    twitter: string | null;
+    twitter_username: string | null;
+    youtube: string | null;
+    youtube_username: string | null;
   } | null;
   notification_preferences: {
     newFollowers: boolean;
@@ -530,7 +530,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: userData.name ?? profile.name,
         email: userData.email ?? profile.email,
         artist_name: userData.artist_name ?? profile.artist_name,
-        genres: userData.genres ?? profile.genres,
+        genres: Array.isArray(userData.genres) ? userData.genres : profile.genres,
         daw: userData.daw ?? profile.daw,
         bio: userData.bio ?? profile.bio,
         location: userData.location ?? profile.location,
@@ -585,7 +585,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast({
         variant: "destructive",
         title: 'Update Failed',
-        description: error instanceof Error ? error.message : 'Failed to update profile'
+        description: error instanceof Error ? error.message : 'An error occurred'
       });
       throw error;
     }
@@ -676,7 +676,7 @@ const convertProfileFromDb = (data: DbProfile): Profile => {
     name: data.name,
     avatar_url: data.avatar_url,
     artist_name: data.artist_name,
-    genres: data.genres,
+    genres: convertGenresFromDb(data.genres),
     daw: data.daw,
     bio: data.bio,
     location: data.location,
@@ -706,7 +706,7 @@ const createDefaultProfile = (userId: string, email: string, name: string | null
   name: name,
   avatar_url: null,
   artist_name: null,
-  genres: null,
+  genres: [],
   daw: null,
   bio: null,
   location: null,

@@ -42,6 +42,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from '@/lib/utils';
 import { useProjects } from '@/hooks/useProjects';
+import { Badge } from "@/components/ui/badge";
+import { X } from 'lucide-react';
 
 interface CreateProjectDialogProps {
   isOpen: boolean;
@@ -65,7 +67,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
     status: 'idea' as Project['status'],
     bpm: 120,
     key: 'C',
-    genre: '',
+    genres: [] as string[],
     tags: [] as string[],
     completionPercentage: 0,
     dateCreated: new Date().toISOString(),
@@ -80,8 +82,8 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
       newErrors.title = 'Title is required';
     }
     
-    if (!formData.genre) {
-      newErrors.genre = 'Genre is required';
+    if (formData.genres.length === 0) {
+      newErrors.genres = 'At least one genre is required';
     }
     
     if (!formData.length.match(/^\d+:\d{2}$/)) {
@@ -125,10 +127,22 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   };
 
   const handleGenreChange = (value: string) => {
-    setFormData(prev => ({ ...prev, genre: value }));
-    if (errors.genre) {
-      setErrors(prev => ({ ...prev, genre: '' }));
+    if (!formData.genres.includes(value)) {
+      setFormData(prev => ({
+        ...prev,
+        genres: [...prev.genres, value].sort()
+      }));
     }
+    if (errors.genres) {
+      setErrors(prev => ({ ...prev, genres: '' }));
+    }
+  };
+
+  const handleRemoveGenre = (genreToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      genres: prev.genres.filter(genre => genre !== genreToRemove)
+    }));
   };
 
   const handleDateChange = (date: Date | undefined) => {
@@ -159,6 +173,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
       const newProject: Project = {
         id: crypto.randomUUID(),
         ...formData,
+        genre: formData.genres.join(', '), // Join multiple genres for storage
         lastModified: new Date().toISOString(),
       };
 
@@ -179,7 +194,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
         status: 'idea',
         bpm: 120,
         key: 'C',
-        genre: '',
+        genres: [],
         tags: [],
         completionPercentage: 0,
         dateCreated: new Date().toISOString(),
@@ -245,51 +260,77 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
               </div>
             </div>
             
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className="grid grid-cols-4 items-start gap-4">
               <Label htmlFor="genre" className="text-right font-medium">
-                Genre
+                Genres
               </Label>
-              <div className="col-span-3 relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
-                  <div className="p-1 rounded-md bg-pink-500/10">
-                    <PhTag weight="fill" className="h-4 w-4 text-pink-500" />
+              <div className="col-span-3 relative space-y-2">
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
+                    <div className="p-1 rounded-md bg-pink-500/10">
+                      <PhTag weight="fill" className="h-4 w-4 text-pink-500" />
+                    </div>
                   </div>
-                </div>
-                <Select 
-                  value={formData.genre} 
-                  onValueChange={handleGenreChange}
-                  name="genre"
-                >
-                  <SelectTrigger 
-                    id="genre"
-                    className={cn(
-                      "pl-12 transition-colors",
-                      errors.genre ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"
-                    )}
-                    aria-label="Select project genre"
-                    aria-describedby={errors.genre ? "genre-error" : undefined}
+                  <Select 
+                    value=""
+                    onValueChange={handleGenreChange}
+                    name="genre"
                   >
-                    <SelectValue placeholder="Select genre" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Genres</SelectLabel>
-                      {genreOptions.map(genre => (
-                        <SelectItem 
-                          key={genre} 
-                          value={genre}
-                          role="option"
-                          aria-selected={formData.genre === genre}
+                    <SelectTrigger 
+                      id="genre"
+                      className={cn(
+                        "pl-12 transition-colors",
+                        errors.genres ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"
+                      )}
+                      aria-label="Select project genres"
+                      aria-describedby={errors.genres ? "genre-error" : undefined}
+                    >
+                      <SelectValue placeholder="Select genres" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Genres</SelectLabel>
+                        {genreOptions.map(genre => (
+                          <SelectItem 
+                            key={genre} 
+                            value={genre}
+                            role="option"
+                            disabled={formData.genres.includes(genre)}
+                            className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          >
+                            {genre}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {formData.genres.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {formData.genres.map((genre) => (
+                      <Badge
+                        key={genre}
+                        variant="secondary"
+                        className="flex items-center gap-1 px-2 py-1 text-sm"
+                      >
+                        {genre}
+                        <button
+                          type="button"
+                          className="ml-1 rounded-full hover:bg-muted/50 p-0.5"
+                          onClick={() => handleRemoveGenre(genre)}
+                          aria-label={`Remove ${genre} genre`}
                         >
-                          {genre}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                {errors.genre && (
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                
+                {errors.genres && (
                   <p id="genre-error" className="text-sm text-destructive mt-1.5 animate-in fade-in slide-in-from-top-1">
-                    {errors.genre}
+                    {errors.genres}
                   </p>
                 )}
               </div>

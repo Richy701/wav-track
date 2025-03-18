@@ -61,15 +61,15 @@ interface FormData {
   genres: string[];
   daw: string;
   bio: string;
-  social: {
-    instagram?: string;
-    instagram_username?: string;
-    twitter?: string;
-    twitter_username?: string;
-    youtube?: string;
-    youtube_username?: string;
+  social_links: {
+    instagram: string | null;
+    instagram_username: string | null;
+    twitter: string | null;
+    twitter_username: string | null;
+    youtube: string | null;
+    youtube_username: string | null;
   };
-  notifications: {
+  notification_preferences: {
     newFollowers: boolean;
     beatComments: boolean;
     collaborationRequests: boolean;
@@ -162,15 +162,15 @@ const ProfileSettings = () => {
     genres: [],
     daw: '',
     bio: '',
-    social: {
-      instagram: '',
-      instagram_username: '',
-      twitter: '',
-      twitter_username: '',
-      youtube: '',
-      youtube_username: ''
+    social_links: {
+      instagram: null,
+      instagram_username: null,
+      twitter: null,
+      twitter_username: null,
+      youtube: null,
+      youtube_username: null
     },
-    notifications: {
+    notification_preferences: {
       newFollowers: true,
       beatComments: true,
       collaborationRequests: true
@@ -194,22 +194,21 @@ const ProfileSettings = () => {
         birthday: profile.birthday || '',
         timezone: profile.timezone || 'UTC',
         artist_name: profile.artist_name || '',
-        genres: Array.isArray(profile.genres) ? profile.genres : 
-               (profile.genres ? JSON.parse(profile.genres) : []),
+        genres: profile.genres || [],
         daw: profile.daw || '',
         bio: profile.bio || '',
-        social: {
-          instagram: profile.social?.instagram || '',
-          instagram_username: profile.social?.instagram_username || '',
-          twitter: profile.social?.twitter || '',
-          twitter_username: profile.social?.twitter_username || '',
-          youtube: profile.social?.youtube || '',
-          youtube_username: profile.social?.youtube_username || ''
+        social_links: profile.social_links || {
+          instagram: null,
+          instagram_username: null,
+          twitter: null,
+          twitter_username: null,
+          youtube: null,
+          youtube_username: null
         },
-        notifications: {
-          newFollowers: profile.notifications?.newFollowers ?? true,
-          beatComments: profile.notifications?.beatComments ?? true,
-          collaborationRequests: profile.notifications?.collaborationRequests ?? true
+        notification_preferences: profile.notification_preferences || {
+          newFollowers: true,
+          beatComments: true,
+          collaborationRequests: true
         }
       });
 
@@ -230,10 +229,10 @@ const ProfileSettings = () => {
   const handleSocialChange = (platform: string, type: 'url' | 'username', value: string) => {
     setFormData(prev => ({
       ...prev,
-      social: {
-        ...prev.social,
-        [platform]: type === 'url' ? value : prev.social[platform],
-        [`${platform}_username`]: type === 'username' ? value : prev.social[`${platform}_username`]
+      social_links: {
+        ...prev.social_links,
+        [platform]: type === 'url' ? value || null : prev.social_links[platform],
+        [`${platform}_username`]: type === 'username' ? value || null : prev.social_links[`${platform}_username`]
       }
     }));
   };
@@ -241,8 +240,8 @@ const ProfileSettings = () => {
   const handleNotificationChange = (type: string, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
-      notifications: {
-        ...prev.notifications,
+      notification_preferences: {
+        ...prev.notification_preferences,
         [type]: checked
       }
     }));
@@ -261,26 +260,22 @@ const ProfileSettings = () => {
     setIsSaving(true);
     
     try {
-      console.log('Submitting form data:', formData);
+      console.log('Raw form data:', JSON.stringify(formData, null, 2));
       
       // Prepare update data
       const dataToUpdate = {
         ...formData,
-        // Convert genres array to string for database
-        genres: JSON.stringify(formData.genres),
-        social: {
-          ...formData.social
-        },
-        notifications: {
-          ...formData.notifications
-        }
+        // Send genres as array directly
+        genres: formData.genres,
+        social_links: formData.social_links,
+        notification_preferences: formData.notification_preferences
       };
 
-      console.log('Data to update:', dataToUpdate);
+      console.log('Data being sent to updateUserProfile:', JSON.stringify(dataToUpdate, null, 2));
       
       // Update profile
       const response = await updateUserProfile(dataToUpdate);
-      console.log('Update response:', response);
+      console.log('Update response:', JSON.stringify(response, null, 2));
       
       // Ensure profile is refreshed with latest data
       await refreshProfile();
@@ -289,7 +284,12 @@ const ProfileSettings = () => {
       navigate('/profile');
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
+      // More detailed error logging
+      if (error instanceof Error) {
+        toast.error(`Failed to update profile: ${error.message}`);
+      } else {
+        toast.error('Failed to update profile: An unknown error occurred');
+      }
     } finally {
       setIsSaving(false);
     }
@@ -521,12 +521,12 @@ const ProfileSettings = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     placeholder="Instagram profile URL"
-                    value={formData.social.instagram}
+                    value={formData.social_links.instagram ?? ''}
                     onChange={(e) => handleSocialChange('instagram', 'url', e.target.value)}
                   />
                   <Input
                     placeholder="@username"
-                    value={formData.social.instagram_username}
+                    value={formData.social_links.instagram_username ?? ''}
                     onChange={(e) => handleSocialChange('instagram', 'username', e.target.value)}
                   />
                 </div>
@@ -541,12 +541,12 @@ const ProfileSettings = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     placeholder="Twitter profile URL"
-                    value={formData.social.twitter}
+                    value={formData.social_links.twitter ?? ''}
                     onChange={(e) => handleSocialChange('twitter', 'url', e.target.value)}
                   />
                   <Input
                     placeholder="@username"
-                    value={formData.social.twitter_username}
+                    value={formData.social_links.twitter_username ?? ''}
                     onChange={(e) => handleSocialChange('twitter', 'username', e.target.value)}
                   />
                 </div>
@@ -561,12 +561,12 @@ const ProfileSettings = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     placeholder="YouTube channel URL"
-                    value={formData.social.youtube}
+                    value={formData.social_links.youtube ?? ''}
                     onChange={(e) => handleSocialChange('youtube', 'url', e.target.value)}
                   />
                   <Input
                     placeholder="Channel name"
-                    value={formData.social.youtube_username}
+                    value={formData.social_links.youtube_username ?? ''}
                     onChange={(e) => handleSocialChange('youtube', 'username', e.target.value)}
                   />
                 </div>
@@ -589,7 +589,7 @@ const ProfileSettings = () => {
                   </p>
                 </div>
                 <Switch
-                  checked={formData.notifications.newFollowers}
+                  checked={formData.notification_preferences.newFollowers}
                   onCheckedChange={(checked) => handleNotificationChange('newFollowers', checked)}
                 />
               </div>
@@ -601,7 +601,7 @@ const ProfileSettings = () => {
                   </p>
                 </div>
                 <Switch
-                  checked={formData.notifications.beatComments}
+                  checked={formData.notification_preferences.beatComments}
                   onCheckedChange={(checked) => handleNotificationChange('beatComments', checked)}
                 />
               </div>
@@ -613,7 +613,7 @@ const ProfileSettings = () => {
                   </p>
                 </div>
                 <Switch
-                  checked={formData.notifications.collaborationRequests}
+                  checked={formData.notification_preferences.collaborationRequests}
                   onCheckedChange={(checked) => handleNotificationChange('collaborationRequests', checked)}
                 />
               </div>

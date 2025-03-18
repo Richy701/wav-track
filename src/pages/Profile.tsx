@@ -56,6 +56,21 @@ import {
 } from '@/lib/data';
 import { toast } from 'sonner';
 import { FLStudioIcon, AbletonIcon, LogicProIcon, ProToolsIcon, StudioOneIcon, BitwigIcon, ReaperIcon } from '@/components/DawIcons';
+import { useProjects } from '../hooks/useProjects';
+import { useToast } from '../components/ui/use-toast';
+import { supabase } from '../lib/supabase';
+import { Profile } from '../lib/types';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
+
+interface Activity {
+  type: 'beat' | 'completion';
+  icon: React.ReactNode;
+  text: string;
+  date: Date;
+  projectId: string;
+}
 
 const dawOptions = [
   {
@@ -106,6 +121,8 @@ const Profile = () => {
   const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
+  const [isLoadingActivities, setIsLoadingActivities] = useState(true);
   
   // Refresh profile when component mounts or when returning from settings
   useEffect(() => {
@@ -133,6 +150,21 @@ const Profile = () => {
     // Load fresh data when mounting or navigating back from settings
     loadProfile();
   }, [refreshProfile, location.key]); // Remove profile from dependencies
+
+  useEffect(() => {
+    const loadActivities = async () => {
+      try {
+        setIsLoadingActivities(true);
+        const activities = await getRecentActivities();
+        setRecentActivities(activities);
+      } catch (error) {
+        console.error('Error loading activities:', error);
+      } finally {
+        setIsLoadingActivities(false);
+      }
+    };
+    loadActivities();
+  }, []);
 
   // Calculate the initials for the avatar fallback
   const getInitials = () => {
@@ -342,43 +374,42 @@ const Profile = () => {
   };
 
   // Get recent activities
-  const getRecentActivities = () => {
+  const getRecentActivities = async () => {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     
     // Get recent beats created
-    const recentBeats = getBeatsCreatedInRange(thirtyDaysAgo, now)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 3);
+    const recentBeats = await getBeatsCreatedInRange(thirtyDaysAgo, now)
+      .then(beats => beats.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()))
+      .then(beats => beats.slice(0, 3));
 
     // Get recently completed projects
-    const completedProjects = getProjectsByStatus('completed')
-      .sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime())
-      .slice(0, 3);
+    const completedProjects = await getProjectsByStatus('completed')
+      .then(projects => projects.sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()))
+      .then(projects => projects.slice(0, 3));
 
     // Combine and sort activities
-    const activities = [
-      ...recentBeats.map(beat => ({
+    const activities = await Promise.all([
+      ...recentBeats.map(async beat => ({
         type: 'beat',
         icon: <MusicNote className="h-4 w-4 text-primary" />,
         text: `Created ${beat.count} beat${beat.count > 1 ? 's' : ''}`,
         date: new Date(beat.date),
         projectId: beat.projectId
       })),
-      ...completedProjects.map(project => ({
+      ...completedProjects.map(async project => ({
         type: 'completion',
         icon: <PhCheckCircle className="h-4 w-4 text-green-500" />,
         text: `Completed project "${project.title}"`,
         date: new Date(project.lastModified),
         projectId: project.id
-      }))
-    ].sort((a, b) => b.date.getTime() - a.date.getTime())
-    .slice(0, 5);
+      })),
+    ])
+    .then(activities => activities.sort((a, b) => b.date.getTime() - a.date.getTime()))
+    .then(activities => activities.slice(0, 5));
 
     return activities;
   };
-
-  const recentActivities = getRecentActivities();
 
   return (
     <div className="min-h-screen bg-background">
@@ -547,71 +578,8 @@ const Profile = () => {
                             </div>
                           </div>
                         </div>
-
-                        {/* Recent Activity Section */}
-                        <div>
-                          <h4 className="font-medium mb-3 flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
-                            Recent Activity
-                          </h4>
-                          <div className="space-y-3">
-                            {recentActivities.length > 0 ? (
-                              recentActivities.map((activity, index) => (
-                                <div key={index} className="flex items-start gap-3 group">
-                                  <div className="mt-0.5">{activity.icon}</div>
-                                  <div className="flex-1">
-                                    <p className="text-sm group-hover:text-primary transition-colors">
-                                      {activity.text}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {formatDistanceToNow(activity.date, { addSuffix: true })}
-                                    </p>
-                                  </div>
-                                  {activity.projectId && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                      onClick={() => navigate(`/project/${activity.projectId}`)}
-                                    >
-                                      View
-                                    </Button>
-                                  )}
-                                </div>
-                              ))
-                            ) : (
-                              <div className="text-center py-6 text-muted-foreground">
-                                <p className="text-sm">No recent activity</p>
-                                <p className="text-xs mt-1">Start creating beats to see your activity here!</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
                       </CardContent>
                     </Card>
-
-                    {/* Quick Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {statsCards.map((stat, index) => (
-                        <Card key={index}>
-                          <CardContent className="p-6">
-                            <div className="flex items-center gap-4">
-                              <div className={`rounded-full p-3 bg-gradient-to-br ${stat.gradient}`}>
-                                {stat.icon}
-                              </div>
-                              <div>
-                                <div className="text-2xl font-bold">
-                                  {stat.value}{stat.suffix || ''}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {stat.label}
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
 
                     {/* Social Links */}
                     <Card>
@@ -643,10 +611,104 @@ const Profile = () => {
                   </TabsContent>
 
                   <TabsContent value="stats">
-                    <Stats 
-                      projects={profile?.projects || []} 
-                      sessions={[]} // We'll need to add sessions to the profile context
-                    />
+                    <div className="space-y-6">
+                      {/* Quick Stats Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {statsCards.map((stat, index) => (
+                          <Card key={index}>
+                            <CardContent className="p-6">
+                              <div className="flex items-center gap-4">
+                                <div className={`rounded-full p-3 bg-gradient-to-br ${stat.gradient}`}>
+                                  {stat.icon}
+                                </div>
+                                <div>
+                                  <div className="text-2xl font-bold">
+                                    {stat.value}{stat.suffix || ''}
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {stat.label}
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+
+                      {/* Recent Activity */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Recent Activity</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            {isLoadingActivities ? (
+                              <div className="text-center py-6 text-muted-foreground">
+                                <p className="text-sm">Loading activities...</p>
+                              </div>
+                            ) : recentActivities.length === 0 ? (
+                              <div className="text-center py-6 text-muted-foreground">
+                                <p className="text-sm">No recent activity</p>
+                                <p className="text-xs mt-1">Start creating beats to see your activity here!</p>
+                              </div>
+                            ) : (
+                              recentActivities.map((activity, index) => (
+                                <div key={index} className="flex items-start gap-3 group">
+                                  <div className="mt-0.5">{activity.icon}</div>
+                                  <div className="flex-1">
+                                    <p className="text-sm group-hover:text-primary transition-colors">
+                                      {activity.text}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {formatDistanceToNow(activity.date, { addSuffix: true })}
+                                    </p>
+                                  </div>
+                                  {activity.projectId && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                      onClick={() => navigate(`/project/${activity.projectId}`)}
+                                    >
+                                      View
+                                    </Button>
+                                  )}
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Achievements */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Achievements</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            {achievementsList.map((achievement, index) => (
+                              <div key={index} className="flex flex-col items-center p-4 rounded-lg bg-muted/50">
+                                <div className="mb-2">{achievement.icon}</div>
+                                <h4 className="text-sm font-medium text-center mb-1">{achievement.title}</h4>
+                                <p className="text-xs text-muted-foreground text-center mb-2">{achievement.description}</p>
+                                <div className="w-full">
+                                  <div className="text-xs text-muted-foreground text-center mb-1">
+                                    {achievement.current} / {achievement.target}
+                                  </div>
+                                  <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-primary rounded-full transition-all duration-500"
+                                      style={{ width: `${achievement.progress}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="projects">
