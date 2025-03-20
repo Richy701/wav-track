@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   ChartLineUp, 
   PencilSimple, 
@@ -53,16 +53,17 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
         }
 
         // Calculate total beats across all projects or selected project
+        const periodBeats = await getTotalBeatsInTimeRange(timeRange, selectedProject?.id ?? null);
+        setTotalBeatsInPeriod(periodBeats);
+
         if (selectedProject) {
           const beats = await getBeatsCreatedByProject(selectedProject.id);
           setTotalBeatsCreated(beats);
-          setTotalBeatsInPeriod(beats); // For now, use the same count
         } else {
           const beatPromises = projects.map(project => getBeatsCreatedByProject(project.id));
           const beatCounts = await Promise.all(beatPromises);
           const total = beatCounts.reduce((sum, count) => sum + count, 0);
           setTotalBeatsCreated(total);
-          setTotalBeatsInPeriod(total); // For now, use the same count
         }
       } catch (error) {
         console.error('Error fetching beat counts:', error);
@@ -74,7 +75,7 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
     };
 
     fetchBeatCounts();
-  }, [projects, selectedProject, refreshKey]);
+  }, [projects, selectedProject, timeRange, refreshKey]);
 
   // Update when new beats are added or project is selected
   useEffect(() => {
@@ -86,18 +87,33 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
       }
     };
 
-    // Check every second for new beats
-    const interval = setInterval(checkForNewBeats, 1000);
+    // Check for new beats immediately
+    checkForNewBeats();
+
+    // Only check every 5 seconds if there are recent beats
+    const interval = setInterval(checkForNewBeats, 5000);
     return () => clearInterval(interval);
-  }, [lastBeatUpdate]);
+  }, [lastBeatUpdate, beatActivities]);
   
   // Count completed projects
   const completedProjects = projects.filter(project => project.status === 'completed').length;
   
   // Calculate productivity score
-  const productivityScore = projects.length > 0 || sessions.length > 0 
-    ? Math.min(100, Math.round((totalBeatsCreated / 10) * 100 + (completedProjects * 5)))
-    : 0;
+  const productivityScore = useMemo(() => {
+    if (projects.length === 0 && sessions.length === 0) return 0;
+    
+    // Base score from total beats (max 50 points)
+    const beatsScore = Math.min(50, Math.round((totalBeatsCreated / 20) * 50));
+    
+    // Score from completed projects (max 30 points)
+    const completionScore = Math.min(30, completedProjects * 5);
+    
+    // Score from active sessions (max 20 points)
+    const sessionScore = Math.min(20, Math.round((sessions.length / 10) * 20));
+    
+    // Total score (max 100)
+    return beatsScore + completionScore + sessionScore;
+  }, [projects.length, sessions.length, totalBeatsCreated, completedProjects]);
 
   // Get recent projects sorted by last modified
   const recentProjects = [...projects]

@@ -184,6 +184,20 @@ export const getProjects = async (): Promise<Project[]> => {
   }
 };
 
+const calculateProductivityScore = (totalBeats: number, completedProjects: number, totalSessions: number): number => {
+  // Base score from total beats (max 50 points)
+  const beatsScore = Math.min(50, Math.round((totalBeats / 20) * 50));
+  
+  // Score from completed projects (max 30 points)
+  const completionScore = Math.min(30, completedProjects * 5);
+  
+  // Score from active sessions (max 20 points)
+  const sessionScore = Math.min(20, Math.round((totalSessions / 10) * 20));
+  
+  // Total score (max 100)
+  return beatsScore + completionScore + sessionScore;
+};
+
 // Add project with optimistic updates
 export const addProject = async (project: Project): Promise<Project> => {
   try {
@@ -232,7 +246,6 @@ export const addProject = async (project: Project): Promise<Project> => {
       const totalProjects = allProjects.length;
       const completedProjects = allProjects.filter(p => p.status === 'completed').length;
       const completionRate = Math.round((completedProjects / totalProjects) * 100);
-      const productivityScore = Math.min(100, Math.round((totalProjects * 10) + (completedProjects * 5)));
 
       // Get total beats from beat activities
       const { data: beatActivities } = await supabase
@@ -242,6 +255,17 @@ export const addProject = async (project: Project): Promise<Project> => {
 
       // Add 1 to account for the initial beat that will be created
       const totalBeats = (beatActivities ? beatActivities.reduce((sum, activity) => sum + activity.count, 0) : 0) + 1;
+
+      // Get total sessions
+      const { data: sessions } = await supabase
+        .from('sessions')
+        .select('id')
+        .eq('user_id', user.id);
+
+      const totalSessions = sessions?.length || 0;
+
+      // Calculate productivity score
+      const productivityScore = calculateProductivityScore(totalBeats, completedProjects, totalSessions);
 
       // Update profile stats
       await supabase
@@ -328,7 +352,6 @@ export const updateProject = async (updatedProject: Project): Promise<Project> =
         const totalProjects = allProjects.length;
         const completedProjects = allProjects.filter(p => p.status === 'completed').length;
         const completionRate = Math.round((completedProjects / totalProjects) * 100);
-        const productivityScore = Math.min(100, Math.round((totalProjects * 10) + (completedProjects * 5)));
 
         // Get total beats from beat activities
         const { data: beatActivities } = await supabase
@@ -337,6 +360,17 @@ export const updateProject = async (updatedProject: Project): Promise<Project> =
           .eq('user_id', user.id);
 
         const totalBeats = beatActivities ? beatActivities.reduce((sum, activity) => sum + activity.count, 0) : 0;
+
+        // Get total sessions
+        const { data: sessions } = await supabase
+          .from('sessions')
+          .select('id')
+          .eq('user_id', user.id);
+
+        const totalSessions = sessions?.length || 0;
+
+        // Calculate productivity score
+        const productivityScore = calculateProductivityScore(totalBeats, completedProjects, totalSessions);
 
         // Update profile stats
         await supabase
@@ -404,15 +438,25 @@ export const deleteProject = async (projectId: string): Promise<void> => {
       const totalProjects = allProjects.length;
       const completedProjects = allProjects.filter(p => p.status === 'completed').length;
       const completionRate = totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0;
-      const productivityScore = Math.min(100, Math.round((totalProjects * 10) + (completedProjects * 5)));
 
-      // Get total beats from beat activities (beat activities are automatically deleted due to CASCADE)
+      // Get total beats from beat activities
       const { data: beatActivities } = await supabase
         .from('beat_activities')
         .select('count')
         .eq('user_id', user.id);
 
       const totalBeats = beatActivities ? beatActivities.reduce((sum, activity) => sum + activity.count, 0) : 0;
+
+      // Get total sessions
+      const { data: sessions } = await supabase
+        .from('sessions')
+        .select('id')
+        .eq('user_id', user.id);
+
+      const totalSessions = sessions?.length || 0;
+
+      // Calculate productivity score
+      const productivityScore = calculateProductivityScore(totalBeats, completedProjects, totalSessions);
 
       // Update profile stats
       await supabase

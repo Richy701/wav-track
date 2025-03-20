@@ -44,6 +44,7 @@ import { cn } from '@/lib/utils';
 import { useProjects } from '@/hooks/useProjects';
 import { Badge } from "@/components/ui/badge";
 import { X } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface CreateProjectDialogProps {
   isOpen: boolean;
@@ -58,6 +59,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   projectsCount,
   onProjectCreated
 }) => {
+  const queryClient = useQueryClient();
   const { addProject, isAddingProject } = useProjects();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [audioFile, setAudioFile] = useState<File | null>(null);
@@ -170,24 +172,28 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
     }
     
     try {
-      const newProject: Project = {
-        id: crypto.randomUUID(),
+      const newProject: Omit<Project, 'id'> = {
         ...formData,
         genre: formData.genres.join(', '), // Join multiple genres for storage
         lastModified: new Date().toISOString(),
       };
 
-      // First, create the project and wait for it to be saved
+      // Create the project and get back the database-generated ID
       const createdProject = await addProject(newProject);
-      
+
       if (!createdProject) {
         throw new Error('Failed to create project');
       }
 
-      // Then record the beat activity with the created project's ID
+      // Record the beat activity with the database-generated ID
       await recordBeatCreation(createdProject.id, 1);
-      
-      // Reset form
+
+      // Invalidate queries without waiting for refetch
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['beatActivities'] });
+      queryClient.invalidateQueries({ queryKey: ['stats'] });
+
+      // Reset form and close dialog immediately for better UX
       setFormData({
         title: '',
         description: '',
@@ -201,8 +207,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
         lastModified: new Date().toISOString(),
         length: '3:30',
       });
-
-      // Close dialog and notify parent
+      setErrors({});
       onOpenChange(false);
       onProjectCreated?.();
       
@@ -357,6 +362,109 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                 <span className="text-sm font-mono w-14 text-center bg-muted/50 px-2.5 py-1.5 rounded-md ring-1 ring-border/50">
                   {formData.bpm}
                 </span>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="key" className="text-right font-medium">
+                Key
+              </Label>
+              <div className="col-span-3 relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                  <div className="p-1 rounded-md bg-purple-500/10">
+                    <MusicNote weight="fill" className="h-4 w-4 text-purple-500" />
+                  </div>
+                </div>
+                <Select 
+                  value={formData.key} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, key: value }))}
+                  name="key"
+                >
+                  <SelectTrigger 
+                    id="key"
+                    className="pl-12 focus-visible:ring-primary"
+                    aria-label="Select project key"
+                  >
+                    <SelectValue placeholder="Select key" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Project Key</SelectLabel>
+                      <SelectItem 
+                        value="C" 
+                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        C
+                      </SelectItem>
+                      <SelectItem 
+                        value="C#" 
+                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        C#
+                      </SelectItem>
+                      <SelectItem 
+                        value="D" 
+                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        D
+                      </SelectItem>
+                      <SelectItem 
+                        value="D#" 
+                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        D#
+                      </SelectItem>
+                      <SelectItem 
+                        value="E" 
+                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        E
+                      </SelectItem>
+                      <SelectItem 
+                        value="F" 
+                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        F
+                      </SelectItem>
+                      <SelectItem 
+                        value="F#" 
+                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        F#
+                      </SelectItem>
+                      <SelectItem 
+                        value="G" 
+                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        G
+                      </SelectItem>
+                      <SelectItem 
+                        value="G#" 
+                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        G#
+                      </SelectItem>
+                      <SelectItem 
+                        value="A" 
+                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        A
+                      </SelectItem>
+                      <SelectItem 
+                        value="A#" 
+                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        A#
+                      </SelectItem>
+                      <SelectItem 
+                        value="B" 
+                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        B
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             
@@ -540,7 +648,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
               ) : (
                 <>
                   <Plus className="mr-2 h-4 w-4" />
-                  Create Project
+                  Create Beat
                 </>
               )}
             </Button>

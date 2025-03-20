@@ -1,74 +1,90 @@
-
-import React, { useEffect, useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useEffect, useCallback, memo } from 'react';
+import { useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+// Loading component extracted to prevent re-renders
+const LoadingSpinner = memo(() => {
+  console.log('[LoadingSpinner] Rendering');
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+      <p className="text-sm text-muted-foreground">Loading...</p>
+    </div>
+  );
+});
+
+LoadingSpinner.displayName = 'LoadingSpinner';
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({ children }) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [showLoading, setShowLoading] = useState(true);
-  
-  // Check if user is authenticated
-  const isAuthenticated = !!user;
 
+  // Debug logging for auth state changes
   useEffect(() => {
-    // If we're not loading anymore, update showLoading
-    if (!isLoading) {
-      setShowLoading(false);
-    }
+    console.log('[ProtectedRoute] Auth state changed:', {
+      isLoading,
+      hasUser: !!user,
+      pathname: location.pathname
+    });
+  }, [user, isLoading, location.pathname]);
 
-    // Set a timeout to prevent infinite loading
-    const timer = setTimeout(() => {
-      setShowLoading(false);
-      if (!isAuthenticated && !isLoading) {
-        console.log('Timeout reached, redirecting to login');
-        navigate('/login', { state: { from: location.pathname } });
-      }
-    }, 3000); // 3 second timeout
-
-    return () => clearTimeout(timer);
-  }, [isLoading, isAuthenticated, location.pathname, navigate]);
-
-  useEffect(() => {
-    // If authentication failed and we're not loading anymore
-    if (!isAuthenticated && !isLoading && !showLoading) {
-      console.log('Authentication failed, showing error toast');
-      // Show a toast message
-      toast.error('You need to sign in to access this page', {
-        description: 'Please sign in to continue',
-        action: {
-          label: 'Sign In',
-          onClick: () => navigate('/login', { state: { from: location.pathname } })
+  // Memoize the toast callback
+  const showAuthError = useCallback(() => {
+    console.log('[ProtectedRoute] Showing auth error toast');
+    toast.error('Please sign in to continue', {
+      action: {
+        label: 'Sign In',
+        onClick: () => {
+          console.log('[ProtectedRoute] Toast action clicked, navigating to login');
+          navigate('/login', { 
+            state: { from: location.pathname },
+            replace: true 
+          });
         }
-      });
-    }
-  }, [isAuthenticated, isLoading, showLoading, location.pathname, navigate]);
+      }
+    });
+  }, [navigate, location.pathname]);
 
-  // If we're still loading and within the timeout window, show loading state
-  if ((isLoading || showLoading) && !user) {
-    console.log('Showing loading state', { isLoading, showLoading });
+  useEffect(() => {
+    let mounted = true;
+
+    if (!isLoading && !user && mounted) {
+      console.log('[ProtectedRoute] No user detected, showing auth error');
+      showAuthError();
+    }
+
+    return () => {
+      console.log('[ProtectedRoute] Component unmounting');
+      mounted = false;
+    };
+  }, [user, isLoading, showAuthError]);
+
+  if (isLoading) {
+    console.log('[ProtectedRoute] Showing loading spinner');
+    return <LoadingSpinner />;
+  }
+
+  if (!user) {
+    console.log('[ProtectedRoute] No user, redirecting to login');
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-        <p className="text-sm text-muted-foreground">Loading...</p>
-      </div>
+      <Navigate 
+        to="/login" 
+        state={{ from: location.pathname }} 
+        replace 
+      />
     );
   }
 
-  // If not authenticated and not loading, redirect to login
-  if (!isAuthenticated && !isLoading) {
-    console.log('Not authenticated, redirecting to login');
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
-  }
-
-  // If authenticated, render children
+  console.log('[ProtectedRoute] User authenticated, rendering children');
   return <>{children}</>;
-};
+});
+
+ProtectedRoute.displayName = 'ProtectedRoute';
 
 export default ProtectedRoute;

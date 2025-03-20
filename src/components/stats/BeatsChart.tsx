@@ -40,10 +40,10 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
     return acc;
   }, [] as ChartData[]);
 
-  // Update refreshKey when projects change
+  // Update refreshKey when projects change or when selectedProject changes
   useEffect(() => {
     setRefreshKey(prev => prev + 1);
-  }, [projects]);
+  }, [projects, selectedProject]);
 
   // Fetch data when timeRange, project selection, or refreshKey changes
   useEffect(() => {

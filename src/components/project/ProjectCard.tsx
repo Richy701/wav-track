@@ -190,7 +190,24 @@ export default function ProjectCard({
     >
       <div className="p-5">
         <div className="flex justify-between items-start mb-3">
-          <ProjectStatusBadge status={localProject.status} />
+          <div className="flex items-center gap-2">
+            <div className={`px-2 py-1 rounded-md text-xs font-medium ${
+              localProject.status === 'completed'
+                ? 'bg-green-500/10 text-green-600'
+                : localProject.status === 'mastering'
+                ? 'bg-blue-500/10 text-blue-600'
+                : localProject.status === 'mixing'
+                ? 'bg-yellow-500/10 text-yellow-600'
+                : localProject.status === 'in-progress'
+                ? 'bg-orange-500/10 text-orange-600'
+                : 'bg-red-500/10 text-red-600'
+            }`}>
+              {localProject.status.replace('-', ' ')}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {localProject.completionPercentage}%
+            </div>
+          </div>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -238,6 +255,11 @@ export default function ProjectCard({
               </div>
               <span>•</span>
               <div className="flex items-center gap-1">
+                <MusicNote className="h-3.5 w-3.5" />
+                <span>{localProject.key}</span>
+              </div>
+              <span>•</span>
+              <div className="flex items-center gap-1">
                 <ArrowClockwise className="h-3.5 w-3.5" />
                 <span>Updated {formatTimeAgo(localProject.lastModified)}</span>
               </div>
@@ -282,12 +304,23 @@ export default function ProjectCard({
           )}
         </div>
         
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Progress</span>
-            <span className="font-medium">{localProject.completionPercentage}%</span>
+        <div className="mt-4">
+          <div className="h-1.5 rounded-full bg-muted/50 overflow-hidden">
+            <div 
+              className={`h-full rounded-full transition-all duration-500 ${
+                localProject.completionPercentage === 100 
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
+                  : localProject.completionPercentage >= 75
+                  ? 'bg-gradient-to-r from-blue-500 to-indigo-500'
+                  : localProject.completionPercentage >= 50
+                  ? 'bg-gradient-to-r from-yellow-500 to-amber-500'
+                  : localProject.completionPercentage >= 25
+                  ? 'bg-gradient-to-r from-orange-500 to-red-500'
+                  : 'bg-gradient-to-r from-red-500 to-pink-500'
+              }`}
+              style={{ width: `${localProject.completionPercentage}%` }}
+            />
           </div>
-          <Progress value={localProject.completionPercentage} className="h-1" />
         </div>
 
         {showWaveform && localProject.audioFile && (
