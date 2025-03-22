@@ -19,6 +19,7 @@ const Index = React.lazy(() => import('./pages/Index'));
 const Callback = React.lazy(() => import('./pages/auth/Callback'));
 const ScrollDemo = React.lazy(() => import('./pages/ScrollDemo'));
 const ProjectDetail = React.lazy(() => import('./pages/ProjectDetail'));
+const TestDataGenerator = React.lazy(() => import('./components/TestDataGenerator'));
 
 function App() {
   const [isReady, setIsReady] = useState(false);
@@ -79,7 +80,7 @@ function App() {
                   } />
                   <Route path="/project/:id" element={
                     <ProtectedRoute>
-                      <Suspense fallback={<LoadingScreen message="Loading project detail..." />}>
+                      <Suspense fallback={<LoadingScreen message="Loading project details..." />}>
                         <ProjectDetail />
                       </Suspense>
                     </ProtectedRoute>
@@ -88,6 +89,27 @@ function App() {
                     <Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
                       <Index />
                     </Suspense>
+                  } />
+                  <Route path="/debug" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingScreen message="Loading debug tools..." />}>
+                        <TestDataGenerator />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* Catch-all route - Must be last */}
+                  <Route path="*" element={
+                    <div className="h-screen flex flex-col items-center justify-center p-4 text-center">
+                      <h1 className="text-3xl font-bold mb-4">Page Not Found</h1>
+                      <p className="mb-6 text-muted-foreground">The page you are looking for doesn't exist or has been moved.</p>
+                      <button 
+                        onClick={() => window.location.href = import.meta.env.BASE_URL} 
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                      >
+                        Go to Homepage
+                      </button>
+                    </div>
                   } />
                 </Routes>
               </Suspense>

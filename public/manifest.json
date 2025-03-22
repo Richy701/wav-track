@@ -2,28 +2,28 @@
   "name": "WavTrack",
   "short_name": "WavTrack",
   "description": "Track your music production journey",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#6200ea",
   "icons": [
     {
-      "src": "/favicon.ico",
+      "src": "./favicon.ico",
       "sizes": "48x48",
       "type": "image/x-icon"
     },
     {
-      "src": "/icon-192.png",
+      "src": "./icon-192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/icon-512.png",
+      "src": "./icon-512.png",
       "type": "image/png",
       "sizes": "512x512"
     },
     {
-      "src": "/maskable-icon.png",
+      "src": "./maskable-icon.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
