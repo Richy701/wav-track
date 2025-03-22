@@ -11,6 +11,17 @@ if [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
   echo "Warning: VITE_SUPABASE_ANON_KEY is not set. Check your Vercel environment variables."
 fi
 
+# Detect if we're on Vercel
+if [ -n "$VERCEL" ]; then
+  echo "Building for Vercel deployment at root path"
+  IS_VERCEL=true
+  BASE_PATH="/"
+else
+  echo "Building for non-Vercel environment with subdirectory /wav-track/"
+  IS_VERCEL=false
+  BASE_PATH="/wav-track/"
+fi
+
 # Create icon directory for generated icons
 mkdir -p public/icons
 
@@ -44,43 +55,64 @@ if [ ! -f public/apple-touch-icon.png ]; then
 fi
 
 # Build the app
-echo "Building app with production base path /wav-track/"
-npm run build
+echo "Building app with base path: $BASE_PATH"
+VERCEL=$VERCEL npm run build
 
-# Ensure the app is built to the correct path
-echo "Creating subdirectory structure for /wav-track/"
-mkdir -p dist/wav-track
-cp -r dist/{assets,index.html,*.js,*.css,*.svg,manifest*} dist/wav-track/ 2>/dev/null || :
-
-# Copy static assets explicitly
-echo "Copying favicon and static assets"
-cp -f public/favicon.ico dist/
-cp -f public/favicon.ico dist/wav-track/
-cp -f public/favicon.svg dist/ 2>/dev/null || :
-cp -f public/favicon.svg dist/wav-track/ 2>/dev/null || :
-cp -f public/apple-touch-icon.png dist/ 2>/dev/null || :
-cp -f public/apple-touch-icon.png dist/wav-track/ 2>/dev/null || :
-cp -f public/icon-192.png dist/ 2>/dev/null || :
-cp -f public/icon-192.png dist/wav-track/ 2>/dev/null || :
-cp -f public/icon-512.png dist/ 2>/dev/null || :
-cp -f public/icon-512.png dist/wav-track/ 2>/dev/null || :
-cp -f public/maskable-icon.png dist/ 2>/dev/null || :
-cp -f public/maskable-icon.png dist/wav-track/ 2>/dev/null || :
-cp -f public/og-image.png dist/ 2>/dev/null || :
-cp -f public/og-image.png dist/wav-track/ 2>/dev/null || :
-cp -f public/manifest.json dist/ 2>/dev/null || :
-cp -f public/manifest.json dist/wav-track/ 2>/dev/null || :
-
-# Create .nojekyll file to prevent GitHub Pages issues
-touch dist/.nojekyll
-
-# Copy _redirects file to root and add favicon redirect
-echo "Setting up redirects"
-echo "/wav-track/* /wav-track/index.html 200" > dist/_redirects
-echo "/wav-track /wav-track/index.html 200" >> dist/_redirects
-echo "/favicon.ico /favicon.ico 200" >> dist/_redirects
-echo "/icon-*.png /icon-:splat.png 200" >> dist/_redirects
-echo "/apple-touch-icon.png /apple-touch-icon.png 200" >> dist/_redirects
-echo "/maskable-icon.png /maskable-icon.png 200" >> dist/_redirects
+# Handle different output structures based on deployment target
+if [ "$IS_VERCEL" = true ]; then
+  echo "Setting up assets for Vercel at root path"
+  
+  # Copy static assets to root directory
+  cp -f public/favicon.ico dist/
+  cp -f public/favicon.svg dist/ 2>/dev/null || :
+  cp -f public/apple-touch-icon.png dist/ 2>/dev/null || :
+  cp -f public/icon-192.png dist/ 2>/dev/null || :
+  cp -f public/icon-512.png dist/ 2>/dev/null || :
+  cp -f public/maskable-icon.png dist/ 2>/dev/null || :
+  cp -f public/og-image.png dist/ 2>/dev/null || :
+  cp -f public/manifest.json dist/ 2>/dev/null || :
+  
+  # Create .nojekyll file to prevent GitHub Pages issues
+  touch dist/.nojekyll
+  
+  # Setup redirects for SPA
+  echo "/* /index.html 200" > dist/_redirects
+  
+else
+  echo "Setting up assets for subdirectory structure at /wav-track/"
+  
+  # Ensure the app is built to the correct path
+  mkdir -p dist/wav-track
+  cp -r dist/{assets,index.html,*.js,*.css,*.svg,manifest*} dist/wav-track/ 2>/dev/null || :
+  
+  # Copy static assets explicitly to both locations
+  cp -f public/favicon.ico dist/
+  cp -f public/favicon.ico dist/wav-track/
+  cp -f public/favicon.svg dist/ 2>/dev/null || :
+  cp -f public/favicon.svg dist/wav-track/ 2>/dev/null || :
+  cp -f public/apple-touch-icon.png dist/ 2>/dev/null || :
+  cp -f public/apple-touch-icon.png dist/wav-track/ 2>/dev/null || :
+  cp -f public/icon-192.png dist/ 2>/dev/null || :
+  cp -f public/icon-192.png dist/wav-track/ 2>/dev/null || :
+  cp -f public/icon-512.png dist/ 2>/dev/null || :
+  cp -f public/icon-512.png dist/wav-track/ 2>/dev/null || :
+  cp -f public/maskable-icon.png dist/ 2>/dev/null || :
+  cp -f public/maskable-icon.png dist/wav-track/ 2>/dev/null || :
+  cp -f public/og-image.png dist/ 2>/dev/null || :
+  cp -f public/og-image.png dist/wav-track/ 2>/dev/null || :
+  cp -f public/manifest.json dist/ 2>/dev/null || :
+  cp -f public/manifest.json dist/wav-track/ 2>/dev/null || :
+  
+  # Create .nojekyll file to prevent GitHub Pages issues
+  touch dist/.nojekyll
+  
+  # Copy _redirects file to root and add favicon redirect
+  echo "/wav-track/* /wav-track/index.html 200" > dist/_redirects
+  echo "/wav-track /wav-track/index.html 200" >> dist/_redirects
+  echo "/favicon.ico /favicon.ico 200" >> dist/_redirects
+  echo "/icon-*.png /icon-:splat.png 200" >> dist/_redirects
+  echo "/apple-touch-icon.png /apple-touch-icon.png 200" >> dist/_redirects
+  echo "/maskable-icon.png /maskable-icon.png 200" >> dist/_redirects
+fi
 
 echo "Build completed successfully!" 

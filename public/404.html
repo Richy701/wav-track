@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Page Not Found - WavTrack</title>
-  <link rel="icon" href="/favicon.ico">
-  <meta http-equiv="refresh" content="0;url=/wav-track/">
+  <link rel="icon" href="./favicon.ico">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
@@ -56,12 +55,27 @@
   <div class="container">
     <h1>Page Not Found</h1>
     <p>The page you are looking for might have been removed or is temporarily unavailable.</p>
-    <a href="/wav-track/">Go to Homepage</a>
+    <a href="/" id="home-link">Go to Homepage</a>
     <p class="redirect-message">Redirecting you to the homepage automatically...</p>
   </div>
   <script>
-    // Redirect to the app's base path with the current path appended as a route
-    window.location.href = '/wav-track/' + window.location.pathname.replace(/^\/wav-track\//, '');
+    // Detect if we're on a path with /wav-track/ in it
+    const isWavTrackPath = window.location.pathname.includes('/wav-track/');
+    const hostname = window.location.hostname;
+    
+    // Use heuristics to determine if we're on Vercel production or local
+    const isVercel = hostname.includes('vercel.app') || 
+                    !hostname.includes('localhost') && 
+                    !hostname.includes('127.0.0.1');
+    
+    // Set the base path accordingly
+    const basePath = isVercel ? '/' : '/wav-track/';
+    
+    // Update the home link
+    document.getElementById('home-link').setAttribute('href', basePath);
+    
+    // Redirect appropriately
+    window.location.href = basePath;
   </script>
 </body>
 </html> 

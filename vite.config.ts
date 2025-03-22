@@ -8,25 +8,33 @@ import { VitePWA } from 'vite-plugin-pwa'
 import type { ManifestOptions, VitePWAOptions } from 'vite-plugin-pwa'
 import fs from 'fs'
 
-const manifestForPlugin: Partial<ManifestOptions> = {
-  name: 'WavTrack',
-  short_name: 'WavTrack',
-  theme_color: '#ffffff',
-  start_url: '/wav-track/',
-  scope: '/wav-track/',
-  icons: [
-    {
-      src: '/wav-track/android-chrome-192x192.png',
-      sizes: '192x192',
-      type: 'image/png'
-    },
-    {
-      src: '/wav-track/android-chrome-512x512.png',
-      sizes: '512x512',
-      type: 'image/png'
-    }
-  ]
-}
+// Function to get PWA manifest configuration
+const getManifestConfig = () => {
+  // Base path will be '/' on Vercel and '/wav-track/' elsewhere
+  const basePath = process.env.VERCEL ? '/' : '/wav-track/';
+  
+  return {
+    name: 'WavTrack',
+    short_name: 'WavTrack',
+    theme_color: '#ffffff',
+    start_url: basePath,
+    scope: basePath,
+    icons: [
+      {
+        src: `${basePath}android-chrome-192x192.png`.replace('//', '/'),
+        sizes: '192x192',
+        type: 'image/png'
+      },
+      {
+        src: `${basePath}android-chrome-512x512.png`.replace('//', '/'),
+        sizes: '512x512',
+        type: 'image/png'
+      }
+    ]
+  };
+};
+
+const manifestForPlugin: Partial<ManifestOptions> = getManifestConfig();
 
 const pwaConfiguration: Partial<VitePWAOptions> = {
   registerType: 'prompt',
@@ -68,6 +76,17 @@ const pwaConfiguration: Partial<VitePWAOptions> = {
   }
 }
 
+// Function to determine the correct base path
+const getBasePath = (mode: string) => {
+  // Check if we're on Vercel
+  if (process.env.VERCEL) {
+    return '/'; // Use root path on Vercel
+  }
+  
+  // Use /wav-track/ for local development or other environments
+  return mode === 'production' ? '/wav-track/' : '/wav-track/';
+};
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   plugins: [
@@ -83,7 +102,7 @@ export default defineConfig(({ mode }) => ({
       brotliSize: true
     }) : null
   ].filter(Boolean),
-  base: mode === 'production' ? '/wav-track/' : '/',
+  base: getBasePath(mode),
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

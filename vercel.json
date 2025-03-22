@@ -3,13 +3,11 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
-    { "source": "/wav-track", "destination": "/wav-track/index.html" },
-    { "source": "/wav-track/(.*)", "destination": "/wav-track/index.html" },
-    { "source": "/favicon.ico", "destination": "/favicon.ico" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
-      "source": "/wav-track/assets/(.*)",
+      "source": "/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -18,7 +16,7 @@
       ]
     },
     {
-      "source": "/(favicon.ico|apple-touch-icon.png|favicon.svg|og-image.png|manifest.json)",
+      "source": "/(favicon.ico|apple-touch-icon.png|favicon.svg|og-image.png|manifest.json|icon-\\d+.png|maskable-icon.png)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -27,7 +25,7 @@
       ]
     },
     {
-      "source": "/wav-track/(.*)",
+      "source": "/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
