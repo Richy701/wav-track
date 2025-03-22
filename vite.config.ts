@@ -12,16 +12,16 @@ const manifestForPlugin: Partial<ManifestOptions> = {
   name: 'WavTrack',
   short_name: 'WavTrack',
   theme_color: '#ffffff',
-  start_url: '/',
-  scope: '/',
+  start_url: '/wav-track/',
+  scope: '/wav-track/',
   icons: [
     {
-      src: '/android-chrome-192x192.png',
+      src: '/wav-track/android-chrome-192x192.png',
       sizes: '192x192',
       type: 'image/png'
     },
     {
-      src: '/android-chrome-512x512.png',
+      src: '/wav-track/android-chrome-512x512.png',
       sizes: '512x512',
       type: 'image/png'
     }
@@ -83,7 +83,7 @@ export default defineConfig(({ mode }) => ({
       brotliSize: true
     }) : null
   ].filter(Boolean),
-  base: '/',
+  base: mode === 'production' ? '/wav-track/' : '/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

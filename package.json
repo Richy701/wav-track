@@ -2,11 +2,12 @@
   "name": "vite_react_shadcn_ts",
   "private": true,
   "version": "0.0.0",
-  "homepage": "",
+  "homepage": "/wav-track/",
   "type": "commonjs",
   "scripts": {
     "dev": "vite --host",
     "build": "tsc && vite build",
+    "build:vercel": "./build-for-vercel.sh",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",

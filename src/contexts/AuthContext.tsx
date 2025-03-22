@@ -65,6 +65,14 @@ interface RegisterData {
   website?: string;
 }
 
+interface AuthStateRef {
+  mounted: boolean;
+  initStarted: boolean;
+  initCompleted: boolean;
+  initError: Error | null;
+  initRetryCount: number;
+}
+
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
@@ -110,10 +118,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isInitialized, setIsInitialized] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const authStateRef = React.useRef({
+  const authStateRef = React.useRef<AuthStateRef>({
     mounted: true,
     initStarted: false,
-    initCompleted: false
+    initCompleted: false,
+    initError: null,
+    initRetryCount: 0
   });
 
   const showErrorToast = (title: string, description: string) => {
@@ -156,6 +166,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     authStateRef.current.mounted = true;
     authStateRef.current.initStarted = false;
     authStateRef.current.initCompleted = false;
+    authStateRef.current.initError = null;
+    authStateRef.current.initRetryCount = 0;
     
     console.log('[Auth Init] Starting auth initialization effect');
 
@@ -178,7 +190,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(true);
         setIsInitialized(false);
         
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Add timeout protection for Supabase requests
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session fetch timeout')), 10000)
+        );
+        
+        // Race the session fetch against a timeout
+        const { data: { session }, error } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]) as typeof sessionPromise;
+        
         console.log('[Auth Init] Session check:', {
           hasSession: !!session,
           hasError: !!error,
@@ -188,9 +211,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) {
           console.error('[Auth Init] Session error:', error);
           
-          // Retry logic for network errors (max 2 retries)
-          if (retryCount < 2 && (error.message.includes('network') || error.message.includes('timeout'))) {
-            console.log(`[Auth Init] Retrying initialization (attempt ${retryCount + 1}/2)...`);
+          // Retry logic for network errors (max 3 retries)
+          if (retryCount < 3 && (
+            error.message.includes('network') || 
+            error.message.includes('timeout') || 
+            error.message.includes('fetch') ||
+            error.message.includes('connection')
+          )) {
+            console.log(`[Auth Init] Retrying initialization (attempt ${retryCount + 1}/3)...`);
             // Exponential backoff - wait longer for each retry
             const delay = 1000 * Math.pow(2, retryCount);
             setTimeout(() => initializeAuth(retryCount + 1), delay);
@@ -198,10 +226,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           
           if (authStateRef.current.mounted) {
-            setUser(null);
-            setProfile(null);
-            setIsInitialized(true);
+            // Still set initCompleted even on error, but track the error
             setIsLoading(false);
+            setIsInitialized(true);
+            authStateRef.current.initCompleted = true;
+            authStateRef.current.initError = error;
+            
+            // Show a limited toast for auth errors, don't block the UI
+            showErrorToast(
+              'Authentication Issue', 
+              'There was a problem connecting to the authentication service. Some features may be limited.'
+            );
           }
           return;
         }
@@ -273,8 +308,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('[Auth Init] Initialization error:', error);
         
         // Retry for general errors
-        if (retryCount < 2) {
-          console.log(`[Auth Init] Retrying after error (attempt ${retryCount + 1}/2)...`);
+        if (retryCount < 3) {
+          console.log(`[Auth Init] Retrying after error (attempt ${retryCount + 1}/3)...`);
           const delay = 1000 * Math.pow(2, retryCount);
           setTimeout(() => initializeAuth(retryCount + 1), delay);
           return;
