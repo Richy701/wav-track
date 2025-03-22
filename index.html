@@ -2,42 +2,53 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Wav Track</title>
-    <meta name="theme-color" content="#8B5CF6" />
+    <meta name="theme-color" content="#6200ea" />
+    <meta name="description" content="WavTrack - Track and optimize your music production sessions" />
+    <meta property="og:title" content="WavTrack">
+    <meta property="og:description" content="Track your beat-making journey">
+    <meta property="og:image" content="/og-image.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="modulepreload" href="/src/pages/Login.tsx" as="script" />
+    <link rel="modulepreload" href="/src/pages/Index.tsx" as="script" />
+    <link rel="modulepreload" href="/src/contexts/AuthContext.tsx" as="script" />
+    <title>WavTrack</title>
     <script>
       // Fallback for browsers that do not support meta[name=theme-color]
       (function() {
-        var themeColor = '#8B5CF6';
-        var metaThemeColor = document.querySelector('meta[name=theme-color]');
-        if (!metaThemeColor) {
-          metaThemeColor = document.createElement('meta');
-          metaThemeColor.name = 'theme-color';
-          document.head.appendChild(metaThemeColor);
+        try {
+          const colorSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+          const setThemeColor = function(dark) {
+            document.documentElement.classList[dark ? 'add' : 'remove']('dark');
+          };
+          
+          // Set initial value
+          setThemeColor(colorSchemeQuery.matches);
+          
+          // Listen for changes
+          colorSchemeQuery.addEventListener('change', function(e) {
+            setThemeColor(e.matches);
+          });
+        } catch (e) {
+          console.error('Error setting theme:', e);
         }
-        metaThemeColor.content = themeColor;
       })();
     </script>
-    <meta property="og:image" content="/wav-track/og-image.png" />
-    <link rel="manifest" href="/wav-track/manifest.json" />
-    <meta name="description" content="Track your beat production journey" />
-    <link rel="apple-touch-icon" href="/wav-track/apple-touch-icon.png" />
-    <meta name="author" content="Lovable" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <script>
       // On page load or when changing themes, best to add inline in `head` to avoid FOUC
-      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark')
       } else {
-        document.documentElement.classList.add('light')
+        document.documentElement.classList.remove('dark')
       }
     </script>
   </head>
 
   <body>
     <div id="root"></div>
-    <script type="module" src="./src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

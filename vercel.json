@@ -10,10 +10,6 @@
   ],
   "rewrites": [
     {
-      "source": "/wav-track/:path*",
-      "destination": "/wav-track/index.html"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

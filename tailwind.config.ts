@@ -4,9 +4,6 @@ import animate from "tailwindcss-animate";
 export default {
 	darkMode: ["class"],
 	content: [
-		"./pages/**/*.{ts,tsx}",
-		"./components/**/*.{ts,tsx}",
-		"./app/**/*.{ts,tsx}",
 		"./src/**/*.{ts,tsx}",
 	],
 	prefix: "",
@@ -17,6 +14,13 @@ export default {
 			screens: {
 				'2xl': '1400px'
 			}
+		},
+		screens: {
+			'sm': '640px',
+			'md': '768px',
+			'lg': '1024px',
+			'xl': '1280px',
+			'2xl': '1536px',
 		},
 		extend: {
 			fontFamily: {
@@ -130,4 +134,21 @@ export default {
 		}
 	},
 	plugins: [animate],
+	future: {
+		hoverOnlyWhenSupported: true,
+		respectDefaultRingColorOpacity: true,
+		disableColorOpacityUtilitiesByDefault: true,
+		removeDeprecatedGapUtilities: true,
+	},
+	corePlugins: {
+		float: false,
+		clear: false,
+		skew: false,
+		scale: false,
+		filter: false,
+		backdropFilter: false,
+		container: true,
+		objectFit: true,
+		objectPosition: true,
+	},
 } satisfies Config;

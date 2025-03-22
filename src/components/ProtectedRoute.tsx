@@ -24,15 +24,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({ children }) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [safeToRender, setSafeToRender] = React.useState(false);
 
   // Debug logging for auth state changes
   useEffect(() => {
     console.log('[ProtectedRoute] Auth state changed:', {
       isLoading,
       hasUser: !!user,
-      pathname: location.pathname
+      pathname: location.pathname,
+      safeToRender
     });
-  }, [user, isLoading, location.pathname]);
+    
+    // Only mark as safe to render after we've confirmed the auth state
+    if (!isLoading) {
+      setSafeToRender(true);
+    }
+  }, [user, isLoading, location.pathname, safeToRender]);
 
   // Memoize the toast callback
   const showAuthError = useCallback(() => {
@@ -54,18 +61,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({ children }) => {
   useEffect(() => {
     let mounted = true;
 
-    if (!isLoading && !user && mounted) {
+    if (!isLoading && !user && mounted && safeToRender) {
       console.log('[ProtectedRoute] No user detected, showing auth error');
-      showAuthError();
+      // Wait a tick to ensure all state updates are processed
+      setTimeout(() => {
+        if (mounted) {
+          showAuthError();
+        }
+      }, 0);
     }
 
     return () => {
       console.log('[ProtectedRoute] Component unmounting');
       mounted = false;
     };
-  }, [user, isLoading, showAuthError]);
+  }, [user, isLoading, showAuthError, safeToRender]);
 
-  if (isLoading) {
+  if (isLoading || !safeToRender) {
     console.log('[ProtectedRoute] Showing loading spinner');
     return <LoadingSpinner />;
   }

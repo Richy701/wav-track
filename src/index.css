@@ -371,6 +371,26 @@
     background-size: 200% 200%;
     animation: gradient-shift 2s ease infinite;
   }
+
+  .animate-progress {
+    animation: progress-indeterminate 1s linear infinite;
+    background-size: 200% 100%;
+    background-image: linear-gradient(
+      to right,
+      transparent 0%,
+      theme('colors.primary.DEFAULT') 50%,
+      transparent 100%
+    );
+  }
+
+  @keyframes progress-indeterminate {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
 }
 
 @layer components {

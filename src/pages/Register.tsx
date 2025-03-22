@@ -77,8 +77,8 @@ export default function Register() {
         <ThemeSwitcher />
       </div>
 
-      {/* Decorative background for larger screens */}
-      <div className="relative hidden h-full flex-col bg-gradient-to-b from-muted/50 to-muted p-10 text-white dark:border-r lg:flex">
+      {/* Left side - Dashboard Preview */}
+      <div className="relative hidden h-full flex-col bg-gradient-to-b from-muted/50 to-muted p-6 lg:p-8 xl:p-10 text-white dark:border-r lg:flex">
         <div className="absolute inset-0 bg-zinc-900">
           {/* Animated gradient background */}
           <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 via-purple-500/20 to-pink-500/20 animate-gradient-slow" />
@@ -283,29 +283,11 @@ export default function Register() {
         </div>
       </div>
       
-      {/* Registration form */}
-      <div className={cn(
-        "relative p-4 md:p-8",
-        isDark ? "bg-background" : "bg-white"
-      )}>
-        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px] lg:w-[400px]">
-          {/* Mobile Logo (shown only on small screens) */}
-          <div className="flex flex-col items-center text-center space-y-2 lg:hidden mb-6">
-            <h1 className={cn(
-              "text-3xl font-bold tracking-tight bg-gradient-to-r",
-              isDark 
-                ? "from-white via-white to-white/70" 
-                : "from-zinc-900 via-zinc-800 to-zinc-700"
-            )}>
-              WavTrack
-            </h1>
-          </div>
-
-          <div className="flex flex-col space-y-2 text-center">
-            <h1 className={cn(
-              "text-xl sm:text-2xl font-semibold tracking-tight",
-              isDark ? "text-white" : "text-zinc-900"
-            )}>
+      {/* Right side - Registration Form */}
+      <div className="relative h-full flex items-center justify-center p-4 lg:p-8 xl:p-12">
+        <div className="w-full max-w-2xl mx-auto space-y-6">
+          <div className="flex flex-col space-y-2 text-center mb-8">
+            <h1 className="text-2xl font-semibold tracking-tight">
               Create your producer profile
             </h1>
             <p className={cn(
@@ -316,50 +298,7 @@ export default function Register() {
             </p>
           </div>
 
-          {/* Card wrapper for the form */}
-          <div className={cn(
-            "rounded-lg border shadow-sm",
-            isDark 
-              ? "bg-zinc-900/50 border-zinc-800" 
-              : "bg-white border-zinc-200"
-          )}>
-            <div className="p-4 sm:p-6">
-              <RegisterForm onSuccess={handleSuccess} />
-            </div>
-          </div>
-
-          <p className={cn(
-            "px-2 sm:px-8 text-center text-xs sm:text-sm",
-            isDark ? "text-zinc-400" : "text-zinc-600"
-          )}>
-            By clicking create account, you agree to our{" "}
-            <a 
-              href="/terms" 
-              className="underline underline-offset-4 hover:text-primary transition-colors"
-            >
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a 
-              href="/privacy" 
-              className="underline underline-offset-4 hover:text-primary transition-colors"
-            >
-              Privacy Policy
-            </a>
-            .
-          </p>
-        </div>
-
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-          <div className={cn(
-            "absolute left-[40%] top-0 h-[1000px] w-[1000px] rounded-full blur-3xl opacity-20 lg:opacity-100",
-            isDark ? "bg-purple-500/10" : "bg-purple-500/5"
-          )} />
-          <div className={cn(
-            "absolute right-0 bottom-0 h-[800px] w-[800px] rounded-full blur-3xl opacity-20 lg:opacity-100",
-            isDark ? "bg-violet-500/10" : "bg-violet-500/5"
-          )} />
+          <RegisterForm onSuccess={handleSuccess} />
         </div>
       </div>
     </div>

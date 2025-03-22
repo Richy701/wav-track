@@ -20,6 +20,7 @@ export interface Project {
     type: string;
     url: string;
   } | null;
+  coverArt?: null;
 }
 
 export interface Sample {
@@ -106,4 +107,24 @@ export interface Profile {
     email?: boolean;
     push?: boolean;
   };
+}
+
+export interface BeatCoachMessage {
+  id: string;
+  projectId: string;
+  message: string;
+  createdAt: string;
+  isRead: boolean;
+}
+
+export interface WeeklyGoal {
+  id: string;
+  userId: string;
+  targetBeats: number;
+  completedBeats: number;
+  startDate: string;
+  endDate: string;
+  status: 'active' | 'completed' | 'skipped';
+  createdAt: string;
+  updatedAt: string;
 }

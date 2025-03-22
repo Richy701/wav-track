@@ -1,6 +1,10 @@
 import React from 'react';
 
-const LoadingScreen = () => {
+interface LoadingScreenProps {
+  message?: string;
+}
+
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = "Tracking your progress..." }) => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       {/* Decorative background elements */}
@@ -10,6 +14,12 @@ const LoadingScreen = () => {
       </div>
 
       <div className="relative flex flex-col items-center gap-6 text-center">
+        <div className="mb-4">
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent">
+            WavTrack
+          </h1>
+        </div>
+
         {/* Loading animation */}
         <div className="relative">
           <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-primary/0 animate-pulse blur-md" />
@@ -19,10 +29,10 @@ const LoadingScreen = () => {
         {/* Loading text */}
         <div className="space-y-2">
           <p className="text-base sm:text-lg font-medium text-foreground/80">
-            Loading...
+            {message}
           </p>
           <p className="text-sm text-muted-foreground">
-            Please wait while we set things up
+            Your beat production journey starts here
           </p>
         </div>
       </div>

@@ -10,13 +10,20 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: true,
     autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce',
+    storage: window.localStorage,
+    storageKey: 'sb-auth-token',
+    debug: true
   },
   global: {
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
+      'X-Client-Info': 'supabase-js-web/2.39.3',
+    }
   },
+  db: {
+    schema: 'public'
+  }
 }); 

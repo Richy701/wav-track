@@ -110,6 +110,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isInitialized, setIsInitialized] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const authStateRef = React.useRef({
+    mounted: true,
+    initStarted: false,
+    initCompleted: false
+  });
 
   const showErrorToast = (title: string, description: string) => {
     toast({
@@ -148,22 +153,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    let mounted = true;
+    authStateRef.current.mounted = true;
+    authStateRef.current.initStarted = false;
+    authStateRef.current.initCompleted = false;
+    
+    console.log('[Auth Init] Starting auth initialization effect');
 
-    const initializeAuth = async () => {
-      if (!mounted) return;
+    const initializeAuth = async (retryCount = 0) => {
+      if (!authStateRef.current.mounted) {
+        console.log('[Auth Init] Cancelled - component unmounted');
+        return;
+      }
+      
+      // Prevent duplicate initialization
+      if (authStateRef.current.initStarted && authStateRef.current.initCompleted) {
+        console.log('[Auth Init] Already initialized, skipping');
+        return;
+      }
+      
+      authStateRef.current.initStarted = true;
       
       try {
-        console.log('[Auth] Starting initialization...');
+        console.log('[Auth Init] Starting initialization...');
         setIsLoading(true);
         setIsInitialized(false);
         
         const { data: { session }, error } = await supabase.auth.getSession();
-        console.log('[Auth] Session check:', session ? 'Found session' : 'No session', error ? `Error: ${error.message}` : '');
+        console.log('[Auth Init] Session check:', {
+          hasSession: !!session,
+          hasError: !!error,
+          errorMessage: error?.message
+        });
         
         if (error) {
-          console.error('[Auth] Session error:', error);
-          if (mounted) {
+          console.error('[Auth Init] Session error:', error);
+          
+          // Retry logic for network errors (max 2 retries)
+          if (retryCount < 2 && (error.message.includes('network') || error.message.includes('timeout'))) {
+            console.log(`[Auth Init] Retrying initialization (attempt ${retryCount + 1}/2)...`);
+            // Exponential backoff - wait longer for each retry
+            const delay = 1000 * Math.pow(2, retryCount);
+            setTimeout(() => initializeAuth(retryCount + 1), delay);
+            return;
+          }
+          
+          if (authStateRef.current.mounted) {
             setUser(null);
             setProfile(null);
             setIsInitialized(true);
@@ -173,8 +207,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (!session?.user) {
-          console.log('[Auth] No user in session');
-          if (mounted) {
+          console.log('[Auth Init] No user in session');
+          if (authStateRef.current.mounted) {
             setUser(null);
             setProfile(null);
             setIsInitialized(true);
@@ -183,19 +217,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
-        console.log('[Auth] Setting user:', session.user.id);
-        if (mounted) {
+        console.log('[Auth Init] Setting user:', session.user.id);
+        if (authStateRef.current.mounted) {
           setUser(session.user);
         }
 
-        console.log('[Auth] Fetching profile...');
+        console.log('[Auth Init] Fetching profile...');
         try {
           const profileData = await fetchProfile(session.user.id);
+          console.log('[Auth Init] Profile fetch result:', !!profileData);
           
-          if (!mounted) return;
+          if (!authStateRef.current.mounted) {
+            console.log('[Auth Init] Cancelled profile handling - component unmounted');
+            return;
+          }
 
           if (!profileData) {
-            console.log('[Auth] No profile found, creating default profile...');
+            console.log('[Auth Init] Creating default profile...');
             const defaultProfile = createDefaultProfile(
               session.user.id,
               session.user.email!,
@@ -209,125 +247,85 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .single();
 
             if (createError) {
-              console.error('[Auth] Profile creation error:', createError);
-              if (mounted) {
+              console.error('[Auth Init] Profile creation error:', createError);
+              if (authStateRef.current.mounted) {
                 setProfile(null);
               }
             } else if (newProfile) {
-              console.log('[Auth] New profile created:', newProfile);
-              if (mounted) {
+              console.log('[Auth Init] New profile created');
+              if (authStateRef.current.mounted) {
                 setProfile(convertProfileFromDb(newProfile));
               }
             }
           } else {
-            console.log('[Auth] Setting existing profile');
-            if (mounted) {
+            console.log('[Auth Init] Setting existing profile');
+            if (authStateRef.current.mounted) {
               setProfile(profileData);
             }
           }
         } catch (error) {
-          console.error('[Auth] Profile handling error:', error);
-          if (mounted) {
+          console.error('[Auth Init] Profile handling error:', error);
+          if (authStateRef.current.mounted) {
             setProfile(null);
           }
         }
       } catch (error) {
-        console.error('[Auth] Initialization error:', error);
-        if (mounted) {
+        console.error('[Auth Init] Initialization error:', error);
+        
+        // Retry for general errors
+        if (retryCount < 2) {
+          console.log(`[Auth Init] Retrying after error (attempt ${retryCount + 1}/2)...`);
+          const delay = 1000 * Math.pow(2, retryCount);
+          setTimeout(() => initializeAuth(retryCount + 1), delay);
+          return;
+        }
+        
+        if (authStateRef.current.mounted) {
           setUser(null);
           setProfile(null);
         }
       } finally {
-        if (mounted) {
-          console.log('[Auth] Completing initialization...');
+        if (authStateRef.current.mounted) {
+          console.log('[Auth Init] Completing initialization');
           setIsInitialized(true);
           setIsLoading(false);
+          authStateRef.current.initCompleted = true;
         }
       }
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
-      
-      console.log('[Auth] Auth state changed:', event, session?.user?.id);
-      
-      if (session?.user) {
-        console.log('[Auth] User session found:', session.user.email);
-        setUser(session.user);
-        setIsLoading(true);
+    // Add timeout to detect stuck auth initialization
+    const timeoutId = setTimeout(() => {
+      if (!authStateRef.current.initCompleted && isLoading) {
+        console.warn('[Auth Init] Auth initialization appears stuck');
+        // Add this self-recovery mechanism to handle stalled initialization
+        setIsInitialized(true);
+        setIsLoading(false);
         
-        try {
-          console.log('[Auth] Attempting to fetch profile for user:', session.user.id);
-          let profileData = await fetchProfile(session.user.id);
-          console.log('[Auth] Profile fetch result:', profileData);
-          
-          if (!mounted) return;
-          
-          if (!profileData) {
-            console.log('[Auth] No profile found, creating default profile...');
-            const defaultProfile = createDefaultProfile(
-              session.user.id,
-              session.user.email!,
-              session.user.user_metadata?.name || session.user.email?.split('@')[0] || null
-            );
-            
-            console.log('[Auth] Inserting default profile:', defaultProfile);
-            const { data: insertData, error: createError } = await supabase
-              .from('profiles')
-              .insert([defaultProfile])
-              .select()
-              .single();
-              
-            if (createError) {
-              console.error('[Auth] Error creating profile:', createError);
-              toast({
-                variant: "destructive",
-                title: "Profile Creation Failed",
-                description: "Failed to create profile. Please try logging out and back in."
-              });
-              setProfile(null);
-            } else if (insertData) {
-              console.log('[Auth] Profile created successfully:', insertData);
-              profileData = convertProfileFromDb(insertData);
-            }
-          }
-          
-          if (profileData) {
-            console.log('[Auth] Setting profile in state:', profileData);
-            setProfile(profileData);
-          } else {
-            console.log('[Auth] No profile available, setting null');
-            setProfile(null);
-          }
-        } catch (error) {
-          console.error('[Auth] Profile fetch/create error:', error);
-          toast({
-            variant: "destructive",
-            title: "Profile Error",
-            description: "Error setting up profile. Please try logging out and back in."
-          });
-          if (mounted) {
-            setProfile(null);
-          }
-        } finally {
-          if (mounted) {
-            setIsLoading(false);
-          }
-        }
-      } else {
-        if (mounted) {
+        // Don't clear user and profile if they exist - this allows recovery while keeping session
+        if (!user && !profile) {
           setUser(null);
           setProfile(null);
-          setIsLoading(false);
         }
+        
+        // Show a user-friendly error message
+        toast({
+          variant: "default",
+          title: "Connection slow",
+          description: "We're having trouble connecting to our servers. Your session will continue, but some features might be limited.",
+        });
+        
+        // Mark as completed to prevent duplicate handling
+        authStateRef.current.initCompleted = true;
       }
-    });
+    }, 15000); // Increase timeout to 15 seconds
 
     initializeAuth();
 
     return () => {
-      mounted = false;
-      subscription.unsubscribe();
+      console.log('[Auth Init] Cleanup - marking component as unmounted');
+      authStateRef.current.mounted = false;
+      clearTimeout(timeoutId);
     };
   }, []);
 
@@ -421,7 +419,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             name: registerData.name
           },
-          emailRedirectTo: `${window.location.origin}/wav-track/auth/callback`
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
 
@@ -614,26 +612,82 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const handleLoginSuccess = (session: Session) => {
-    setUser(session.user);
-    navigate('/');
-    toast({
-      title: '🎹 Back in the Mix!',
-      description: (
-        <div className="flex flex-col gap-1">
-          <p className="font-medium">Ready to create something amazing?</p>
-          <p className="text-sm text-muted-foreground">
-            Last session: {formatDistanceToNow(new Date(session.user.last_sign_in_at || Date.now()))} ago
-          </p>
-          <div className="mt-1 text-xs flex items-center gap-2">
-            <div className="h-1 w-1 rounded-full bg-primary/50 animate-pulse" />
-            <span>Your beats are waiting</span>
-          </div>
-        </div>
-      ),
-      variant: "default",
-      className: "bg-gradient-to-r from-primary/10 via-primary/5 to-background border-primary/20",
-    });
+  const handleLoginSuccess = async (session: Session) => {
+    try {
+      // Ensure we have a valid user
+      if (!session?.user) {
+        console.error('[Auth] Login success handler received invalid session', session);
+        return;
+      }
+      
+      // Set the user state first
+      setUser(session.user);
+      
+      // Ensure profile data is loaded to prevent state issues
+      try {
+        const profileData = await fetchProfile(session.user.id);
+        if (profileData && authStateRef.current.mounted) {
+          setProfile(profileData);
+        }
+      } catch (error) {
+        console.error('[Auth] Error fetching profile during login:', error);
+      }
+      
+      // Add a longer delay to ensure all state updates have propagated
+      // through React's state update queue
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Use a separate effect to handle navigation after state update
+      // This prevents the "Object may no longer exist" error by ensuring
+      // the state is fully processed before navigation
+      setTimeout(() => {
+        // Only navigate when we're sure the component is still mounted
+        if (authStateRef.current.mounted) {
+          // Safely navigate with a longer delay
+          console.log('[Auth] Navigating to home after login');
+          
+          // Update react-query cache to ensure data is available
+          queryClient.invalidateQueries(['profile']);
+          queryClient.invalidateQueries(['projects']);
+          
+          // Delay navigation to allow React Query cache updates to complete
+          setTimeout(() => {
+            if (authStateRef.current.mounted) {
+              navigate('/', { replace: true });
+              
+              // Show success toast after navigation
+              setTimeout(() => {
+                if (authStateRef.current.mounted) {
+                  toast({
+                    title: '🎹 Back in the Mix!',
+                    description: (
+                      <div className="flex flex-col gap-1">
+                        <p className="font-medium">Ready to create something amazing?</p>
+                        <p className="text-sm text-muted-foreground">
+                          Last session: {formatDistanceToNow(new Date(session.user.last_sign_in_at || Date.now()))} ago
+                        </p>
+                        <div className="mt-1 text-xs flex items-center gap-2">
+                          <div className="h-1 w-1 rounded-full bg-primary/50 animate-pulse" />
+                          <span>Your beats are waiting</span>
+                        </div>
+                      </div>
+                    ),
+                    variant: "default",
+                    className: "bg-gradient-to-r from-primary/10 via-primary/5 to-background border-primary/20",
+                  });
+                }
+              }, 100);
+            }
+          }, 100);
+        }
+      }, 300);
+    } catch (error) {
+      console.error('[Auth] Error in handleLoginSuccess:', error);
+      // Still set the user even if there's an error with the navigation or toast
+      if (session?.user) {
+        setUser(session.user);
+      }
+    }
   };
 
   return (

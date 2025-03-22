@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Bell, Settings, Quote, Sparkles } from 'lucide-react';
 import { 
   TimerSession, 
@@ -8,13 +8,16 @@ import {
   playNotificationSound,
   NotificationSound,
   saveNotificationSound,
-  loadNotificationSound
+  loadNotificationSound,
+  preloadAudio
 } from './timer/timerUtils';
 import { TimerDisplay } from './timer/TimerDisplay';
 import { TimerControls } from './timer/TimerControls';
 import { TimerModeSelector } from './timer/TimerModeSelector';
 import { TimerSettings } from './timer/TimerSettings';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { cleanupAudioContext } from '@/lib/audioContext';
 
 // Import quotes from MotivationalQuotes component
 const quotes = [
@@ -83,6 +86,9 @@ export default function Timer() {
   // Quote state
   const [quote, setQuote] = useState<typeof quotes[0]>(quotes[0]);
   const [fadeIn, setFadeIn] = useState(true);
+  const [isAudioLoaded, setIsAudioLoaded] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
+  const audioLoadAttempted = useRef(false);
 
   // Get a random quote that's different from the current one
   const getRandomQuote = () => {
@@ -117,8 +123,63 @@ export default function Timer() {
     localStorage.setItem('timerSessions', JSON.stringify(sessions));
   }, [sessions]);
 
-  // Handle timer completion
-  const handleTimerComplete = useCallback(() => {
+  // Load audio files when component mounts
+  useEffect(() => {
+    if (!audioLoadAttempted.current) {
+      audioLoadAttempted.current = true;
+      
+      const loadAudio = async () => {
+        try {
+          await preloadAudio();
+          setIsAudioLoaded(true);
+          setAudioError(null);
+        } catch (error) {
+          console.error('Failed to load audio files:', error);
+          setIsAudioLoaded(false);
+          setAudioError('Failed to load notification sounds. Timer will still work without sound.');
+          toast.error('Failed to load notification sounds', {
+            description: 'Timer will continue to work without sound notifications.'
+          });
+        }
+      };
+
+      // Add a delay and retry mechanism
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      const attemptLoad = () => {
+        loadAudio().catch((error) => {
+          console.error(`Audio load attempt ${retryCount + 1} failed:`, error);
+          if (retryCount < maxRetries) {
+            retryCount++;
+            setTimeout(attemptLoad, 1000 * retryCount); // Exponential backoff
+          }
+        });
+      };
+
+      // Start loading after user interaction
+      const handleUserInteraction = () => {
+        attemptLoad();
+        // Remove event listeners after first interaction
+        document.removeEventListener('click', handleUserInteraction);
+        document.removeEventListener('keydown', handleUserInteraction);
+      };
+
+      // Add event listeners for user interaction
+      document.addEventListener('click', handleUserInteraction);
+      document.addEventListener('keydown', handleUserInteraction);
+
+      return () => {
+        // Clean up event listeners and audio context
+        document.removeEventListener('click', handleUserInteraction);
+        document.removeEventListener('keydown', handleUserInteraction);
+        cleanupAudioContext();
+      };
+    }
+  }, []);
+
+  // Handle timer completion with error handling
+  const handleTimerComplete = useCallback(async () => {
     const currentMode = mode;
     
     // Save the completed session
@@ -145,9 +206,22 @@ export default function Timer() {
     setIsRunning(false);
     setSessionStartTime(null);
     
-    // Play sound notification
-    playNotificationSound(notificationSound);
-  }, [mode, sessionStartTime, initialTime, workDuration, breakDuration, notificationSound]);
+    // Play sound notification with error handling
+    if (isAudioLoaded) {
+      try {
+        await playNotificationSound(notificationSound);
+      } catch (error) {
+        console.error('Failed to play notification sound:', error);
+        // Only show error if we haven't shown one already
+        if (!audioError) {
+          setAudioError('Failed to play notification sound');
+          toast.error('Failed to play notification sound', {
+            description: 'Please check your browser audio settings.'
+          });
+        }
+      }
+    }
+  }, [mode, sessionStartTime, initialTime, workDuration, breakDuration, notificationSound, audioError, isAudioLoaded]);
   
   // Start/pause the timer
   const toggleTimer = () => {
@@ -237,6 +311,13 @@ export default function Timer() {
 
   return (
     <div className="bg-card rounded-xl p-6 animate-fade-in theme-transition">
+      {/* Show audio error if exists */}
+      {audioError && (
+        <div className="mb-4 p-2 bg-destructive/10 text-destructive text-sm rounded-md">
+          {audioError}
+        </div>
+      )}
+      
       <div className="flex items-center justify-between mb-5">
         <h3 className="font-medium flex items-center gap-2 theme-transition">
           <div className="p-1.5 rounded-md bg-primary/10">

@@ -126,26 +126,45 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
       {/* Required Fields Section */}
-      <div className="space-y-3 sm:space-y-4">
-        <FormField label="Full Name" icon={Icons.user}>
-          <Input
-            id="name"
-            name="name"
-            placeholder="John Doe"
-            required
-            value={formData.name}
-            onChange={handleChange}
-            autoComplete="name"
-            className={cn(
-              "h-9 sm:h-10 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
-              isDark 
-                ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" 
-                : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
-            )}
-          />
-        </FormField>
+      <div className="grid gap-4 sm:gap-6">
+        <div className="grid sm:grid-cols-2 gap-4">
+          <FormField label="Full Name" icon={Icons.user}>
+            <Input
+              id="name"
+              name="name"
+              placeholder="John Doe"
+              required
+              value={formData.name}
+              onChange={handleChange}
+              autoComplete="name"
+              className={cn(
+                "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
+                isDark 
+                  ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" 
+                  : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
+              )}
+            />
+          </FormField>
+
+          <FormField label="Artist Name" icon={Icons.microphone}>
+            <Input
+              id="artist_name"
+              name="artist_name"
+              placeholder="Your stage name"
+              value={formData.artist_name}
+              onChange={handleChange}
+              autoComplete="nickname"
+              className={cn(
+                "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
+                isDark 
+                  ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" 
+                  : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
+              )}
+            />
+          </FormField>
+        </div>
 
         <FormField label="Email" icon={Icons.mail}>
           <Input
@@ -158,7 +177,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             onChange={handleChange}
             autoComplete="email"
             className={cn(
-              "h-9 sm:h-10 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
+              "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
               isDark 
                 ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" 
                 : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
@@ -176,7 +195,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             onChange={handleChange}
             autoComplete="new-password"
             className={cn(
-              "h-9 sm:h-10 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
+              "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
               isDark 
                 ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" 
                 : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
@@ -186,7 +205,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       </div>
 
       {/* Artist Profile Section */}
-      <div className="relative pt-6">
+      <div className="relative pt-6 sm:pt-8">
         <div className="absolute inset-0 flex items-center" aria-hidden="true">
           <div className={cn(
             "w-full border-t",
@@ -205,79 +224,118 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         </div>
       </div>
 
-      <div className="space-y-4">
-        <FormField label="Artist Name" icon={Icons.microphone}>
-          <Input
-            id="artist_name"
-            name="artist_name"
-            placeholder="Your stage name"
-            value={formData.artist_name}
-            onChange={handleChange}
-            autoComplete="nickname"
-            className={cn(
-              "h-9 sm:h-10 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
-              isDark 
-                ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" 
-                : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
-            )}
-          />
-        </FormField>
-
+      <div className="grid gap-6">
         <FormField label="Genres" icon={Icons.genres}>
-          <Select name="genres" onValueChange={handleGenreChange}>
-            <SelectTrigger className={cn(
-              "h-9 sm:h-10 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
-              isDark ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
-            )}>
-              <SelectValue placeholder="Select your genres" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="hip_hop">Hip-Hop/Rap</SelectItem>
-              <SelectItem value="rnb">R&B/Soul</SelectItem>
-              <SelectItem value="pop">Pop</SelectItem>
-              <SelectItem value="electronic">Electronic/Dance</SelectItem>
-              <SelectItem value="trap">Trap</SelectItem>
-              <SelectItem value="house">House</SelectItem>
-              <SelectItem value="techno">Techno</SelectItem>
-              <SelectItem value="dubstep">Dubstep</SelectItem>
-              <SelectItem value="ambient">Ambient</SelectItem>
-              <SelectItem value="jazz">Jazz</SelectItem>
-              <SelectItem value="rock">Rock</SelectItem>
-              <SelectItem value="metal">Metal</SelectItem>
-              <SelectItem value="indie">Indie</SelectItem>
-              <SelectItem value="lofi">Lo-Fi</SelectItem>
-              <SelectItem value="world">World Music</SelectItem>
-              <SelectItem value="experimental">Experimental</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-          {formData.genres.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {formData.genres.map((genre) => (
-                <Badge
-                  key={genre}
-                  variant="secondary"
-                  className="flex items-center gap-1 px-2 py-1"
-                >
-                  {genre.replace(/_/g, ' ')}
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {[
+                { id: 'hip_hop', label: 'Hip-Hop/Rap', icon: Icons.microphone },
+                { id: 'rnb', label: 'R&B/Soul', icon: Icons.music },
+                { id: 'pop', label: 'Pop', icon: Icons.music },
+                { id: 'electronic', label: 'Electronic', icon: Icons.waveform },
+                { id: 'trap', label: 'Trap', icon: Icons.microphone },
+                { id: 'house', label: 'House', icon: Icons.music },
+                { id: 'techno', label: 'Techno', icon: Icons.waveform },
+                { id: 'dubstep', label: 'Dubstep', icon: Icons.waveform },
+                { id: 'ambient', label: 'Ambient', icon: Icons.waveform },
+                { id: 'jazz', label: 'Jazz', icon: Icons.music },
+                { id: 'rock', label: 'Rock', icon: Icons.music },
+                { id: 'metal', label: 'Metal', icon: Icons.music },
+                { id: 'indie', label: 'Indie', icon: Icons.music },
+                { id: 'lofi', label: 'Lo-Fi', icon: Icons.music },
+                { id: 'world', label: 'World', icon: Icons.website },
+                { id: 'experimental', label: 'Experimental', icon: Icons.star }
+              ].map(genre => {
+                const isSelected = formData.genres.includes(genre.id);
+                return (
                   <button
+                    key={genre.id}
                     type="button"
-                    className="ml-1 hover:text-destructive"
-                    onClick={() => removeGenre(genre)}
-                    aria-label={`Remove ${genre} genre`}
+                    onClick={() => {
+                      if (isSelected) {
+                        removeGenre(genre.id);
+                      } else {
+                        handleGenreChange(genre.id);
+                      }
+                    }}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm",
+                      "transition-all duration-200",
+                      "border",
+                      isSelected
+                        ? "bg-primary text-white border-primary/20 shadow-sm"
+                        : isDark
+                          ? "bg-zinc-800/50 border-zinc-700 text-zinc-300 hover:border-primary/50"
+                          : "bg-white border-zinc-200 text-zinc-700 hover:border-primary/50"
+                    )}
                   >
-                    <X className="h-3 w-3" />
+                    <genre.icon className={cn(
+                      "w-3.5 h-3.5",
+                      isSelected ? "text-white" : isDark ? "text-zinc-400" : "text-zinc-500"
+                    )} />
+                    {genre.label}
                   </button>
-                </Badge>
-              ))}
+                );
+              })}
             </div>
-          )}
+            {formData.genres.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {formData.genres.map(genreId => {
+                  const genre = [
+                    { id: 'hip_hop', label: 'Hip-Hop/Rap' },
+                    { id: 'rnb', label: 'R&B/Soul' },
+                    { id: 'pop', label: 'Pop' },
+                    { id: 'electronic', label: 'Electronic' },
+                    { id: 'trap', label: 'Trap' },
+                    { id: 'house', label: 'House' },
+                    { id: 'techno', label: 'Techno' },
+                    { id: 'dubstep', label: 'Dubstep' },
+                    { id: 'ambient', label: 'Ambient' },
+                    { id: 'jazz', label: 'Jazz' },
+                    { id: 'rock', label: 'Rock' },
+                    { id: 'metal', label: 'Metal' },
+                    { id: 'indie', label: 'Indie' },
+                    { id: 'lofi', label: 'Lo-Fi' },
+                    { id: 'world', label: 'World' },
+                    { id: 'experimental', label: 'Experimental' }
+                  ].find(g => g.id === genreId);
+                  
+                  if (!genre) return null;
+                  
+                  return (
+                    <Badge
+                      key={genre.id}
+                      variant="secondary"
+                      className={cn(
+                        "gap-1.5 pl-3 pr-2 py-1",
+                        isDark ? "bg-zinc-800" : "bg-zinc-100"
+                      )}
+                    >
+                      {genre.label}
+                      <button
+                        type="button"
+                        onClick={() => removeGenre(genre.id)}
+                        aria-label={`Remove ${genre.label} genre`}
+                        className={cn(
+                          "ml-1 rounded-full p-0.5",
+                          "hover:bg-zinc-700/50 dark:hover:bg-zinc-600/50",
+                          "transition-colors"
+                        )}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </FormField>
 
         <FormField label="Preferred DAW" icon={Icons.daw}>
           <Select name="daw" value={formData.daw} onValueChange={handleDAWChange}>
             <SelectTrigger className={cn(
-              "h-9 sm:h-10 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
+              "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
               isDark ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
             )}>
               <SelectValue placeholder="Select your DAW" />
@@ -309,7 +367,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             value={formData.bio}
             onChange={handleChange}
             className={cn(
-              "h-20 sm:h-24 min-h-[100px] transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
+              "min-h-[120px] transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
               isDark ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
             )}
           />
@@ -324,13 +382,13 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             onChange={handleChange}
             autoComplete="address-level2"
             className={cn(
-              "h-9 sm:h-10 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
+              "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
               isDark ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
             )}
           />
         </FormField>
 
-        <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
+        <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
           <FormField label="Phone (optional)" icon={Icons.phone}>
             <Input
               id="phone"
@@ -341,7 +399,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
               onChange={handleChange}
               autoComplete="tel"
               className={cn(
-                "h-9 sm:h-10 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
+                "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
                 isDark 
                   ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" 
                   : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
@@ -359,7 +417,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
               onChange={handleChange}
               autoComplete="url"
               className={cn(
-                "h-9 sm:h-10 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
+                "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
                 isDark 
                   ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" 
                   : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
@@ -372,7 +430,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       <Button 
         type="submit" 
         className={cn(
-          "w-full h-9 sm:h-10 transition-colors text-sm font-medium text-white",
+          "w-full h-11 transition-colors text-sm font-medium text-white",
           isDark
             ? "bg-black hover:bg-black/90"
             : "bg-primary hover:bg-primary/90"
@@ -381,11 +439,11 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       >
         {isLoading ? (
           <>
-            <Icons.spinner className="mr-2 h-3.5 w-3.5 animate-spin" />
-            <span className="text-sm">Creating account...</span>
+            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            <span>Creating account...</span>
           </>
         ) : (
-          <span className="text-sm">Create Account</span>
+          <span>Create Account</span>
         )}
       </Button>
     </form>

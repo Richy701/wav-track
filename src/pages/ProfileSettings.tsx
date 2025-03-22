@@ -48,6 +48,8 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { FLStudioIcon, AbletonIcon, LogicProIcon, ProToolsIcon, StudioOneIcon, BitwigIcon, ReaperIcon } from '@/components/DawIcons';
+import TestDataGenerator from '@/components/TestDataGenerator';
+import { Bell, Check, ExternalLink, Instagram } from 'lucide-react';
 
 interface FormData {
   name: string;
@@ -619,6 +621,24 @@ const ProfileSettings = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Developer Settings - Only visible in development mode */}
+          {import.meta.env.DEV && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Desktop className="h-5 w-5" />
+                  Developer Tools
+                </CardTitle>
+                <CardDescription>
+                  Tools for development and testing. Only visible in development mode.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TestDataGenerator />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Form Actions */}
           <div className="flex justify-between items-center">

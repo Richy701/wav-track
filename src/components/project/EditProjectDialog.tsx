@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Project } from '@/lib/types';
 import { updateProject as updateProjectInStorage } from '@/lib/data';
+import { uploadCoverArt } from '@/lib/services/coverArt';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -18,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, Music, Tag, Info, Mic2, Activity, Hash, Key, FileText, Percent } from "lucide-react";
+import { X, Plus, Music, Tag, Info, Mic2, Activity, Hash, Key, FileText, Percent, Image as ImageIcon } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
@@ -44,8 +45,14 @@ export default function EditProjectDialog({
     key: project.key || '',
     status: project.status,
     completionPercentage: project.completionPercentage,
-    audioFile: project.audioFile
+    audioFile: project.audioFile,
+    coverArt: project.coverArt
   });
+  const [coverArtFile, setCoverArtFile] = useState<File | null>(null);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [coverArtPreview, setCoverArtPreview] = useState<string | null>(
+    formData.coverArt || null
+  );
   
   // Map status to completion percentage
   const statusToCompletion = {
@@ -115,7 +122,7 @@ export default function EditProjectDialog({
     }));
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.title.trim()) {
@@ -132,14 +139,26 @@ export default function EditProjectDialog({
       return;
     }
 
-    const updatedProject: Project = {
-      ...project,
-      ...formData,
-      genre: formData.genres[0] || '', // Keep the first genre as the main genre for backward compatibility
-      lastModified: new Date().toISOString()
-    };
+    try {
+      // Submit the project without coverArt
+      const updatedProject = {
+        ...project,
+        ...formData,
+        // Remove coverArt from the update
+        coverArt: undefined
+      };
 
-    onProjectUpdated(updatedProject);
+      onProjectUpdated(updatedProject);
+      onOpenChange(false);
+      toast.success("Project updated", {
+        description: `"${formData.title}" has been updated.`
+      });
+    } catch (error) {
+      console.error('Error updating project:', error);
+      toast.error("Failed to update project", {
+        description: "An error occurred while updating the project."
+      });
+    }
   };
 
   return (

@@ -9,13 +9,15 @@ import {
   UploadSimple, 
   Tag as PhTag, 
   X as PhX,
-  CircleNotch
+  CircleNotch,
+  Image
 } from '@phosphor-icons/react';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 import { format } from "date-fns";
 import { Project } from '@/lib/types';
 import { recordBeatCreation } from '@/lib/data';
+import { uploadCoverArt } from '@/lib/services/coverArt';
 import { AudioUpload } from '@/components/AudioUpload';
 import {
   Dialog,
@@ -63,6 +65,8 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   const { addProject, isAddingProject } = useProjects();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [coverArtFile, setCoverArtFile] = useState<File | null>(null);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -172,14 +176,21 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
     }
     
     try {
+      // Create the project first without cover art
       const newProject: Omit<Project, 'id'> = {
         ...formData,
         genre: formData.genres.join(', '), // Join multiple genres for storage
         lastModified: new Date().toISOString(),
       };
 
+      // Create project with cover art if available
+      const projectWithCoverArt = {
+        ...newProject,
+        coverArt: formData.coverArt // Use the URL that was saved during upload
+      };
+
       // Create the project and get back the database-generated ID
-      const createdProject = await addProject(newProject);
+      const createdProject = await addProject(projectWithCoverArt);
 
       if (!createdProject) {
         throw new Error('Failed to create project');
@@ -207,6 +218,8 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
         lastModified: new Date().toISOString(),
         length: '3:30',
       });
+      setCoverArtFile(null);
+      setAudioFile(null);
       setErrors({});
       onOpenChange(false);
       onProjectCreated?.();
@@ -227,51 +240,134 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
     'Techno', 'Drill', 'Soul', 'Jazz', 'Lo-Fi', 'Reggaeton', 'Afrobeat'
   ];
 
+  // Add cover art file handler
+  const handleCoverArtChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingCover(true);
+      setCoverArtFile(file); // Set the file immediately for preview
+
+      const { url } = await uploadCoverArt(file);
+      if (!url) {
+        throw new Error('No URL returned from upload');
+      }
+
+      setFormData(prev => ({ ...prev, coverArt: url }));
+      toast.success('Cover art uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading cover art:', error);
+      setCoverArtFile(null); // Clear the file if upload failed
+      toast.error('Failed to upload cover art', {
+        description: error instanceof Error ? error.message : 'Please try again or choose a different image.'
+      });
+    } finally {
+      setIsUploadingCover(false);
+      // Clear the input value to allow selecting the same file again
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveCoverArt = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCoverArtFile(null);
+    setFormData(prev => ({ ...prev, coverArt: undefined }));
+  };
+
+  const handleAudioAnalysis = (result: AudioAnalysisResult) => {
+    setFormData(prev => ({
+      ...prev,
+      bpm: Math.round(result.bpm),
+      key: result.key,
+      length: formatLength(result.duration)
+    }));
+    
+    // Add appropriate genres based on analysis
+    if (result.danceability > 0.7) {
+      handleGenreChange('Electronic');
+      handleGenreChange('House');
+    } else if (result.energy > 0.7) {
+      handleGenreChange('Hip Hop');
+      handleGenreChange('Trap');
+    }
+    
+    toast.success('Audio analysis complete', {
+      description: `Detected BPM: ${Math.round(result.bpm)}, Key: ${result.key}`
+    });
+  };
+
+  const formatLength = (duration: number) => {
+    const minutes = Math.floor(duration / 60);
+    const seconds = Math.floor(duration % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Create New Beat</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
+        <DialogHeader className="pb-3">
+          <DialogTitle className="text-xl">Create New Beat</DialogTitle>
+          <DialogDescription className="text-sm">
             Add a new beat to your collection. Fill in the details below.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleCreateBeat} className="space-y-4">
-          <div className="grid gap-5 py-6">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="title" className="text-right font-medium">
-                Title
-              </Label>
-              <div className="col-span-3 relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                  <div className="p-1 rounded-md bg-violet-500/10">
-                    <MusicNote weight="fill" className="h-4 w-4 text-violet-500" />
+        <form onSubmit={handleCreateBeat} className="space-y-6">
+          <div className="grid gap-6 py-3">
+            {/* Title and Description Section */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-4 items-center gap-3">
+                <Label htmlFor="title" className="text-right text-sm font-medium">
+                  Title
+                </Label>
+                <div className="col-span-3 relative">
+                  <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
+                    <div className="p-1 rounded-md bg-violet-500/10">
+                      <MusicNote weight="fill" className="h-4 w-4 text-violet-500" />
+                    </div>
                   </div>
-                </div>
-                <Input
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  className={cn(
-                    "pl-12 transition-colors",
-                    errors.title ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"
+                  <Input
+                    id="title"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    className={cn(
+                      "pl-10 h-9 text-sm transition-colors",
+                      errors.title ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"
+                    )}
+                    placeholder="Enter project title"
+                  />
+                  {errors.title && (
+                    <p className="text-xs text-destructive mt-1 animate-in fade-in slide-in-from-top-1">{errors.title}</p>
                   )}
-                  placeholder="Enter project title"
-                />
-                {errors.title && (
-                  <p className="text-sm text-destructive mt-1.5 animate-in fade-in slide-in-from-top-1">{errors.title}</p>
-                )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 items-start gap-3">
+                <Label htmlFor="description" className="text-right text-sm font-medium mt-1">
+                  Description
+                </Label>
+                <div className="col-span-3">
+                  <Input
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    placeholder="Enter project description"
+                    className="h-9 text-sm"
+                  />
+                </div>
               </div>
             </div>
-            
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label htmlFor="genre" className="text-right font-medium">
+
+            {/* Genre Section */}
+            <div className="grid grid-cols-4 items-start gap-3">
+              <Label htmlFor="genre" className="text-right text-sm font-medium">
                 Genres
               </Label>
               <div className="col-span-3 relative space-y-2">
                 <div className="relative">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
+                  <div className="absolute left-2.5 top-1/2 -translate-y-1/2 z-10">
                     <div className="p-1 rounded-md bg-pink-500/10">
                       <PhTag weight="fill" className="h-4 w-4 text-pink-500" />
                     </div>
@@ -284,7 +380,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                     <SelectTrigger 
                       id="genre"
                       className={cn(
-                        "pl-12 transition-colors",
+                        "pl-10 h-9 text-sm transition-colors",
                         errors.genres ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"
                       )}
                       aria-label="Select project genres"
@@ -294,14 +390,14 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectLabel>Genres</SelectLabel>
+                        <SelectLabel className="text-sm">Genres</SelectLabel>
                         {genreOptions.map(genre => (
                           <SelectItem 
                             key={genre} 
                             value={genre}
                             role="option"
                             disabled={formData.genres.includes(genre)}
-                            className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                            className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-sm"
                           >
                             {genre}
                           </SelectItem>
@@ -334,207 +430,151 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                 )}
                 
                 {errors.genres && (
-                  <p id="genre-error" className="text-sm text-destructive mt-1.5 animate-in fade-in slide-in-from-top-1">
+                  <p id="genre-error" className="text-xs text-destructive mt-1 animate-in fade-in slide-in-from-top-1">
                     {errors.genres}
                   </p>
                 )}
               </div>
             </div>
             
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="bpm" className="text-right font-medium">
-                BPM
-              </Label>
-              <div className="col-span-3 flex items-center gap-4">
-                <div className="p-1 rounded-md bg-emerald-500/10">
-                  <PhTimer weight="fill" className="h-4 w-4 text-emerald-500" />
-                </div>
-                <Slider
-                  id="bpm"
-                  name="bpm"
-                  min={60}
-                  max={200}
-                  step={1}
-                  value={[formData.bpm]}
-                  onValueChange={handleBpmChange}
-                  className="flex-1"
-                />
-                <span className="text-sm font-mono w-14 text-center bg-muted/50 px-2.5 py-1.5 rounded-md ring-1 ring-border/50">
-                  {formData.bpm}
-                </span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="key" className="text-right font-medium">
-                Key
-              </Label>
-              <div className="col-span-3 relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                  <div className="p-1 rounded-md bg-purple-500/10">
-                    <MusicNote weight="fill" className="h-4 w-4 text-purple-500" />
+            {/* BPM and Key Section */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-4 items-center gap-3">
+                <Label htmlFor="bpm" className="text-right text-sm font-medium">
+                  BPM
+                </Label>
+                <div className="col-span-3 flex items-center gap-3">
+                  <div className="p-1 rounded-md bg-emerald-500/10">
+                    <PhTimer weight="fill" className="h-4 w-4 text-emerald-500" />
                   </div>
+                  <Slider
+                    id="bpm"
+                    name="bpm"
+                    min={60}
+                    max={200}
+                    step={1}
+                    value={[formData.bpm]}
+                    onValueChange={handleBpmChange}
+                    className="flex-1"
+                  />
+                  <span className="text-sm font-mono w-12 text-center bg-muted/50 px-2 py-1 rounded-md ring-1 ring-border/50">
+                    {formData.bpm}
+                  </span>
                 </div>
-                <Select 
-                  value={formData.key} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, key: value }))}
-                  name="key"
-                >
-                  <SelectTrigger 
-                    id="key"
-                    className="pl-12 focus-visible:ring-primary"
-                    aria-label="Select project key"
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-3">
+                <Label htmlFor="key" className="text-right text-sm font-medium">
+                  Key
+                </Label>
+                <div className="col-span-3 relative">
+                  <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
+                    <div className="p-1 rounded-md bg-purple-500/10">
+                      <MusicNote weight="fill" className="h-4 w-4 text-purple-500" />
+                    </div>
+                  </div>
+                  <Select 
+                    value={formData.key} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, key: value }))}
+                    name="key"
                   >
-                    <SelectValue placeholder="Select key" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Project Key</SelectLabel>
-                      <SelectItem 
-                        value="C" 
-                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        C
-                      </SelectItem>
-                      <SelectItem 
-                        value="C#" 
-                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        C#
-                      </SelectItem>
-                      <SelectItem 
-                        value="D" 
-                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        D
-                      </SelectItem>
-                      <SelectItem 
-                        value="D#" 
-                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        D#
-                      </SelectItem>
-                      <SelectItem 
-                        value="E" 
-                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        E
-                      </SelectItem>
-                      <SelectItem 
-                        value="F" 
-                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        F
-                      </SelectItem>
-                      <SelectItem 
-                        value="F#" 
-                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        F#
-                      </SelectItem>
-                      <SelectItem 
-                        value="G" 
-                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        G
-                      </SelectItem>
-                      <SelectItem 
-                        value="G#" 
-                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        G#
-                      </SelectItem>
-                      <SelectItem 
-                        value="A" 
-                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        A
-                      </SelectItem>
-                      <SelectItem 
-                        value="A#" 
-                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        A#
-                      </SelectItem>
-                      <SelectItem 
-                        value="B" 
-                        className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        B
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="length" className="text-right font-medium">
-                Length
-              </Label>
-              <div className="col-span-3 relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                  <div className="p-1 rounded-md bg-amber-500/10">
-                    <PhTimer weight="fill" className="h-4 w-4 text-amber-500" />
-                  </div>
-                </div>
-                <Input
-                  id="length"
-                  name="length"
-                  value={formData.length}
-                  onChange={handleInputChange}
-                  placeholder="3:30"
-                  className={cn(
-                    "pl-12 transition-colors",
-                    errors.length ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"
-                  )}
-                />
-                {errors.length && (
-                  <p className="text-sm text-destructive mt-1.5 animate-in fade-in slide-in-from-top-1">{errors.length}</p>
-                )}
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="date" className="text-right font-medium">
-                Date
-              </Label>
-              <div className="col-span-3">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal hover:bg-accent/50 transition-colors pl-12 relative",
-                        "focus-visible:ring-primary"
-                      )}
+                    <SelectTrigger 
+                      id="key"
+                      className="pl-10 h-9 text-sm focus-visible:ring-primary"
+                      aria-label="Select project key"
                     >
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                        <div className="p-1 rounded-md bg-blue-500/10">
-                          <PhCalendar weight="fill" className="h-4 w-4 text-blue-500" />
-                        </div>
-                      </div>
-                      {formData.dateCreated ? format(new Date(formData.dateCreated), "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={new Date(formData.dateCreated)}
-                      onSelect={handleDateChange}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                      <SelectValue placeholder="Select key" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel className="text-sm">Project Key</SelectLabel>
+                        {['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].map(key => (
+                          <SelectItem 
+                            key={key}
+                            value={key} 
+                            className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-sm"
+                          >
+                            {key}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
             
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right font-medium">
+            {/* Length and Date Section */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-4 items-center gap-3">
+                <Label htmlFor="length" className="text-right text-sm font-medium">
+                  Length
+                </Label>
+                <div className="col-span-3 relative">
+                  <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
+                    <div className="p-1 rounded-md bg-amber-500/10">
+                      <PhTimer weight="fill" className="h-4 w-4 text-amber-500" />
+                    </div>
+                  </div>
+                  <Input
+                    id="length"
+                    name="length"
+                    value={formData.length}
+                    onChange={handleInputChange}
+                    placeholder="3:30"
+                    className={cn(
+                      "pl-10 h-9 text-sm transition-colors",
+                      errors.length ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"
+                    )}
+                  />
+                  {errors.length && (
+                    <p className="text-xs text-destructive mt-1 animate-in fade-in slide-in-from-top-1">{errors.length}</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-3">
+                <Label htmlFor="date" className="text-right text-sm font-medium">
+                  Date
+                </Label>
+                <div className="col-span-3">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal hover:bg-accent/50 transition-colors pl-10 h-9 text-sm relative",
+                          "focus-visible:ring-primary"
+                        )}
+                      >
+                        <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
+                          <div className="p-1 rounded-md bg-blue-500/10">
+                            <PhCalendar weight="fill" className="h-4 w-4 text-blue-500" />
+                          </div>
+                        </div>
+                        {formData.dateCreated ? format(new Date(formData.dateCreated), "PPP") : "Pick a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={new Date(formData.dateCreated)}
+                        onSelect={handleDateChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            </div>
+            
+            {/* Status Section */}
+            <div className="grid grid-cols-4 items-center gap-3">
+              <Label htmlFor="status" className="text-right text-sm font-medium">
                 Status
               </Label>
               <div className="col-span-3 relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
+                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 z-10">
                   <div className="p-1 rounded-md bg-indigo-500/10">
                     <PhQueue weight="fill" className="h-4 w-4 text-indigo-500" />
                   </div>
@@ -546,68 +586,43 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                 >
                   <SelectTrigger 
                     id="status"
-                    className="pl-12 focus-visible:ring-primary"
+                    className="pl-10 h-9 text-sm hover:bg-accent/50 transition-colors focus-visible:ring-primary"
                     aria-label="Select project status"
                   >
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background dark:bg-background border shadow-lg min-w-[200px]">
                     <SelectGroup>
-                      <SelectLabel className="text-xs font-medium text-muted-foreground">Project Status</SelectLabel>
+                      <SelectLabel className="text-xs text-muted-foreground px-3 py-1.5">Project Status</SelectLabel>
                       <SelectItem 
-                        value="idea" 
-                        className="text-sm"
-                        role="option"
-                        aria-selected={formData.status === 'idea'}
+                        value="idea"
+                        className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                       >
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-zinc-400" />
-                          Idea
-                        </div>
+                        <span className="text-red-600 dark:text-red-400">Idea</span>
                       </SelectItem>
                       <SelectItem 
-                        value="in-progress" 
-                        className="text-sm"
-                        role="option"
-                        aria-selected={formData.status === 'in-progress'}
+                        value="in-progress"
+                        className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                       >
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-blue-500" />
-                          In Progress
-                        </div>
+                        <span className="text-orange-600 dark:text-orange-400">In Progress</span>
                       </SelectItem>
                       <SelectItem 
-                        value="mixing" 
-                        className="text-sm"
-                        role="option"
-                        aria-selected={formData.status === 'mixing'}
+                        value="mixing"
+                        className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                       >
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-amber-500" />
-                          Mixing
-                        </div>
+                        <span className="text-yellow-600 dark:text-yellow-400">Mixing</span>
                       </SelectItem>
                       <SelectItem 
-                        value="mastering" 
-                        className="text-sm"
-                        role="option"
-                        aria-selected={formData.status === 'mastering'}
+                        value="mastering"
+                        className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                       >
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-violet-500" />
-                          Mastering
-                        </div>
+                        <span className="text-blue-600 dark:text-blue-400">Mastering</span>
                       </SelectItem>
                       <SelectItem 
-                        value="completed" 
-                        className="text-sm"
-                        role="option"
-                        aria-selected={formData.status === 'completed'}
+                        value="completed"
+                        className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                       >
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                          Completed
-                        </div>
+                        <span className="text-green-600 dark:text-green-400">Completed</span>
                       </SelectItem>
                     </SelectGroup>
                   </SelectContent>
@@ -615,40 +630,103 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
               </div>
             </div>
             
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label htmlFor="audio" className="text-right font-medium mt-2">
-                Audio File
-              </Label>
-              <div className="col-span-3 relative">
-                <div className="absolute left-3 top-6 z-10">
-                  <div className="p-1 rounded-md bg-rose-500/10">
-                    <UploadSimple weight="fill" className="h-4 w-4 text-rose-500" />
+            {/* Files Section */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-4 items-start gap-3">
+                <Label htmlFor="audio" className="text-right text-sm font-medium mt-1">
+                  Audio File
+                </Label>
+                <div className="col-span-3">
+                  <AudioUpload
+                    onAudioUpload={setAudioFile}
+                    onAudioRemove={() => setAudioFile(null)}
+                    onAnalysisComplete={handleAudioAnalysis}
+                    currentFile={audioFile}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 items-start gap-3">
+                <Label htmlFor="coverArt" className="text-right text-sm font-medium mt-1">
+                  Cover Art
+                </Label>
+                <div className="col-span-3">
+                  <div className="relative">
+                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
+                      <div className="p-1 rounded-md bg-rose-500/10">
+                        <Image weight="fill" className="h-4 w-4 text-rose-500" />
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <Input
+                        type="file"
+                        id="coverArt"
+                        name="coverArt"
+                        accept="image/*"
+                        onChange={handleCoverArtChange}
+                        className="pl-10 h-9 text-sm file:hidden cursor-pointer"
+                        disabled={isUploadingCover}
+                      />
+                      <div className="absolute inset-0 pointer-events-none pl-10 flex items-center gap-2">
+                        {(coverArtFile || formData.coverArt) && (
+                          <>
+                            <div className="h-7 w-7 rounded-sm overflow-hidden border border-border/50 bg-background relative">
+                              {isUploadingCover ? (
+                                <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+                                  <div className="h-4 w-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+                                </div>
+                              ) : (
+                                <img
+                                  src={coverArtFile ? URL.createObjectURL(coverArtFile) : formData.coverArt}
+                                  alt="Cover art preview"
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>';
+                                  }}
+                                />
+                              )}
+                            </div>
+                            <span className="text-sm truncate flex-1">
+                              {isUploadingCover ? 'Uploading...' : (coverArtFile ? coverArtFile.name : 'Current cover art')}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={handleRemoveCoverArt}
+                              className="p-0.5 rounded-full hover:bg-muted/50 text-muted-foreground hover:text-destructive transition-colors"
+                              aria-label="Remove cover art"
+                              disabled={isUploadingCover}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </>
+                        )}
+                        {!coverArtFile && !formData.coverArt && !isUploadingCover && (
+                          <span className="text-muted-foreground">Choose cover art...</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <AudioUpload
-                  onAudioUpload={setAudioFile}
-                  onAudioRemove={() => setAudioFile(null)}
-                  currentFile={audioFile}
-                />
               </div>
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="pt-3">
             <Button 
               type="submit" 
               disabled={isAddingProject}
-              className="w-full"
+              className="w-full h-9 text-sm"
             >
               {isAddingProject ? (
                 <>
                   <CircleNotch className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  Creating Project...
                 </>
               ) : (
                 <>
                   <Plus className="mr-2 h-4 w-4" />
-                  Create Beat
+                  Create Project
                 </>
               )}
             </Button>

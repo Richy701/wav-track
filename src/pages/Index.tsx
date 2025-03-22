@@ -24,7 +24,12 @@ const Index = () => {
 
   useEffect(() => {
     if (!user && !authLoading) {
-      navigate('/login');
+      console.log('[Index] No user found, redirecting to login page');
+      // Use setTimeout to ensure this runs after the component is mounted
+      // This helps prevent the "Object may no longer exist" error
+      setTimeout(() => {
+        navigate('/login');
+      }, 0);
       return;
     }
   }, [user, authLoading, navigate]);

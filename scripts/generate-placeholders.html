@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Generate Placeholder Images</title>
+    <style>
+        body { margin: 20px; font-family: system-ui; }
+        canvas { border: 1px solid #ccc; margin: 10px; }
+        .controls { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button onclick="downloadAll()">Download All Images</button>
+    </div>
+    <div id="canvases"></div>
+
+    <script>
+        const features = [
+            { name: 'beat-creation', title: 'Beat Creation', color: '#8257E5' },
+            { name: 'audio-analysis', title: 'Audio Analysis', color: '#B490FF' },
+            { name: 'project-management', title: 'Project Management', color: '#6366F1' },
+            { name: 'collaboration', title: 'Collaboration', color: '#9333EA' }
+        ];
+
+        function createPlaceholder(feature) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1920;
+            canvas.height = 1080;
+            canvas.style.width = '480px';
+            canvas.style.height = '270px';
+            const ctx = canvas.getContext('2d');
+
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, feature.color + '20');
+            gradient.addColorStop(1, feature.color + '40');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Grid pattern
+            ctx.strokeStyle = feature.color + '30';
+            ctx.lineWidth = 1;
+            const gridSize = 50;
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            // Title text
+            ctx.fillStyle = feature.color;
+            ctx.font = 'bold 80px system-ui';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(feature.title, canvas.width / 2, canvas.height / 2);
+
+            // Subtitle
+            ctx.fillStyle = feature.color + 'A0';
+            ctx.font = '40px system-ui';
+            ctx.fillText('Placeholder Image', canvas.width / 2, canvas.height / 2 + 80);
+
+            document.getElementById('canvases').appendChild(canvas);
+            return canvas;
+        }
+
+        function downloadAll() {
+            features.forEach(feature => {
+                const canvas = createPlaceholder(feature);
+                const link = document.createElement('a');
+                link.download = `${feature.name}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        // Create initial placeholders
+        features.forEach(createPlaceholder);
+    </script>
+</body>
+</html> 

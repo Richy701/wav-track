@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { recordBeatCreation } from '@/lib/data';
 import { toast } from 'sonner';
 import { Label } from "@/components/ui/label";
+import { StatusSelect } from "@/components/ui/status-select";
 
 interface AddBeatsFormProps {
   projects: Array<{ id: string; title: string }>;
@@ -13,6 +14,7 @@ interface AddBeatsFormProps {
 export function AddBeatsForm({ projects }: AddBeatsFormProps) {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [beatCount, setBeatCount] = useState<number>(1);
+  const [status, setStatus] = useState<string>('idea');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAddBeats = async () => {
@@ -32,6 +34,7 @@ export function AddBeatsForm({ projects }: AddBeatsFormProps) {
       toast.success(`Added ${beatCount} beats to the tracker`);
       setBeatCount(1);
       setSelectedProject(''); // Reset selection after successful addition
+      setStatus('idea'); // Reset status after successful addition
     } catch (error) {
       console.error('Error adding beats:', error);
       toast.error("Failed to add beats. Please try again.");
@@ -83,6 +86,14 @@ export function AddBeatsForm({ projects }: AddBeatsFormProps) {
             placeholder="Enter beat count"
             className="h-9"
             aria-label="Number of beats to add"
+            disabled={isSubmitting}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <StatusSelect
+            value={status}
+            onChange={setStatus}
             disabled={isSubmitting}
           />
         </div>

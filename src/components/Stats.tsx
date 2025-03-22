@@ -362,16 +362,16 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
               <div
                 key={achievement.id}
                 className={cn(
-                  "flex flex-col items-center p-2 sm:p-3 lg:p-4 rounded-lg transition-all aspect-square group relative overflow-hidden border",
+                  "flex flex-col items-center p-2 sm:p-3 lg:p-4 rounded-lg transition-all aspect-square group relative isolate",
                   achievement.unlocked
                     ? `bg-gradient-to-br from-primary/5 via-transparent to-transparent hover:from-primary/10 hover:via-primary/5 hover:to-transparent hover:scale-[1.02] hover:shadow-lg ${achievement.borderColor}`
-                    : "bg-muted/30 opacity-50 hover:opacity-60 border-muted-foreground/10"
+                    : "bg-muted/30 opacity-50 hover:opacity-60 border border-muted-foreground/10"
                 )}
               >
                 {/* Background glow effect */}
                 {achievement.unlocked && (
                   <div className={cn(
-                    "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+                    "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 rounded-lg",
                     achievement.color.replace('from-', 'from-').replace('to-', 'to-') + '/10'
                   )} />
                 )}

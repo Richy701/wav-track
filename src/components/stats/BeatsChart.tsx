@@ -170,13 +170,6 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                   </feMerge>
                 </filter>
               </defs>
-              <CartesianGrid 
-                strokeDasharray="3 3" 
-                vertical={false} 
-                stroke="currentColor"
-                opacity={0.1}
-                className="dark:stroke-zinc-300/20"
-              />
               <XAxis 
                 dataKey="label" 
                 axisLine={false}
@@ -281,13 +274,6 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                   <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.6} />
                 </linearGradient>
               </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="currentColor"
-                opacity={0.1}
-                className="dark:stroke-zinc-300/20"
-              />
               <XAxis
                 dataKey="label"
                 axisLine={false}
