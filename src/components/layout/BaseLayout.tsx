@@ -17,7 +17,7 @@ export default function BaseLayout({
   withPadding = true,
 }: BaseLayoutProps) {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
       <Header />
 
       <main

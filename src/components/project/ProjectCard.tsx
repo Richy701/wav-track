@@ -202,7 +202,7 @@ export default function ProjectCard({
       >
         <div
           className={cn(
-            'group relative bg-card rounded-xl overflow-hidden transition-all duration-300 cursor-pointer',
+            'group relative bg-card rounded-xl overflow-hidden transition-all duration-300 cursor-pointer w-full',
             isHovered ? 'shadow-lg transform -translate-y-1' : 'shadow hover:shadow-md',
             'border border-border/50 hover:border-primary/20',
             isSelected && 'ring-2 ring-primary'
@@ -214,11 +214,11 @@ export default function ProjectCard({
           tabIndex={0}
           aria-pressed="false"
         >
-          <div className="p-5 space-y-4">
-            <div className="flex justify-between items-start">
-              <div className="flex items-center gap-2">
+          <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
+            <div className="flex justify-between items-start gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <div
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                     localProject.status === 'completed'
                       ? 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400'
                       : localProject.status === 'mastering'
@@ -236,42 +236,25 @@ export default function ProjectCard({
                   {localProject.completionPercentage}%
                 </div>
               </div>
-
-              <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={e => e.stopPropagation()}
+                  >
                     <DotsThreeVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setIsEditDialogOpen(true)
-                      setMenuOpen(false)
-                    }}
-                  >
-                    <PencilSimple className="mr-2 h-4 w-4" />
-                    Edit Project
+                  <DropdownMenuItem onClick={handleEditClick} className="gap-2">
+                    <PencilSimple className="h-4 w-4" />
+                    Edit
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      handleMoveToNextStage()
-                      setMenuOpen(false)
-                    }}
-                  >
-                    <ArrowClockwise className="mr-2 h-4 w-4" />
-                    Move to Next Stage
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setIsDeleteDialogOpen(true)
-                      setMenuOpen(false)
-                    }}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Trash className="mr-2 h-4 w-4" />
-                    Delete Project
+                  <DropdownMenuItem onClick={handleDeleteClick} className="gap-2 text-destructive">
+                    <Trash className="h-4 w-4" />
+                    Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

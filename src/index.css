@@ -200,6 +200,61 @@
   .scrollbar-rounded::-webkit-scrollbar-thumb {
     border-radius: 9999px;
   }
+
+  /* Mobile Optimizations */
+  @media (max-width: 640px) {
+    .container {
+      @apply px-4;
+    }
+
+    /* Ensure content doesn't overflow on mobile */
+    .overflow-x-auto {
+      @apply -mx-4 px-4;
+    }
+
+    /* Improved spacing for mobile */
+    .py-4 {
+      @apply py-3;
+    }
+
+    /* Fixed mobile navigation */
+    header {
+      @apply px-4 !important;
+    }
+
+    /* Ensure content doesn't overlap with fixed header */
+    main {
+      @apply pt-20;
+    }
+
+    /* Ensure buttons are large enough for touch */
+    button,
+    a {
+      @apply min-h-[44px] min-w-[44px];
+    }
+
+    /* Improved text readability on mobile */
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      @apply max-w-full break-words;
+    }
+  }
+
+  /* Tablet Optimizations */
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .container {
+      @apply px-6;
+    }
+
+    main {
+      @apply pt-24;
+    }
+  }
 }
 
 @layer base {
@@ -208,7 +263,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-x-hidden;
     font-feature-settings:
       'rlig' 1,
       'calt' 1,
@@ -409,7 +464,7 @@
 
 @layer components {
   .container-fluid {
-    @apply w-full px-4 mx-auto sm:px-6 lg:px-8;
+    @apply w-full px-4 mx-auto sm:px-6 lg:px-8 overflow-x-hidden;
   }
 
   .container-narrow {
@@ -425,7 +480,7 @@
   }
 
   .responsive-grid {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 overflow-x-hidden;
   }
 
   .responsive-flex {
@@ -433,7 +488,7 @@
   }
 
   .card {
-    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+    @apply rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden;
   }
 
   .input {
