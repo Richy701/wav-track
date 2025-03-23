@@ -23,7 +23,7 @@ export default function BaseLayout({
       <main
         className={cn(
           'flex-1 w-full mx-auto',
-          withPadding && 'px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-10',
+          withPadding && 'px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-8 sm:pb-12 lg:pb-16',
           containerWidth === 'narrow' && 'max-w-4xl',
           containerWidth === 'wide' && 'max-w-7xl',
           containerWidth === 'default' && 'max-w-6xl',

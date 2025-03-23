@@ -5,6 +5,8 @@ interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode
   spacing?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   dividers?: boolean
+  align?: 'start' | 'center' | 'end'
+  justify?: 'start' | 'center' | 'end' | 'between'
 }
 
 export default function Stack({
@@ -12,6 +14,8 @@ export default function Stack({
   className,
   spacing = 'md',
   dividers = false,
+  align = 'start',
+  justify = 'start',
   ...props
 }: StackProps) {
   const getSpacingClass = () => {
@@ -31,11 +35,37 @@ export default function Stack({
     }
   }
 
+  const getAlignment = () => {
+    switch (align) {
+      case 'center':
+        return 'items-center'
+      case 'end':
+        return 'items-end'
+      default: // start
+        return 'items-start'
+    }
+  }
+
+  const getJustify = () => {
+    switch (justify) {
+      case 'center':
+        return 'justify-center'
+      case 'end':
+        return 'justify-end'
+      case 'between':
+        return 'justify-between'
+      default: // start
+        return 'justify-start'
+    }
+  }
+
   return (
     <div
       className={cn(
         'flex flex-col w-full',
         getSpacingClass(),
+        getAlignment(),
+        getJustify(),
         dividers && 'divide-y divide-border',
         className
       )}
