@@ -260,8 +260,8 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
                       "border focus:outline-none focus:ring-2 focus:ring-primary/20",
                       isSelected
                         ? isDark
-                          ? "bg-primary text-white border-primary shadow-sm"
-                          : "bg-primary/10 text-primary border-primary/20"
+                          ? "bg-violet-600 text-white border-violet-500 shadow-sm"
+                          : "bg-indigo-500 text-white border-indigo-400 shadow-sm"
                         : isDark
                           ? "bg-zinc-800/50 text-zinc-300 border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800"
                           : "bg-white text-zinc-700 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
@@ -270,9 +270,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
                     <Icon className={cn(
                       "h-3.5 w-3.5",
                       isSelected
-                        ? isDark
-                          ? "text-white"
-                          : "text-primary"
+                        ? "text-white"
                         : isDark
                           ? "text-zinc-400"
                           : "text-zinc-500"
