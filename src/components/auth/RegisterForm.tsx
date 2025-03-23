@@ -82,7 +82,9 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
   };
 
   const handleGenreChange = (value: string) => {
-    if (!formData.genres.includes(value)) {
+    if (formData.genres.includes(value)) {
+      removeGenre(value);
+    } else {
       setFormData(prev => ({
         ...prev,
         genres: [...prev.genres, value]
@@ -258,7 +260,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
                       "border focus:outline-none focus:ring-2 focus:ring-primary/20",
                       isSelected
                         ? isDark
-                          ? "bg-primary/20 text-primary-foreground border-primary/30"
+                          ? "bg-primary text-white border-primary shadow-sm"
                           : "bg-primary/10 text-primary border-primary/20"
                         : isDark
                           ? "bg-zinc-800/50 text-zinc-300 border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800"
@@ -269,7 +271,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
                       "h-3.5 w-3.5",
                       isSelected
                         ? isDark
-                          ? "text-primary-foreground"
+                          ? "text-white"
                           : "text-primary"
                         : isDark
                           ? "text-zinc-400"
