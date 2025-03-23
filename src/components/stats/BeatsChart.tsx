@@ -122,7 +122,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
 
   return (
     <div className="space-y-4 w-full">
-      <div className="flex justify-end px-4">
+      <div className="flex justify-end px-2 sm:px-4">
         <div className="inline-flex p-1 bg-zinc-100 dark:bg-zinc-800/50 rounded-full">
           <button
             onClick={() => setChartView('bar')}
@@ -151,7 +151,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
         </div>
       </div>
 
-      <div className="h-[300px] w-full relative group">
+      <div className="h-[250px] sm:h-[300px] w-full relative group overflow-hidden">
         <style>
           {`
             .recharts-bar-rectangle {
@@ -163,14 +163,22 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
             .recharts-tooltip-wrapper {
               transition: transform 0.2s ease, opacity 0.2s ease;
             }
+            @media (max-width: 640px) {
+              .recharts-cartesian-axis-tick-text {
+                font-size: 10px;
+              }
+              .recharts-label {
+                font-size: 10px;
+              }
+            }
           `}
         </style>
         <ResponsiveContainer width="100%" height="100%">
           {chartView === 'bar' ? (
             <BarChart
               data={beatsData}
-              margin={{ top: 16, right: 16, left: 8, bottom: 24 }}
-              barGap={8}
+              margin={{ top: 16, right: 8, left: 8, bottom: 24 }}
+              barGap={4}
               className="animate-in fade-in duration-300"
             >
               <defs>
@@ -190,7 +198,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                 dataKey="label"
                 axisLine={false}
                 tickLine={false}
-                interval={timeRange === 'month' ? 3 : timeRange === 'day' ? 2 : 0}
+                interval={timeRange === 'month' ? 2 : timeRange === 'day' ? 1 : 0}
                 tick={props => {
                   const { x, y, payload } = props
                   return (
@@ -228,20 +236,14 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                 className="dark:text-zinc-100 font-medium"
               />
               <Tooltip
-                cursor={false}
                 content={({ active, payload, label }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div
-                        className={cn(
-                          'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg p-3',
-                          'animate-in fade-in zoom-in duration-200',
-                          label === highlightedBar && 'ring-2 ring-violet-500 dark:ring-violet-400'
-                        )}
-                      >
-                        <div className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                      <div className="bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-3 animate-in fade-in zoom-in duration-200">
+                        <div className="text-sm font-medium text-foreground">
                           {payload[0].value}
                         </div>
+                        <div className="text-xs text-muted-foreground mt-1">{label}</div>
                       </div>
                     )
                   }
@@ -282,7 +284,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
           ) : (
             <LineChart
               data={cumulativeData}
-              margin={{ top: 16, right: 16, left: 8, bottom: 16 }}
+              margin={{ top: 16, right: 8, left: 8, bottom: 16 }}
               className="animate-in fade-in duration-300"
             >
               <defs>
@@ -302,7 +304,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                 dataKey="label"
                 axisLine={false}
                 tickLine={false}
-                interval={timeRange === 'month' ? 3 : timeRange === 'day' ? 2 : 0}
+                interval={timeRange === 'month' ? 2 : timeRange === 'day' ? 1 : 0}
                 tick={props => {
                   const { x, y, payload } = props
                   return (

@@ -243,6 +243,38 @@
     h6 {
       @apply max-w-full break-words;
     }
+
+    /* Chart optimizations for mobile */
+    .recharts-wrapper {
+      @apply overflow-x-hidden;
+    }
+
+    .recharts-surface {
+      @apply overflow-x-hidden;
+    }
+
+    .recharts-cartesian-axis-tick-text {
+      @apply text-[10px];
+    }
+
+    .recharts-label {
+      @apply text-[10px];
+    }
+
+    /* Card optimizations for mobile */
+    .card {
+      @apply p-4;
+    }
+
+    /* Grid optimizations for mobile */
+    .grid {
+      @apply gap-3;
+    }
+
+    /* Improved touch targets */
+    .clickable {
+      @apply min-h-[44px] min-w-[44px];
+    }
   }
 
   /* Tablet Optimizations */
@@ -253,6 +285,15 @@
 
     main {
       @apply pt-24;
+    }
+
+    /* Chart optimizations for tablet */
+    .recharts-cartesian-axis-tick-text {
+      @apply text-xs;
+    }
+
+    .recharts-label {
+      @apply text-xs;
     }
   }
 }
@@ -476,15 +517,15 @@
   }
 
   .section-padding {
-    @apply py-8 sm:py-12 lg:py-16;
+    @apply py-6 sm:py-8 lg:py-12;
   }
 
   .responsive-grid {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 overflow-x-hidden;
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 overflow-x-hidden;
   }
 
   .responsive-flex {
-    @apply flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6;
+    @apply flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4;
   }
 
   .card {
@@ -553,6 +594,14 @@
 
   .form-control {
     @apply flex flex-col space-y-2;
+  }
+
+  .chart-container {
+    @apply relative w-full overflow-hidden;
+  }
+
+  .chart-wrapper {
+    @apply h-[250px] sm:h-[300px] w-full;
   }
 }
 

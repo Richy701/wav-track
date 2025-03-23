@@ -26,23 +26,23 @@ export const MonthlyBreakdownPreview: React.FC<MonthlyBreakdownPreviewProps> = (
       <HoverCardTrigger asChild>
         <div className="cursor-pointer">{children}</div>
       </HoverCardTrigger>
-      <HoverCardContent className="w-80" side="top" align="center" sideOffset={10}>
+      <HoverCardContent className="w-[280px] sm:w-80" side="top" align="center" sideOffset={10}>
         <div className="space-y-4">
           <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
             This Year's Monthly Stats
           </h4>
 
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
             {monthlyData.map(data => (
               <div key={data.month} className="flex items-center gap-2">
-                <div className="w-16 text-sm text-zinc-600 dark:text-zinc-400">{data.month}</div>
-                <div className="flex-1 h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                <div className="w-12 sm:w-16 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">{data.month}</div>
+                <div className="flex-1 h-1.5 sm:h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-violet-500 rounded-full transition-all duration-300"
                     style={{ width: `${(data.beats / maxBeats) * 100}%` }}
                   />
                 </div>
-                <div className="w-8 text-sm text-right text-zinc-700 dark:text-zinc-300">
+                <div className="w-6 sm:w-8 text-xs sm:text-sm text-right text-zinc-700 dark:text-zinc-300">
                   {data.beats}
                 </div>
               </div>
@@ -54,7 +54,7 @@ export const MonthlyBreakdownPreview: React.FC<MonthlyBreakdownPreviewProps> = (
               e.stopPropagation()
               onExport()
             }}
-            className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+            className="w-full bg-violet-600 hover:bg-violet-700 text-white text-sm sm:text-base"
           >
             <Download className="w-4 h-4 mr-2" />
             Download CSV

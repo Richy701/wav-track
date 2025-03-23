@@ -5,6 +5,7 @@ import { MonthlyBreakdownPreview } from '../components/dashboard/MonthlyBreakdow
 import { YearInReviewPreview } from '../components/dashboard/YearInReviewPreview'
 import { Button } from '../components/ui/button'
 import { Download } from 'lucide-react'
+import { cn } from '../lib/utils'
 
 // Mock data - replace with real data from your backend
 const mockMonthlyData = [
@@ -41,19 +42,19 @@ const Dashboard: React.FC = () => {
   `
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Welcome back, {user?.email}</h1>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Welcome back, {user?.email}</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Share Progress Card */}
         <ShareProgressPreview
           totalAchievements={150}
           sharedAchievements={45}
           onExport={handleExport}
         >
-          <div className={cardClassName}>
-            <h2 className="text-xl font-semibold mb-4">Share Your Progress</h2>
-            <p className="text-zinc-600 dark:text-zinc-300 mb-4">
+          <div className={cn(cardClassName, "min-h-[200px] sm:min-h-[220px]")}>
+            <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Share Your Progress</h2>
+            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-300 mb-4">
               Share your achievements and inspire others in the community
             </p>
             <Button className="w-full">Share Progress</Button>
@@ -62,9 +63,9 @@ const Dashboard: React.FC = () => {
 
         {/* Monthly Breakdown Card */}
         <MonthlyBreakdownPreview monthlyData={mockMonthlyData} onExport={handleExport}>
-          <div className={cardClassName}>
-            <h2 className="text-xl font-semibold mb-4">Monthly Breakdown</h2>
-            <p className="text-zinc-600 dark:text-zinc-300 mb-4">
+          <div className={cn(cardClassName, "min-h-[200px] sm:min-h-[220px]")}>
+            <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Monthly Breakdown</h2>
+            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-300 mb-4">
               Track your productivity and growth over time
             </p>
             <Button className="w-full">View Details</Button>
@@ -72,16 +73,11 @@ const Dashboard: React.FC = () => {
         </MonthlyBreakdownPreview>
 
         {/* Year in Review Card */}
-        <YearInReviewPreview
-          totalBeats={210}
-          completedProjects={45}
-          averageBPM={128}
-          onExport={handleExport}
-        >
-          <div className={cardClassName}>
-            <h2 className="text-xl font-semibold mb-4">Year in Review</h2>
-            <p className="text-zinc-600 dark:text-zinc-300 mb-4">
-              See your year's highlights and achievements
+        <YearInReviewPreview onExport={handleExport}>
+          <div className={cn(cardClassName, "min-h-[200px] sm:min-h-[220px]")}>
+            <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Year in Review</h2>
+            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-300 mb-4">
+              See your highlights and achievements from this year
             </p>
             <Button className="w-full">View Review</Button>
           </div>
