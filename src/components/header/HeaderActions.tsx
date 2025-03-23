@@ -1,56 +1,56 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
-import { useProjects } from '@/hooks/useProjects';
-import UserAvatar from '@/components/UserAvatar';
-import ThemeSwitcher from '@/components/ThemeSwitcher';
-import CreateProjectDialog from '@/components/project/CreateProjectDialog';
-import { Plus, Wrench } from '@phosphor-icons/react';
-import { cn } from '@/lib/utils';
-import { getProjects } from '@/lib/data';
+import React, { useState } from 'react'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/contexts/AuthContext'
+import { useProjects } from '@/hooks/useProjects'
+import UserAvatar from '@/components/UserAvatar'
+import ThemeSwitcher from '@/components/ThemeSwitcher'
+import CreateProjectDialog from '@/components/project/CreateProjectDialog'
+import { Plus, Wrench } from '@phosphor-icons/react'
+import { cn } from '@/lib/utils'
+import { getProjects } from '@/lib/data'
 
 interface HeaderActionsProps {
-  orientation?: 'horizontal' | 'vertical';
-  className?: string;
+  orientation?: 'horizontal' | 'vertical'
+  className?: string
 }
 
-export default function HeaderActions({ 
+export default function HeaderActions({
   orientation = 'horizontal',
-  className 
+  className,
 }: HeaderActionsProps) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { user } = useAuth();
-  const { projects } = useProjects();
-  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
-  
-  const handleNavigate = (path: string) => {
-    navigate(path);
-  };
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { user } = useAuth()
+  const { projects } = useProjects()
+  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false)
 
-  const isMainPage = location.pathname === '/';
-  const isDevelopment = import.meta.env.DEV;
+  const handleNavigate = (path: string) => {
+    navigate(path)
+  }
+
+  const isMainPage = location.pathname === '/'
+  const isDevelopment = import.meta.env.DEV
 
   const items = [
     { label: 'Profile', href: '/profile' },
-    { label: 'Settings', href: '/profile/settings' }
-  ];
+    { label: 'Settings', href: '/profile/settings' },
+  ]
 
   return (
-    <nav className={cn(
-      'flex',
-      orientation === 'vertical' ? 'flex-col space-y-2' : 'items-center space-x-4',
-      className
-    )}>
-      {items.map((item) => (
+    <nav
+      className={cn(
+        'flex',
+        orientation === 'vertical' ? 'flex-col space-y-2' : 'items-center space-x-4',
+        className
+      )}
+    >
+      {items.map(item => (
         <Button
           key={item.href}
           variant="ghost"
           asChild
-          className={cn(
-            orientation === 'vertical' && 'w-full justify-start'
-          )}
+          className={cn(orientation === 'vertical' && 'w-full justify-start')}
         >
           <Link to={item.href}>{item.label}</Link>
         </Button>
@@ -69,10 +69,9 @@ export default function HeaderActions({
         </Button>
       )}
 
-      <div className={cn(
-        "flex items-center gap-2",
-        orientation === 'vertical' ? "self-start" : ""
-      )}>
+      <div
+        className={cn('flex items-center gap-2', orientation === 'vertical' ? 'self-start' : '')}
+      >
         <ThemeSwitcher />
         {user && <UserAvatar />}
       </div>
@@ -80,12 +79,9 @@ export default function HeaderActions({
       {user ? (
         <>
           {isMainPage && (
-            <Button 
+            <Button
               variant="default"
-              className={cn(
-                "rounded-xl px-6 py-2",
-                orientation === 'vertical' ? "w-full" : ""
-              )}
+              className={cn('rounded-xl px-6 py-2', orientation === 'vertical' ? 'w-full' : '')}
               onClick={() => setIsCreateProjectOpen(true)}
             >
               <Plus weight="bold" className="h-4 w-4 mr-2" />
@@ -95,16 +91,16 @@ export default function HeaderActions({
         </>
       ) : (
         <>
-          <Button 
-            variant="ghost" 
-            className={orientation === 'vertical' ? "w-full justify-start" : ""}
+          <Button
+            variant="ghost"
+            className={orientation === 'vertical' ? 'w-full justify-start' : ''}
             onClick={() => handleNavigate('/login')}
           >
             Login
           </Button>
-          <Button 
-            variant="default" 
-            className={orientation === 'vertical' ? "w-full" : ""}
+          <Button
+            variant="default"
+            className={orientation === 'vertical' ? 'w-full' : ''}
             onClick={() => handleNavigate('/register')}
           >
             Register
@@ -113,12 +109,12 @@ export default function HeaderActions({
       )}
 
       {isMainPage && (
-        <CreateProjectDialog 
+        <CreateProjectDialog
           isOpen={isCreateProjectOpen}
           onOpenChange={setIsCreateProjectOpen}
           projectsCount={projects.length}
         />
       )}
     </nav>
-  );
+  )
 }

@@ -1,35 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'
 
 interface UseLoadingStateOptions {
-  timeout?: number;
-  onTimeout?: () => void;
+  timeout?: number
+  onTimeout?: () => void
 }
 
 export function useLoadingState(isLoading: boolean, options: UseLoadingStateOptions = {}) {
-  const { timeout = 10000, onTimeout } = options;
-  const [showTimeout, setShowTimeout] = useState(false);
+  const { timeout = 10000, onTimeout } = options
+  const [showTimeout, setShowTimeout] = useState(false)
 
   useEffect(() => {
-    let timeoutId: number;
+    let timeoutId: number
 
     if (isLoading) {
       timeoutId = window.setTimeout(() => {
-        setShowTimeout(true);
-        onTimeout?.();
-      }, timeout);
+        setShowTimeout(true)
+        onTimeout?.()
+      }, timeout)
     } else {
-      setShowTimeout(false);
+      setShowTimeout(false)
     }
 
     return () => {
       if (timeoutId) {
-        window.clearTimeout(timeoutId);
+        window.clearTimeout(timeoutId)
       }
-    };
-  }, [isLoading, timeout, onTimeout]);
+    }
+  }, [isLoading, timeout, onTimeout])
 
   return {
     isLoading,
     showTimeout,
-  };
-} 
+  }
+}

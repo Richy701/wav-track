@@ -1,13 +1,13 @@
-import { Loader2 } from 'lucide-react';
-import { useLoadingState } from '@/hooks/useLoadingState';
-import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react'
+import { useLoadingState } from '@/hooks/useLoadingState'
+import { cn } from '@/lib/utils'
 
 interface LoadingProps extends React.HTMLAttributes<HTMLDivElement> {
-  isLoading: boolean;
-  timeout?: number;
-  onTimeout?: () => void;
-  loadingText?: string;
-  timeoutText?: string;
+  isLoading: boolean
+  timeout?: number
+  onTimeout?: () => void
+  loadingText?: string
+  timeoutText?: string
 }
 
 export function Loading({
@@ -19,22 +19,17 @@ export function Loading({
   className,
   ...props
 }: LoadingProps) {
-  const { showTimeout } = useLoadingState(isLoading, { timeout, onTimeout });
+  const { showTimeout } = useLoadingState(isLoading, { timeout, onTimeout })
 
-  if (!isLoading) return null;
+  if (!isLoading) return null
 
   return (
     <div
-      className={cn(
-        'flex flex-col items-center justify-center space-y-4 p-4',
-        className
-      )}
+      className={cn('flex flex-col items-center justify-center space-y-4 p-4', className)}
       {...props}
     >
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      <p className="text-sm text-muted-foreground">
-        {showTimeout ? timeoutText : loadingText}
-      </p>
+      <p className="text-sm text-muted-foreground">{showTimeout ? timeoutText : loadingText}</p>
     </div>
-  );
-} 
+  )
+}

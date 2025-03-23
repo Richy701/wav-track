@@ -1,10 +1,10 @@
-import React from 'react';
+import React from 'react'
 
 interface LoadingScreenProps {
-  message?: string;
+  message?: string
 }
 
-const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = "Tracking your progress..." }) => {
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = 'Tracking your progress...' }) => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       {/* Decorative background elements */}
@@ -28,16 +28,12 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = "Tracking your 
 
         {/* Loading text */}
         <div className="space-y-2">
-          <p className="text-base sm:text-lg font-medium text-foreground/80">
-            {message}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Your beat production journey starts here
-          </p>
+          <p className="text-base sm:text-lg font-medium text-foreground/80">{message}</p>
+          <p className="text-sm text-muted-foreground">Your beat production journey starts here</p>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default LoadingScreen; 
+export default LoadingScreen

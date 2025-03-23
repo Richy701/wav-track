@@ -1,44 +1,44 @@
-import { useState } from 'react';
-import { Waveform, Music, Activity } from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { Progress } from './ui/progress';
-import { analyzeAudio, AudioAnalysisResult } from '@/lib/audioAnalysis';
-import { cn } from '@/lib/utils';
+import { useState } from 'react'
+import { Waveform, Music, Activity } from 'lucide-react'
+import { toast } from 'sonner'
+import { Button } from './ui/button'
+import { Card } from './ui/card'
+import { Progress } from './ui/progress'
+import { analyzeAudio, AudioAnalysisResult } from '@/lib/audioAnalysis'
+import { cn } from '@/lib/utils'
 
 interface AudioAnalysisProps {
-  audioBuffer?: AudioBuffer;
-  className?: string;
+  audioBuffer?: AudioBuffer
+  className?: string
 }
 
 export function AudioAnalysis({ audioBuffer, className }: AudioAnalysisProps) {
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AudioAnalysisResult | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysisResult, setAnalysisResult] = useState<AudioAnalysisResult | null>(null)
 
   const handleAnalyze = async () => {
     if (!audioBuffer) {
-      toast.error('No audio file loaded');
-      return;
+      toast.error('No audio file loaded')
+      return
     }
 
-    setIsAnalyzing(true);
+    setIsAnalyzing(true)
     try {
-      const result = await analyzeAudio(audioBuffer);
-      setAnalysisResult(result);
-      toast.success('Audio analysis complete');
+      const result = await analyzeAudio(audioBuffer)
+      setAnalysisResult(result)
+      toast.success('Audio analysis complete')
     } catch (error) {
-      console.error('Analysis failed:', error);
+      console.error('Analysis failed:', error)
       toast.error('Failed to analyze audio', {
-        description: 'Please try again or use a different file'
-      });
+        description: 'Please try again or use a different file',
+      })
     } finally {
-      setIsAnalyzing(false);
+      setIsAnalyzing(false)
     }
-  };
+  }
 
   return (
-    <Card className={cn("p-4", className)}>
+    <Card className={cn('p-4', className)}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Activity className="h-4 w-4" />
@@ -77,7 +77,8 @@ export function AudioAnalysis({ audioBuffer, className }: AudioAnalysisProps) {
                 <span className="text-sm font-medium">Key</span>
               </div>
               <p className="text-2xl font-bold">
-                {analysisResult.key}{analysisResult.scale === 'minor' ? 'm' : ''}
+                {analysisResult.key}
+                {analysisResult.scale === 'minor' ? 'm' : ''}
               </p>
             </div>
           </div>
@@ -101,9 +102,7 @@ export function AudioAnalysis({ audioBuffer, className }: AudioAnalysisProps) {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Loudness</label>
-              <Progress 
-                value={Math.min(100, Math.max(0, (analysisResult.loudness + 60) * 1.67))} 
-              />
+              <Progress value={Math.min(100, Math.max(0, (analysisResult.loudness + 60) * 1.67))} />
               <p className="text-xs text-muted-foreground text-right">
                 {analysisResult.loudness.toFixed(1)} dB
               </p>
@@ -119,5 +118,5 @@ export function AudioAnalysis({ audioBuffer, className }: AudioAnalysisProps) {
         </div>
       )}
     </Card>
-  );
-} 
+  )
+}

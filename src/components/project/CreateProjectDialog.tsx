@@ -1,24 +1,24 @@
-import { useState } from 'react';
-import { 
-  Plus, 
-  Calendar as PhCalendar, 
-  Sparkle, 
-  MusicNote, 
-  Timer as PhTimer, 
-  Queue as PhQueue, 
-  UploadSimple, 
-  Tag as PhTag, 
+import { useState } from 'react'
+import {
+  Plus,
+  Calendar as PhCalendar,
+  Sparkle,
+  MusicNote,
+  Timer as PhTimer,
+  Queue as PhQueue,
+  UploadSimple,
+  Tag as PhTag,
   X as PhX,
   CircleNotch,
-  Image
-} from '@phosphor-icons/react';
-import { v4 as uuidv4 } from 'uuid';
-import { toast } from 'sonner';
-import { format } from "date-fns";
-import { Project } from '@/lib/types';
-import { recordBeatCreation } from '@/lib/data';
-import { uploadCoverArt } from '@/lib/services/coverArt';
-import { AudioUpload } from '@/components/AudioUpload';
+  Image,
+} from '@phosphor-icons/react'
+import { v4 as uuidv4 } from 'uuid'
+import { toast } from 'sonner'
+import { format } from 'date-fns'
+import { Project } from '@/lib/types'
+import { recordBeatCreation } from '@/lib/data'
+import { uploadCoverArt } from '@/lib/services/coverArt'
+import { AudioUpload } from '@/components/AudioUpload'
 import {
   Dialog,
   DialogContent,
@@ -26,10 +26,10 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -38,35 +38,35 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from '@/lib/utils';
-import { useProjects } from '@/hooks/useProjects';
-import { Badge } from "@/components/ui/badge";
-import { X } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
+} from '@/components/ui/select'
+import { Slider } from '@/components/ui/slider'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
+import { cn } from '@/lib/utils'
+import { useProjects } from '@/hooks/useProjects'
+import { Badge } from '@/components/ui/badge'
+import { X } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface CreateProjectDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  projectsCount: number;
-  onProjectCreated?: () => void;
+  isOpen: boolean
+  onOpenChange: (open: boolean) => void
+  projectsCount: number
+  onProjectCreated?: () => void
 }
 
 const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   isOpen,
   onOpenChange,
   projectsCount,
-  onProjectCreated
+  onProjectCreated,
 }) => {
-  const queryClient = useQueryClient();
-  const { addProject, isAddingProject } = useProjects();
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [coverArtFile, setCoverArtFile] = useState<File | null>(null);
-  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const queryClient = useQueryClient()
+  const { addProject, isAddingProject } = useProjects()
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [audioFile, setAudioFile] = useState<File | null>(null)
+  const [coverArtFile, setCoverArtFile] = useState<File | null>(null)
+  const [isUploadingCover, setIsUploadingCover] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -79,130 +79,138 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
     dateCreated: new Date().toISOString(),
     lastModified: new Date().toISOString(),
     length: '3:30',
-  });
+  })
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-    
+    const newErrors: Record<string, string> = {}
+
     if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
+      newErrors.title = 'Title is required'
     }
-    
+
     if (formData.genres.length === 0) {
-      newErrors.genres = 'At least one genre is required';
+      newErrors.genres = 'At least one genre is required'
     }
-    
+
     if (!formData.length.match(/^\d+:\d{2}$/)) {
-      newErrors.length = 'Length must be in format M:SS';
+      newErrors.length = 'Length must be in format M:SS'
     }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    
+    const { name, value } = e.target
+
     if (name === 'bpm') {
-      const bpmValue = Number(value);
+      const bpmValue = Number(value)
       if (!isNaN(bpmValue) && bpmValue > 0 && bpmValue <= 300) {
-        setFormData(prev => ({ ...prev, [name]: bpmValue }));
+        setFormData(prev => ({ ...prev, [name]: bpmValue }))
       }
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [name]: value }))
     }
-    
+
     // Clear error when user types
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors(prev => ({ ...prev, [name]: '' }))
     }
-  };
+  }
 
   const handleBpmChange = (value: number[]) => {
-    setFormData(prev => ({ ...prev, bpm: value[0] }));
-  };
+    setFormData(prev => ({ ...prev, bpm: value[0] }))
+  }
 
   const handleStatusChange = (value: string) => {
-    const status = value as Project['status'];
-    const completionPercentage = getCompletionPercentage(status);
-    setFormData(prev => ({ 
-      ...prev, 
+    const status = value as Project['status']
+    const completionPercentage = getCompletionPercentage(status)
+    setFormData(prev => ({
+      ...prev,
       status,
-      completionPercentage
-    }));
-  };
+      completionPercentage,
+    }))
+  }
 
   const handleGenreChange = (value: string) => {
     if (!formData.genres.includes(value)) {
       setFormData(prev => ({
         ...prev,
-        genres: [...prev.genres, value].sort()
-      }));
+        genres: [...prev.genres, value].sort(),
+      }))
     }
     if (errors.genres) {
-      setErrors(prev => ({ ...prev, genres: '' }));
+      setErrors(prev => ({ ...prev, genres: '' }))
     }
-  };
+  }
 
   const handleRemoveGenre = (genreToRemove: string) => {
     setFormData(prev => ({
       ...prev,
-      genres: prev.genres.filter(genre => genre !== genreToRemove)
-    }));
-  };
+      genres: prev.genres.filter(genre => genre !== genreToRemove),
+    }))
+  }
 
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
-      setFormData(prev => ({ ...prev, dateCreated: date.toISOString() }));
+      setFormData(prev => ({ ...prev, dateCreated: date.toISOString() }))
     }
-  };
+  }
 
-  const getCompletionPercentage = (status: 'idea' | 'in-progress' | 'mixing' | 'mastering' | 'completed'): number => {
-    switch(status) {
-      case 'idea': return 0;
-      case 'in-progress': return 25;
-      case 'mixing': return 50;
-      case 'mastering': return 75;
-      case 'completed': return 100;
-      default: return 0;
+  const getCompletionPercentage = (
+    status: 'idea' | 'in-progress' | 'mixing' | 'mastering' | 'completed'
+  ): number => {
+    switch (status) {
+      case 'idea':
+        return 0
+      case 'in-progress':
+        return 25
+      case 'mixing':
+        return 50
+      case 'mastering':
+        return 75
+      case 'completed':
+        return 100
+      default:
+        return 0
     }
-  };
+  }
 
   const handleCreateBeat = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+    e.preventDefault()
+
     if (!validateForm()) {
-      return;
+      return
     }
-    
+
     try {
       // Create the project first without cover art
       const newProject: Omit<Project, 'id'> = {
         ...formData,
         genre: formData.genres.join(', '), // Join multiple genres for storage
         lastModified: new Date().toISOString(),
-      };
+      }
 
       // Create project with cover art if available
       const projectWithCoverArt = {
         ...newProject,
-        coverArt: formData.coverArt // Use the URL that was saved during upload
-      };
+        coverArt: formData.coverArt, // Use the URL that was saved during upload
+      }
 
       // Create the project and get back the database-generated ID
-      const createdProject = await addProject(projectWithCoverArt);
+      const createdProject = await addProject(projectWithCoverArt)
 
       if (!createdProject) {
-        throw new Error('Failed to create project');
+        throw new Error('Failed to create project')
       }
 
       // Record the beat activity with the database-generated ID
-      await recordBeatCreation(createdProject.id, 1);
+      await recordBeatCreation(createdProject.id, 1)
 
       // Invalidate queries without waiting for refetch
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      queryClient.invalidateQueries({ queryKey: ['beatActivities'] });
-      queryClient.invalidateQueries({ queryKey: ['stats'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      queryClient.invalidateQueries({ queryKey: ['beatActivities'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
 
       // Reset form and close dialog immediately for better UX
       setFormData({
@@ -217,91 +225,103 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
         dateCreated: new Date().toISOString(),
         lastModified: new Date().toISOString(),
         length: '3:30',
-      });
-      setCoverArtFile(null);
-      setAudioFile(null);
-      setErrors({});
-      onOpenChange(false);
-      onProjectCreated?.();
-      
-      toast.success("Project created successfully", {
-        description: "Your new project has been added to the list."
-      });
+      })
+      setCoverArtFile(null)
+      setAudioFile(null)
+      setErrors({})
+      onOpenChange(false)
+      onProjectCreated?.()
+
+      toast.success('Project created successfully', {
+        description: 'Your new project has been added to the list.',
+      })
     } catch (error) {
-      console.error('Error creating project:', error);
-      toast.error("Failed to create project", {
-        description: "An error occurred while creating your project."
-      });
+      console.error('Error creating project:', error)
+      toast.error('Failed to create project', {
+        description: 'An error occurred while creating your project.',
+      })
     }
-  };
+  }
 
   const genreOptions = [
-    'Hip Hop', 'Trap', 'R&B', 'Pop', 'Electronic', 'House', 
-    'Techno', 'Drill', 'Soul', 'Jazz', 'Lo-Fi', 'Reggaeton', 'Afrobeat'
-  ];
+    'Hip Hop',
+    'Trap',
+    'R&B',
+    'Pop',
+    'Electronic',
+    'House',
+    'Techno',
+    'Drill',
+    'Soul',
+    'Jazz',
+    'Lo-Fi',
+    'Reggaeton',
+    'Afrobeat',
+  ]
 
   // Add cover art file handler
   const handleCoverArtChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const file = e.target.files?.[0]
+    if (!file) return
 
     try {
-      setIsUploadingCover(true);
-      setCoverArtFile(file); // Set the file immediately for preview
+      setIsUploadingCover(true)
+      setCoverArtFile(file) // Set the file immediately for preview
 
-      const { url } = await uploadCoverArt(file);
+      const { url } = await uploadCoverArt(file)
       if (!url) {
-        throw new Error('No URL returned from upload');
+        throw new Error('No URL returned from upload')
       }
 
-      setFormData(prev => ({ ...prev, coverArt: url }));
-      toast.success('Cover art uploaded successfully');
+      setFormData(prev => ({ ...prev, coverArt: url }))
+      toast.success('Cover art uploaded successfully')
     } catch (error) {
-      console.error('Error uploading cover art:', error);
-      setCoverArtFile(null); // Clear the file if upload failed
+      console.error('Error uploading cover art:', error)
+      setCoverArtFile(null) // Clear the file if upload failed
       toast.error('Failed to upload cover art', {
-        description: error instanceof Error ? error.message : 'Please try again or choose a different image.'
-      });
+        description:
+          error instanceof Error ? error.message : 'Please try again or choose a different image.',
+      })
     } finally {
-      setIsUploadingCover(false);
+      setIsUploadingCover(false)
       // Clear the input value to allow selecting the same file again
-      e.target.value = '';
+      e.target.value = ''
     }
-  };
+  }
 
   const handleRemoveCoverArt = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCoverArtFile(null);
-    setFormData(prev => ({ ...prev, coverArt: undefined }));
-  };
+    e.stopPropagation()
+    setCoverArtFile(null)
+    setFormData(prev => ({ ...prev, coverArt: undefined }))
+  }
 
   const handleAudioAnalysis = (result: AudioAnalysisResult) => {
     setFormData(prev => ({
       ...prev,
       bpm: Math.round(result.bpm),
       key: result.key,
-      length: formatLength(result.duration)
-    }));
-    
+      length: formatLength(result.duration),
+    }))
+
     // Add appropriate genres based on analysis
     if (result.danceability > 0.7) {
-      handleGenreChange('Electronic');
-      handleGenreChange('House');
+      handleGenreChange('Electronic')
+      handleGenreChange('House')
     } else if (result.energy > 0.7) {
-      handleGenreChange('Hip Hop');
-      handleGenreChange('Trap');
+      handleGenreChange('Hip Hop')
+      handleGenreChange('Trap')
     }
-    
+
     toast.success('Audio analysis complete', {
-      description: `Detected BPM: ${Math.round(result.bpm)}, Key: ${result.key}`
-    });
-  };
+      description: `Detected BPM: ${Math.round(result.bpm)}, Key: ${result.key}`,
+    })
+  }
 
   const formatLength = (duration: number) => {
-    const minutes = Math.floor(duration / 60);
-    const seconds = Math.floor(duration % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
+    const minutes = Math.floor(duration / 60)
+    const seconds = Math.floor(duration % 60)
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -332,13 +352,17 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                     value={formData.title}
                     onChange={handleInputChange}
                     className={cn(
-                      "pl-10 h-9 text-sm transition-colors",
-                      errors.title ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"
+                      'pl-10 h-9 text-sm transition-colors',
+                      errors.title
+                        ? 'border-destructive focus-visible:ring-destructive'
+                        : 'focus-visible:ring-primary'
                     )}
                     placeholder="Enter project title"
                   />
                   {errors.title && (
-                    <p className="text-xs text-destructive mt-1 animate-in fade-in slide-in-from-top-1">{errors.title}</p>
+                    <p className="text-xs text-destructive mt-1 animate-in fade-in slide-in-from-top-1">
+                      {errors.title}
+                    </p>
                   )}
                 </div>
               </div>
@@ -372,19 +396,17 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                       <PhTag weight="fill" className="h-4 w-4 text-pink-500" />
                     </div>
                   </div>
-                  <Select 
-                    value=""
-                    onValueChange={handleGenreChange}
-                    name="genre"
-                  >
-                    <SelectTrigger 
+                  <Select value="" onValueChange={handleGenreChange} name="genre">
+                    <SelectTrigger
                       id="genre"
                       className={cn(
-                        "pl-10 h-9 text-sm transition-colors",
-                        errors.genres ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"
+                        'pl-10 h-9 text-sm transition-colors',
+                        errors.genres
+                          ? 'border-destructive focus-visible:ring-destructive'
+                          : 'focus-visible:ring-primary'
                       )}
                       aria-label="Select project genres"
-                      aria-describedby={errors.genres ? "genre-error" : undefined}
+                      aria-describedby={errors.genres ? 'genre-error' : undefined}
                     >
                       <SelectValue placeholder="Select genres" />
                     </SelectTrigger>
@@ -392,8 +414,8 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                       <SelectGroup>
                         <SelectLabel className="text-sm">Genres</SelectLabel>
                         {genreOptions.map(genre => (
-                          <SelectItem 
-                            key={genre} 
+                          <SelectItem
+                            key={genre}
                             value={genre}
                             role="option"
                             disabled={formData.genres.includes(genre)}
@@ -409,7 +431,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
 
                 {formData.genres.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
-                    {formData.genres.map((genre) => (
+                    {formData.genres.map(genre => (
                       <Badge
                         key={genre}
                         variant="secondary"
@@ -428,15 +450,18 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                     ))}
                   </div>
                 )}
-                
+
                 {errors.genres && (
-                  <p id="genre-error" className="text-xs text-destructive mt-1 animate-in fade-in slide-in-from-top-1">
+                  <p
+                    id="genre-error"
+                    className="text-xs text-destructive mt-1 animate-in fade-in slide-in-from-top-1"
+                  >
                     {errors.genres}
                   </p>
                 )}
               </div>
             </div>
-            
+
             {/* BPM and Key Section */}
             <div className="space-y-4">
               <div className="grid grid-cols-4 items-center gap-3">
@@ -462,7 +487,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                   </span>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-4 items-center gap-3">
                 <Label htmlFor="key" className="text-right text-sm font-medium">
                   Key
@@ -473,12 +498,12 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                       <MusicNote weight="fill" className="h-4 w-4 text-purple-500" />
                     </div>
                   </div>
-                  <Select 
-                    value={formData.key} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, key: value }))}
+                  <Select
+                    value={formData.key}
+                    onValueChange={value => setFormData(prev => ({ ...prev, key: value }))}
                     name="key"
                   >
-                    <SelectTrigger 
+                    <SelectTrigger
                       id="key"
                       className="pl-10 h-9 text-sm focus-visible:ring-primary"
                       aria-label="Select project key"
@@ -488,22 +513,24 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                     <SelectContent>
                       <SelectGroup>
                         <SelectLabel className="text-sm">Project Key</SelectLabel>
-                        {['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].map(key => (
-                          <SelectItem 
-                            key={key}
-                            value={key} 
-                            className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-sm"
-                          >
-                            {key}
-                          </SelectItem>
-                        ))}
+                        {['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].map(
+                          key => (
+                            <SelectItem
+                              key={key}
+                              value={key}
+                              className="cursor-pointer transition-colors hover:bg-muted/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-sm"
+                            >
+                              {key}
+                            </SelectItem>
+                          )
+                        )}
                       </SelectGroup>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
             </div>
-            
+
             {/* Length and Date Section */}
             <div className="space-y-4">
               <div className="grid grid-cols-4 items-center gap-3">
@@ -523,16 +550,20 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                     onChange={handleInputChange}
                     placeholder="3:30"
                     className={cn(
-                      "pl-10 h-9 text-sm transition-colors",
-                      errors.length ? "border-destructive focus-visible:ring-destructive" : "focus-visible:ring-primary"
+                      'pl-10 h-9 text-sm transition-colors',
+                      errors.length
+                        ? 'border-destructive focus-visible:ring-destructive'
+                        : 'focus-visible:ring-primary'
                     )}
                   />
                   {errors.length && (
-                    <p className="text-xs text-destructive mt-1 animate-in fade-in slide-in-from-top-1">{errors.length}</p>
+                    <p className="text-xs text-destructive mt-1 animate-in fade-in slide-in-from-top-1">
+                      {errors.length}
+                    </p>
                   )}
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-4 items-center gap-3">
                 <Label htmlFor="date" className="text-right text-sm font-medium">
                   Date
@@ -543,8 +574,8 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full justify-start text-left font-normal hover:bg-accent/50 transition-colors pl-10 h-9 text-sm relative",
-                          "focus-visible:ring-primary"
+                          'w-full justify-start text-left font-normal hover:bg-accent/50 transition-colors pl-10 h-9 text-sm relative',
+                          'focus-visible:ring-primary'
                         )}
                       >
                         <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
@@ -552,7 +583,9 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                             <PhCalendar weight="fill" className="h-4 w-4 text-blue-500" />
                           </div>
                         </div>
-                        {formData.dateCreated ? format(new Date(formData.dateCreated), "PPP") : "Pick a date"}
+                        {formData.dateCreated
+                          ? format(new Date(formData.dateCreated), 'PPP')
+                          : 'Pick a date'}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -567,7 +600,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                 </div>
               </div>
             </div>
-            
+
             {/* Status Section */}
             <div className="grid grid-cols-4 items-center gap-3">
               <Label htmlFor="status" className="text-right text-sm font-medium">
@@ -579,12 +612,8 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                     <PhQueue weight="fill" className="h-4 w-4 text-indigo-500" />
                   </div>
                 </div>
-                <Select 
-                  value={formData.status} 
-                  onValueChange={handleStatusChange}
-                  name="status"
-                >
-                  <SelectTrigger 
+                <Select value={formData.status} onValueChange={handleStatusChange} name="status">
+                  <SelectTrigger
                     id="status"
                     className="pl-10 h-9 text-sm hover:bg-accent/50 transition-colors focus-visible:ring-primary"
                     aria-label="Select project status"
@@ -593,32 +622,34 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                   </SelectTrigger>
                   <SelectContent className="bg-background dark:bg-background border shadow-lg min-w-[200px]">
                     <SelectGroup>
-                      <SelectLabel className="text-xs text-muted-foreground px-3 py-1.5">Project Status</SelectLabel>
-                      <SelectItem 
+                      <SelectLabel className="text-xs text-muted-foreground px-3 py-1.5">
+                        Project Status
+                      </SelectLabel>
+                      <SelectItem
                         value="idea"
                         className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                       >
                         <span className="text-red-600 dark:text-red-400">Idea</span>
                       </SelectItem>
-                      <SelectItem 
+                      <SelectItem
                         value="in-progress"
                         className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                       >
                         <span className="text-orange-600 dark:text-orange-400">In Progress</span>
                       </SelectItem>
-                      <SelectItem 
+                      <SelectItem
                         value="mixing"
                         className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                       >
                         <span className="text-yellow-600 dark:text-yellow-400">Mixing</span>
                       </SelectItem>
-                      <SelectItem 
+                      <SelectItem
                         value="mastering"
                         className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                       >
                         <span className="text-blue-600 dark:text-blue-400">Mastering</span>
                       </SelectItem>
-                      <SelectItem 
+                      <SelectItem
                         value="completed"
                         className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                       >
@@ -629,7 +660,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                 </Select>
               </div>
             </div>
-            
+
             {/* Files Section */}
             <div className="space-y-4">
               <div className="grid grid-cols-4 items-start gap-3">
@@ -677,18 +708,27 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                                 </div>
                               ) : (
                                 <img
-                                  src={coverArtFile ? URL.createObjectURL(coverArtFile) : formData.coverArt}
+                                  src={
+                                    coverArtFile
+                                      ? URL.createObjectURL(coverArtFile)
+                                      : formData.coverArt
+                                  }
                                   alt="Cover art preview"
                                   className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>';
+                                  onError={e => {
+                                    const target = e.target as HTMLImageElement
+                                    target.src =
+                                      'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>'
                                   }}
                                 />
                               )}
                             </div>
                             <span className="text-sm truncate flex-1">
-                              {isUploadingCover ? 'Uploading...' : (coverArtFile ? coverArtFile.name : 'Current cover art')}
+                              {isUploadingCover
+                                ? 'Uploading...'
+                                : coverArtFile
+                                  ? coverArtFile.name
+                                  : 'Current cover art'}
                             </span>
                             <button
                               type="button"
@@ -711,13 +751,9 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
               </div>
             </div>
           </div>
-          
+
           <DialogFooter className="pt-3">
-            <Button 
-              type="submit" 
-              disabled={isAddingProject}
-              className="w-full h-9 text-sm"
-            >
+            <Button type="submit" disabled={isAddingProject} className="w-full h-9 text-sm">
               {isAddingProject ? (
                 <>
                   <CircleNotch className="mr-2 h-4 w-4 animate-spin" />
@@ -734,7 +770,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
         </form>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
 
-export default CreateProjectDialog;
+export default CreateProjectDialog

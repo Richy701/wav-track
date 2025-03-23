@@ -10,8 +10,7 @@ import fs from 'fs'
 
 // Function to get PWA manifest configuration
 const getManifestConfig = () => {
-  // Base path will be '/' on Vercel and '/wav-track/' elsewhere
-  const basePath = process.env.VERCEL ? '/' : '/wav-track/';
+  const basePath = '/wav-track/';
   
   return {
     name: 'WavTrack',
@@ -76,17 +75,6 @@ const pwaConfiguration: Partial<VitePWAOptions> = {
   }
 }
 
-// Function to determine the correct base path
-const getBasePath = (mode: string) => {
-  // Check if we're on Vercel
-  if (process.env.VERCEL) {
-    return '/'; // Use root path on Vercel
-  }
-  
-  // Use /wav-track/ for local development or other environments
-  return mode === 'production' ? '/wav-track/' : '/wav-track/';
-};
-
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   plugins: [
@@ -102,7 +90,7 @@ export default defineConfig(({ mode }) => ({
       brotliSize: true
     }) : null
   ].filter(Boolean),
-  base: getBasePath(mode),
+  base: '/wav-track/',  // Set static base path
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

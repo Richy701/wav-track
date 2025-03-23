@@ -1,24 +1,24 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from 'react'
+import { cn } from '@/lib/utils'
 
 interface ScrollAreaProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "thin" | "rounded" | "hide"
-  orientation?: "vertical" | "horizontal" | "both"
+  variant?: 'default' | 'thin' | 'rounded' | 'hide'
+  orientation?: 'vertical' | 'horizontal' | 'both'
 }
 
 const ScrollArea = React.forwardRef<HTMLDivElement, ScrollAreaProps>(
-  ({ className, variant = "default", orientation = "vertical", children, ...props }, ref) => {
+  ({ className, variant = 'default', orientation = 'vertical', children, ...props }, ref) => {
     const scrollClasses = cn(
       // Base styles
-      "relative",
+      'relative',
       // Orientation styles
-      orientation === "vertical" && "overflow-y-auto overflow-x-hidden",
-      orientation === "horizontal" && "overflow-x-auto overflow-y-hidden",
-      orientation === "both" && "overflow-auto",
+      orientation === 'vertical' && 'overflow-y-auto overflow-x-hidden',
+      orientation === 'horizontal' && 'overflow-x-auto overflow-y-hidden',
+      orientation === 'both' && 'overflow-auto',
       // Variant styles
-      variant === "thin" && "scrollbar-thin",
-      variant === "rounded" && "scrollbar-rounded",
-      variant === "hide" && "scrollbar-hide",
+      variant === 'thin' && 'scrollbar-thin',
+      variant === 'rounded' && 'scrollbar-rounded',
+      variant === 'hide' && 'scrollbar-hide',
       className
     )
 
@@ -30,7 +30,7 @@ const ScrollArea = React.forwardRef<HTMLDivElement, ScrollAreaProps>(
   }
 )
 
-ScrollArea.displayName = "ScrollArea"
+ScrollArea.displayName = 'ScrollArea'
 
 export { ScrollArea }
 
@@ -48,7 +48,10 @@ export const ScrollableDemo = () => {
       </ScrollArea>
 
       {/* Thin Scrollbar */}
-      <ScrollArea variant="thin" className="h-[200px] w-full rounded-lg border border-border bg-card p-4">
+      <ScrollArea
+        variant="thin"
+        className="h-[200px] w-full rounded-lg border border-border bg-card p-4"
+      >
         <div className="space-y-4">
           {Array.from({ length: 20 }).map((_, i) => (
             <div key={i} className="h-[40px] rounded-lg bg-muted/50" />
@@ -57,7 +60,10 @@ export const ScrollableDemo = () => {
       </ScrollArea>
 
       {/* Rounded Scrollbar */}
-      <ScrollArea variant="rounded" className="h-[200px] w-full rounded-lg border border-border bg-card p-4">
+      <ScrollArea
+        variant="rounded"
+        className="h-[200px] w-full rounded-lg border border-border bg-card p-4"
+      >
         <div className="space-y-4">
           {Array.from({ length: 20 }).map((_, i) => (
             <div key={i} className="h-[40px] rounded-lg bg-muted/50" />
@@ -66,7 +72,10 @@ export const ScrollableDemo = () => {
       </ScrollArea>
 
       {/* Hide Scrollbar */}
-      <ScrollArea variant="hide" className="h-[200px] w-full rounded-lg border border-border bg-card p-4">
+      <ScrollArea
+        variant="hide"
+        className="h-[200px] w-full rounded-lg border border-border bg-card p-4"
+      >
         <div className="space-y-4">
           {Array.from({ length: 20 }).map((_, i) => (
             <div key={i} className="h-[40px] rounded-lg bg-muted/50" />

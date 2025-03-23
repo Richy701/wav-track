@@ -1,15 +1,15 @@
-import { Link } from 'react-router-dom';
-import { 
-  MusicNote, 
-  Users as PhUsers, 
-  Headphones, 
+import { Link } from 'react-router-dom'
+import {
+  MusicNote,
+  Users as PhUsers,
+  Headphones,
   Star,
-  TwitterLogo, 
-  InstagramLogo, 
+  TwitterLogo,
+  InstagramLogo,
   YoutubeLogo,
-  Copyright
-} from '@phosphor-icons/react';
-import { BeatsStar } from './icons/BeatsStar';
+  Copyright,
+} from '@phosphor-icons/react'
+import { BeatsStar } from './icons/BeatsStar'
 
 const Footer = () => {
   return (
@@ -77,26 +77,26 @@ const Footer = () => {
 
           {/* Social Links */}
           <div className="mt-8 md:mt-10 flex items-center justify-center gap-6">
-            <a 
+            <a
               href="https://twitter.com/wavtrack"
               target="_blank"
-              rel="noopener noreferrer" 
+              rel="noopener noreferrer"
               className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
             >
               <TwitterLogo weight="fill" className="h-5 w-5" />
             </a>
-            <a 
+            <a
               href="https://instagram.com/wavtrack"
               target="_blank"
-              rel="noopener noreferrer" 
+              rel="noopener noreferrer"
               className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
             >
               <InstagramLogo weight="fill" className="h-5 w-5" />
             </a>
-            <a 
+            <a
               href="https://youtube.com/wavtrack"
               target="_blank"
-              rel="noopener noreferrer" 
+              rel="noopener noreferrer"
               className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
             >
               <YoutubeLogo weight="fill" className="h-5 w-5" />
@@ -111,10 +111,16 @@ const Footer = () => {
                 <span>2025 WavTrack. All rights reserved.</span>
               </div>
               <div className="flex items-center gap-6 text-sm">
-                <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link
+                  to="/privacy"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
                   Privacy Policy
                 </Link>
-                <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link
+                  to="/terms"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
                   Terms of Service
                 </Link>
               </div>
@@ -123,7 +129,7 @@ const Footer = () => {
         </div>
       </div>
     </footer>
-  );
-};
+  )
+}
 
-export default Footer; 
+export default Footer

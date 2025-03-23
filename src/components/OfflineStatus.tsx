@@ -27,7 +27,7 @@ export default function OfflineStatus() {
 
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
-    
+
     // Check initial sync state
     checkSyncQueue()
 
@@ -55,15 +55,10 @@ export default function OfflineStatus() {
       ) : (
         <WifiOff className="h-4 w-4 text-yellow-500" />
       )}
-      
+
       {hasPendingSync && (
         <div className="flex items-center gap-1">
-          <RefreshCw 
-            className={cn(
-              "h-4 w-4 text-blue-500",
-              isSyncing && "animate-spin"
-            )} 
-          />
+          <RefreshCw className={cn('h-4 w-4 text-blue-500', isSyncing && 'animate-spin')} />
           <span className="text-xs text-muted-foreground">
             {isSyncing ? 'Syncing...' : 'Changes pending'}
           </span>
@@ -73,11 +68,9 @@ export default function OfflineStatus() {
       {!isOnline && !hasPendingSync && (
         <div className="flex items-center gap-1">
           <CloudOff className="h-4 w-4 text-yellow-500" />
-          <span className="text-xs text-muted-foreground">
-            Working offline
-          </span>
+          <span className="text-xs text-muted-foreground">Working offline</span>
         </div>
       )}
     </div>
   )
-} 
+}

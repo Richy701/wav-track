@@ -1,11 +1,11 @@
-import { Routes, Route } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { Routes, Route } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 
 // Lazy load components
-const Login = lazy(() => import('./pages/Login'));
-const Register = lazy(() => import('./pages/Register'));
-const Index = lazy(() => import('./pages/Index'));
-const NotFound = lazy(() => import('./pages/NotFound'));
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
+const Index = lazy(() => import('./pages/Index'))
+const NotFound = lazy(() => import('./pages/NotFound'))
 
 export default function AppRoutes() {
   return (
@@ -17,5 +17,5 @@ export default function AppRoutes() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
-  );
-} 
+  )
+}

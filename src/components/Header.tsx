@@ -1,43 +1,41 @@
-import { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
-import HeaderTitle from './header/HeaderTitle';
-import HeaderActions from './header/HeaderActions';
-import { Button } from './ui/button';
-import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
-import { List } from '@phosphor-icons/react';
+import { useState, useEffect } from 'react'
+import { cn } from '@/lib/utils'
+import HeaderTitle from './header/HeaderTitle'
+import HeaderActions from './header/HeaderActions'
+import { Button } from './ui/button'
+import { Sheet, SheetContent, SheetTrigger } from './ui/sheet'
+import { List } from '@phosphor-icons/react'
 
 export default function Header() {
-  const [scrolled, setScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
-      const isScrolled = window.scrollY > 10;
+      const isScrolled = window.scrollY > 10
       if (isScrolled !== scrolled) {
-        setScrolled(isScrolled);
+        setScrolled(isScrolled)
       }
-    };
+    }
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
+    window.addEventListener('scroll', handleScroll, { passive: true })
+
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [scrolled]);
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [scrolled])
 
   return (
-    <header 
+    <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out",
-        scrolled 
-          ? "backdrop-blur-md" 
-          : "",
-        "px-4 py-3 md:px-6 md:py-4"
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out',
+        scrolled ? 'backdrop-blur-md' : '',
+        'px-4 py-3 md:px-6 md:py-4'
       )}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <HeaderTitle />
-        
+
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-4">
           <HeaderActions />
@@ -61,5 +59,5 @@ export default function Header() {
         </div>
       </div>
     </header>
-  );
+  )
 }

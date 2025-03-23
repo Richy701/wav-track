@@ -1,5 +1,5 @@
-import { BeatCoachCard } from './BeatCoachCard';
-import { WeeklyGoalWidget } from './WeeklyGoalWidget';
+import { BeatCoachCard } from './BeatCoachCard'
+import { WeeklyGoalWidget } from './WeeklyGoalWidget'
 
 export function CoachingSection() {
   return (
@@ -7,5 +7,5 @@ export function CoachingSection() {
       <BeatCoachCard />
       <WeeklyGoalWidget />
     </div>
-  );
-} 
+  )
+}

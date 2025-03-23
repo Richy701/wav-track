@@ -1,81 +1,92 @@
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { WeeklyGoal } from '@/lib/types';
-import { getRecentCompletedBeats, generateWeeklyGoal, createWeeklyGoal, getActiveWeeklyGoal } from '@/lib/services/aiCoaching';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Check, X, Edit2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
+import { WeeklyGoal } from '@/lib/types'
+import {
+  getRecentCompletedBeats,
+  generateWeeklyGoal,
+  createWeeklyGoal,
+  getActiveWeeklyGoal,
+} from '@/lib/services/aiCoaching'
+import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { Check, X, Edit2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { Input } from '@/components/ui/input'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
 
 export function WeeklyGoalWidget() {
-  const { user } = useAuth();
-  const [goal, setGoal] = useState<WeeklyGoal | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedTarget, setEditedTarget] = useState<number>(0);
+  const { user } = useAuth()
+  const [goal, setGoal] = useState<WeeklyGoal | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedTarget, setEditedTarget] = useState<number>(0)
 
   useEffect(() => {
     async function loadOrCreateGoal() {
-      if (!user) return;
+      if (!user) return
 
       try {
         // Try to get existing active goal
-        let activeGoal = await getActiveWeeklyGoal(user.id);
+        let activeGoal = await getActiveWeeklyGoal(user.id)
 
         // If no active goal, create a new one
         if (!activeGoal) {
-          const recentBeats = await getRecentCompletedBeats(user.id);
-          const suggestedGoal = await generateWeeklyGoal(recentBeats.length);
-          activeGoal = await createWeeklyGoal(user.id, suggestedGoal);
+          const recentBeats = await getRecentCompletedBeats(user.id)
+          const suggestedGoal = await generateWeeklyGoal(recentBeats.length)
+          activeGoal = await createWeeklyGoal(user.id, suggestedGoal)
         }
 
-        setGoal(activeGoal);
+        setGoal(activeGoal)
       } catch (error) {
-        console.error('Error loading weekly goal:', error);
-        toast.error('Failed to load weekly goal');
+        console.error('Error loading weekly goal:', error)
+        toast.error('Failed to load weekly goal')
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     }
 
-    loadOrCreateGoal();
-  }, [user]);
+    loadOrCreateGoal()
+  }, [user])
 
   const handleAccept = async () => {
-    if (!goal) return;
-    setIsEditing(false);
-    toast.success('Weekly goal set!');
-  };
+    if (!goal) return
+    setIsEditing(false)
+    toast.success('Weekly goal set!')
+  }
 
   const handleSkip = async () => {
-    if (!goal) return;
-    setGoal(null);
-    toast.info('Weekly goal skipped');
-  };
+    if (!goal) return
+    setGoal(null)
+    toast.info('Weekly goal skipped')
+  }
 
   const handleEdit = async () => {
-    if (!goal) return;
-    setEditedTarget(goal.targetBeats);
-    setIsEditing(true);
-  };
+    if (!goal) return
+    setEditedTarget(goal.targetBeats)
+    setIsEditing(true)
+  }
 
   const handleSaveEdit = async () => {
-    if (!goal || editedTarget < 1) return;
-    
+    if (!goal || editedTarget < 1) return
+
     try {
-      const updatedGoal = await createWeeklyGoal(user.id, editedTarget);
-      setGoal(updatedGoal);
-      setIsEditing(false);
-      toast.success('Weekly goal updated!');
+      const updatedGoal = await createWeeklyGoal(user.id, editedTarget)
+      setGoal(updatedGoal)
+      setIsEditing(false)
+      toast.success('Weekly goal updated!')
     } catch (error) {
-      console.error('Error updating goal:', error);
-      toast.error('Failed to update goal');
+      console.error('Error updating goal:', error)
+      toast.error('Failed to update goal')
     }
-  };
+  }
 
   if (isLoading) {
     return (
@@ -87,26 +98,21 @@ export function WeeklyGoalWidget() {
           <div className="h-20 bg-muted rounded" />
         </CardContent>
       </Card>
-    );
+    )
   }
 
   if (!goal) {
-    return null;
+    return null
   }
 
-  const progress = (goal.completedBeats / goal.targetBeats) * 100;
+  const progress = (goal.completedBeats / goal.targetBeats) * 100
 
   return (
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-lg">Weekly Goal</CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleEdit}
-            className="h-8 w-8"
-          >
+          <Button variant="ghost" size="icon" onClick={handleEdit} className="h-8 w-8">
             <Edit2 className="h-4 w-4" />
           </Button>
         </CardHeader>
@@ -120,20 +126,11 @@ export function WeeklyGoalWidget() {
             </div>
             <Progress value={progress} className="h-2" />
             <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSkip}
-                className="gap-2"
-              >
+              <Button variant="outline" size="sm" onClick={handleSkip} className="gap-2">
                 <X className="h-4 w-4" />
                 Skip
               </Button>
-              <Button
-                size="sm"
-                onClick={handleAccept}
-                className="gap-2"
-              >
+              <Button size="sm" onClick={handleAccept} className="gap-2">
                 <Check className="h-4 w-4" />
                 Accept
               </Button>
@@ -155,7 +152,7 @@ export function WeeklyGoalWidget() {
                 min={1}
                 max={10}
                 value={editedTarget}
-                onChange={(e) => setEditedTarget(parseInt(e.target.value) || 1)}
+                onChange={e => setEditedTarget(parseInt(e.target.value) || 1)}
                 className="w-full"
               />
             </div>
@@ -169,5 +166,5 @@ export function WeeklyGoalWidget() {
         </DialogContent>
       </Dialog>
     </>
-  );
-} 
+  )
+}

@@ -1,37 +1,40 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useProjects } from '../hooks/useProjects';
-import { uploadCoverArt } from '../lib/services/coverArt';
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useProjects } from '../hooks/useProjects'
+import { uploadCoverArt } from '../lib/services/coverArt'
 
 export function ProjectForm() {
-  const navigate = useNavigate();
-  const { createProject } = useProjects();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [coverArtFile, setCoverArtFile] = useState<File | null>(null);
-  const [coverArtPreview, setCoverArtPreview] = useState<string | null>(null);
+  const navigate = useNavigate()
+  const { createProject } = useProjects()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [coverArtFile, setCoverArtFile] = useState<File | null>(null)
+  const [coverArtPreview, setCoverArtPreview] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
+    e.preventDefault()
+    setIsSubmitting(true)
+    setError(null)
 
     try {
-      const formData = new FormData(e.currentTarget);
-      const title = formData.get('title') as string;
-      const genre = formData.get('genre') as string;
-      const description = formData.get('description') as string;
-      const bpm = parseInt(formData.get('bpm') as string);
-      const key = formData.get('key') as string;
-      const mood = formData.get('mood') as string;
-      const tags = (formData.get('tags') as string).split(',').map(tag => tag.trim()).filter(Boolean);
-      const coverArt = formData.get('coverArt') as File;
+      const formData = new FormData(e.currentTarget)
+      const title = formData.get('title') as string
+      const genre = formData.get('genre') as string
+      const description = formData.get('description') as string
+      const bpm = parseInt(formData.get('bpm') as string)
+      const key = formData.get('key') as string
+      const mood = formData.get('mood') as string
+      const tags = (formData.get('tags') as string)
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(Boolean)
+      const coverArt = formData.get('coverArt') as File
 
       // Handle cover art upload
-      let coverArtUrl = '';
+      let coverArtUrl = ''
       if (coverArt && coverArt.size > 0) {
-        const result = await uploadCoverArt(coverArt);
-        coverArtUrl = result.url;
+        const result = await uploadCoverArt(coverArt)
+        coverArtUrl = result.url
       }
 
       await createProject({
@@ -44,29 +47,29 @@ export function ProjectForm() {
         tags,
         coverArt: coverArtUrl,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
+        updatedAt: new Date().toISOString(),
+      })
 
-      navigate('/');
+      navigate('/')
     } catch (err) {
-      console.error('Error creating project:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create project');
+      console.error('Error creating project:', err)
+      setError(err instanceof Error ? err.message : 'Failed to create project')
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   const handleCoverArtChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      setCoverArtFile(file);
-      const reader = new FileReader();
+      setCoverArtFile(file)
+      const reader = new FileReader()
       reader.onloadend = () => {
-        setCoverArtPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+        setCoverArtPreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -251,5 +254,5 @@ export function ProjectForm() {
         </button>
       </div>
     </form>
-  );
-} 
+  )
+}

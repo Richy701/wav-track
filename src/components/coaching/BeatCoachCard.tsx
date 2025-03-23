@@ -1,47 +1,53 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BeatCoachMessage, Project } from '@/lib/types';
-import { getStaleProjects, generateCoachMessage, createCoachMessage } from '@/lib/services/aiCoaching';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Play } from 'lucide-react';
-import { toast } from 'sonner';
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import { BeatCoachMessage, Project } from '@/lib/types'
+import {
+  getStaleProjects,
+  generateCoachMessage,
+  createCoachMessage,
+} from '@/lib/services/aiCoaching'
+import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Play } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function BeatCoachCard() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [coachMessages, setCoachMessages] = useState<Array<{
-    project: Project;
-    message: BeatCoachMessage;
-  }>>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const [coachMessages, setCoachMessages] = useState<
+    Array<{
+      project: Project
+      message: BeatCoachMessage
+    }>
+  >([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     async function loadCoachMessages() {
-      if (!user) return;
+      if (!user) return
 
       try {
-        const staleProjects = await getStaleProjects(user.id);
+        const staleProjects = await getStaleProjects(user.id)
         const messages = await Promise.all(
-          staleProjects.map(async (project) => {
-            const message = await generateCoachMessage(project.title, project.status);
-            const savedMessage = await createCoachMessage(project.id, message);
-            return { project, message: savedMessage };
+          staleProjects.map(async project => {
+            const message = await generateCoachMessage(project.title, project.status)
+            const savedMessage = await createCoachMessage(project.id, message)
+            return { project, message: savedMessage }
           })
-        );
-        setCoachMessages(messages);
+        )
+        setCoachMessages(messages)
       } catch (error) {
-        console.error('Error loading coach messages:', error);
-        toast.error('Failed to load coaching messages');
+        console.error('Error loading coach messages:', error)
+        toast.error('Failed to load coaching messages')
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     }
 
-    loadCoachMessages();
-  }, [user]);
+    loadCoachMessages()
+  }, [user])
 
   if (isLoading) {
     return (
@@ -53,11 +59,11 @@ export function BeatCoachCard() {
           <div className="h-20 bg-muted rounded" />
         </CardContent>
       </Card>
-    );
+    )
   }
 
   if (coachMessages.length === 0) {
-    return null;
+    return null
   }
 
   return (
@@ -94,5 +100,5 @@ export function BeatCoachCard() {
         </AnimatePresence>
       </CardContent>
     </Card>
-  );
-} 
+  )
+}

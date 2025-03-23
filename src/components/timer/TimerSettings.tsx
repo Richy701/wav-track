@@ -1,56 +1,55 @@
-import { Button } from '../ui/button';
-import { Label } from '../ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { NotificationSound, playNotificationSound } from './timerUtils';
-import { Volume2, Plus, Minus, SlidersHorizontal } from 'lucide-react';
-import { Slider } from '../ui/slider';
-import { cn } from '@/lib/utils';
+import { Button } from '../ui/button'
+import { Label } from '../ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { NotificationSound, playNotificationSound } from './timerUtils'
+import { Volume2, Plus, Minus, SlidersHorizontal } from 'lucide-react'
+import { Slider } from '../ui/slider'
+import { cn } from '@/lib/utils'
 
 interface TimerSettingsProps {
-  workDuration: number;
-  breakDuration: number;
-  setWorkDuration: (duration: number) => void;
-  setBreakDuration: (duration: number) => void;
-  notificationSound: NotificationSound;
-  setNotificationSound: (sound: NotificationSound) => void;
-  applySettings: () => void;
+  workDuration: number
+  breakDuration: number
+  setWorkDuration: (duration: number) => void
+  setBreakDuration: (duration: number) => void
+  notificationSound: NotificationSound
+  setNotificationSound: (sound: NotificationSound) => void
+  applySettings: () => void
 }
 
-export function TimerSettings({ 
-  workDuration, 
-  breakDuration, 
-  setWorkDuration, 
+export function TimerSettings({
+  workDuration,
+  breakDuration,
+  setWorkDuration,
   setBreakDuration,
   notificationSound,
   setNotificationSound,
-  applySettings 
+  applySettings,
 }: TimerSettingsProps) {
-  
   const handleSoundChange = (value: string) => {
-    const sound = value as NotificationSound;
-    setNotificationSound(sound);
-  };
-  
+    const sound = value as NotificationSound
+    setNotificationSound(sound)
+  }
+
   const previewSound = () => {
-    playNotificationSound(notificationSound);
-  };
+    playNotificationSound(notificationSound)
+  }
 
   const adjustDuration = (type: 'work' | 'break', increment: boolean) => {
-    const currentValue = type === 'work' ? workDuration : breakDuration;
-    const maxValue = type === 'work' ? 60 : 30;
-    const minValue = 1;
-    
-    const newValue = increment 
+    const currentValue = type === 'work' ? workDuration : breakDuration
+    const maxValue = type === 'work' ? 60 : 30
+    const minValue = 1
+
+    const newValue = increment
       ? Math.min(currentValue + 1, maxValue)
-      : Math.max(currentValue - 1, minValue);
-    
+      : Math.max(currentValue - 1, minValue)
+
     if (type === 'work') {
-      setWorkDuration(newValue);
+      setWorkDuration(newValue)
     } else {
-      setBreakDuration(newValue);
+      setBreakDuration(newValue)
     }
-  };
-  
+  }
+
   return (
     <div className="space-y-4 mb-4 animate-scale-in">
       <div className="space-y-2">
@@ -143,11 +142,11 @@ export function TimerSettings({
               <SelectItem value="ding">Soft Ding</SelectItem>
             </SelectContent>
           </Select>
-          <Button 
-            type="button" 
+          <Button
+            type="button"
             size="icon"
             variant="outline"
-            className="h-8 w-8 flex-shrink-0" 
+            className="h-8 w-8 flex-shrink-0"
             onClick={previewSound}
             title="Preview sound"
           >
@@ -156,13 +155,13 @@ export function TimerSettings({
         </div>
       </div>
 
-      <Button 
-        size="sm" 
-        className="w-full animate-fade-in bg-primary hover:bg-primary/90" 
+      <Button
+        size="sm"
+        className="w-full animate-fade-in bg-primary hover:bg-primary/90"
         onClick={applySettings}
       >
         Apply Settings
       </Button>
     </div>
-  );
+  )
 }

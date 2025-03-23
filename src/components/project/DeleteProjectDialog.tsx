@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Project } from '@/lib/types';
-import { toast } from 'sonner';
-import { useProjects } from '@/hooks/useProjects';
+import { useState } from 'react'
+import { Project } from '@/lib/types'
+import { toast } from 'sonner'
+import { useProjects } from '@/hooks/useProjects'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,38 +11,38 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog'
 
 interface DeleteProjectDialogProps {
-  project: Project;
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  project: Project
+  isOpen: boolean
+  onOpenChange: (open: boolean) => void
+  onConfirm: () => void
 }
 
-export default function DeleteProjectDialog({ 
-  project, 
-  isOpen, 
+export default function DeleteProjectDialog({
+  project,
+  isOpen,
   onOpenChange,
-  onConfirm
+  onConfirm,
 }: DeleteProjectDialogProps) {
-  const { deleteProject, isDeletingProject } = useProjects();
+  const { deleteProject, isDeletingProject } = useProjects()
 
   const handleDelete = async () => {
     try {
-      await deleteProject(project.id);
-      onOpenChange(false);
-      onConfirm();
-      toast.success("Project deleted", {
-        description: `"${project.title}" has been removed.`
-      });
+      await deleteProject(project.id)
+      onOpenChange(false)
+      onConfirm()
+      toast.success('Project deleted', {
+        description: `"${project.title}" has been removed.`,
+      })
     } catch (error) {
-      console.error('Error deleting project:', error);
-      toast.error("Failed to delete project", {
-        description: "An error occurred while deleting the project."
-      });
+      console.error('Error deleting project:', error)
+      toast.error('Failed to delete project', {
+        description: 'An error occurred while deleting the project.',
+      })
     }
-  };
+  }
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
@@ -55,8 +55,8 @@ export default function DeleteProjectDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction 
-            onClick={handleDelete} 
+          <AlertDialogAction
+            onClick={handleDelete}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             disabled={isDeletingProject}
           >
@@ -65,5 +65,5 @@ export default function DeleteProjectDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  );
+  )
 }

@@ -14,38 +14,38 @@
     /* Light mode - Base colors */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
-    
+
     /* Card and UI elements */
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    
+
     /* Primary colors - Using a blue palette for light mode */
     --primary: 240 5.9% 10%;
     --primary-foreground: 0 0% 98%;
-    
+
     /* Secondary colors - Softer blue tones */
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
-    
+
     /* Muted elements */
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    
+
     /* Accent colors */
     --accent: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
-    
+
     /* Destructive actions */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    
+
     /* Borders and inputs */
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 240 10% 3.9%;
-    
+
     /* Sidebar specific colors */
     --sidebar-background: 210 40% 98%;
     --sidebar-foreground: 222.2 47.4% 11.2%;
@@ -60,9 +60,11 @@
     --radius: 0.5rem;
 
     /* Theme transition styles */
-    --theme-transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, fill 0.3s ease, stroke 0.3s ease;
+    --theme-transition:
+      background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, fill 0.3s ease,
+      stroke 0.3s ease;
   }
-  
+
   .dark {
     /* Dark mode colors remain unchanged */
     --background: 240 10% 4.5%;
@@ -147,7 +149,7 @@
     &::-webkit-scrollbar-thumb:hover {
       @apply bg-muted-foreground/50;
     }
-    scrollbar-color: hsl(var(--secondary)) hsl(var(--secondary)/0.3);
+    scrollbar-color: hsl(var(--secondary)) hsl(var(--secondary) / 0.3);
   }
 
   /* For browsers that support scrollbar-color */
@@ -178,8 +180,8 @@
 
   /* Hide scrollbar for IE, Edge and Firefox */
   .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
 
   /* Show scrollbar on hover */
@@ -207,13 +209,22 @@
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1, "ss02" 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1,
+      'ss01' 1,
+      'ss02' 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-display tracking-tight;
   }
 
@@ -266,7 +277,8 @@
   }
 
   /* Lists */
-  ul, ol {
+  ul,
+  ol {
     @apply my-6 ml-6;
   }
 
@@ -288,11 +300,13 @@
   }
 
   /* Add hover effects to buttons */
-  .btn, button {
+  .btn,
+  button {
     @apply transition-all duration-200;
   }
 
-  .btn:hover, button:hover {
+  .btn:hover,
+  button:hover {
     @apply transform scale-[1.02];
   }
 
@@ -314,27 +328,27 @@
   .card-hover {
     @apply transition-all duration-300 hover:shadow-md hover:-translate-y-1;
   }
-  
+
   .text-shadow {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
-  
+
   .text-gradient {
     @apply bg-gradient-to-r from-primary via-accent to-primary/80 bg-clip-text text-transparent;
   }
-  
+
   .prose-sm {
     @apply text-sm leading-relaxed;
   }
-  
+
   .prose {
     @apply text-base leading-relaxed;
   }
-  
+
   .prose-lg {
     @apply text-lg leading-relaxed;
   }
-  
+
   .font-heading {
     font-family: 'Space Grotesk', sans-serif;
   }
@@ -342,15 +356,15 @@
   .mono {
     font-family: 'JetBrains Mono', monospace;
   }
-  
+
   .text-minimal {
     @apply tracking-tighter font-light;
   }
-  
+
   .hover\:scale-102:hover {
     transform: scale(1.02);
   }
-  
+
   .scale-105 {
     transform: scale(1.05);
   }

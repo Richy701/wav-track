@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Project } from '@/lib/types';
-import { updateProject as updateProjectInStorage } from '@/lib/data';
-import { uploadCoverArt } from '@/lib/services/coverArt';
-import { toast } from 'sonner';
+import { useState, useEffect } from 'react'
+import { Project } from '@/lib/types'
+import { updateProject as updateProjectInStorage } from '@/lib/data'
+import { uploadCoverArt } from '@/lib/services/coverArt'
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
@@ -11,30 +11,51 @@ import {
   DialogHeader,
   DialogTitle,
   DialogClose,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue, SelectLabel } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { X, Plus, Music, Tag, Info, Mic2, Activity, Hash, Key, FileText, Percent, Image as ImageIcon } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectLabel,
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import { Slider } from '@/components/ui/slider'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import {
+  X,
+  Plus,
+  Music,
+  Tag,
+  Info,
+  Mic2,
+  Activity,
+  Hash,
+  Key,
+  FileText,
+  Percent,
+  Image as ImageIcon,
+} from 'lucide-react'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
 
 interface EditProjectDialogProps {
-  project: Project;
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onProjectUpdated: (project: Project) => void;
+  project: Project
+  isOpen: boolean
+  onOpenChange: (open: boolean) => void
+  onProjectUpdated: (project: Project) => void
 }
 
-export default function EditProjectDialog({ 
-  project, 
-  isOpen, 
+export default function EditProjectDialog({
+  project,
+  isOpen,
   onOpenChange,
-  onProjectUpdated
+  onProjectUpdated,
 }: EditProjectDialogProps) {
   const [formData, setFormData] = useState({
     title: project.title,
@@ -46,97 +67,105 @@ export default function EditProjectDialog({
     status: project.status,
     completionPercentage: project.completionPercentage,
     audioFile: project.audioFile,
-    coverArt: project.coverArt
-  });
-  const [coverArtFile, setCoverArtFile] = useState<File | null>(null);
-  const [isUploadingCover, setIsUploadingCover] = useState(false);
-  const [coverArtPreview, setCoverArtPreview] = useState<string | null>(
-    formData.coverArt || null
-  );
-  
+    coverArt: project.coverArt,
+  })
+  const [coverArtFile, setCoverArtFile] = useState<File | null>(null)
+  const [isUploadingCover, setIsUploadingCover] = useState(false)
+  const [coverArtPreview, setCoverArtPreview] = useState<string | null>(formData.coverArt || null)
+
   // Map status to completion percentage
   const statusToCompletion = {
-    'idea': 0,
+    idea: 0,
     'in-progress': 25,
-    'mixing': 50,
-    'mastering': 75,
-    'completed': 100
-  };
-  
+    mixing: 50,
+    mastering: 75,
+    completed: 100,
+  }
+
   // Musical keys
-  const musicalKeys = [
-    'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
-  ];
-  
+  const musicalKeys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
   // Update completion percentage when status changes
   useEffect(() => {
     if (formData.status in statusToCompletion) {
-      const suggestedCompletion = statusToCompletion[formData.status as keyof typeof statusToCompletion];
+      const suggestedCompletion =
+        statusToCompletion[formData.status as keyof typeof statusToCompletion]
       setFormData(prev => ({
         ...prev,
-        completionPercentage: suggestedCompletion
-      }));
+        completionPercentage: suggestedCompletion,
+      }))
     }
-  }, [formData.status]);
-  
+  }, [formData.status])
+
   // Genre options
   const genreOptions = [
-    'Hip Hop', 'Trap', 'R&B', 'Pop', 'Electronic', 'House', 
-    'Techno', 'Drill', 'Soul', 'Jazz', 'Lo-Fi', 'Reggaeton', 'Afrobeat'
-  ];
-  
+    'Hip Hop',
+    'Trap',
+    'R&B',
+    'Pop',
+    'Electronic',
+    'House',
+    'Techno',
+    'Drill',
+    'Soul',
+    'Jazz',
+    'Lo-Fi',
+    'Reggaeton',
+    'Afrobeat',
+  ]
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: value
-    }));
-  };
+      [name]: value,
+    }))
+  }
 
   const handleStatusChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
       status: value as Project['status'],
-      completionPercentage: statusToCompletion[value as Project['status']]
-    }));
-  };
+      completionPercentage: statusToCompletion[value as Project['status']],
+    }))
+  }
 
   const handleGenreChange = (value: string) => {
-    if (formData.genres.includes(value)) return;
+    if (formData.genres.includes(value)) return
     if (formData.genres.length >= 3) {
-      toast.error("Maximum genres reached", {
-        description: "You can only select up to 3 genres."
-      });
-      return;
+      toast.error('Maximum genres reached', {
+        description: 'You can only select up to 3 genres.',
+      })
+      return
     }
     setFormData(prev => ({
       ...prev,
-      genres: [...prev.genres, value]
-    }));
-  };
+      genres: [...prev.genres, value],
+    }))
+  }
 
   const handleRemoveGenre = (genreToRemove: string) => {
     setFormData(prev => ({
       ...prev,
-      genres: prev.genres.filter(genre => genre !== genreToRemove)
-    }));
-  };
+      genres: prev.genres.filter(genre => genre !== genreToRemove),
+    }))
+  }
 
   const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+    e.preventDefault()
+
     if (!formData.title.trim()) {
-      toast.error("Title is required", {
-        description: "Please enter a title for your project."
-      });
-      return;
+      toast.error('Title is required', {
+        description: 'Please enter a title for your project.',
+      })
+      return
     }
 
     if (formData.bpm && (isNaN(Number(formData.bpm)) || Number(formData.bpm) < 0)) {
-      toast.error("Invalid BPM", {
-        description: "BPM must be a positive number."
-      });
-      return;
+      toast.error('Invalid BPM', {
+        description: 'BPM must be a positive number.',
+      })
+      return
     }
 
     try {
@@ -145,21 +174,21 @@ export default function EditProjectDialog({
         ...project,
         ...formData,
         // Remove coverArt from the update
-        coverArt: undefined
-      };
+        coverArt: undefined,
+      }
 
-      onProjectUpdated(updatedProject);
-      onOpenChange(false);
-      toast.success("Project updated", {
-        description: `"${formData.title}" has been updated.`
-      });
+      onProjectUpdated(updatedProject)
+      onOpenChange(false)
+      toast.success('Project updated', {
+        description: `"${formData.title}" has been updated.`,
+      })
     } catch (error) {
-      console.error('Error updating project:', error);
-      toast.error("Failed to update project", {
-        description: "An error occurred while updating the project."
-      });
+      console.error('Error updating project:', error)
+      toast.error('Failed to update project', {
+        description: 'An error occurred while updating the project.',
+      })
     }
-  };
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -227,26 +256,30 @@ export default function EditProjectDialog({
                         </SelectTrigger>
                         <SelectContent className="bg-background dark:bg-background border shadow-lg min-w-[200px]">
                           <SelectGroup>
-                            <SelectLabel className="text-xs text-muted-foreground px-3 py-1.5">Genres</SelectLabel>
+                            <SelectLabel className="text-xs text-muted-foreground px-3 py-1.5">
+                              Genres
+                            </SelectLabel>
                             {genreOptions
                               .filter(genre => !formData.genres.includes(genre))
                               .map(genre => (
-                                <SelectItem 
-                                  key={genre} 
+                                <SelectItem
+                                  key={genre}
                                   value={genre}
                                   className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                                 >
-                                  <span className="text-purple-600 dark:text-purple-400">{genre}</span>
+                                  <span className="text-purple-600 dark:text-purple-400">
+                                    {genre}
+                                  </span>
                                 </SelectItem>
                               ))}
                           </SelectGroup>
                         </SelectContent>
                       </Select>
                       <div className="flex flex-wrap gap-1.5">
-                        {formData.genres.map((genre) => (
-                          <Badge 
-                            key={genre} 
-                            variant="secondary" 
+                        {formData.genres.map(genre => (
+                          <Badge
+                            key={genre}
+                            variant="secondary"
                             className="flex items-center gap-1 h-6 px-2 bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20 dark:hover:bg-purple-500/30"
                           >
                             {genre}
@@ -291,16 +324,23 @@ export default function EditProjectDialog({
                       <div className="p-1.5 rounded-md bg-purple-500/10 dark:bg-purple-500/20">
                         <Key className="h-4 w-4 text-purple-500 dark:text-purple-400" />
                       </div>
-                      <Select value={formData.key} onValueChange={(value) => handleChange({ target: { name: 'key', value } } as any)}>
+                      <Select
+                        value={formData.key}
+                        onValueChange={value =>
+                          handleChange({ target: { name: 'key', value } } as any)
+                        }
+                      >
                         <SelectTrigger className="h-8 hover:bg-accent/50 transition-colors px-3 w-full bg-background dark:bg-background">
                           <SelectValue placeholder="Select key" className="text-sm" />
                         </SelectTrigger>
                         <SelectContent className="bg-background dark:bg-background border shadow-lg min-w-[200px]">
                           <SelectGroup>
-                            <SelectLabel className="text-xs text-muted-foreground px-3 py-1.5">Project Key</SelectLabel>
+                            <SelectLabel className="text-xs text-muted-foreground px-3 py-1.5">
+                              Project Key
+                            </SelectLabel>
                             {musicalKeys.map(key => (
-                              <SelectItem 
-                                key={key} 
+                              <SelectItem
+                                key={key}
                                 value={key}
                                 className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                               >
@@ -335,32 +375,36 @@ export default function EditProjectDialog({
                         </SelectTrigger>
                         <SelectContent className="bg-background dark:bg-background border shadow-lg min-w-[200px]">
                           <SelectGroup>
-                            <SelectLabel className="text-xs text-muted-foreground px-3 py-1.5">Project Status</SelectLabel>
-                            <SelectItem 
+                            <SelectLabel className="text-xs text-muted-foreground px-3 py-1.5">
+                              Project Status
+                            </SelectLabel>
+                            <SelectItem
                               value="idea"
                               className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                             >
                               <span className="text-red-600 dark:text-red-400">Idea</span>
                             </SelectItem>
-                            <SelectItem 
+                            <SelectItem
                               value="in-progress"
                               className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                             >
-                              <span className="text-orange-600 dark:text-orange-400">In Progress</span>
+                              <span className="text-orange-600 dark:text-orange-400">
+                                In Progress
+                              </span>
                             </SelectItem>
-                            <SelectItem 
+                            <SelectItem
                               value="mixing"
                               className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                             >
                               <span className="text-yellow-600 dark:text-yellow-400">Mixing</span>
                             </SelectItem>
-                            <SelectItem 
+                            <SelectItem
                               value="mastering"
                               className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                             >
                               <span className="text-blue-600 dark:text-blue-400">Mastering</span>
                             </SelectItem>
-                            <SelectItem 
+                            <SelectItem
                               value="completed"
                               className="hover:bg-accent/50 cursor-pointer transition-colors px-3 py-1.5 text-sm data-[highlighted]:bg-accent/50"
                             >
@@ -376,34 +420,36 @@ export default function EditProjectDialog({
                     <div className="flex items-center gap-3">
                       <div className="flex-1 h-8 flex items-center">
                         <div className="w-full h-1.5 rounded-full bg-muted/50 overflow-hidden">
-                          <div 
+                          <div
                             className={`h-full rounded-full transition-all duration-500 ${
-                              formData.completionPercentage === 100 
-                                ? 'bg-gradient-to-r from-green-500/90 to-emerald-500/90 dark:from-green-400 dark:to-emerald-400' 
+                              formData.completionPercentage === 100
+                                ? 'bg-gradient-to-r from-green-500/90 to-emerald-500/90 dark:from-green-400 dark:to-emerald-400'
                                 : formData.completionPercentage >= 75
-                                ? 'bg-gradient-to-r from-blue-500/90 to-indigo-500/90 dark:from-blue-400 dark:to-indigo-400'
-                                : formData.completionPercentage >= 50
-                                ? 'bg-gradient-to-r from-yellow-500/90 to-amber-500/90 dark:from-yellow-400 dark:to-amber-400'
-                                : formData.completionPercentage >= 25
-                                ? 'bg-gradient-to-r from-orange-500/90 to-red-500/90 dark:from-orange-400 dark:to-red-400'
-                                : 'bg-gradient-to-r from-red-500/90 to-pink-500/90 dark:from-red-400 dark:to-pink-400'
+                                  ? 'bg-gradient-to-r from-blue-500/90 to-indigo-500/90 dark:from-blue-400 dark:to-indigo-400'
+                                  : formData.completionPercentage >= 50
+                                    ? 'bg-gradient-to-r from-yellow-500/90 to-amber-500/90 dark:from-yellow-400 dark:to-amber-400'
+                                    : formData.completionPercentage >= 25
+                                      ? 'bg-gradient-to-r from-orange-500/90 to-red-500/90 dark:from-orange-400 dark:to-red-400'
+                                      : 'bg-gradient-to-r from-red-500/90 to-pink-500/90 dark:from-red-400 dark:to-pink-400'
                             }`}
                             style={{ width: `${formData.completionPercentage}%` }}
                           />
                         </div>
                       </div>
                       <div className="w-[40px] text-center">
-                        <span className={`text-sm font-medium ${
-                          formData.completionPercentage === 100 
-                            ? 'text-green-600 dark:text-green-400' 
-                            : formData.completionPercentage >= 75
-                            ? 'text-blue-600 dark:text-blue-400'
-                            : formData.completionPercentage >= 50
-                            ? 'text-yellow-600 dark:text-yellow-400'
-                            : formData.completionPercentage >= 25
-                            ? 'text-orange-600 dark:text-orange-400'
-                            : 'text-red-600 dark:text-red-400'
-                        }`}>
+                        <span
+                          className={`text-sm font-medium ${
+                            formData.completionPercentage === 100
+                              ? 'text-green-600 dark:text-green-400'
+                              : formData.completionPercentage >= 75
+                                ? 'text-blue-600 dark:text-blue-400'
+                                : formData.completionPercentage >= 50
+                                  ? 'text-yellow-600 dark:text-yellow-400'
+                                  : formData.completionPercentage >= 25
+                                    ? 'text-orange-600 dark:text-orange-400'
+                                    : 'text-red-600 dark:text-red-400'
+                          }`}
+                        >
                           {formData.completionPercentage}%
                         </span>
                       </div>
@@ -459,10 +505,12 @@ export default function EditProjectDialog({
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" size="default">Save changes</Button>
+            <Button type="submit" size="default">
+              Save changes
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

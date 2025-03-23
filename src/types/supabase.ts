@@ -1,10 +1,4 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export interface Database {
   public: {
@@ -73,4 +67,11 @@ export interface Database {
       [_ in never]: never
     }
   }
-} 
+}
+
+// Add user metadata type
+export interface UserMetadata {
+  has_seen_welcome?: boolean
+  name?: string
+  [key: string]: any
+}

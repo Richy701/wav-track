@@ -1,16 +1,13 @@
-import { useLocation, Link } from "react-router-dom";
-import { useEffect } from "react";
-import Footer from '@/components/Footer';
+import { useLocation, Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import Footer from '@/components/Footer'
 
 const NotFound = () => {
-  const location = useLocation();
+  const location = useLocation()
 
   useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
-    );
-  }, [location.pathname]);
+    console.error('404 Error: User attempted to access non-existent route:', location.pathname)
+  }, [location.pathname])
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -25,7 +22,7 @@ const NotFound = () => {
       </main>
       <Footer />
     </div>
-  );
-};
+  )
+}
 
-export default NotFound;
+export default NotFound

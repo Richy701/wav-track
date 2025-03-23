@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { User, Settings, LogOut } from 'lucide-react';
+import React from 'react'
+import { useNavigate } from 'react-router-dom'
+import { User, Settings, LogOut } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,43 +8,45 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { useAuth } from '../contexts/AuthContext';
+} from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { useAuth } from '../contexts/AuthContext'
 
 const UserMenu = () => {
-  const navigate = useNavigate();
-  const { user, logout } = useAuth(); // Changed from signOut to logout
-  const isLoading = false;
-  
+  const navigate = useNavigate()
+  const { user, logout } = useAuth() // Changed from signOut to logout
+  const isLoading = false
+
   // Get user profile data
-  const profile = user ? {
-    name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-    email: user.email,
-    avatar_url: user.user_metadata?.avatar_url
-  } : null;
-  
+  const profile = user
+    ? {
+        name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+        email: user.email,
+        avatar_url: user.user_metadata?.avatar_url,
+      }
+    : null
+
   // Get user initials for avatar
   const getInitials = () => {
-    if (!profile?.name) return '?';
+    if (!profile?.name) return '?'
     return profile.name
       .split(' ')
       .map(part => part[0])
       .join('')
       .toUpperCase()
-      .substring(0, 2);
-  };
+      .substring(0, 2)
+  }
 
   // Handler for sign out functionality
   const handleSignOut = async () => {
     if (logout) {
-      await logout();
+      await logout()
     }
-  };
+  }
 
   // Don't render anything while loading or if no profile
-  if (isLoading || !profile) return null;
+  if (isLoading || !profile) return null
 
   return (
     <DropdownMenu>
@@ -61,9 +62,7 @@ const UserMenu = () => {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{profile.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {profile.email}
-            </p>
+            <p className="text-xs leading-none text-muted-foreground">{profile.email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -76,7 +75,7 @@ const UserMenu = () => {
           <span>Settings</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={handleSignOut}
           className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
         >
@@ -85,7 +84,7 @@ const UserMenu = () => {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-};
+  )
+}
 
-export default UserMenu;
+export default UserMenu

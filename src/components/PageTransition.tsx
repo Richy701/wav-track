@@ -1,8 +1,8 @@
-import { motion } from 'framer-motion';
-import { ReactNode } from 'react';
+import { motion } from 'framer-motion'
+import { ReactNode } from 'react'
 
 interface PageTransitionProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 const pageVariants = {
@@ -26,7 +26,7 @@ const pageVariants = {
       ease: 'easeIn',
     },
   },
-};
+}
 
 export default function PageTransition({ children }: PageTransitionProps) {
   return (
@@ -39,5 +39,5 @@ export default function PageTransition({ children }: PageTransitionProps) {
     >
       {children}
     </motion.div>
-  );
-} 
+  )
+}

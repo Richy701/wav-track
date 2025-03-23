@@ -1,5 +1,5 @@
 interface ProjectProgressBarProps {
-  completionPercentage: number;
+  completionPercentage: number
 }
 
 export default function ProjectProgressBar({ completionPercentage }: ProjectProgressBarProps) {
@@ -16,5 +16,5 @@ export default function ProjectProgressBar({ completionPercentage }: ProjectProg
         />
       </div>
     </div>
-  );
+  )
 }

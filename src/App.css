@@ -1,4 +1,3 @@
-
 #root {
   max-width: 100%;
   margin: 0 auto;
@@ -60,43 +59,53 @@
   form {
     width: 100%;
   }
-  
-  input, select, textarea, button {
+
+  input,
+  select,
+  textarea,
+  button {
     width: 100%;
     max-width: 100%;
     min-height: 44px; /* Minimum touch target size */
   }
-  
+
   .container {
     padding-left: 1rem;
     padding-right: 1rem;
   }
-  
+
   /* Improved spacing for mobile */
   .py-4 {
     padding-top: 0.75rem;
     padding-bottom: 0.75rem;
   }
-  
+
   /* Fixed mobile navigation */
   header {
     padding-left: 0.75rem !important;
     padding-right: 0.75rem !important;
   }
-  
+
   /* Ensure content doesn't overlap with fixed header */
   main {
     padding-top: 5rem;
   }
-  
+
   /* Ensure buttons are large enough for touch */
-  button, a {
+  button,
+  a {
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   /* Improved text readability on mobile */
-  p, h1, h2, h3, h4, h5, h6 {
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     max-width: 100%;
     overflow-wrap: break-word;
   }
@@ -108,7 +117,7 @@
     padding-left: 2rem;
     padding-right: 2rem;
   }
-  
+
   main {
     padding-top: 6rem;
   }

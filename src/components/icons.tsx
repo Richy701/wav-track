@@ -19,7 +19,7 @@ import {
   Waves,
   BarChart3,
   LineChart,
-} from "lucide-react"
+} from 'lucide-react'
 
 export const Icons = {
   spinner: Loader2,
@@ -42,4 +42,4 @@ export const Icons = {
   waveform: Waves,
   barChart: BarChart3,
   lineChart: LineChart,
-} 
+}

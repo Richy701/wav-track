@@ -25,7 +25,7 @@
     --ring: 346.8 77.2% 49.8%;
     --radius: 0.5rem;
   }
- 
+
   .dark {
     --background: 20 14.3% 4.1%;
     --foreground: 0 0% 95%;
@@ -53,7 +53,7 @@
   .animate-gradient-slow {
     animation: gradient 8s ease-in-out infinite;
   }
-  
+
   .animate-pulse {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
@@ -75,7 +75,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -93,4 +94,4 @@
   100% {
     transform: scaleY(0.8);
   }
-} 
+}

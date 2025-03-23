@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { cn } from "@/lib/utils";
+import React, { useState, useEffect, useRef } from 'react'
+import { cn } from '@/lib/utils'
 
 interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
-  src: string;
-  alt: string;
-  blurHash?: string;
-  className?: string;
-  placeholderClassName?: string;
+  src: string
+  alt: string
+  blurHash?: string
+  className?: string
+  placeholderClassName?: string
 }
 
 export function LazyImage({
@@ -17,40 +17,40 @@ export function LazyImage({
   placeholderClassName,
   ...props
 }: LazyImageProps) {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isInView, setIsInView] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [isInView, setIsInView] = useState(false)
+  const imgRef = useRef<HTMLImageElement>(null)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
+          setIsInView(true)
+          observer.disconnect()
         }
       },
       {
         rootMargin: '50px',
         threshold: 0.01,
       }
-    );
+    )
 
     if (imgRef.current) {
-      observer.observe(imgRef.current);
+      observer.observe(imgRef.current)
     }
 
     return () => {
-      observer.disconnect();
-    };
-  }, []);
+      observer.disconnect()
+    }
+  }, [])
 
   return (
     <div className="relative overflow-hidden">
       {/* Placeholder/Blur */}
       <div
         className={cn(
-          "absolute inset-0 transform scale-110 filter blur-xl transition-opacity duration-500",
-          isLoaded ? "opacity-0" : "opacity-100",
+          'absolute inset-0 transform scale-110 filter blur-xl transition-opacity duration-500',
+          isLoaded ? 'opacity-0' : 'opacity-100',
           placeholderClassName
         )}
         style={{
@@ -65,13 +65,13 @@ export function LazyImage({
         src={isInView ? src : ''}
         alt={alt}
         className={cn(
-          "transition-opacity duration-500",
-          isLoaded ? "opacity-100" : "opacity-0",
+          'transition-opacity duration-500',
+          isLoaded ? 'opacity-100' : 'opacity-0',
           className
         )}
         onLoad={() => setIsLoaded(true)}
         {...props}
       />
     </div>
-  );
-} 
+  )
+}

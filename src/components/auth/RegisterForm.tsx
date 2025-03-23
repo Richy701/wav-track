@@ -1,65 +1,82 @@
-import { useState, memo } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+import { useState, memo } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Icons } from '@/components/icons';
-import { cn } from '@/lib/utils';
-import { useTheme } from '@/lib/ThemeContext';
-import { X } from 'lucide-react';
-import { FLStudioIcon, AbletonIcon, LogicProIcon, ProToolsIcon, StudioOneIcon, BitwigIcon, ReaperIcon } from '@/components/DawIcons';
+} from '@/components/ui/select'
+import { Icons } from '@/components/icons'
+import { cn } from '@/lib/utils'
+import { useTheme } from '@/lib/ThemeContext'
+import { X } from 'lucide-react'
+import {
+  FLStudioIcon,
+  AbletonIcon,
+  LogicProIcon,
+  ProToolsIcon,
+  StudioOneIcon,
+  BitwigIcon,
+  ReaperIcon,
+} from '@/components/DawIcons'
 
 interface RegisterFormProps {
-  onSuccess?: () => void;
+  onSuccess?: () => void
 }
 
 // Memoize the FormField component
-const FormField = memo(({ 
-  label, 
-  icon: Icon, 
-  children, 
-  className 
-}: { 
-  label: string; 
-  icon?: React.ComponentType<{ className?: string }>; 
-  children: React.ReactNode;
-  className?: string;
-}) => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
+const FormField = memo(
+  ({
+    label,
+    icon: Icon,
+    children,
+    className,
+  }: {
+    label: string
+    icon?: React.ComponentType<{ className?: string }>
+    children: React.ReactNode
+    className?: string
+  }) => {
+    const { theme } = useTheme()
+    const isDark = theme === 'dark'
 
-  return (
-    <div className={cn("space-y-1.5 sm:space-y-2", className)}>
-      <Label 
-        className={cn(
-          "flex items-center gap-2 text-sm font-medium",
-          isDark ? "text-zinc-400" : "text-zinc-600"
-        )}
-      >
-        {Icon && <Icon className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", isDark ? "text-zinc-400" : "text-zinc-600")} />}
-        {label}
-      </Label>
-      {children}
-    </div>
-  );
-});
+    return (
+      <div className={cn('space-y-1.5 sm:space-y-2', className)}>
+        <Label
+          className={cn(
+            'flex items-center gap-2 text-sm font-medium',
+            isDark ? 'text-zinc-400' : 'text-zinc-700'
+          )}
+        >
+          {Icon && (
+            <Icon
+              className={cn(
+                'h-3.5 w-3.5 sm:h-4 sm:w-4',
+                isDark ? 'text-zinc-400' : 'text-zinc-700'
+              )}
+            />
+          )}
+          {label}
+        </Label>
+        {children}
+      </div>
+    )
+  }
+)
 
-FormField.displayName = 'FormField';
+FormField.displayName = 'FormField'
 
 export function RegisterForm({ onSuccess }: RegisterFormProps) {
-  const { register } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
+  const { register } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
 
   const [formData, setFormData] = useState({
     name: '',
@@ -72,50 +89,50 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
     location: '',
     phone: '',
     website: '',
-  });
+  })
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
 
   const handleGenreChange = (value: string) => {
     if (formData.genres.includes(value)) {
-      removeGenre(value);
+      removeGenre(value)
     } else {
       setFormData(prev => ({
         ...prev,
-        genres: [...prev.genres, value]
-      }));
+        genres: [...prev.genres, value],
+      }))
     }
-  };
+  }
 
   const removeGenre = (genre: string) => {
     setFormData(prev => ({
       ...prev,
-      genres: prev.genres.filter(g => g !== genre)
-    }));
-  };
+      genres: prev.genres.filter(g => g !== genre),
+    }))
+  }
 
   const handleDAWChange = (value: string) => {
-    setFormData(prev => ({ ...prev, daw: value }));
-  };
+    setFormData(prev => ({ ...prev, daw: value }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+    e.preventDefault()
+    setIsLoading(true)
 
     try {
-      const success = await register(formData);
+      const success = await register(formData)
       if (success && onSuccess) {
-        onSuccess();
+        onSuccess()
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const dawOptions = [
     { value: 'ableton', label: 'Ableton Live', icon: <AbletonIcon className="h-4 w-4" /> },
@@ -125,7 +142,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
     { value: 'studio_one', label: 'Studio One', icon: <StudioOneIcon className="h-4 w-4" /> },
     { value: 'reaper', label: 'Reaper', icon: <ReaperIcon className="h-4 w-4" /> },
     { value: 'bitwig', label: 'Bitwig', icon: <BitwigIcon className="h-4 w-4" /> },
-  ];
+  ]
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
@@ -142,10 +159,10 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
               onChange={handleChange}
               autoComplete="name"
               className={cn(
-                "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
-                isDark 
-                  ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" 
-                  : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
+                'h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm',
+                isDark
+                  ? 'bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400'
+                  : 'bg-white border-zinc-300 text-zinc-800 placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-500'
               )}
             />
           </FormField>
@@ -159,10 +176,10 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
               onChange={handleChange}
               autoComplete="nickname"
               className={cn(
-                "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
-                isDark 
-                  ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" 
-                  : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
+                'h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm',
+                isDark
+                  ? 'bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400'
+                  : 'bg-white border-zinc-300 text-zinc-800 placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-500'
               )}
             />
           </FormField>
@@ -179,10 +196,10 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             onChange={handleChange}
             autoComplete="email"
             className={cn(
-              "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
-              isDark 
-                ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" 
-                : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
+              'h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm',
+              isDark
+                ? 'bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400'
+                : 'bg-white border-zinc-300 text-zinc-800 placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-500'
             )}
           />
         </FormField>
@@ -197,10 +214,10 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             onChange={handleChange}
             autoComplete="new-password"
             className={cn(
-              "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
-              isDark 
-                ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" 
-                : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
+              'h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm',
+              isDark
+                ? 'bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400'
+                : 'bg-white border-zinc-300 text-zinc-800 placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-500'
             )}
           />
         </FormField>
@@ -209,18 +226,12 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       {/* Artist Profile Section */}
       <div className="relative pt-6 sm:pt-8">
         <div className="absolute inset-0 flex items-center" aria-hidden="true">
-          <div className={cn(
-            "w-full border-t",
-            isDark ? "border-zinc-700" : "border-zinc-200"
-          )} />
+          <div className={cn('w-full border-t', isDark ? 'border-zinc-700' : 'border-zinc-300')} />
         </div>
         <div className="relative flex justify-center text-sm font-semibold uppercase">
-          <span className={cn(
-            "px-2",
-            isDark 
-              ? "bg-zinc-900 text-zinc-400" 
-              : "bg-white text-zinc-600"
-          )}>
+          <span
+            className={cn('px-2', isDark ? 'bg-zinc-900 text-zinc-400' : 'bg-white text-zinc-800')}
+          >
             Artist Profile
           </span>
         </div>
@@ -246,38 +257,36 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
                 { id: 'indie', label: 'Indie', icon: Icons.music },
                 { id: 'lofi', label: 'Lo-Fi', icon: Icons.music },
                 { id: 'world', label: 'World', icon: Icons.website },
-                { id: 'experimental', label: 'Experimental', icon: Icons.star }
+                { id: 'experimental', label: 'Experimental', icon: Icons.star },
               ].map(genre => {
-                const isSelected = formData.genres.includes(genre.id);
-                const Icon = genre.icon;
+                const isSelected = formData.genres.includes(genre.id)
+                const Icon = genre.icon
                 return (
                   <button
                     key={genre.id}
                     type="button"
                     onClick={() => handleGenreChange(genre.id)}
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm transition-colors",
-                      "border focus:outline-none focus:ring-2 focus:ring-primary/20",
+                      'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm transition-colors',
+                      'border focus:outline-none focus:ring-2 focus:ring-primary/20',
                       isSelected
                         ? isDark
-                          ? "bg-violet-600 text-white border-violet-500 shadow-sm"
-                          : "bg-indigo-500 text-white border-indigo-400 shadow-sm"
+                          ? 'bg-purple-700 text-white border-purple-600 shadow-sm'
+                          : 'bg-purple-600 text-white border-purple-500 shadow-sm'
                         : isDark
-                          ? "bg-zinc-800/50 text-zinc-300 border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800"
-                          : "bg-white text-zinc-700 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
+                          ? 'bg-zinc-800/50 text-zinc-300 border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800'
+                          : 'bg-white text-zinc-800 border-zinc-300 hover:border-zinc-400 hover:bg-zinc-50'
                     )}
                   >
-                    <Icon className={cn(
-                      "h-3.5 w-3.5",
-                      isSelected
-                        ? "text-white"
-                        : isDark
-                          ? "text-zinc-400"
-                          : "text-zinc-500"
-                    )} />
+                    <Icon
+                      className={cn(
+                        'h-3.5 w-3.5',
+                        isSelected ? 'text-white' : isDark ? 'text-zinc-400' : 'text-zinc-500'
+                      )}
+                    />
                     {genre.label}
                   </button>
-                );
+                )
               })}
             </div>
             {formData.genres.length > 0 && (
@@ -299,18 +308,20 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
                     { id: 'indie', label: 'Indie' },
                     { id: 'lofi', label: 'Lo-Fi' },
                     { id: 'world', label: 'World' },
-                    { id: 'experimental', label: 'Experimental' }
-                  ].find(g => g.id === genreId);
-                  
-                  if (!genre) return null;
-                  
+                    { id: 'experimental', label: 'Experimental' },
+                  ].find(g => g.id === genreId)
+
+                  if (!genre) return null
+
                   return (
                     <Badge
                       key={genre.id}
                       variant="secondary"
                       className={cn(
-                        "gap-1.5 pl-3 pr-2 py-1",
-                        isDark ? "bg-zinc-800" : "bg-zinc-100"
+                        'gap-1.5 pl-3 pr-2 py-1',
+                        isDark
+                          ? 'bg-zinc-800 text-zinc-300'
+                          : 'bg-zinc-100 text-zinc-800 border border-zinc-200'
                       )}
                     >
                       {genre.label}
@@ -319,15 +330,15 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
                         onClick={() => removeGenre(genre.id)}
                         aria-label={`Remove ${genre.label} genre`}
                         className={cn(
-                          "ml-1 rounded-full p-0.5",
-                          "hover:bg-zinc-700/50 dark:hover:bg-zinc-600/50",
-                          "transition-colors"
+                          'ml-1 rounded-full p-0.5',
+                          'hover:bg-zinc-700/50 dark:hover:bg-zinc-600/50',
+                          'transition-colors'
                         )}
                       >
                         <X className="h-3 w-3" />
                       </button>
                     </Badge>
-                  );
+                  )
                 })}
               </div>
             )}
@@ -336,19 +347,19 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
 
         <FormField label="Preferred DAW" icon={Icons.daw}>
           <Select name="daw" value={formData.daw} onValueChange={handleDAWChange}>
-            <SelectTrigger className={cn(
-              "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
-              isDark ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
-            )}>
+            <SelectTrigger
+              className={cn(
+                'h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm',
+                isDark
+                  ? 'bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400'
+                  : 'bg-white border-zinc-300 text-zinc-800 placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-500'
+              )}
+            >
               <SelectValue placeholder="Select your DAW" />
             </SelectTrigger>
             <SelectContent>
-              {dawOptions.map((option) => (
-                <SelectItem 
-                  key={option.value} 
-                  value={option.value}
-                  className="flex items-center"
-                >
+              {dawOptions.map(option => (
+                <SelectItem key={option.value} value={option.value} className="flex items-center">
                   <div className="flex items-center">
                     <div className="w-6 h-6 mr-2 flex items-center justify-center">
                       {option.icon}
@@ -369,8 +380,10 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             value={formData.bio}
             onChange={handleChange}
             className={cn(
-              "min-h-[120px] transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
-              isDark ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
+              'min-h-[120px] transition-colors focus:ring-2 focus:ring-primary/20 text-sm',
+              isDark
+                ? 'bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400'
+                : 'bg-white border-zinc-300 text-zinc-800 placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-500'
             )}
           />
         </FormField>
@@ -384,8 +397,10 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             onChange={handleChange}
             autoComplete="address-level2"
             className={cn(
-              "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
-              isDark ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
+              'h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm',
+              isDark
+                ? 'bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400'
+                : 'bg-white border-zinc-300 text-zinc-800 placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-500'
             )}
           />
         </FormField>
@@ -401,10 +416,10 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
               onChange={handleChange}
               autoComplete="tel"
               className={cn(
-                "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
-                isDark 
-                  ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" 
-                  : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
+                'h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm',
+                isDark
+                  ? 'bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400'
+                  : 'bg-white border-zinc-300 text-zinc-800 placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-500'
               )}
             />
           </FormField>
@@ -419,23 +434,21 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
               onChange={handleChange}
               autoComplete="url"
               className={cn(
-                "h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm",
-                isDark 
-                  ? "bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400" 
-                  : "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-500"
+                'h-10 sm:h-11 px-3 transition-colors focus:ring-2 focus:ring-primary/20 text-sm',
+                isDark
+                  ? 'bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-400'
+                  : 'bg-white border-zinc-300 text-zinc-800 placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-500'
               )}
             />
           </FormField>
         </div>
       </div>
 
-      <Button 
-        type="submit" 
+      <Button
+        type="submit"
         className={cn(
-          "w-full h-11 transition-colors text-sm font-medium text-white",
-          isDark
-            ? "bg-black hover:bg-black/90"
-            : "bg-primary hover:bg-primary/90"
+          'w-full h-11 transition-colors text-sm font-medium text-white shadow-sm',
+          isDark ? 'bg-black hover:bg-black/90' : 'bg-zinc-900 hover:bg-zinc-800'
         )}
         disabled={isLoading}
       >
@@ -449,5 +462,5 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         )}
       </Button>
     </form>
-  );
+  )
 }

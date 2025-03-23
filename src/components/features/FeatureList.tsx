@@ -1,22 +1,22 @@
-import { Music2, BarChart3, Trophy } from 'lucide-react';
+import { Music2, BarChart3, Trophy } from 'lucide-react'
 
 const features = [
   {
     title: 'Create Beats',
     description: 'Create and arrange beats with our intuitive interface',
-    icon: Music2
+    icon: Music2,
   },
   {
     title: 'Track Progress',
     description: 'Monitor your productivity and growth with detailed analytics',
-    icon: BarChart3
+    icon: BarChart3,
   },
   {
     title: 'Earn Achievements',
     description: 'Level up your producer game by unlocking rewards',
-    icon: Trophy
-  }
-];
+    icon: Trophy,
+  },
+]
 
 export function FeatureList() {
   return (
@@ -30,12 +30,10 @@ export function FeatureList() {
             <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
               {feature.title}
             </h3>
-            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-              {feature.description}
-            </p>
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{feature.description}</p>
           </div>
         </div>
       ))}
     </div>
-  );
-} 
+  )
+}

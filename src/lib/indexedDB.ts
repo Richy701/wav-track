@@ -24,7 +24,7 @@ interface WavTrackDB extends DBSchema {
   beatActivities: {
     key: string
     value: BeatActivity
-    indexes: { 'by-project': string, 'by-date': Date }
+    indexes: { 'by-project': string; 'by-date': Date }
   }
   syncQueue: {
     key: string
@@ -72,7 +72,7 @@ export async function initDB(): Promise<IDBPDatabase<WavTrackDB>> {
       if (!db.objectStoreNames.contains('syncQueue')) {
         db.createObjectStore('syncQueue', { keyPath: 'id', autoIncrement: true })
       }
-    }
+    },
   })
 }
 
@@ -86,10 +86,7 @@ export async function getDB() {
 }
 
 // Generic CRUD operations
-export async function add<T extends keyof WavTrackDB>(
-  storeName: T,
-  item: WavTrackDB[T]['value']
-) {
+export async function add<T extends keyof WavTrackDB>(storeName: T, item: WavTrackDB[T]['value']) {
   const db = await getDB()
   await db.add(storeName, item)
   await addToSyncQueue('create', storeName, item)
@@ -104,10 +101,7 @@ export async function update<T extends keyof WavTrackDB>(
   await addToSyncQueue('update', storeName, item)
 }
 
-export async function remove<T extends keyof WavTrackDB>(
-  storeName: T,
-  id: string
-) {
+export async function remove<T extends keyof WavTrackDB>(storeName: T, id: string) {
   const db = await getDB()
   await db.delete(storeName, id)
   await addToSyncQueue('delete', storeName, { id })
@@ -139,24 +133,24 @@ async function addToSyncQueue<T extends keyof WavTrackDB>(
     timestamp: Date.now(),
     operation,
     storeName,
-    data
+    data,
   })
 }
 
 export async function processSyncQueue() {
   const db = await getDB()
   const queue = await db.getAll('syncQueue')
-  
+
   for (const item of queue) {
     try {
       // Attempt to sync with the server
       const response = await fetch(`/api/${item.storeName}`, {
-        method: item.operation === 'create' ? 'POST' : 
-               item.operation === 'update' ? 'PUT' : 'DELETE',
+        method:
+          item.operation === 'create' ? 'POST' : item.operation === 'update' ? 'PUT' : 'DELETE',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(item.data)
+        body: JSON.stringify(item.data),
       })
 
       if (response.ok) {
@@ -178,4 +172,4 @@ if (navigator.onLine) {
 // Listen for online status changes
 window.addEventListener('online', () => {
   processSyncQueue().catch(console.error)
-}) 
+})

@@ -1,12 +1,18 @@
-import { createRouter, createRoute, createRootRoute, Outlet, redirect } from "@tanstack/react-router"
-import { Index } from "./pages/index"
-import { Login } from "./pages/Login"
-import { Register } from "./pages/Register"
-import { Profile } from "./pages/Profile"
-import { ProfileSettings } from "./pages/ProfileSettings"
-import { Callback } from "./pages/auth/Callback"
-import { ScrollDemo } from "./pages/ScrollDemo"
-import { supabase } from "./lib/supabase"
+import {
+  createRouter,
+  createRoute,
+  createRootRoute,
+  Outlet,
+  redirect,
+} from '@tanstack/react-router'
+import { Index } from './pages/index'
+import { Login } from './pages/Login'
+import { Register } from './pages/Register'
+import { Profile } from './pages/Profile'
+import { ProfileSettings } from './pages/ProfileSettings'
+import { Callback } from './pages/auth/Callback'
+import { ScrollDemo } from './pages/ScrollDemo'
+import { supabase } from './lib/supabase'
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -14,19 +20,21 @@ const rootRoute = createRootRoute({
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/",
+  path: '/',
   component: Index,
 })
 
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/login",
+  path: '/login',
   component: Login,
   beforeLoad: async () => {
-    const { data: { session } } = await supabase.auth.getSession()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
     if (session) {
       throw redirect({
-        to: "/",
+        to: '/',
       })
     }
   },
@@ -34,13 +42,15 @@ const loginRoute = createRoute({
 
 const registerRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/register",
+  path: '/register',
   component: Register,
   beforeLoad: async () => {
-    const { data: { session } } = await supabase.auth.getSession()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
     if (session) {
       throw redirect({
-        to: "/",
+        to: '/',
       })
     }
   },
@@ -48,18 +58,20 @@ const registerRoute = createRoute({
 
 const callbackRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/auth/callback",
+  path: '/auth/callback',
   component: Callback,
 })
 
 const protectedRoute = createRoute({
   getParentRoute: () => rootRoute,
-  id: "protected",
+  id: 'protected',
   beforeLoad: async () => {
-    const { data: { session } } = await supabase.auth.getSession()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
     if (!session) {
       throw redirect({
-        to: "/login",
+        to: '/login',
       })
     }
   },
@@ -67,19 +79,19 @@ const protectedRoute = createRoute({
 
 const profileRoute = createRoute({
   getParentRoute: () => protectedRoute,
-  path: "/profile",
+  path: '/profile',
   component: Profile,
 })
 
 const profileSettingsRoute = createRoute({
   getParentRoute: () => protectedRoute,
-  path: "/profile/settings",
+  path: '/profile/settings',
   component: ProfileSettings,
 })
 
 const scrollDemoRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/scroll-demo",
+  path: '/scroll-demo',
   component: ScrollDemo,
 })
 
@@ -88,15 +100,12 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   registerRoute,
   callbackRoute,
-  protectedRoute.addChildren([
-    profileRoute,
-    profileSettingsRoute,
-  ]),
+  protectedRoute.addChildren([profileRoute, profileSettingsRoute]),
   scrollDemoRoute,
 ])
 
 export const router = createRouter({
   routeTree,
-  basepath: "/wav-track",
-  defaultPreload: "intent"
+  basepath: '/wav-track',
+  defaultPreload: 'intent',
 })
