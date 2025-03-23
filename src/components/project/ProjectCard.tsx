@@ -59,7 +59,6 @@ export default function ProjectCard({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [coverArtUrl, setCoverArtUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   const statusToCompletion = {
     'idea': 0,
@@ -225,7 +224,7 @@ export default function ProjectCard({
               </div>
               
               {/* Dropdown Menu with open state management */}
-              <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button 
                     onClick={(e) => {
@@ -243,18 +242,23 @@ export default function ProjectCard({
                   className="w-48"
                   sideOffset={5}
                 >
-                  <DropdownMenuItem onClick={(e) => {
-                    e.preventDefault(); // Prevent navigation
-                    handleMoveToNextStage();
-                  }} disabled={localProject.status === 'completed'}>
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent navigation
+                      handleMoveToNextStage();
+                    }} 
+                    disabled={localProject.status === 'completed'}
+                  >
                     <CheckCircle className="mr-2 h-4 w-4" />
                     {localProject.status === 'completed' ? 'Completed' : 'Move to Next Stage'}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={(e) => {
-                    e.preventDefault(); // Prevent navigation
-                    setIsEditDialogOpen(true);
-                  }}>
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent navigation
+                      setIsEditDialogOpen(true);
+                    }}
+                  >
                     <PencilSimple className="mr-2 h-4 w-4" />
                     Edit Project
                   </DropdownMenuItem>
