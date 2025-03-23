@@ -59,6 +59,7 @@ export default function ProjectCard({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [coverArtUrl, setCoverArtUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
   
   const statusToCompletion = {
     'idea': 0,
@@ -121,6 +122,7 @@ export default function ProjectCard({
         updateProject(updatedProject);
         setLocalProject(updatedProject);
         onProjectUpdated();
+        setMenuOpen(false);
         
         toast.success("Project status updated", {
           description: `"${updatedProject.title}" moved to ${nextStatus.replace('-', ' ')}.`
@@ -178,6 +180,18 @@ export default function ProjectCard({
     onProjectSelect?.(project);
   };
 
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation
+    setIsEditDialogOpen(true);
+    setMenuOpen(false); // Close the menu
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation
+    setIsDeleteDialogOpen(true);
+    setMenuOpen(false); // Close the menu
+  };
+
   return (
     <div className="project-card-container">
       {/* The Project Card - Wrapped in Link for navigation */}
@@ -223,8 +237,8 @@ export default function ProjectCard({
                 </div>
               </div>
               
-              {/* Dropdown Menu with open state management */}
-              <DropdownMenu>
+              {/* Dropdown Menu - updated with controlled state */}
+              <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
                 <DropdownMenuTrigger asChild>
                   <button 
                     onClick={(e) => {
@@ -254,19 +268,13 @@ export default function ProjectCard({
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
-                    onClick={(e) => {
-                      e.preventDefault(); // Prevent navigation
-                      setIsEditDialogOpen(true);
-                    }}
+                    onClick={handleEditClick}
                   >
                     <PencilSimple className="mr-2 h-4 w-4" />
                     Edit Project
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={(e) => {
-                      e.preventDefault(); // Prevent navigation
-                      setIsDeleteDialogOpen(true);
-                    }}
+                    onClick={handleDeleteClick}
                     className="text-red-600 dark:text-red-400"
                     disabled={isDeletingProject}
                   >
