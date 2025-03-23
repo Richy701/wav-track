@@ -8,7 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoadingScreen from './components/LoadingScreen';
 import ThemeTransition from './components/ThemeTransition';
 import OfflineStatus from './components/OfflineStatus';
-import ErrorBoundary from './components/ErrorBoundary';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Lazy load route components
 const Login = React.lazy(() => import('./pages/Login'));

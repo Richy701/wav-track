@@ -21,17 +21,17 @@ const ProjectDetail = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [isProjectLoading, setIsProjectLoading] = useState(true);
 
   useEffect(() => {
     if (id) {
       const foundProject = projects.find(p => p.id === id);
       if (foundProject) {
         setProject(foundProject);
-        setIsLoading(false);
+        setIsProjectLoading(false);
       } else {
-        setIsLoading(false);
+        setIsProjectLoading(false);
         setNotFound(true);
       }
     }
@@ -65,7 +65,7 @@ const ProjectDetail = () => {
     }).format(date);
   };
 
-  if (isLoading) {
+  if (isLoading || isProjectLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Header />

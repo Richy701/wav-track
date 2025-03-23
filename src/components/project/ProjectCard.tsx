@@ -59,6 +59,7 @@ export default function ProjectCard({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [coverArtUrl, setCoverArtUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   const statusToCompletion = {
     'idea': 0,
@@ -223,21 +224,25 @@ export default function ProjectCard({
                 </div>
               </div>
               
-              {/* Dropdown Menu - Use stopPropagation and preventDefault to avoid navigation */}
-              <DropdownMenu>
+              {/* Dropdown Menu with open state management */}
+              <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
                 <DropdownMenuTrigger asChild>
                   <button 
                     onClick={(e) => {
                       e.preventDefault(); // Prevent navigation
                       e.stopPropagation();
                     }}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-0"
                     aria-label="Open project menu"
                   >
                     <DotsThreeVertical size={16} weight="bold" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent 
+                  align="end" 
+                  className="w-48"
+                  sideOffset={5}
+                >
                   <DropdownMenuItem onClick={(e) => {
                     e.preventDefault(); // Prevent navigation
                     handleMoveToNextStage();
