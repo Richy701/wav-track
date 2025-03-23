@@ -247,31 +247,33 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
                 { id: 'experimental', label: 'Experimental', icon: Icons.star }
               ].map(genre => {
                 const isSelected = formData.genres.includes(genre.id);
+                const Icon = genre.icon;
                 return (
                   <button
                     key={genre.id}
                     type="button"
-                    onClick={() => {
-                      if (isSelected) {
-                        removeGenre(genre.id);
-                      } else {
-                        handleGenreChange(genre.id);
-                      }
-                    }}
+                    onClick={() => handleGenreChange(genre.id)}
                     className={cn(
-                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm",
-                      "transition-all duration-200",
-                      "border",
+                      "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm transition-colors",
+                      "border focus:outline-none focus:ring-2 focus:ring-primary/20",
                       isSelected
-                        ? "bg-primary text-white border-primary/20 shadow-sm"
+                        ? isDark
+                          ? "bg-primary/20 text-primary-foreground border-primary/30"
+                          : "bg-primary/10 text-primary border-primary/20"
                         : isDark
-                          ? "bg-zinc-800/50 border-zinc-700 text-zinc-300 hover:border-primary/50"
-                          : "bg-white border-zinc-200 text-zinc-700 hover:border-primary/50"
+                          ? "bg-zinc-800/50 text-zinc-300 border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800"
+                          : "bg-white text-zinc-700 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
                     )}
                   >
-                    <genre.icon className={cn(
-                      "w-3.5 h-3.5",
-                      isSelected ? "text-white" : isDark ? "text-zinc-400" : "text-zinc-500"
+                    <Icon className={cn(
+                      "h-3.5 w-3.5",
+                      isSelected
+                        ? isDark
+                          ? "text-primary-foreground"
+                          : "text-primary"
+                        : isDark
+                          ? "text-zinc-400"
+                          : "text-zinc-500"
                     )} />
                     {genre.label}
                   </button>
