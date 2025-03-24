@@ -12,7 +12,7 @@ if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KE
   )
 }
 
-// Create Supabase client with enhanced error handling
+// Create Supabase client with enhanced error handling and retry logic
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
@@ -30,4 +30,28 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   db: {
     schema: 'public',
   },
+  realtime: {
+    params: {
+      eventsPerSecond: 2 // Limit realtime events to prevent rate limiting
+    }
+  }
 })
+
+// Add retry logic for rate-limited requests
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+export const withRetry = async <T>(
+  operation: () => Promise<T>,
+  retries = MAX_RETRIES
+): Promise<T> => {
+  try {
+    return await operation();
+  } catch (error: any) {
+    if (error?.status === 429 && retries > 0) {
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      return withRetry(operation, retries - 1);
+    }
+    throw error;
+  }
+};
