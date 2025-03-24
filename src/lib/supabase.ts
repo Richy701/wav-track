@@ -1,9 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 import { Database } from '../types/supabase'
 
-// Get environment variables with fallbacks for testing/development
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-url.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key-for-dev-only'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const appUrl = import.meta.env.VITE_APP_URL
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables')
+}
 
 // Log warning instead of throwing if env vars are missing
 if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
@@ -19,12 +23,12 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce',
-    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    storageKey: 'sb-auth-token',
+    redirectTo: `${appUrl}/auth/callback`,
   },
   global: {
     headers: {
       'X-Client-Info': 'supabase-js-web/2.39.3',
+      'x-application-name': import.meta.env.VITE_APP_NAME || 'wav-track',
     },
   },
   db: {
