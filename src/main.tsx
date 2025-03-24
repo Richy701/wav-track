@@ -19,11 +19,11 @@ const queryClient = new QueryClient({
         // Otherwise retry twice with exponential backoff
         return failureCount < 2
       },
-      staleTime: Infinity,
-      cacheTime: Infinity,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 30 * 60 * 1000, // 30 minutes
       refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
       refetchInterval: false,
       suspense: false,
       networkMode: 'online',

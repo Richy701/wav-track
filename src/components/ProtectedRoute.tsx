@@ -1,5 +1,5 @@
-import React, { useEffect, useCallback, memo } from 'react'
-import { useLocation, useNavigate, Navigate } from 'react-router-dom'
+import React, { memo, useCallback, useEffect } from 'react'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 
@@ -20,7 +20,7 @@ const LoadingSpinner = memo(() => {
 LoadingSpinner.displayName = 'LoadingSpinner'
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({ children }) => {
-  const { user, isLoading } = useAuth()
+  const { user, isLoading, isInitialized } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -40,13 +40,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({ children }) => {
   }, [navigate, location.pathname])
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!isLoading && !user && isInitialized) {
       showAuthError()
     }
-  }, [user, isLoading, showAuthError])
+  }, [user, isLoading, isInitialized, showAuthError])
 
   // Show loading spinner while auth is initializing
-  if (isLoading) {
+  if (isLoading || !isInitialized) {
     return <LoadingSpinner />
   }
 

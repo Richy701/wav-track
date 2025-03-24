@@ -114,6 +114,28 @@ export function useAuth() {
   return context
 }
 
+// Add this function before the AuthProvider component
+const isProfileComplete = (profile: Profile): boolean => {
+  // Define required fields
+  const requiredFields = [
+    'artist_name',
+    'genres',
+    'daw',
+    'bio',
+    'location',
+    'timezone'
+  ]
+
+  // Check if all required fields are filled
+  return requiredFields.every(field => {
+    const value = profile[field as keyof Profile]
+    if (field === 'genres') {
+      return Array.isArray(value) && value.length > 0
+    }
+    return value !== null && value !== undefined && value !== ''
+  })
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -143,7 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [location.pathname])
 
-  // Effect to handle auth state changes
+  // Effect to handle auth state changes and invalidate queries
   useEffect(() => {
     const {
       data: { subscription },
@@ -151,11 +173,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (event === 'SIGNED_IN' && session?.user) {
         if (authStateRef.current.mounted) {
           setUser(session.user)
+          
+          // Fetch profile data
+          const profileData = await fetchProfile(session.user.id)
+          
+          if (profileData && authStateRef.current.mounted) {
+            setProfile(profileData)
+            
+            // Check if profile is complete
+            if (!isProfileComplete(profileData)) {
+              // Redirect to profile completion form
+              navigate('/complete-profile', { 
+                state: { 
+                  from: location.pathname,
+                  profile: profileData
+                },
+                replace: true 
+              })
+            } else {
+              // Profile is complete, proceed normally
+              queryClient.invalidateQueries(['profile'])
+              queryClient.invalidateQueries(['projects'])
+              handleLoginSuccess(session)
+            }
+          }
         }
       } else if (event === 'SIGNED_OUT') {
         if (authStateRef.current.mounted) {
           setUser(null)
           setProfile(null)
+          // Clear queries when user signs out
+          queryClient.clear()
         }
       }
     })
@@ -163,11 +211,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe()
     }
-  }, [])
+  }, [queryClient, navigate, location.pathname])
 
-  // Initial auth check
+  // Initial auth check with improved error handling and loading states
   useEffect(() => {
     const initializeAuth = async () => {
+      if (authStateRef.current.initStarted) return
+      authStateRef.current.initStarted = true
+
       try {
         setIsLoading(true)
         const { data: { session }, error } = await supabase.auth.getSession()
@@ -177,48 +228,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (session?.user) {
-          setUser(session.user)
-          const profileData = await fetchProfile(session.user.id)
+          // Ensure we have a valid session before proceeding
+          const { data: { session: currentSession }, error: sessionError } = await supabase.auth.refreshSession()
           
-          if (authStateRef.current.mounted) {
-            if (profileData) {
-              setProfile(profileData)
-            } else {
-              // Create default profile if none exists
-              const defaultProfile = createDefaultProfile(
-                session.user.id,
-                session.user.email!,
-                session.user.user_metadata?.name || session.user.email?.split('@')[0] || null
-              )
+          if (sessionError) {
+            throw sessionError
+          }
 
-              const { data: newProfile, error: createError } = await supabase
-                .from('profiles')
-                .insert([defaultProfile])
-                .select()
-                .single()
+          if (currentSession) {
+            setUser(currentSession.user)
+            const profileData = await fetchProfile(currentSession.user.id)
+            
+            if (authStateRef.current.mounted) {
+              if (profileData) {
+                setProfile(profileData)
+              } else {
+                // Create default profile if none exists
+                const defaultProfile = createDefaultProfile(
+                  currentSession.user.id,
+                  currentSession.user.email!,
+                  currentSession.user.user_metadata?.name || currentSession.user.email?.split('@')[0] || null
+                )
 
-              if (!createError && newProfile) {
-                setProfile(convertProfileFromDb(newProfile))
+                const { data: newProfile, error: createError } = await supabase
+                  .from('profiles')
+                  .insert([defaultProfile])
+                  .select()
+                  .single()
+
+                if (!createError && newProfile) {
+                  setProfile(convertProfileFromDb(newProfile))
+                } else {
+                  console.error('Error creating profile:', createError)
+                  toast({
+                    variant: 'destructive',
+                    title: 'Profile Error',
+                    description: 'Failed to create profile. Please try again.',
+                  })
+                }
               }
             }
           }
         }
-
-        setIsInitialized(true)
       } catch (error) {
-        console.error('Auth initialization error:', error)
+        console.error('Auth error:', error)
+        toast({
+          variant: 'destructive',
+          title: 'Authentication Error',
+          description: 'Failed to initialize authentication. Please try again.',
+        })
       } finally {
         if (authStateRef.current.mounted) {
           setIsLoading(false)
+          authStateRef.current.initCompleted = true
         }
       }
     }
 
     initializeAuth()
-
-    return () => {
-      authStateRef.current.mounted = false
-    }
   }, [])
 
   const showErrorToast = (title: string, description: string) => {
@@ -238,19 +305,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     })
   }
 
-  const fetchProfile = async (userId: string): Promise<Profile | null> => {
-    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single()
+  const fetchProfile = async (userId: string, retryCount = 0): Promise<Profile | null> => {
+    try {
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single()
 
-    if (error) {
+      if (error) {
+        // If we get a 403/404 and haven't retried too many times, wait briefly and retry
+        if ((error.code === '403' || error.code === '404') && retryCount < 3) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)))
+          return fetchProfile(userId, retryCount + 1)
+        }
+
+        console.error('Profile fetch error:', error)
+        toast({
+          variant: 'destructive',
+          title: 'Profile Error',
+          description: 'Failed to fetch profile data. Please try again.',
+        })
+        throw error
+      }
+
+      return data ? convertProfileFromDb(data) : null
+    } catch (error) {
+      console.error('Profile fetch error:', error)
       toast({
         variant: 'destructive',
         title: 'Profile Error',
         description: 'Failed to fetch profile data. Please try again.',
       })
-      throw error
+      return null
     }
-
-    return data ? convertProfileFromDb(data) : null
   }
 
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -299,87 +383,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const register = async (registerData: RegisterData): Promise<boolean> => {
-    try {
-      setIsLoading(true)
-
-      const { data, error } = await supabase.auth.signUp({
-        email: registerData.email,
-        password: registerData.password,
-        options: {
-          data: {
-            name: registerData.name,
-          },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
-
-      if (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Registration Failed',
-          description: error.message || 'An error occurred during registration',
-        })
-        return false
-      }
-
-      if (data.user) {
-        const defaultProfile = createDefaultProfile(
-          data.user.id,
-          registerData.email,
-          registerData.name
-        )
-
-        // Add registration-specific fields
-        const profileData: DbProfileInsert = {
-          ...defaultProfile,
-          artist_name: registerData.artist_name || null,
-          genres: registerData.genres ? JSON.stringify(registerData.genres) : null,
-          daw: registerData.daw || null,
-          bio: registerData.bio || null,
-          location: registerData.location || null,
-          phone: registerData.phone || null,
-          website: registerData.website || null,
-        }
-
-        const { error: profileError } = await supabase.from('profiles').insert([profileData])
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError)
-          toast({
-            variant: 'destructive',
-            title: 'Account Created',
-            description:
-              'Your account was created but some profile information could not be saved. You can update it after logging in.',
-          })
-          return true
-        }
-
-        toast({
-          title: 'Registration Successful',
-          description: 'Welcome to the community! Please check your email to verify your account.',
-          className:
-            'bg-gradient-to-r from-primary/10 via-primary/5 to-background border-primary/20',
-        })
-        return true
-      }
-
-      toast({
-        variant: 'destructive',
-        title: 'Registration Failed',
-        description: 'No user data received',
-      })
-      return false
-    } catch (error) {
-      console.error('Registration error:', error)
-      toast({
-        variant: 'destructive',
-        title: 'Registration Failed',
-        description: error instanceof Error ? error.message : 'An unexpected error occurred',
-      })
-      return false
-    } finally {
-      setIsLoading(false)
-    }
+    console.log('[Auth] Registration attempt blocked - direct registration is disabled')
+    toast({
+      variant: 'destructive',
+      title: 'Registration Disabled',
+      description: 'New user registration is currently by invitation only. Please use Google authentication or contact the administrator.'
+    })
+    return false
   }
 
   const logout = async () => {
@@ -515,67 +525,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('[Auth] Error fetching profile during login:', error)
       }
 
-      // Add a longer delay to ensure all state updates have propagated
-      // through React's state update queue
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // Invalidate queries to ensure fresh data
+      queryClient.invalidateQueries(['profile'])
+      queryClient.invalidateQueries(['projects'])
 
-      // Use a separate effect to handle navigation after state update
-      // This prevents the "Object may no longer exist" error by ensuring
-      // the state is fully processed before navigation
-      setTimeout(() => {
-        // Only navigate when we're sure the component is still mounted
-        if (authStateRef.current.mounted) {
-          // Safely navigate with a longer delay
-          console.log('[Auth] Navigating to home after login')
+      // Navigate after state updates
+      if (authStateRef.current.mounted) {
+        // Navigate first
+        navigate('/', { replace: true })
 
-          // Update react-query cache to ensure data is available
-          queryClient.invalidateQueries(['profile'])
-          queryClient.invalidateQueries(['projects'])
+        // Show welcome modal and success toast after a short delay to ensure navigation is complete
+        setTimeout(() => {
+          if (authStateRef.current.mounted) {
+            // Show welcome modal
+            setShowWelcomeModal(true)
 
-          // Delay navigation to allow React Query cache updates to complete
-          setTimeout(() => {
-            if (authStateRef.current.mounted) {
-              navigate('/', { replace: true })
-
-              // Show welcome modal and success toast after navigation
-              setTimeout(() => {
-                if (authStateRef.current.mounted) {
-                  // Show welcome modal only on the home page
-                  if (location.pathname === '/') {
-                    setShowWelcomeModal(true)
-                  }
-
-                  toast({
-                    title: '🎹 Back in the Mix!',
-                    description: (
-                      <div className="flex flex-col gap-1">
-                        <p className="font-medium">Ready to create something amazing?</p>
-                        <p className="text-sm text-muted-foreground">
-                          Last session:{' '}
-                          {formatDistanceToNow(
-                            new Date(session.user.last_sign_in_at || Date.now())
-                          )}{' '}
-                          ago
-                        </p>
-                        <div className="mt-1 text-xs flex items-center gap-2">
-                          <div className="h-1 w-1 rounded-full bg-primary/50 animate-pulse" />
-                          <span>Your beats are waiting</span>
-                        </div>
-                      </div>
-                    ),
-                    variant: 'default',
-                    className:
-                      'bg-gradient-to-r from-primary/10 via-primary/5 to-background border-primary/20',
-                  })
-                }
-              }, 100)
-            }
-          }, 100)
-        }
-      }, 300)
+            // Show success toast
+            toast({
+              title: '🎹 Back in the Mix!',
+              description: (
+                <div className="flex flex-col gap-1">
+                  <p className="font-medium">Ready to create something amazing?</p>
+                  <p className="text-sm text-muted-foreground">
+                    Last session:{' '}
+                    {formatDistanceToNow(
+                      new Date(session.user.last_sign_in_at || Date.now())
+                    )}{' '}
+                    ago
+                  </p>
+                  <div className="mt-1 text-xs flex items-center gap-2">
+                    <div className="h-1 w-1 rounded-full bg-primary/50 animate-pulse" />
+                    <span>Your beats are waiting</span>
+                  </div>
+                </div>
+              ),
+              variant: 'default',
+              className:
+                'bg-gradient-to-r from-primary/10 via-primary/5 to-background border-primary/20',
+            })
+          }
+        }, 100)
+      }
     } catch (error) {
       console.error('[Auth] Error in handleLoginSuccess:', error)
-      // Still set the user even if there's an error with the navigation or toast
       if (session?.user) {
         setUser(session.user)
       }

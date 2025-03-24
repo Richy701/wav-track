@@ -12,13 +12,14 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 
 // Lazy load route components
 const Login = React.lazy(() => import('./pages/Login'))
-const Register = React.lazy(() => import('./pages/Register'))
 const Profile = React.lazy(() => import('./pages/Profile'))
 const ProfileSettings = React.lazy(() => import('./pages/ProfileSettings'))
 const Index = React.lazy(() => import('./pages/Index'))
 const Callback = React.lazy(() => import('./pages/auth/Callback'))
 const ScrollDemo = React.lazy(() => import('./pages/ScrollDemo'))
 const ProjectDetail = React.lazy(() => import('./pages/ProjectDetail'))
+const Dashboard = React.lazy(() => import('./pages/Dashboard'))
+const CompleteProfile = React.lazy(() => import('./pages/CompleteProfile'))
 
 function App() {
   const [isReady, setIsReady] = useState(false)
@@ -58,19 +59,21 @@ function App() {
                     }
                   />
                   <Route
-                    path="/register"
-                    element={
-                      <Suspense fallback={<LoadingScreen message="Loading registration..." />}>
-                        <Register />
-                      </Suspense>
-                    }
-                  />
-                  <Route
                     path="/auth/callback"
                     element={
                       <Suspense fallback={<LoadingScreen message="Processing authentication..." />}>
                         <Callback />
                       </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/complete-profile"
+                    element={
+                      <ProtectedRoute>
+                        <Suspense fallback={<LoadingScreen message="Loading profile form..." />}>
+                          <CompleteProfile />
+                        </Suspense>
+                      </ProtectedRoute>
                     }
                   />
                   <Route
@@ -107,6 +110,16 @@ function App() {
                       <ProtectedRoute>
                         <Suspense fallback={<LoadingScreen message="Loading project details..." />}>
                           <ProjectDetail />
+                        </Suspense>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
+                          <Dashboard />
                         </Suspense>
                       </ProtectedRoute>
                     }
