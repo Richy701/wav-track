@@ -2,16 +2,16 @@ import { useState, useEffect, useMemo } from 'react'
 import {
   ChartLineUp,
   PencilSimple,
-  CheckCircle as PhCheckCircle,
+  CheckCircle,
   MusicNote,
-  Clock as PhClock,
-  Calendar as PhCalendar,
-  Trophy as PhTrophy,
-  Star as PhStar,
-  Target as PhTarget,
+  Clock,
+  Calendar,
+  Trophy,
+  Star,
+  Target,
   Medal,
   ShareNetwork,
-  Download as PhDownload,
+  Download,
   Sparkle,
   FileXls,
   CalendarCheck,
@@ -33,6 +33,20 @@ interface StatsProps {
   selectedProject?: Project | null
 }
 
+interface YearInReview {
+  year: number
+  totalBeats: number
+  completedProjects: number
+  studioTime: string
+  monthlyStats: {
+    month: string
+    beats: number
+    completed: number
+    studioTime: number
+  }[]
+  topGenres: string[]
+}
+
 export default function Stats({ projects, sessions, selectedProject }: StatsProps) {
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month' | 'year'>('week')
   const [totalBeatsCreated, setTotalBeatsCreated] = useState(0)
@@ -40,6 +54,9 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
   const [isLoading, setIsLoading] = useState(true)
   const [lastBeatUpdate, setLastBeatUpdate] = useState(Date.now())
   const [refreshKey, setRefreshKey] = useState(0)
+  const [yearInReview, setYearInReview] = useState<YearInReview | null>(null)
+  const [showYearInReview, setShowYearInReview] = useState(false)
+  const [isGeneratingReview, setIsGeneratingReview] = useState(false)
 
   // Fetch beat counts when projects or selected project changes
   useEffect(() => {
@@ -126,7 +143,7 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
       id: 'first_beat',
       title: 'First Beat',
       description: 'Created your first project',
-      icon: <PhStar className="h-4 w-4" weight="fill" />,
+      icon: <Star className="h-4 w-4" weight="fill" />,
       unlocked: projects.length > 0,
       date:
         projects.length > 0
@@ -139,7 +156,7 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
       id: 'ten_beats',
       title: 'Beat Master',
       description: 'Created 10+ beats',
-      icon: <PhTrophy className="h-4 w-4" weight="fill" />,
+      icon: <Trophy className="h-4 w-4" weight="fill" />,
       unlocked: totalBeatsCreated >= 10,
       count: totalBeatsCreated,
       color: 'from-indigo-500 to-violet-500',
@@ -149,7 +166,7 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
       id: 'five_completed',
       title: 'Finisher',
       description: 'Completed 5+ projects',
-      icon: <PhTarget className="h-4 w-4" weight="fill" />,
+      icon: <Target className="h-4 w-4" weight="fill" />,
       unlocked: completedProjects >= 5,
       count: completedProjects,
       color: 'from-emerald-500 to-teal-500',
@@ -225,7 +242,7 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
     }
   }
 
-  const generateYearInReview = () => {
+  const generateYearInReview = async () => {
     const currentYear = new Date().getFullYear()
     const yearStart = new Date(currentYear, 0, 1)
 
@@ -234,34 +251,40 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
     const yearSessions = sessions.filter(s => new Date(s.date) >= yearStart)
 
     // Calculate year-specific stats
-    const yearBeats = yearProjects.reduce(
-      (total, project) => total + getBeatsCreatedByProject(project.id),
-      0
-    )
+    const yearBeats = await Promise.all(
+      yearProjects.map(project => getBeatsCreatedByProject(project.id))
+    ).then(counts => counts.reduce((total, count) => total + count, 0))
+    
     const yearCompleted = yearProjects.filter(p => p.status === 'completed').length
     const yearStudioTime = yearSessions.reduce((total, session) => total + session.duration, 0)
     const yearHours = Math.floor(yearStudioTime / 60)
 
     // Calculate monthly distribution
-    const monthlyStats = Array.from({ length: 12 }, (_, i) => {
-      const monthStart = new Date(currentYear, i, 1)
-      const monthEnd = new Date(currentYear, i + 1, 0)
-      const monthProjects = yearProjects.filter(p => {
-        const date = new Date(p.dateCreated)
-        return date >= monthStart && date <= monthEnd
-      })
-      const monthSessions = yearSessions.filter(s => {
-        const date = new Date(s.date)
-        return date >= monthStart && date <= monthEnd
-      })
+    const monthlyStats = await Promise.all(
+      Array.from({ length: 12 }, async (_, i) => {
+        const monthStart = new Date(currentYear, i, 1)
+        const monthEnd = new Date(currentYear, i + 1, 0)
+        const monthProjects = yearProjects.filter(p => {
+          const date = new Date(p.dateCreated)
+          return date >= monthStart && date <= monthEnd
+        })
+        const monthSessions = yearSessions.filter(s => {
+          const date = new Date(s.date)
+          return date >= monthStart && date <= monthEnd
+        })
 
-      return {
-        month: format(monthStart, 'MMM'),
-        beats: monthProjects.reduce((total, p) => total + getBeatsCreatedByProject(p.id), 0),
-        completed: monthProjects.filter(p => p.status === 'completed').length,
-        studioTime: monthSessions.reduce((total, s) => total + s.duration, 0),
-      }
-    })
+        const monthBeats = await Promise.all(
+          monthProjects.map(project => getBeatsCreatedByProject(project.id))
+        ).then(counts => counts.reduce((total, count) => total + count, 0))
+
+        return {
+          month: format(monthStart, 'MMM'),
+          beats: monthBeats,
+          completed: monthProjects.filter(p => p.status === 'completed').length,
+          studioTime: monthSessions.reduce((total, s) => total + s.duration, 0),
+        }
+      })
+    )
 
     return {
       year: currentYear,
@@ -326,6 +349,19 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
     })
   }
 
+  const handleGenerateYearInReview = async () => {
+    try {
+      setIsGeneratingReview(true)
+      const review = await generateYearInReview()
+      setYearInReview(review)
+      setShowYearInReview(true)
+    } catch (error) {
+      console.error('Error generating year in review:', error)
+    } finally {
+      setIsGeneratingReview(false)
+    }
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6 animate-fade-in">
       <div className="bg-card rounded-lg p-3 sm:p-4 lg:p-6 lg:col-span-3 overflow-hidden">
@@ -333,7 +369,7 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-md bg-primary/10">
-                <PhTrophy className="h-4 w-4 text-primary" weight="fill" />
+                <Trophy className="h-4 w-4 text-primary" weight="fill" />
               </div>
               {selectedProject && (
                 <Badge variant="outline" className="text-xs">
@@ -490,7 +526,7 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 via-teal-500/0 to-cyan-500/0 group-hover:from-emerald-500/5 group-hover:via-teal-500/10 group-hover:to-cyan-500/15 transition-all duration-500" />
               <div className="relative flex flex-col items-center gap-3">
                 <div className="p-2 rounded-lg bg-emerald-500/10 group-hover:bg-emerald-500/20 group-hover:scale-110 transition-all duration-300">
-                  <PhCalendar className="h-5 w-5 text-emerald-600" />
+                  <Calendar className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div className="space-y-1">
                   <h5 className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">
@@ -548,7 +584,7 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
         <StatCard
           title="Completed Projects"
           value={completedProjects.toString()}
-          icon={<PhCheckCircle className="w-3 h-3" weight="fill" />}
+          icon={<CheckCircle className="w-3 h-3" weight="fill" />}
           description="Successfully finished"
           trend={0}
           className="bg-card/50"
@@ -557,12 +593,46 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
         <StatCard
           title="Completion Rate"
           value={`${projects.length > 0 ? Math.round((completedProjects / projects.length) * 100) : 0}%`}
-          icon={<PhTarget className="w-3 h-3" weight="fill" />}
+          icon={<Target className="w-3 h-3" weight="fill" />}
           description="Projects completed"
           trend={0}
           className="bg-card/50"
         />
       </div>
+
+      <button 
+        onClick={handleGenerateYearInReview}
+        disabled={isGeneratingReview}
+      >
+        {isGeneratingReview ? 'Generating...' : 'Generate Year in Review'}
+      </button>
+
+      {showYearInReview && yearInReview && (
+        <div>
+          <h2>{yearInReview.year} Year in Review</h2>
+          <p>Total Beats: {yearInReview.totalBeats}</p>
+          <p>Completed Projects: {yearInReview.completedProjects}</p>
+          <p>Studio Time: {yearInReview.studioTime}</p>
+          <div>
+            {yearInReview.monthlyStats.map(stat => (
+              <div key={stat.month}>
+                <h3>{stat.month}</h3>
+                <p>Beats: {stat.beats}</p>
+                <p>Completed: {stat.completed}</p>
+                <p>Studio Time: {stat.studioTime} minutes</p>
+              </div>
+            ))}
+          </div>
+          <div>
+            <h3>Top Genres</h3>
+            <ul>
+              {yearInReview.topGenres.map(genre => (
+                <li key={genre}>{genre}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

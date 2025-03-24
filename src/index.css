@@ -275,6 +275,26 @@
     .clickable {
       @apply min-h-[44px] min-w-[44px];
     }
+
+    /* Better spacing for mobile lists */
+    ul, ol {
+      @apply space-y-2;
+    }
+
+    /* Improved form elements on mobile */
+    input, select, textarea {
+      @apply text-base;
+    }
+
+    /* Better table handling on mobile */
+    table {
+      @apply block overflow-x-auto;
+    }
+
+    /* Improved modal dialogs on mobile */
+    .modal {
+      @apply mx-4;
+    }
   }
 
   /* Tablet Optimizations */
@@ -294,6 +314,16 @@
 
     .recharts-label {
       @apply text-xs;
+    }
+
+    /* Better spacing for tablet */
+    .section-padding {
+      @apply py-8;
+    }
+
+    /* Improved grid layouts for tablet */
+    .grid {
+      @apply gap-4;
     }
   }
 }

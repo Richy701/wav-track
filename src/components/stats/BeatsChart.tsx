@@ -155,13 +155,54 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
         <style>
           {`
             .recharts-bar-rectangle {
-              transition: opacity 0.2s ease;
+              transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+              transform-origin: bottom;
             }
+            /* Remove default hover effects */
+            .recharts-rectangle.recharts-bar-background-rectangle,
+            .recharts-bar-rectangle.hover,
+            .recharts-rectangle.hover,
+            .recharts-bar-rectangle:hover .recharts-rectangle.hover,
+            .recharts-bar-rectangle.recharts-active-bar .recharts-rectangle.hover,
+            .recharts-bar-rectangle.recharts-active-bar .recharts-rectangle.recharts-bar-background-rectangle,
+            .recharts-tooltip-cursor {
+              fill: transparent !important;
+              stroke: none !important;
+              opacity: 0 !important;
+              display: none !important;
+              visibility: hidden !important;
+              pointer-events: none !important;
+            }
+            /* Minimal hover effect */
             .recharts-bar-rectangle:hover {
-              opacity: 0.8;
+              transform: scaleY(1.02);
+              filter: brightness(1.05);
             }
+            /* Dark mode hover */
+            .dark .recharts-bar-rectangle:hover {
+              filter: brightness(1.1);
+            }
+            /* Light mode hover */
+            :not(.dark) .recharts-bar-rectangle:hover {
+              filter: brightness(1.05);
+            }
+            /* Ensure smooth transitions */
+            .recharts-bar-rectangles path {
+              transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            }
+            /* Remove any default active state backgrounds */
+            .recharts-layer.recharts-bar-rectangles > g {
+              fill: none !important;
+            }
+            /* Additional rules to prevent tooltip effects */
             .recharts-tooltip-wrapper {
-              transition: transform 0.2s ease, opacity 0.2s ease;
+              pointer-events: none !important;
+            }
+            .recharts-active-bar {
+              fill: inherit !important;
+            }
+            .recharts-tooltip-cursor {
+              display: none !important;
             }
             @media (max-width: 640px) {
               .recharts-cartesian-axis-tick-text {
@@ -186,13 +227,14 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                   <stop offset="0%" stopColor="rgb(139, 92, 246)" stopOpacity={0.85} />
                   <stop offset="100%" stopColor="rgb(139, 92, 246)" stopOpacity={0.35} />
                 </linearGradient>
-                <filter id="glow">
-                  <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                  <feMerge>
-                    <feMergeNode in="coloredBlur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
+                <linearGradient id="barGradientHoverLight" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="rgb(124, 58, 237)" stopOpacity={0.95} />
+                  <stop offset="100%" stopColor="rgb(99, 102, 241)" stopOpacity={0.45} />
+                </linearGradient>
+                <linearGradient id="barGradientHoverDark" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="rgb(139, 92, 246)" stopOpacity={1} />
+                  <stop offset="100%" stopColor="rgb(79, 70, 229)" stopOpacity={0.5} />
+                </linearGradient>
               </defs>
               <XAxis
                 dataKey="label"
@@ -249,6 +291,8 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                   }
                   return null
                 }}
+                cursor={false}
+                isAnimationActive={false}
               />
               <Bar
                 dataKey="value"
@@ -256,12 +300,22 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                 radius={[6, 6, 0, 0]}
                 barSize={timeRange === 'year' ? 16 : 32}
                 animationDuration={300}
-                className="transition-all duration-300 hover:filter hover:brightness-110"
+                className="transition-all duration-300"
+                isAnimationActive={false}
+                activeBar={false}
+                onMouseOver={(data, index) => {
+                  setHighlightedBar(data.label)
+                }}
+                onMouseLeave={() => {
+                  setHighlightedBar(null)
+                }}
+                background={{ fill: 'transparent', radius: 0 }}
+                maxBarSize={100}
               >
                 <defs>
                   <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="rgb(139, 92, 246)" stopOpacity={0.9} />
-                    <stop offset="100%" stopColor="rgb(139, 92, 246)" stopOpacity={0.5} />
+                    <stop offset="0%" stopColor="rgb(139, 92, 246)" stopOpacity={0.85} />
+                    <stop offset="100%" stopColor="rgb(139, 92, 246)" stopOpacity={0.35} />
                   </linearGradient>
                 </defs>
                 {beatsData.map((entry, index) => (
@@ -292,13 +346,6 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                   <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.9} />
                   <stop offset="100%" stopColor="#d946ef" stopOpacity={0.6} />
                 </linearGradient>
-                <filter id="glow">
-                  <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-                  <feMerge>
-                    <feMergeNode in="coloredBlur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
               </defs>
               <XAxis
                 dataKey="label"
@@ -354,6 +401,8 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                   }
                   return null
                 }}
+                cursor={false}
+                isAnimationActive={false}
               />
               <Line
                 type="monotone"
