@@ -156,9 +156,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (authStateRef.current.mounted) {
           setUser(session.user)
           
-          // Check if this is a new user (Google sign-in)
-          const isNewUser = session.user.app_metadata.provider === 'google' && 
-                          (!profile || !profile.artist_name);
+          // Log user data for debugging
+          console.log('User signed in:', {
+            id: session.user.id,
+            email: session.user.email,
+            provider: session.user.app_metadata.provider,
+            metadata: session.user.user_metadata
+          });
           
           // Fetch or create profile
           const profileData = await fetchProfile(session.user.id);
@@ -166,6 +170,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (authStateRef.current.mounted) {
             if (profileData) {
               setProfile(profileData);
+              // Log existing profile data
+              console.log('Existing profile:', profileData);
             } else {
               // Create default profile with Google data
               const defaultProfile = createDefaultProfile(
@@ -182,6 +188,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
               if (!createError && newProfile) {
                 setProfile(convertProfileFromDb(newProfile));
+                // Log newly created profile
+                console.log('New profile created:', convertProfileFromDb(newProfile));
               } else {
                 console.error('Error creating profile:', createError);
                 toast({
@@ -234,7 +242,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             throw sessionError
           }
 
-          if (currentSession) {
+          if (currentSession?.user) {
             setUser(currentSession.user)
             const profileData = await fetchProfile(currentSession.user.id)
             
