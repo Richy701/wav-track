@@ -49,14 +49,10 @@ export default function LoginPage() {
 
           <div className="text-center">
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Don&apos;t have an account?{' '}
-              <Link
-                to="/register"
-                className="text-violet-600 dark:text-violet-400 hover:underline inline-flex items-center"
-              >
-                Sign up
-                <ArrowRight className="ml-1 h-3 w-3" />
-              </Link>
+              New user?{' '}
+              <span className="text-violet-600 dark:text-violet-400">
+                Sign in with Google to create an account
+              </span>
             </p>
           </div>
         </div>

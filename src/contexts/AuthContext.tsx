@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { toast } from '@/components/ui/use-toast'
 import type { ToastProps } from '@/components/ui/toast'
 import { User } from '@supabase/supabase-js'
@@ -40,6 +40,8 @@ export interface Profile {
     twitter_username: string | null
     youtube: string | null
     youtube_username: string | null
+    soundcloud?: string
+    spotify?: string
   } | null
   notification_preferences: {
     newFollowers: boolean
@@ -79,6 +81,7 @@ interface AuthContextType {
   profile: Profile | null
   isAuthenticated: boolean
   isLoading: boolean
+  isInitialized: boolean
   login: (email: string, password: string) => Promise<boolean>
   register: (data: RegisterData) => Promise<boolean>
   logout: () => Promise<void>
@@ -114,28 +117,6 @@ export function useAuth() {
   return context
 }
 
-// Add this function before the AuthProvider component
-const isProfileComplete = (profile: Profile): boolean => {
-  // Define required fields
-  const requiredFields = [
-    'artist_name',
-    'genres',
-    'daw',
-    'bio',
-    'location',
-    'timezone'
-  ]
-
-  // Check if all required fields are filled
-  return requiredFields.every(field => {
-    const value = profile[field as keyof Profile]
-    if (field === 'genres') {
-      return Array.isArray(value) && value.length > 0
-    }
-    return value !== null && value !== undefined && value !== ''
-  })
-}
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -152,6 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initError: null,
     initRetryCount: 0,
   })
+  const refreshTimeoutRef = useRef<NodeJS.Timeout>()
 
   // Function to show welcome modal with delay
   const showWelcomeModalWithDelay = React.useCallback(() => {
@@ -173,30 +155,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (event === 'SIGNED_IN' && session?.user) {
         if (authStateRef.current.mounted) {
           setUser(session.user)
-          
-          // Fetch profile data
-          const profileData = await fetchProfile(session.user.id)
-          
-          if (profileData && authStateRef.current.mounted) {
-            setProfile(profileData)
-            
-            // Check if profile is complete
-            if (!isProfileComplete(profileData)) {
-              // Redirect to profile completion form
-              navigate('/complete-profile', { 
-                state: { 
-                  from: location.pathname,
-                  profile: profileData
-                },
-                replace: true 
-              })
-            } else {
-              // Profile is complete, proceed normally
-              queryClient.invalidateQueries(['profile'])
-              queryClient.invalidateQueries(['projects'])
-              handleLoginSuccess(session)
-            }
-          }
+          // Invalidate queries when user signs in
+          queryClient.invalidateQueries(['profile'])
+          queryClient.invalidateQueries(['projects'])
         }
       } else if (event === 'SIGNED_OUT') {
         if (authStateRef.current.mounted) {
@@ -211,7 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe()
     }
-  }, [queryClient, navigate, location.pathname])
+  }, [queryClient])
 
   // Initial auth check with improved error handling and loading states
   useEffect(() => {
@@ -280,6 +241,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } finally {
         if (authStateRef.current.mounted) {
           setIsLoading(false)
+          setIsInitialized(true)
           authStateRef.current.initCompleted = true
         }
       }
@@ -382,7 +344,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
-  const register = async (registerData: RegisterData): Promise<boolean> => {
+  const register = async (data: RegisterData): Promise<boolean> => {
     console.log('[Auth] Registration attempt blocked - direct registration is disabled')
     toast({
       variant: 'destructive',
@@ -581,6 +543,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         profile,
         isAuthenticated: !!user,
         isLoading,
+        isInitialized,
         login,
         register,
         logout,

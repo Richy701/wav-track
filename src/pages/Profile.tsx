@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -18,35 +18,52 @@ import Footer from '@/components/Footer'
 import { AboutMe } from '@/components/profile/AboutMe'
 import { StatsSummary } from '@/components/profile/StatsSummary'
 import { RecentProjects } from '@/components/profile/RecentProjects'
+import { Spinner } from '@/components/ui/spinner'
+import { useImageCache } from '@/hooks/useImageCache'
 
 const Profile = () => {
-  const { profile, logout, refreshProfile } = useAuth()
+  const { profile, logout, refreshProfile, isLoading: authLoading, isInitialized } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const refreshTimeoutRef = useRef<NodeJS.Timeout>()
+  const { cachedImage, isLoading: imageLoading, error: imageError } = useImageCache(profile?.avatar_url)
 
-  // Refresh profile when component mounts or when returning from settings
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  // Refresh profile when component mounts
   useEffect(() => {
     const loadProfile = async () => {
-      console.log('Profile: Starting data refresh...')
-      setIsLoading(true)
-      try {
-        await refreshProfile()
-        console.log('Profile: Data refresh successful')
-      } catch (error) {
-        console.error('Error refreshing profile:', error)
-        toast.error('Failed to load profile data')
-      } finally {
-        setIsLoading(false)
+      if (!isInitialized || authLoading) return
+      
+      // Clear any existing timeout
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current)
       }
+
+      // Set a new timeout to debounce the refresh
+      refreshTimeoutRef.current = setTimeout(async () => {
+        try {
+          await refreshProfile()
+        } catch (error) {
+          console.error('Error refreshing profile:', error)
+          toast.error('Failed to load profile data')
+        }
+      }, 500) // 500ms debounce
     }
 
     loadProfile()
-  }, [refreshProfile, location.key])
+  }, [refreshProfile, isInitialized, authLoading])
 
   // Calculate the initials for the avatar fallback
-  const getInitials = () => {
+  const getInitials = useCallback(() => {
     if (!profile?.name) return 'U'
     return profile.name
       .split(' ')
@@ -54,7 +71,7 @@ const Profile = () => {
       .join('')
       .toUpperCase()
       .substring(0, 2)
-  }
+  }, [profile?.name])
 
   // Memoize handlers
   const handleImageUpload = useCallback(
@@ -73,12 +90,15 @@ const Profile = () => {
       }
 
       try {
+        setIsLoading(true)
         const formData = new FormData()
         formData.append('avatar', file)
         await refreshProfile()
       } catch (error) {
         console.error('Error uploading image:', error)
         toast.error('Failed to upload image')
+      } finally {
+        setIsLoading(false)
       }
     },
     [refreshProfile]
@@ -93,6 +113,16 @@ const Profile = () => {
       toast.error('Failed to logout')
     }
   }, [logout, navigate])
+
+  // Show loading state while auth is initializing
+  if (authLoading || !isInitialized) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center">
+        <Spinner className="h-8 w-8 mb-4" />
+        <p className="text-sm text-muted-foreground">Loading profile...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -118,8 +148,20 @@ const Profile = () => {
               {/* Avatar with Upload Button */}
               <div className="relative group">
                 <Avatar className="w-24 h-24 border-2 border-muted shadow-sm">
-                  <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="text-xl">{getInitials()}</AvatarFallback>
+                  {imageLoading && !imageError && (
+                    <div className="h-full w-full flex items-center justify-center bg-muted">
+                      <Spinner className="h-6 w-6" />
+                    </div>
+                  )}
+                  {!imageLoading && !imageError && cachedImage && (
+                    <AvatarImage 
+                      src={cachedImage}
+                      alt={profile?.name || 'Profile picture'}
+                    />
+                  )}
+                  {(imageError || !cachedImage) && (
+                    <AvatarFallback className="text-xl">{getInitials()}</AvatarFallback>
+                  )}
                 </Avatar>
                 <button
                   onClick={() => fileInputRef.current?.click()}

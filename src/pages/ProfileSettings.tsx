@@ -26,7 +26,6 @@ import {
   TwitterLogo,
   YoutubeLogo,
   X,
-  Desktop,
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import {
@@ -617,24 +616,6 @@ const ProfileSettings = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Developer Settings - Only visible in development mode */}
-          {import.meta.env.DEV && (
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Desktop className="h-5 w-5" />
-                  Developer Tools
-                </CardTitle>
-                <CardDescription>
-                  Tools for development and testing. Only visible in development mode.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* TestDataGenerator component removed as per instructions */}
-              </CardContent>
-            </Card>
-          )}
 
           {/* Form Actions */}
           <div className="flex justify-between items-center">

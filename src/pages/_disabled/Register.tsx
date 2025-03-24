@@ -15,7 +15,7 @@ export default function Register() {
   const [isLineChart, setIsLineChart] = useState(true)
 
   const handleSuccess = () => {
-    navigate('/login')
+    navigate('/dashboard')
   }
 
   // Sample data for different time ranges

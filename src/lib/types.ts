@@ -20,7 +20,6 @@ export interface Project {
     type: string
     url: string
   } | null
-  coverArt?: null
 }
 
 export interface Sample {

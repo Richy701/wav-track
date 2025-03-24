@@ -54,7 +54,7 @@ const Dashboard: React.FC = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 min-w-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 min-w-0 items-start">
         {/* Share Progress Card */}
         <div className="min-w-0">
           <ShareProgressPreview
@@ -62,7 +62,7 @@ const Dashboard: React.FC = () => {
             sharedAchievements={45}
             onExport={handleExport}
           >
-            <div className={cn(cardClassName, "min-h-[200px] sm:min-h-[220px]")}>
+            <div className={cn(cardClassName, "h-[200px]")}>
               <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 truncate">Share Your Progress</h2>
               <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-300 mb-4 line-clamp-2">
                 Share your achievements and inspire others in the community
@@ -75,7 +75,7 @@ const Dashboard: React.FC = () => {
         {/* Monthly Breakdown Card */}
         <div className="min-w-0">
           <MonthlyBreakdownPreview monthlyData={mockMonthlyData} onExport={handleExport}>
-            <div className={cn(cardClassName, "min-h-[200px] sm:min-h-[220px]")}>
+            <div className={cn(cardClassName, "h-[200px]")}>
               <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 truncate">Monthly Breakdown</h2>
               <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-300 mb-4 line-clamp-2">
                 Track your productivity and growth over time
@@ -88,7 +88,7 @@ const Dashboard: React.FC = () => {
         {/* Year in Review Card */}
         <div className="min-w-0">
           <YearInReviewPreview onExport={handleExport} totalBeats={0} completedProjects={0} averageBPM={0}>
-            <div className={cn(cardClassName, "min-h-[200px] sm:min-h-[220px]")}>
+            <div className={cn(cardClassName, "h-[200px]")}>
               <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 truncate">Year in Review</h2>
               <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-300 mb-4 line-clamp-2">
                 See your highlights and achievements from this year

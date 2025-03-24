@@ -1,5 +1,6 @@
+import React from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -11,23 +12,16 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { User, Settings, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { Spinner } from '@/components/ui/spinner'
+import { useImageCache } from '@/hooks/useImageCache'
 
-export default function UserAvatar() {
-  const { user, logout } = useAuth()
+const UserAvatar = () => {
+  const { user, profile, logout } = useAuth()
   const navigate = useNavigate()
+  const { cachedImage, isLoading, error } = useImageCache(profile?.avatar_url)
 
-  if (!user) return null
-
-  // Get user profile data
-  const profile = {
-    name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-    email: user.email,
-    avatar_url: user.user_metadata?.avatar_url,
-  }
-
-  // Get user initials for avatar fallback
   const getInitials = () => {
-    if (!profile.name) return '?'
+    if (!profile?.name) return 'U'
     return profile.name
       .split(' ')
       .map(part => part[0])
@@ -36,21 +30,35 @@ export default function UserAvatar() {
       .substring(0, 2)
   }
 
+  if (!user) return null
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full" aria-label="User menu">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={profile.avatar_url} alt={profile.name} className="object-cover" />
-            <AvatarFallback className="bg-primary/10 text-primary">{getInitials()}</AvatarFallback>
+            {isLoading && !error && (
+              <div className="h-full w-full flex items-center justify-center bg-muted">
+                <Spinner className="h-4 w-4" />
+              </div>
+            )}
+            {!isLoading && !error && cachedImage && (
+              <AvatarImage
+                src={cachedImage}
+                alt={profile?.name || 'User avatar'}
+              />
+            )}
+            {(error || !cachedImage) && (
+              <AvatarFallback className="bg-primary/10 text-primary">{getInitials()}</AvatarFallback>
+            )}
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{profile.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">{profile.email}</p>
+            <p className="text-sm font-medium leading-none">{profile?.name}</p>
+            <p className="text-xs leading-none text-muted-foreground">{profile?.email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -74,3 +82,5 @@ export default function UserAvatar() {
     </DropdownMenu>
   )
 }
+
+export default UserAvatar

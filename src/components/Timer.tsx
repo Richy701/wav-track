@@ -90,26 +90,59 @@ export default function Timer() {
   const [audioError, setAudioError] = useState<string | null>(null)
   const audioLoadAttempted = useRef(false)
 
-  // Get a random quote that's different from the current one
+  // Get a random quote that's different from the current one and hasn't been shown recently
   const getRandomQuote = () => {
-    const filteredQuotes = quotes.filter(q => q.text !== quote.text)
-    const randomIndex = Math.floor(Math.random() * filteredQuotes.length)
-    return filteredQuotes[randomIndex]
+    const lastQuoteData = localStorage.getItem('lastQuote')
+    const lastQuote = lastQuoteData ? JSON.parse(lastQuoteData) : null
+    const today = new Date().toDateString()
+
+    // If we have a last quote and it's from today, filter it out
+    const availableQuotes = quotes.filter(q => {
+      if (!lastQuote) return true
+      return q.text !== lastQuote.text || lastQuote.date !== today
+    })
+
+    // If all quotes have been shown today, reset the filter
+    if (availableQuotes.length === 0) {
+      return quotes[Math.floor(Math.random() * quotes.length)]
+    }
+
+    const randomIndex = Math.floor(Math.random() * availableQuotes.length)
+    return availableQuotes[randomIndex]
   }
 
   // Change quote with animation
   const changeQuote = () => {
     setFadeIn(false)
     setTimeout(() => {
-      setQuote(getRandomQuote())
+      const newQuote = getRandomQuote()
+      setQuote(newQuote)
+      // Save the new quote and today's date
+      localStorage.setItem('lastQuote', JSON.stringify({
+        text: newQuote.text,
+        date: new Date().toDateString()
+      }))
       setFadeIn(true)
     }, 300)
   }
 
   // Initialize with a random quote
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * quotes.length)
-    setQuote(quotes[randomIndex])
+    const lastQuoteData = localStorage.getItem('lastQuote')
+    const lastQuote = lastQuoteData ? JSON.parse(lastQuoteData) : null
+    const today = new Date().toDateString()
+
+    // If we have a last quote and it's from today, use it
+    if (lastQuote && lastQuote.date === today) {
+      const savedQuote = quotes.find(q => q.text === lastQuote.text)
+      if (savedQuote) {
+        setQuote(savedQuote)
+      } else {
+        setQuote(getRandomQuote())
+      }
+    } else {
+      setQuote(getRandomQuote())
+    }
   }, [])
 
   // Load settings from localStorage when component mounts
@@ -374,21 +407,21 @@ export default function Timer() {
           />
 
           {/* Motivational Quote Section */}
-          <div className="mt-8 pt-5 border-t border-border/50">
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-md bg-primary/10">
-                  <Quote className="h-4 w-4 text-primary/70" />
+          <div className="mt-4 pt-3 border-t border-border/50">
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center gap-2">
+                <div className="p-1 rounded-md bg-primary/10">
+                  <Quote className="h-3.5 w-3.5 text-primary/70" />
                 </div>
-                <h4 className="text-sm font-medium text-muted-foreground">Daily Inspiration</h4>
+                <h4 className="text-xs font-medium text-muted-foreground">Daily Inspiration</h4>
               </div>
               <button
                 onClick={changeQuote}
-                className="h-8 w-8 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
+                className="h-6 w-6 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
                 title="Get new quote"
                 aria-label="Get new inspirational quote"
               >
-                <Sparkles size={14} className="text-primary" />
+                <Sparkles size={10} className="text-primary" />
               </button>
             </div>
 
@@ -398,15 +431,15 @@ export default function Timer() {
                 fadeIn ? 'opacity-100' : 'opacity-0'
               )}
             >
-              <div className="relative px-7 py-3">
-                <Quote className="absolute left-1 top-0 h-4 w-4 text-primary/10" />
-                <Quote className="absolute right-1 bottom-0 h-4 w-4 text-primary/10 rotate-180" />
-                <div className="text-center space-y-3">
-                  <p className="text-[15px] leading-relaxed text-foreground font-medium tracking-tight">
+              <div className="relative px-4 py-1.5">
+                <Quote className="absolute left-0 top-0 h-3.5 w-3.5 text-primary/10" />
+                <Quote className="absolute right-0 bottom-0 h-3.5 w-3.5 text-primary/10 rotate-180" />
+                <div className="text-center space-y-1">
+                  <p className="text-sm leading-relaxed text-foreground font-medium tracking-tight">
                     "{quote.text}"
                   </p>
-                  <div className="flex flex-col items-center gap-1.5">
-                    <div className="h-px w-8 bg-gradient-to-r from-transparent via-border/70 to-transparent"></div>
+                  <div className="flex flex-col items-center gap-0.5">
+                    <div className="h-px w-5 bg-gradient-to-r from-transparent via-border/70 to-transparent"></div>
                     <span className="text-xs text-muted-foreground tracking-wide">
                       {quote.author}
                     </span>

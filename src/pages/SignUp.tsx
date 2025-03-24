@@ -6,6 +6,9 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { theme } from '@/styles/theme'
+import { useAuth } from '@/contexts/AuthContext'
+import { toast } from '@/components/ui/use-toast'
+import { Icons } from '@/components/icons'
 import {
   ChevronDown,
   ChevronUp,
@@ -71,11 +74,65 @@ const daws = [
 
 export function SignUp() {
   const navigate = useNavigate()
+  const { register } = useAuth()
   const [showOptionalFields, setShowOptionalFields] = useState(false)
   const [selectedGenres, setSelectedGenres] = useState<string[]>([])
   const [bio, setBio] = useState('')
   const [artistName, setArtistName] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    location: '',
+    phone: '',
+    website: '',
+    daw: '',
+  })
   const maxBioLength = 500
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    try {
+      console.log("SignUp: Form submission started")
+      console.log("SignUp: Data being sent:", {
+        formData,
+        artistName,
+        selectedGenres,
+        bio
+      })
+
+      const success = await register({
+        ...formData,
+        artist_name: artistName,
+        genres: selectedGenres,
+        bio,
+      })
+
+      console.log("SignUp: Register response:", success)
+
+      if (success) {
+        console.log("SignUp: Registration successful, navigating to dashboard")
+        navigate('/dashboard')
+      }
+    } catch (err) {
+      console.error("SignUp: Registration error:", err)
+      toast({
+        variant: "destructive",
+        title: "Registration failed",
+        description: err instanceof Error ? err.message : "An error occurred during registration",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const toggleGenre = (genre: string) => {
     setSelectedGenres(prev =>
@@ -161,15 +218,33 @@ export function SignUp() {
           <div className={cn(theme.card.base, 'p-6')}>
             <h2 className={cn(theme.text.heading, 'text-2xl mb-6')}>Create Your Account</h2>
 
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Basic Info Section */}
               <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="John Doe"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                    className={cn(theme.input.base)}
+                  />
+                </div>
+
                 <div>
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="you@example.com"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
                     className={cn(theme.input.base)}
                   />
                 </div>
@@ -178,8 +253,12 @@ export function SignUp() {
                   <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
+                    name="password"
                     type="password"
                     placeholder="••••••••"
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
                     className={cn(theme.input.base)}
                   />
                 </div>
@@ -358,8 +437,19 @@ export function SignUp() {
                 )}
               </div>
 
-              <Button type="submit" className={cn(theme.button.primary, 'w-full')}>
-                Create Account
+              <Button 
+                type="submit" 
+                className={cn(theme.button.primary, 'w-full')}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  'Create Account'
+                )}
               </Button>
             </form>
 

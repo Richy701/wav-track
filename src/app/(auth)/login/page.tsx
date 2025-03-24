@@ -31,16 +31,6 @@ export default function LoginPage() {
 
         <LoginForm />
 
-        <p className="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
-          Don't have an account?{' '}
-          <Link
-            href="/create-account"
-            className="font-medium text-primary hover:text-primary/90 transition-colors"
-          >
-            Create one
-          </Link>
-        </p>
-
         {/* Features section */}
         <div className="mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-800">
           <h2 className="text-center text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-6">

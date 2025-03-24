@@ -424,9 +424,10 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
                 {achievement.unlocked && (
                   <div
                     className={cn(
-                      'absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 rounded-lg',
+                      'absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg',
                       achievement.color.replace('from-', 'from-').replace('to-', 'to-') + '/10'
                     )}
+                    style={{ zIndex: -1 }}
                   />
                 )}
 
@@ -478,10 +479,10 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
         {/* Export/Share Section */}
         <div className="mt-4 pt-3 border-t">
           <h4 className="font-medium text-xs text-muted-foreground mb-3">Share Your Progress</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <button
               onClick={handleShareStats}
-              className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 via-purple-500/15 to-fuchsia-500/20 border border-violet-500/20 hover:from-violet-500/20 hover:via-purple-500/25 hover:to-fuchsia-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-center w-full group relative overflow-hidden"
+              className="h-[140px] p-4 rounded-xl bg-gradient-to-br from-violet-500/10 via-purple-500/15 to-fuchsia-500/20 border border-violet-500/20 hover:from-violet-500/20 hover:via-purple-500/25 hover:to-fuchsia-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-center w-full group relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-violet-500/0 via-purple-500/0 to-fuchsia-500/0 group-hover:from-violet-500/5 group-hover:via-purple-500/10 group-hover:to-fuchsia-500/15 transition-all duration-500" />
               <div className="relative flex flex-col items-center gap-3">
@@ -500,28 +501,8 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
             </button>
 
             <button
-              onClick={handleExportStats}
-              className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 via-cyan-500/15 to-sky-500/20 border border-blue-500/20 hover:from-blue-500/20 hover:via-cyan-500/25 hover:to-sky-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-center w-full group relative overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-cyan-500/0 to-sky-500/0 group-hover:from-blue-500/5 group-hover:via-cyan-500/10 group-hover:to-sky-500/15 transition-all duration-500" />
-              <div className="relative flex flex-col items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-500/10 group-hover:bg-blue-500/20 group-hover:scale-110 transition-all duration-300">
-                  <CalendarCheck className="h-5 w-5 text-blue-600" />
-                </div>
-                <div className="space-y-1">
-                  <h5 className="text-sm font-semibold text-blue-900 dark:text-blue-100">
-                    Progress Overview
-                  </h5>
-                  <p className="text-xs text-blue-600/70 dark:text-blue-300/70">
-                    View detailed stats
-                  </p>
-                </div>
-              </div>
-            </button>
-
-            <button
               onClick={handleExportCSV}
-              className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 via-teal-500/15 to-cyan-500/20 border border-emerald-500/20 hover:from-emerald-500/20 hover:via-teal-500/25 hover:to-cyan-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-center w-full group relative overflow-hidden"
+              className="h-[140px] p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 via-teal-500/15 to-cyan-500/20 border border-emerald-500/20 hover:from-emerald-500/20 hover:via-teal-500/25 hover:to-cyan-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-center w-full group relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 via-teal-500/0 to-cyan-500/0 group-hover:from-emerald-500/5 group-hover:via-teal-500/10 group-hover:to-cyan-500/15 transition-all duration-500" />
               <div className="relative flex flex-col items-center gap-3">
@@ -541,7 +522,7 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
 
             <button
               onClick={handleExportCSV}
-              className="p-4 rounded-xl bg-gradient-to-br from-rose-500/10 via-pink-500/15 to-fuchsia-500/20 border border-rose-500/20 hover:from-rose-500/20 hover:via-pink-500/25 hover:to-fuchsia-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-center w-full group relative overflow-hidden"
+              className="h-[140px] p-4 rounded-xl bg-gradient-to-br from-rose-500/10 via-pink-500/15 to-fuchsia-500/20 border border-rose-500/20 hover:from-rose-500/20 hover:via-pink-500/25 hover:to-fuchsia-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-center w-full group relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-rose-500/0 via-pink-500/0 to-fuchsia-500/0 group-hover:from-rose-500/5 group-hover:via-pink-500/10 group-hover:to-fuchsia-500/15 transition-all duration-500" />
               <div className="relative flex flex-col items-center gap-3">
@@ -599,13 +580,6 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
           className="bg-card/50"
         />
       </div>
-
-      <button 
-        onClick={handleGenerateYearInReview}
-        disabled={isGeneratingReview}
-      >
-        {isGeneratingReview ? 'Generating...' : 'Generate Year in Review'}
-      </button>
 
       {showYearInReview && yearInReview && (
         <div>

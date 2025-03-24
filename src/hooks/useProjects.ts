@@ -2,11 +2,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getProjects, addProject, updateProject, deleteProject } from '../lib/data'
 import { Project } from '../lib/types'
 import { useAuth } from '@/contexts/AuthContext'
+import { useEffect } from 'react'
 
 // Query keys for React Query
 const QUERY_KEYS = {
   projects: ['projects'] as const,
   project: (id: string) => ['project', id] as const,
+  beatActivities: ['beatActivities'] as const,
+  stats: ['stats'] as const,
 }
 
 // Helper function to safely parse date
@@ -49,37 +52,88 @@ export function useProjects() {
     cacheTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
     refetchOnWindowFocus: true,
     refetchOnMount: true,
+    refetchOnReconnect: true,
+    refetchInterval: false,
+    gcTime: 0,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
+
+  // Add effect to invalidate queries when user changes
+  useEffect(() => {
+    if (user?.id) {
+      queryClient.invalidateQueries({ 
+        queryKey: [...QUERY_KEYS.projects, user.id],
+        exact: true
+      })
+    }
+  }, [user?.id, queryClient])
 
   // Add project with optimistic updates
   const addProjectMutation = useMutation({
     mutationFn: addProject,
     onMutate: async newProject => {
       // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] })
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] }),
+        queryClient.cancelQueries({ queryKey: QUERY_KEYS.beatActivities }),
+        queryClient.cancelQueries({ queryKey: QUERY_KEYS.stats }),
+      ])
 
-      // Snapshot the previous value
+      // Snapshot the previous values
       const previousProjects = queryClient.getQueryData([...QUERY_KEYS.projects, user?.id])
+      const previousStats = queryClient.getQueryData(QUERY_KEYS.stats)
+      const previousActivities = queryClient.getQueryData(QUERY_KEYS.beatActivities)
 
-      // Optimistically update to the new value with proper sorting
+      // Generate a temporary ID for the new project
+      const tempId = crypto.randomUUID()
+
+      // Optimistically update projects
       queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], (old: Project[] = []) => {
-        const updatedProjects = [{ ...newProject, id: crypto.randomUUID() }, ...old]
-        return sortProjects(updatedProjects)
+        const optimisticProject = { 
+          ...newProject, 
+          id: tempId,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+        return sortProjects([optimisticProject, ...old])
       })
 
-      // Return a context object with the snapshotted value
-      return { previousProjects }
+      // Return context with snapshotted values
+      return { 
+        previousProjects,
+        previousStats,
+        previousActivities,
+        tempId,
+      }
     },
     onError: (err, newProject, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
-      queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], context?.previousProjects)
+      // Roll back all optimistic updates
+      if (context) {
+        queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], context.previousProjects)
+        queryClient.setQueryData(QUERY_KEYS.stats, context.previousStats)
+        queryClient.setQueryData(QUERY_KEYS.beatActivities, context.previousActivities)
+      }
       console.error('Failed to add project:', err)
     },
+    onSuccess: (createdProject, variables, context) => {
+      // Update the temporary ID with the real one
+      if (context?.tempId) {
+        queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], (old: Project[] = []) => {
+          return old.map(project => 
+            project.id === context.tempId ? { ...project, id: createdProject.id } : project
+          )
+        })
+      }
+    },
     onSettled: async () => {
-      // Always refetch after error or success to ensure cache synchronization
-      queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] })
-      // Refresh profile data to update stats
-      await refreshProfile()
+      // Refetch in the background to ensure cache consistency
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.beatActivities }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.stats }),
+        refreshProfile(),
+      ])
     },
   })
 
@@ -87,26 +141,42 @@ export function useProjects() {
   const updateProjectMutation = useMutation({
     mutationFn: updateProject,
     onMutate: async updatedProject => {
-      await queryClient.cancelQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] })
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] }),
+        queryClient.cancelQueries({ queryKey: QUERY_KEYS.stats }),
+      ])
+
       const previousProjects = queryClient.getQueryData([...QUERY_KEYS.projects, user?.id])
+      const previousStats = queryClient.getQueryData(QUERY_KEYS.stats)
 
       queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], (old: Project[] = []) => {
         const updatedProjects = old.map(project =>
-          project.id === updatedProject.id ? { ...project, ...updatedProject } : project
+          project.id === updatedProject.id 
+            ? { 
+                ...project, 
+                ...updatedProject,
+                updated_at: new Date().toISOString(),
+              } 
+            : project
         )
         return sortProjects(updatedProjects)
       })
 
-      return { previousProjects }
+      return { previousProjects, previousStats }
     },
     onError: (err, updatedProject, context) => {
-      queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], context?.previousProjects)
+      if (context) {
+        queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], context.previousProjects)
+        queryClient.setQueryData(QUERY_KEYS.stats, context.previousStats)
+      }
       console.error('Failed to update project:', err)
     },
     onSettled: async () => {
-      queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] })
-      // Refresh profile data to update stats
-      await refreshProfile()
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.stats }),
+        refreshProfile(),
+      ])
     },
   })
 
@@ -114,30 +184,37 @@ export function useProjects() {
   const deleteProjectMutation = useMutation({
     mutationFn: deleteProject,
     onMutate: async projectId => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] })
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] }),
+        queryClient.cancelQueries({ queryKey: QUERY_KEYS.stats }),
+        queryClient.cancelQueries({ queryKey: QUERY_KEYS.beatActivities }),
+      ])
 
-      // Snapshot the previous value
       const previousProjects = queryClient.getQueryData([...QUERY_KEYS.projects, user?.id])
+      const previousStats = queryClient.getQueryData(QUERY_KEYS.stats)
+      const previousActivities = queryClient.getQueryData(QUERY_KEYS.beatActivities)
 
-      // Optimistically update to the new value
       queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], (old: Project[] = []) => {
         return old.filter(project => project.id !== projectId)
       })
 
-      // Return a context object with the snapshotted value
-      return { previousProjects }
+      return { previousProjects, previousStats, previousActivities }
     },
     onError: (err, projectId, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
-      queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], context?.previousProjects)
+      if (context) {
+        queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], context.previousProjects)
+        queryClient.setQueryData(QUERY_KEYS.stats, context.previousStats)
+        queryClient.setQueryData(QUERY_KEYS.beatActivities, context.previousActivities)
+      }
       console.error('Failed to delete project:', err)
     },
     onSettled: async () => {
-      // Always refetch after error or success to ensure cache synchronization
-      queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] })
-      // Refresh profile data to update stats
-      await refreshProfile()
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.stats }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.beatActivities }),
+        refreshProfile(),
+      ])
     },
   })
 

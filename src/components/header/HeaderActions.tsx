@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
@@ -9,6 +9,7 @@ import CreateProjectDialog from '@/components/project/CreateProjectDialog'
 import { Plus, Wrench } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { getProjects } from '@/lib/data'
+import { Spinner } from '@/components/ui/spinner'
 
 interface HeaderActionsProps {
   orientation?: 'horizontal' | 'vertical'
@@ -21,13 +22,41 @@ export default function HeaderActions({
 }: HeaderActionsProps) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { user } = useAuth()
+  const { user, isLoading: authLoading, isInitialized } = useAuth()
   const { projects } = useProjects()
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false)
+  const [isNavigating, setIsNavigating] = useState(false)
+  const [currentPath, setCurrentPath] = useState(location.pathname)
+  const navigationTimeoutRef = useRef<NodeJS.Timeout>()
 
-  const handleNavigate = (path: string) => {
-    navigate(path)
-  }
+  // Reset navigation state when path changes
+  useEffect(() => {
+    if (location.pathname !== currentPath) {
+      setCurrentPath(location.pathname)
+      setIsNavigating(false)
+    }
+  }, [location.pathname, currentPath])
+
+  const handleNavigate = useCallback((path: string) => {
+    // Clear any existing timeout
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current)
+    }
+
+    setIsNavigating(true)
+    navigationTimeoutRef.current = setTimeout(() => {
+      navigate(path)
+    }, 300) // 300ms debounce
+  }, [navigate])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const isMainPage = location.pathname === '/'
 
@@ -35,6 +64,15 @@ export default function HeaderActions({
     { label: 'Profile', href: '/profile' },
     { label: 'Settings', href: '/profile/settings' },
   ]
+
+  // Don't render navigation items while auth is initializing
+  if (authLoading || !isInitialized) {
+    return (
+      <div className={cn('flex items-center gap-2', className)}>
+        <Spinner className="h-4 w-4" />
+      </div>
+    )
+  }
 
   return (
     <nav
@@ -50,8 +88,24 @@ export default function HeaderActions({
           variant="ghost"
           asChild
           className={cn(orientation === 'vertical' && 'w-full justify-start')}
+          disabled={isNavigating}
         >
-          <Link to={item.href}>{item.label}</Link>
+          <Link 
+            to={item.href} 
+            onClick={(e) => {
+              e.preventDefault()
+              handleNavigate(item.href)
+            }}
+          >
+            {isNavigating && location.pathname === item.href ? (
+              <div className="flex items-center gap-2">
+                <Spinner className="h-4 w-4" />
+                <span>Loading...</span>
+              </div>
+            ) : (
+              item.label
+            )}
+          </Link>
         </Button>
       ))}
 

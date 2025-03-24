@@ -19,7 +19,6 @@ const Callback = React.lazy(() => import('./pages/auth/Callback'))
 const ScrollDemo = React.lazy(() => import('./pages/ScrollDemo'))
 const ProjectDetail = React.lazy(() => import('./pages/ProjectDetail'))
 const Dashboard = React.lazy(() => import('./pages/Dashboard'))
-const CompleteProfile = React.lazy(() => import('./pages/CompleteProfile'))
 
 function App() {
   const [isReady, setIsReady] = useState(false)
@@ -64,16 +63,6 @@ function App() {
                       <Suspense fallback={<LoadingScreen message="Processing authentication..." />}>
                         <Callback />
                       </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/complete-profile"
-                    element={
-                      <ProtectedRoute>
-                        <Suspense fallback={<LoadingScreen message="Loading profile form..." />}>
-                          <CompleteProfile />
-                        </Suspense>
-                      </ProtectedRoute>
                     }
                   />
                   <Route
