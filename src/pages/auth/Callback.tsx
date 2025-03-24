@@ -1,78 +1,40 @@
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
-const Callback = () => {
-  console.log('Callback component mounted')
+export default function Callback() {
   const navigate = useNavigate()
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Get the current URL parameters
-        const params = new URLSearchParams(window.location.search)
-        const code = params.get('code')
-        const next = '/wav-track/dashboard' // Always redirect to dashboard after OAuth
+        // Get the session from the URL hash
+        const { data: { session }, error } = await supabase.auth.getSession()
 
-        console.log('Callback URL params:', {
-          code: code ? 'present' : 'missing',
-          fullUrl: window.location.href
-        })
+        if (error) {
+          throw error
+        }
 
-        // Handle OAuth callback
-        if (code) {
-          console.log('Processing OAuth callback...')
-          const { error: signInError } = await supabase.auth.exchangeCodeForSession(code)
-
-          if (signInError) {
-            console.error('OAuth callback error:', signInError)
-            toast.error('Authentication failed')
-            navigate('/wav-track/login')
-            return
-          }
-
-          // Get the session after successful code exchange
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-
-          if (sessionError || !session) {
-            console.error('Session error after OAuth:', sessionError)
-            toast.error('Failed to establish session')
-            navigate('/wav-track/login')
-            return
-          }
-
-          // Successfully authenticated
-          console.log('OAuth authentication successful', {
+        if (session) {
+          // Log successful authentication
+          console.log('Authentication successful:', {
             userId: session.user.id,
-            provider: session.user.app_metadata.provider
+            provider: session.user.app_metadata.provider,
+            email: session.user.email
           })
-          toast.success('Successfully signed in')
-          navigate(next)
-          return
+
+          // Redirect to dashboard using the environment variable
+          const redirectUrl = import.meta.env.VITE_GOOGLE_REDIRECT_URL
+          const redirectPath = new URL(redirectUrl).pathname
+          navigate(redirectPath, { replace: true })
+        } else {
+          throw new Error('No session found')
         }
-
-        // If no code, check for existing session
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession()
-
-        if (sessionError || !session) {
-          console.error('No session found:', sessionError)
-          toast.error('Authentication failed')
-          navigate('/wav-track/login')
-          return
-        }
-
-        // Existing session found
-        console.log('Existing session found')
-        toast.success('Authentication successful')
-        navigate('/wav-track/dashboard')
       } catch (error) {
-        console.error('Error in callback:', error)
-        toast.error('Authentication error')
-        navigate('/wav-track/login')
+        console.error('Auth callback error:', error)
+        toast.error('Authentication failed. Please try again.')
+        navigate('/wav-track/login', { replace: true })
       }
     }
 
@@ -81,13 +43,7 @@ const Callback = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <div className="flex flex-col items-center gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        <p className="text-lg">Verifying your account...</p>
-        <p className="text-sm text-muted-foreground">Please wait while we complete the process.</p>
-      </div>
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
     </div>
   )
 }
-
-export default Callback

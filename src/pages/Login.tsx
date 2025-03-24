@@ -59,7 +59,7 @@ const Login = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/wav-track/auth/callback`,
+          redirectTo: import.meta.env.VITE_GOOGLE_REDIRECT_URL,
         },
       })
 
