@@ -14,9 +14,6 @@ import Callback from './pages/auth/Callback'
 import ScrollDemo from './pages/ScrollDemo'
 import { supabase } from './lib/supabase'
 
-// Get the basepath from environment or default to empty string
-const basepath = import.meta.env.VITE_BASEPATH || ''
-
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
 })
@@ -99,6 +96,6 @@ const routeTree = rootRoute.addChildren([
 
 export const router = createRouter({
   routeTree,
-  basepath,
+  basepath: '/wav-track',
   defaultPreload: 'intent',
 })
