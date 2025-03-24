@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   Card,
   CardContent,
@@ -152,7 +152,10 @@ const dawOptions = [
 
 const ProfileSettings = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { profile, updateUserProfile, logout, refreshProfile } = useAuth()
+  const isNewUser = location.state?.isNewUser || false
+  const returnTo = sessionStorage.getItem('returnTo') || '/'
 
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -268,28 +271,20 @@ const ProfileSettings = () => {
     setIsSaving(true)
 
     try {
-      const updatedProfile = await updateUserProfile({
-        name: formData.name,
-        email: formData.email,
-        artist_name: formData.artist_name,
-        genres: formData.genres,
-        daw: formData.daw,
-        bio: formData.bio,
-        location: formData.location,
-        phone: formData.phone,
-        website: formData.website,
-        birthday: formData.birthday,
-        timezone: formData.timezone,
-        social_links: formData.social_links,
-        notification_preferences: formData.notification_preferences,
-      })
-
-      // Refresh profile to get the latest data
+      await updateUserProfile(formData)
       await refreshProfile()
+      
+      // Clear the return path from session storage
+      sessionStorage.removeItem('returnTo')
+      
+      // Show success message
       toast.success('Profile updated successfully')
+      
+      // Navigate back to the original page or dashboard
+      navigate(returnTo)
     } catch (error) {
       console.error('Error updating profile:', error)
-      toast.error('Failed to update profile')
+      toast.error('Failed to update profile. Please try again.')
     } finally {
       setIsSaving(false)
     }

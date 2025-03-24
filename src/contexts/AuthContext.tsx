@@ -155,24 +155,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (event === 'SIGNED_IN' && session?.user) {
         if (authStateRef.current.mounted) {
           setUser(session.user)
+          
+          // Check if this is a new user (Google sign-in)
+          const isNewUser = session.user.app_metadata.provider === 'google' && 
+                          (!profile || !profile.artist_name);
+          
+          // Fetch or create profile
+          const profileData = await fetchProfile(session.user.id);
+          
+          if (authStateRef.current.mounted) {
+            if (profileData) {
+              setProfile(profileData);
+            } else {
+              // Create default profile with Google data
+              const defaultProfile = createDefaultProfile(
+                session.user.id,
+                session.user.email!,
+                session.user.user_metadata?.name || session.user.email?.split('@')[0] || null
+              );
+
+              const { data: newProfile, error: createError } = await supabase
+                .from('profiles')
+                .insert([defaultProfile])
+                .select()
+                .single();
+
+              if (!createError && newProfile) {
+                setProfile(convertProfileFromDb(newProfile));
+              } else {
+                console.error('Error creating profile:', createError);
+                toast({
+                  variant: 'destructive',
+                  title: 'Profile Error',
+                  description: 'Failed to create profile. Please try again.',
+                });
+              }
+            }
+          }
+
           // Invalidate queries when user signs in
-          queryClient.invalidateQueries(['profile'])
-          queryClient.invalidateQueries(['projects'])
+          queryClient.invalidateQueries(['profile']);
+          queryClient.invalidateQueries(['projects']);
         }
       } else if (event === 'SIGNED_OUT') {
         if (authStateRef.current.mounted) {
-          setUser(null)
-          setProfile(null)
+          setUser(null);
+          setProfile(null);
           // Clear queries when user signs out
-          queryClient.clear()
+          queryClient.clear();
         }
       }
-    })
+    });
 
     return () => {
-      subscription.unsubscribe()
-    }
-  }, [queryClient])
+      subscription.unsubscribe();
+    };
+  }, [queryClient]);
 
   // Initial auth check with improved error handling and loading states
   useEffect(() => {

@@ -13,6 +13,7 @@ import ProfileSettings from './pages/ProfileSettings'
 import Callback from './pages/auth/Callback'
 import ScrollDemo from './pages/ScrollDemo'
 import { supabase } from './lib/supabase'
+import { ProfileCompletionCheck } from './components/auth/ProfileCompletionCheck'
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -65,6 +66,11 @@ const protectedRoute = createRoute({
       })
     }
   },
+  component: () => (
+    <ProfileCompletionCheck>
+      <Outlet />
+    </ProfileCompletionCheck>
+  ),
 })
 
 const profileRoute = createRoute({
