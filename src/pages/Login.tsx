@@ -13,6 +13,8 @@ import ThemeSwitcher from '@/components/ThemeSwitcher'
 import { FeatureHighlights } from '@/components/features/FeatureHighlights'
 import { cn } from '@/lib/utils'
 import { trackEvent, ANALYTICS_EVENTS } from '@/lib/analytics'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { authService } from '@/lib/services/auth'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -22,6 +24,7 @@ const Login = () => {
   const { login, isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [error, setError] = useState<string | null>(null)
 
   const from = location.state?.from || '/'
 
@@ -34,13 +37,19 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError(null)
 
     try {
-      const success = await login(email, password)
-      if (success) {
-        trackEvent(ANALYTICS_EVENTS.PAGE_VIEW, { page: 'dashboard', type: 'regular_login' })
+      const { user, error } = await authService.signIn(email, password)
+      if (error) throw error
+      
+      if (user) {
+        trackEvent(ANALYTICS_EVENTS.LOGIN)
         navigate(from)
       }
+    } catch (err) {
+      console.error('Login error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to sign in')
     } finally {
       setIsLoading(false)
     }
@@ -63,50 +72,6 @@ const Login = () => {
     } catch (error) {
       console.error('Google login error:', error)
       toast.error('Failed to sign in with Google')
-      setSocialLoading('')
-    }
-  }
-
-  const handleGuestLogin = async () => {
-    try {
-      setSocialLoading('guest')
-      trackEvent(ANALYTICS_EVENTS.GUEST_LOGIN)
-      // Generate a random guest email
-      const guestId = Math.random().toString(36).substring(2, 15)
-      const guestEmail = `guest_${guestId}@temporary.wavtrack.com`
-      const guestPassword = Math.random().toString(36).substring(2, 15)
-
-      // Create a new user with guest metadata
-      const {
-        data: { user },
-        error: signUpError,
-      } = await supabase.auth.signUp({
-        email: guestEmail,
-        password: guestPassword,
-        options: {
-          data: {
-            isGuest: true,
-            guestExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
-          },
-        },
-      })
-
-      if (signUpError) throw signUpError
-
-      // Sign in with the guest credentials
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: guestEmail,
-        password: guestPassword,
-      })
-
-      if (signInError) throw signInError
-
-      trackEvent(ANALYTICS_EVENTS.PAGE_VIEW, { page: 'dashboard', type: 'guest_login' })
-      navigate(from)
-    } catch (error) {
-      console.error('Guest login error:', error)
-      toast.error('Failed to create guest account')
-    } finally {
       setSocialLoading('')
     }
   }
@@ -228,27 +193,33 @@ const Login = () => {
                     </div>
                   </div>
 
-                  <Button
-                    type="submit"
-                    className={cn(
-                      'w-full bg-violet-600 hover:bg-violet-700',
-                      'dark:bg-violet-600 dark:hover:bg-violet-700',
-                      'text-white shadow-md'
-                    )}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>Signing in...</span>
-                      </div>
-                    ) : (
-                      <span className="flex items-center justify-center gap-1">
-                        Sign in <ArrowRight className="h-4 w-4 ml-1" />
-                      </span>
-                    )}
-                  </Button>
+                  <div className="space-y-4">
+                    <Button
+                      type="submit"
+                      className={cn(
+                        'w-full bg-violet-600 hover:bg-violet-700',
+                        'dark:bg-violet-600 dark:hover:bg-violet-700',
+                        'text-white shadow-md'
+                      )}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Signing in...</span>
+                        </div>
+                      ) : (
+                        'Sign in'
+                      )}
+                    </Button>
+                  </div>
                 </form>
+
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
 
                 <div className="relative flex items-center justify-center my-6">
                   <div className="absolute inset-0 flex items-center">
@@ -278,30 +249,6 @@ const Login = () => {
                     )}
                     Continue with Google
                   </Button>
-
-                  <Button
-                    variant="ghost"
-                    type="button"
-                    className={cn(
-                      'w-full flex items-center justify-center gap-2',
-                      'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/50',
-                      'dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-800/30',
-                      'border border-dashed border-zinc-200 dark:border-zinc-800',
-                      'transition-colors duration-200'
-                    )}
-                    onClick={handleGuestLogin}
-                    disabled={!!socialLoading}
-                  >
-                    {socialLoading === 'guest' ? (
-                      <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin opacity-70"></div>
-                    ) : (
-                      <User className="h-4 w-4 opacity-70" />
-                    )}
-                    Continue as Guest
-                  </Button>
-                  <p className="text-xs text-center text-zinc-500 dark:text-zinc-400">
-                    Guest accounts expire after 24 hours
-                  </p>
                 </div>
               </CardContent>
             </Card>
