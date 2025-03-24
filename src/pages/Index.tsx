@@ -15,7 +15,7 @@ import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
 const Index = () => {
-  const { projects, isLoading, error, updateProject } = useProjects()
+  const { projects, isLoading, error, updateProject: updateProjectAsync } = useProjects()
   const { user, profile, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [sessions, setSessions] = useState<Session[]>([])
@@ -63,14 +63,6 @@ const Index = () => {
     fetchSessions()
   }, [user, authLoading])
 
-  // Add debug render log
-  console.log('Render state:', {
-    authLoading,
-    hasUser: !!user,
-    projectsCount: projects?.length || 0,
-    sessionsCount: sessions.length,
-  })
-
   const handleDragEnd = (activeId: string, overId: string) => {
     if (!projects) return
 
@@ -87,7 +79,7 @@ const Index = () => {
       last_modified: new Date().toISOString(),
     }
 
-    updateProject(projectToUpdate).catch(error => {
+    updateProjectAsync(projectToUpdate).catch(error => {
       console.error('Error updating project order:', error)
       toast.error('Failed to update project order')
     })
@@ -187,7 +179,7 @@ const Index = () => {
 
         <div className="mb-12">
           <ProjectList
-            projects={projects || []}
+            projectList={projects || []}
             isLoading={isLoading}
             onProjectSelect={setSelectedProject}
           />

@@ -215,8 +215,8 @@ export default function ProjectCard({
           aria-pressed="false"
         >
           <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
-            <div className="flex justify-between items-start gap-2">
-              <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex justify-between items-start gap-2 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap min-w-0">
                 <div
                   className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                     localProject.status === 'completed'
@@ -260,29 +260,29 @@ export default function ProjectCard({
               </DropdownMenu>
             </div>
 
-            <div className="space-y-2">
-              <h3 className="text-base font-medium tracking-tight line-clamp-1">
+            <div className="space-y-2 min-w-0">
+              <h3 className="text-base font-medium tracking-tight line-clamp-1 break-words">
                 {localProject.title}
               </h3>
               <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5" />
-                  <span>{formatDate(localProject.dateCreated)}</span>
+                  <Calendar className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{formatDate(localProject.dateCreated)}</span>
                 </div>
                 <span>•</span>
                 <div className="flex items-center gap-1.5">
-                  <MusicNote className="h-3.5 w-3.5" />
-                  <span>{localProject.bpm} BPM</span>
+                  <MusicNote className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{localProject.bpm} BPM</span>
                 </div>
                 <span>•</span>
                 <div className="flex items-center gap-1.5">
-                  <MusicNote className="h-3.5 w-3.5" />
-                  <span>{localProject.key}</span>
+                  <MusicNote className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{localProject.key}</span>
                 </div>
                 <span>•</span>
                 <div className="flex items-center gap-1.5">
-                  <ArrowClockwise className="h-3.5 w-3.5" />
-                  <span>Updated {formatTimeAgo(localProject.lastModified)}</span>
+                  <ArrowClockwise className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">Updated {formatTimeAgo(localProject.lastModified)}</span>
                 </div>
               </div>
             </div>
@@ -297,13 +297,13 @@ export default function ProjectCard({
               <div className="h-2 rounded-full bg-muted/50 overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
-                    localProject.completionPercentage === 100
+                    (localProject.completionPercentage ?? 0) === 100
                       ? 'bg-gradient-to-r from-green-500 to-emerald-500'
-                      : localProject.completionPercentage >= 75
+                      : (localProject.completionPercentage ?? 0) >= 75
                         ? 'bg-gradient-to-r from-blue-500 to-indigo-500'
-                        : localProject.completionPercentage >= 50
+                        : (localProject.completionPercentage ?? 0) >= 50
                           ? 'bg-gradient-to-r from-yellow-500 to-amber-500'
-                          : localProject.completionPercentage >= 25
+                          : (localProject.completionPercentage ?? 0) >= 25
                             ? 'bg-gradient-to-r from-orange-500 to-red-500'
                             : 'bg-gradient-to-r from-red-500 to-pink-500'
                   }`}

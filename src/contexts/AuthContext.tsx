@@ -92,7 +92,7 @@ interface ProfileUpdateData {
   name?: string | null
   email?: string
   artist_name?: string | null
-  genres?: string | null
+  genres?: string[] | null
   daw?: string | null
   bio?: string | null
   location?: string | null
@@ -412,7 +412,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: userData.name ?? profile.name,
         email: userData.email ?? profile.email,
         artist_name: userData.artist_name ?? profile.artist_name,
-        genres: Array.isArray(userData.genres) ? userData.genres : profile.genres,
+        genres: userData.genres ? JSON.stringify(userData.genres) : null,
         daw: userData.daw ?? profile.daw,
         bio: userData.bio ?? profile.bio,
         location: userData.location ?? profile.location,

@@ -307,22 +307,22 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
     }
   }
 
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     const yearReview = generateYearInReview()
 
     // Create CSV content
     const csvRows = [
       // Header row
-      ['Year in Review', yearReview.year],
+      ['Year in Review', (await yearReview).year],
       [],
       ['Overall Stats'],
-      ['Total Beats', yearReview.totalBeats],
-      ['Completed Projects', yearReview.completedProjects],
-      ['Studio Time', yearReview.studioTime],
+      ['Total Beats', (await yearReview).totalBeats],
+      ['Completed Projects', (await yearReview).completedProjects],
+      ['Studio Time', (await yearReview).studioTime],
       [],
       ['Monthly Breakdown'],
       ['Month', 'Beats Created', 'Completed Projects', 'Studio Time (hours)'],
-      ...yearReview.monthlyStats.map(stat => [
+      ...(await yearReview).monthlyStats.map(stat => [
         stat.month,
         stat.beats,
         stat.completed,
@@ -330,7 +330,7 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
       ]),
       [],
       ['Top Genres'],
-      ...yearReview.topGenres.map((genre, i) => [`${i + 1}. ${genre}`]),
+      ...(await yearReview).topGenres.map((genre, i) => [`${i + 1}. ${genre}`]),
     ]
 
     const csvContent = csvRows.map(row => row.join(',')).join('\n')
@@ -338,7 +338,7 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `beat-stats-${yearReview.year}-review.csv`
+    a.download = `beat-stats-${(await yearReview).year}-review.csv`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

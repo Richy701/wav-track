@@ -19,11 +19,27 @@ const ScrollArea = React.forwardRef<HTMLDivElement, ScrollAreaProps>(
       variant === 'thin' && 'scrollbar-thin',
       variant === 'rounded' && 'scrollbar-rounded',
       variant === 'hide' && 'scrollbar-hide',
+      // iOS Safari compatibility
+      'touch-pan-x',
       className
     )
 
     return (
-      <div ref={ref} className={scrollClasses} {...props}>
+      <div 
+        ref={ref} 
+        className={scrollClasses} 
+        style={{
+          // Fallback for iOS Safari < 16
+          WebkitOverflowScrolling: 'touch',
+          // Prevent horizontal scroll on iOS
+          position: 'relative',
+          width: '100%',
+          maxWidth: '100%',
+          overflowX: 'auto',
+          scrollBehavior: 'smooth'
+        }}
+        {...props}
+      >
         {children}
       </div>
     )

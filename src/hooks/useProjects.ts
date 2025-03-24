@@ -148,7 +148,7 @@ export function useProjects() {
     error,
     isFetching,
     addProject: addProjectMutation.mutateAsync,
-    updateProject: updateProjectMutation.mutate,
+    updateProject: updateProjectMutation.mutateAsync,
     deleteProject: deleteProjectMutation.mutate,
     isAddingProject: addProjectMutation.isPending,
     isUpdatingProject: updateProjectMutation.isPending,

@@ -37,11 +37,13 @@ const FormField = memo(
     icon: Icon,
     children,
     className,
+    id,
   }: {
     label: string
     icon?: React.ComponentType<{ className?: string }>
     children: React.ReactNode
     className?: string
+    id: string
   }) => {
     const { theme } = useTheme()
     const isDark = theme === 'dark'
@@ -49,6 +51,7 @@ const FormField = memo(
     return (
       <div className={cn('space-y-1.5 sm:space-y-2', className)}>
         <Label
+          htmlFor={id}
           className={cn(
             'flex items-center gap-2 text-sm font-medium',
             isDark ? 'text-zinc-400' : 'text-zinc-700'
@@ -149,7 +152,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       {/* Required Fields Section */}
       <div className="grid gap-4 sm:gap-6">
         <div className="grid sm:grid-cols-2 gap-4">
-          <FormField label="Full Name" icon={Icons.user}>
+          <FormField label="Full Name" icon={Icons.user} id="name">
             <Input
               id="name"
               name="name"
@@ -167,7 +170,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             />
           </FormField>
 
-          <FormField label="Artist Name" icon={Icons.microphone}>
+          <FormField label="Artist Name" icon={Icons.microphone} id="artist_name">
             <Input
               id="artist_name"
               name="artist_name"
@@ -185,7 +188,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           </FormField>
         </div>
 
-        <FormField label="Email" icon={Icons.mail}>
+        <FormField label="Email" icon={Icons.mail} id="email">
           <Input
             id="email"
             name="email"
@@ -204,7 +207,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           />
         </FormField>
 
-        <FormField label="Password" icon={Icons.lock}>
+        <FormField label="Password" icon={Icons.lock} id="password">
           <Input
             id="password"
             name="password"
@@ -238,7 +241,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       </div>
 
       <div className="grid gap-6">
-        <FormField label="Genres" icon={Icons.genres}>
+        <FormField label="Genres" icon={Icons.genres} id="genres">
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
               {[
@@ -345,7 +348,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           </div>
         </FormField>
 
-        <FormField label="Preferred DAW" icon={Icons.daw}>
+        <FormField label="Preferred DAW" icon={Icons.daw} id="daw">
           <Select name="daw" value={formData.daw} onValueChange={handleDAWChange}>
             <SelectTrigger
               className={cn(
@@ -372,7 +375,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           </Select>
         </FormField>
 
-        <FormField label="Bio" icon={Icons.info}>
+        <FormField label="Bio" icon={Icons.info} id="bio">
           <Textarea
             id="bio"
             name="bio"
@@ -388,7 +391,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           />
         </FormField>
 
-        <FormField label="Location" icon={Icons.location}>
+        <FormField label="Location" icon={Icons.location} id="location">
           <Input
             id="location"
             name="location"
@@ -406,7 +409,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         </FormField>
 
         <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
-          <FormField label="Phone (optional)" icon={Icons.phone}>
+          <FormField label="Phone (optional)" icon={Icons.phone} id="phone">
             <Input
               id="phone"
               name="phone"
@@ -424,7 +427,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             />
           </FormField>
 
-          <FormField label="Website (optional)" icon={Icons.website}>
+          <FormField label="Website (optional)" icon={Icons.website} id="website">
             <Input
               id="website"
               name="website"

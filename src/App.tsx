@@ -19,7 +19,6 @@ const Index = React.lazy(() => import('./pages/Index'))
 const Callback = React.lazy(() => import('./pages/auth/Callback'))
 const ScrollDemo = React.lazy(() => import('./pages/ScrollDemo'))
 const ProjectDetail = React.lazy(() => import('./pages/ProjectDetail'))
-const TestDataGenerator = React.lazy(() => import('./components/TestDataGenerator'))
 
 function App() {
   const [isReady, setIsReady] = useState(false)
@@ -118,16 +117,6 @@ function App() {
                       <Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
                         <Index />
                       </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/debug"
-                    element={
-                      <ProtectedRoute>
-                        <Suspense fallback={<LoadingScreen message="Loading debug tools..." />}>
-                          <TestDataGenerator />
-                        </Suspense>
-                      </ProtectedRoute>
                     }
                   />
 

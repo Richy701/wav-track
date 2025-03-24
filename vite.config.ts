@@ -5,7 +5,7 @@ import compression from 'vite-plugin-compression'
 import { visualizer } from 'rollup-plugin-visualizer'
 // import imagemin from 'vite-plugin-imagemin' // Removing since module not found
 import { VitePWA } from 'vite-plugin-pwa'
-import type { ManifestOptions, VitePWAOptions } from 'vite-plugin-pwa'
+import type { ManifestOptions, VitePWAOptions, Display } from 'vite-plugin-pwa'
 import fs from 'fs'
 
 // Function to get PWA manifest configuration
@@ -15,19 +15,32 @@ const getManifestConfig = () => {
   return {
     name: 'WavTrack',
     short_name: 'WavTrack',
-    theme_color: '#ffffff',
+    theme_color: '#6200ea',
     start_url: basePath,
     scope: basePath,
+    display: 'standalone' as Display,
+    background_color: '#121212',
     icons: [
       {
-        src: `${basePath}android-chrome-192x192.png`.replace('//', '/'),
+        src: `${basePath}favicon.ico`,
+        sizes: '48x48',
+        type: 'image/x-icon'
+      },
+      {
+        src: `${basePath}android-chrome-192x192.png`,
         sizes: '192x192',
         type: 'image/png'
       },
       {
-        src: `${basePath}android-chrome-512x512.png`.replace('//', '/'),
+        src: `${basePath}android-chrome-512x512.png`,
         sizes: '512x512',
         type: 'image/png'
+      },
+      {
+        src: `${basePath}maskable-icon.png`,
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable'
       }
     ]
   };

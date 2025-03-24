@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Waveform, Music, Activity } from 'lucide-react'
+import { Waves, Music, Activity } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
@@ -66,7 +66,7 @@ export function AudioAnalysis({ audioBuffer, className }: AudioAnalysisProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Waveform className="h-4 w-4 text-primary" />
+                <Waves className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">BPM</span>
               </div>
               <p className="text-2xl font-bold">{analysisResult.bpm}</p>

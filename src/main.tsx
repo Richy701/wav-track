@@ -48,6 +48,7 @@ let initSteps = {
   renderCompleted: false,
 }
 
+// Initialize the app
 console.log('[Init] Starting app initialization')
 
 // Add visibility change handling
@@ -75,57 +76,20 @@ document.addEventListener('visibilitychange', () => {
       queryClient.resetQueries({ queryKey })
     })
   }
-
-  // Log state for debugging
-  console.log('[Visibility] Document visibility state:', document.visibilityState)
-  console.log(
-    '[Visibility] Active queries:',
-    queryClient
-      .getQueryCache()
-      .findAll()
-      .filter(q => q.isActive())
-  )
-  console.log('[Visibility] Cache state:', queryClient.getQueryCache().getAll())
 })
 
-// Add focus/blur logging
+// Add focus/blur handling
 window.addEventListener('focus', () => {
-  console.log('[Focus] Window focused')
-  console.log('[Focus] React Query state:', {
-    isFetching: queryClient.isFetching(),
-    queries: queryClient
-      .getQueryCache()
-      .getAll()
-      .map(query => ({
-        queryKey: query.queryKey,
-        state: query.state,
-        isActive: query.isActive(),
-      })),
-  })
+  // Handle focus events
 })
 
 window.addEventListener('blur', () => {
-  console.log('[Blur] Window blurred')
-  console.log('[Blur] React Query state:', {
-    isFetching: queryClient.isFetching(),
-    queries: queryClient
-      .getQueryCache()
-      .getAll()
-      .map(query => ({
-        queryKey: query.queryKey,
-        state: query.state,
-        isActive: query.isActive(),
-      })),
-  })
+  // Handle blur events
 })
 
-// Add React Query state change logging
+// Add React Query state change handling
 queryClient.getQueryCache().subscribe(event => {
-  console.log('[Query Cache] Event:', event.type, {
-    queryKey: event.query?.queryKey,
-    state: event.query?.state,
-    isActive: event.query?.isActive(),
-  })
+  // Handle query cache events
 })
 
 // Add detailed error logging with rate limiting
@@ -145,12 +109,6 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
         msg.toString().includes('Could not fetch properties'))
 
     if (isObjectNoLongerExistsError) {
-      console.warn('State synchronization error detected:', {
-        message: msg,
-        url: url,
-        lineNo: lineNo,
-        columnNo: columnNo,
-      })
       // For this specific error, don't crash the app
       // It will recover on the next render cycle
       return true // Prevents the error from bubbling up
@@ -170,13 +128,11 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {
-  console.error('[Init] Root element not found')
   throw new Error('Failed to find the root element')
 }
 
 // Optimized loading state with minimal DOM manipulation
 const showLoading = () => {
-  console.log('[Init] Showing initial loading screen')
   initSteps.loadingShown = true
   const loadingHtml = `
     <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-center; background: #000;">
@@ -213,11 +169,8 @@ window.addEventListener(
         event.error.message?.includes('Importing a module failed') ||
         event.error.message?.includes('ChunkLoadError'))
     ) {
-      console.warn('Module loading error detected:', event.error.message)
-
       // If this happens after app init, try to recover by forcing a refresh after a delay
       if (initSteps.renderStarted && !initSteps.renderCompleted) {
-        console.log('Attempting recovery from module error by refreshing the page in 2 seconds...')
         setTimeout(() => {
           window.location.reload()
         }, 2000)
@@ -233,15 +186,12 @@ window.addEventListener(
 
 // Initialize app with error boundary
 const initializeApp = () => {
-  console.log('[Init] InitializeApp called, current steps:', initSteps)
   initSteps.appInitStarted = true
 
   try {
-    console.log('[Init] Creating root')
     const root = createRoot(rootElement)
     initSteps.rootCreated = true
 
-    console.log('[Init] Starting render')
     initSteps.renderStarted = true
 
     // Add error retry mechanism for module loading failures
@@ -253,59 +203,23 @@ const initializeApp = () => {
             <App />
           </QueryClientProvider>
         )
-        console.log('[Init] Render completed')
         initSteps.renderCompleted = true
       } catch (error) {
-        console.error(`[Init] Render failed (attempt ${attempt + 1}):`, error)
-
         // For module loading errors, retry up to 2 times
-        if (
-          attempt < 2 &&
-          error instanceof Error &&
-          (error.message.includes('Importing a module script failed') ||
-            error.message.includes('ChunkLoadError'))
-        ) {
-          console.log(`[Init] Retrying render (attempt ${attempt + 1}/2)...`)
-          setTimeout(() => renderWithRetry(attempt + 1), 1000 * (attempt + 1))
+        if (attempt < 2) {
+          setTimeout(() => renderWithRetry(attempt + 1), 1000)
         } else {
-          // Show fallback UI for other errors
-          rootElement.innerHTML = `
-            <div style="padding: 20px; text-align: center;">
-              <h2>Something went wrong</h2>
-              <p>Please try refreshing the page</p>
-              <p style="color: red; font-size: 12px;">${error instanceof Error ? error.message : 'Unknown error'}</p>
-              <button onclick="window.location.reload()" style="margin-top: 20px; padding: 8px 16px; background: #8B5CF6; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                Refresh Page
-              </button>
-            </div>
-          `
+          throw error
         }
       }
     }
 
     renderWithRetry()
   } catch (error) {
-    console.error('[Init] Failed to initialize app:', error)
-    rootElement.innerHTML = `
-      <div style="padding: 20px; text-align: center;">
-        <h2>Something went wrong</h2>
-        <p>Please try refreshing the page</p>
-        <p style="color: red; font-size: 12px;">${error instanceof Error ? error.message : 'Unknown error'}</p>
-        <button onclick="window.location.reload()" style="margin-top: 20px; padding: 8px 16px; background: #8B5CF6; color: white; border: none; border-radius: 4px; cursor: pointer;">
-          Refresh Page
-        </button>
-      </div>
-    `
+    console.error('Failed to initialize app:', error)
+    throw error
   }
 }
 
-// Add timeout to detect stuck initialization
-setTimeout(() => {
-  if (!initSteps.renderCompleted) {
-    console.warn('[Init] Initialization appears stuck:', initSteps)
-  }
-}, 5000)
-
-// Initialize app when the window loads
-console.log('[Init] Adding load event listener')
-window.addEventListener('load', initializeApp)
+// Start initialization
+initializeApp()

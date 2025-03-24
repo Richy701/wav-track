@@ -19,15 +19,9 @@ import {
   Drum,
   Guitar,
   Piano,
-  Waveform,
   RadioReceiver,
   Music2,
-  Radio2,
   Drumstick,
-  Guitar2,
-  Piano2,
-  Waveform2,
-  RadioReceiver2,
 } from 'lucide-react'
 
 // Mock dashboard preview data
@@ -52,10 +46,10 @@ const genres = [
   { id: 'lofi', label: 'Lo-fi', icon: Guitar },
   { id: 'drill', label: 'Drill', icon: Drumstick },
   { id: 'pop', label: 'Pop', icon: Music },
-  { id: 'electronic', label: 'Electronic', icon: Waveform },
+  { id: 'electronic', label: 'Electronic', icon: Radio },
   { id: 'house', label: 'House', icon: RadioReceiver },
-  { id: 'techno', label: 'Techno', icon: Radio2 },
-  { id: 'ambient', label: 'Ambient', icon: Waveform2 },
+  { id: 'techno', label: 'Techno', icon: Radio },
+  { id: 'ambient', label: 'Ambient', icon: Radio },
   { id: 'experimental', label: 'Experimental', icon: Music2 },
 ]
 

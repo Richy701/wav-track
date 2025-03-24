@@ -20,7 +20,9 @@
       "default",
       {
         "ignore": [
-          "text-wrap"
+          "text-wrap",
+          "overscroll-behavior-x",
+          "overscroll-behavior-x: none"
         ]
       }
     ],

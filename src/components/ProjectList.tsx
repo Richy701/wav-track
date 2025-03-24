@@ -41,6 +41,8 @@ import { EmptyState } from './EmptyState'
 
 interface ProjectListProps {
   title?: string
+  projectList?: Project[]
+  isLoading?: boolean
   onDragEnd?: (activeId: string, overId: string) => void
   onProjectSelect?: (project: Project | null) => void
 }
@@ -49,12 +51,14 @@ type SortOption = 'newest' | 'oldest' | 'name' | 'completion'
 
 const ProjectList: React.FC<ProjectListProps> = ({
   title = 'Recent Projects',
+  projectList = [],
+  isLoading = false,
   onDragEnd,
   onProjectSelect,
 }) => {
   const queryClient = useQueryClient()
   const [isClearDialogOpen, setIsClearDialogOpen] = React.useState(false)
-  const { projects, isLoading, isFetching, error } = useProjects()
+  const { isFetching, error } = useProjects()
   const [filter, setFilter] = useState<Project['status'] | 'all'>('all')
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
@@ -139,7 +143,7 @@ const ProjectList: React.FC<ProjectListProps> = ({
   const filteredAndSortedProjects = useMemo(() => {
     // First filter
     const filtered =
-      filter === 'all' ? projects : projects.filter(project => project.status === filter)
+      filter === 'all' ? projectList : projectList.filter(project => project.status === filter)
 
     // Then sort
     return [...filtered].sort((a, b) => {
@@ -156,7 +160,7 @@ const ProjectList: React.FC<ProjectListProps> = ({
           return 0
       }
     })
-  }, [projects, filter, sortBy])
+  }, [projectList, filter, sortBy])
 
   // Get the appropriate icon and text for the current sort option
   const getSortOptionDisplay = (option: SortOption) => {
@@ -181,7 +185,7 @@ const ProjectList: React.FC<ProjectListProps> = ({
     return <div>Loading...</div>
   }
 
-  if (projects.length === 0) {
+  if (projectList.length === 0) {
     return <EmptyState />
   }
 
@@ -298,16 +302,17 @@ const ProjectList: React.FC<ProjectListProps> = ({
               items={filteredAndSortedProjects.map(p => p.id)}
               strategy={rectSortingStrategy}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 overflow-x-hidden">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 min-w-0">
                 {filteredAndSortedProjects.map(project => (
-                  <SortableProjectCard
-                    key={project.id}
-                    project={project}
-                    onProjectUpdated={handleProjectUpdated}
-                    onProjectDeleted={handleProjectDeleted}
-                    onProjectSelect={handleProjectSelect}
-                    isSelected={selectedProjectId === project.id}
-                  />
+                  <div key={project.id} className="min-w-0">
+                    <SortableProjectCard
+                      project={project}
+                      onProjectUpdated={handleProjectUpdated}
+                      onProjectDeleted={handleProjectDeleted}
+                      onProjectSelect={handleProjectSelect}
+                      isSelected={selectedProjectId === project.id}
+                    />
+                  </div>
                 ))}
               </div>
             </SortableContext>

@@ -5,6 +5,7 @@ export interface AudioAnalysisResult {
   duration: number
   key: string
   scale: 'major' | 'minor'
+  danceability: number
 }
 
 // Musical key mapping
@@ -170,6 +171,24 @@ const calculateEnergy = (data: Float32Array): number => {
   return sum / data.length
 }
 
+const calculateDanceability = (data: Float32Array, bpm: number): number => {
+  // Calculate rhythmic stability based on BPM and energy distribution
+  const sampleRate = 44100 // Standard sample rate
+  const beatLength = (60 / bpm) * sampleRate
+  const windowSize = Math.floor(beatLength / 2)
+  
+  let rhythmicStability = 0
+  for (let i = 0; i < data.length - windowSize; i += windowSize) {
+    const window = data.slice(i, i + windowSize)
+    const energy = calculateEnergy(window)
+    rhythmicStability += energy
+  }
+  rhythmicStability /= Math.floor(data.length / windowSize)
+  
+  // Normalize to 0-1 range
+  return Math.min(1, Math.max(0, rhythmicStability))
+}
+
 const detectBPM = (audioBuffer: AudioBuffer): number => {
   const data = audioBuffer.getChannelData(0)
   const sampleRate = audioBuffer.sampleRate
@@ -259,6 +278,9 @@ export const analyzeAudio = async (audioBuffer: AudioBuffer): Promise<AudioAnaly
     // Calculate loudness (RMS) using preprocessed audio
     const loudness = calculateRMS(filteredData)
 
+    // Calculate danceability
+    const danceability = calculateDanceability(filteredData, bpm)
+
     // Detect key and scale
     const { key, scale } = await detectKey(audioBuffer)
 
@@ -269,6 +291,7 @@ export const analyzeAudio = async (audioBuffer: AudioBuffer): Promise<AudioAnaly
       duration: audioBuffer.duration,
       key,
       scale,
+      danceability: Math.round(danceability * 100) / 100,
     }
   } catch (error) {
     console.error('Failed to analyze audio:', error)

@@ -2,28 +2,29 @@
   "name": "WavTrack",
   "short_name": "WavTrack",
   "description": "Track your music production journey",
-  "start_url": "./",
+  "start_url": "/wav-track/",
+  "scope": "/wav-track/",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#6200ea",
   "icons": [
     {
-      "src": "./favicon.ico",
+      "src": "/wav-track/favicon.ico",
       "sizes": "48x48",
       "type": "image/x-icon"
     },
     {
-      "src": "./icon-192.png",
+      "src": "/wav-track/android-chrome-192x192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "./icon-512.png",
+      "src": "/wav-track/android-chrome-512x512.png",
       "type": "image/png",
       "sizes": "512x512"
     },
     {
-      "src": "./maskable-icon.png",
+      "src": "/wav-track/maskable-icon.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"

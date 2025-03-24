@@ -30,7 +30,6 @@ export default function HeaderActions({
   }
 
   const isMainPage = location.pathname === '/'
-  const isDevelopment = import.meta.env.DEV
 
   const items = [
     { label: 'Profile', href: '/profile' },
@@ -55,19 +54,6 @@ export default function HeaderActions({
           <Link to={item.href}>{item.label}</Link>
         </Button>
       ))}
-
-      {/* Debug button - only shown in development */}
-      {isDevelopment && user && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-amber-500 hover:text-amber-600 dark:text-amber-400 dark:hover:text-amber-300"
-          onClick={() => handleNavigate('/debug')}
-          title="Debug Tools"
-        >
-          <Wrench className="h-5 w-5" />
-        </Button>
-      )}
 
       <div
         className={cn('flex items-center gap-2', orientation === 'vertical' ? 'self-start' : '')}

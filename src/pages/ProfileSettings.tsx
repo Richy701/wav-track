@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
@@ -22,30 +21,12 @@ import { Switch } from '@/components/ui/switch'
 import {
   ArrowLeft as PhArrowLeft,
   FloppyDisk,
-  Trash as PhTrash,
   MusicNote,
-  Microphone,
-  Headphones,
-  Radio as PhRadio,
-  Globe,
-  Bell as PhBell,
   InstagramLogo,
   TwitterLogo,
   YoutubeLogo,
-  Envelope,
-  User,
-  Phone as PhPhone,
-  MapPin as PhMapPin,
-  SoundcloudLogo,
-  SpotifyLogo,
-  Check,
   X,
-  MusicNotes,
-  Laptop,
-  Wrench,
   Desktop,
-  Code,
-  Gear,
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import {
@@ -56,23 +37,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useAuth } from '../contexts/AuthContext'
-import { format } from 'date-fns'
-import { Calendar as PhCalendar } from '@phosphor-icons/react'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
+import { useAuth } from '@/contexts/AuthContext'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { Spinner } from '@/components/ui/spinner'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from '@/components/ui/command'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
 import {
   FLStudioIcon,
   AbletonIcon,
@@ -82,8 +51,8 @@ import {
   BitwigIcon,
   ReaperIcon,
 } from '@/components/DawIcons'
-import TestDataGenerator from '@/components/TestDataGenerator'
-import { Bell, Check, ExternalLink, Instagram } from 'lucide-react'
+import { Check } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 interface FormData {
   name: string
@@ -300,36 +269,28 @@ const ProfileSettings = () => {
     setIsSaving(true)
 
     try {
-      console.log('Raw form data:', JSON.stringify(formData, null, 2))
-
-      // Prepare update data
-      const dataToUpdate = {
-        ...formData,
-        // Send genres as array directly
+      const updatedProfile = await updateUserProfile({
+        name: formData.name,
+        email: formData.email,
+        artist_name: formData.artist_name,
         genres: formData.genres,
+        daw: formData.daw,
+        bio: formData.bio,
+        location: formData.location,
+        phone: formData.phone,
+        website: formData.website,
+        birthday: formData.birthday,
+        timezone: formData.timezone,
         social_links: formData.social_links,
         notification_preferences: formData.notification_preferences,
-      }
+      })
 
-      console.log('Data being sent to updateUserProfile:', JSON.stringify(dataToUpdate, null, 2))
-
-      // Update profile
-      const response = await updateUserProfile(dataToUpdate)
-      console.log('Update response:', JSON.stringify(response, null, 2))
-
-      // Ensure profile is refreshed with latest data
+      // Refresh profile to get the latest data
       await refreshProfile()
-
-      toast.success('Profile updated successfully!')
-      navigate('/profile')
+      toast.success('Profile updated successfully')
     } catch (error) {
       console.error('Error updating profile:', error)
-      // More detailed error logging
-      if (error instanceof Error) {
-        toast.error(`Failed to update profile: ${error.message}`)
-      } else {
-        toast.error('Failed to update profile: An unknown error occurred')
-      }
+      toast.error('Failed to update profile')
     } finally {
       setIsSaving(false)
     }
@@ -670,7 +631,7 @@ const ProfileSettings = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <TestDataGenerator />
+                {/* TestDataGenerator component removed as per instructions */}
               </CardContent>
             </Card>
           )}

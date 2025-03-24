@@ -65,6 +65,40 @@
       stroke 0.3s ease;
   }
 
+  /* iOS Safari overscroll behavior fallback */
+  @supports not (overscroll-behavior-x: contain) {
+    .overflow-x-auto,
+    .overflow-x-scroll,
+    .overflow-x-hidden {
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+    }
+
+    /* Prevent horizontal scroll on iOS */
+    body {
+      position: relative;
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Container styles for iOS */
+    .container-fluid,
+    .container-narrow,
+    .container-wide {
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
   .dark {
     /* Dark mode colors remain unchanged */
     --background: 240 10% 4.5%;
@@ -326,15 +360,13 @@
       @apply gap-4;
     }
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground overflow-x-hidden;
+    @apply bg-background text-foreground;
     font-feature-settings:
       'rlig' 1,
       'calt' 1,
@@ -343,6 +375,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    position: relative;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   h1,
@@ -448,6 +484,38 @@
     -webkit-backdrop-filter: blur(16px);
     backdrop-filter: blur(16px);
   }
+
+  /* Container styles */
+  .container-fluid {
+    @apply w-full px-4 mx-auto sm:px-6 lg:px-8;
+    position: relative;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .container-narrow {
+    @apply container-fluid max-w-7xl;
+  }
+
+  .container-wide {
+    @apply container-fluid max-w-[1600px];
+  }
+
+  /* Responsive grid */
+  .responsive-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6;
+    position: relative;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Responsive flex */
+  .responsive-flex {
+    @apply flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4;
+    position: relative;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
 }
 
 @layer utilities {
@@ -534,28 +602,8 @@
 }
 
 @layer components {
-  .container-fluid {
-    @apply w-full px-4 mx-auto sm:px-6 lg:px-8 overflow-x-hidden;
-  }
-
-  .container-narrow {
-    @apply container-fluid max-w-7xl;
-  }
-
-  .container-wide {
-    @apply container-fluid max-w-[1600px];
-  }
-
   .section-padding {
     @apply py-6 sm:py-8 lg:py-12;
-  }
-
-  .responsive-grid {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 overflow-x-hidden;
-  }
-
-  .responsive-flex {
-    @apply flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4;
   }
 
   .card {
