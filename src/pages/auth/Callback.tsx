@@ -12,46 +12,47 @@ const Callback = () => {
       try {
         // Get the current URL parameters
         const params = new URLSearchParams(window.location.search)
-        const token = params.get('token')
-        const type = params.get('type')
-        const refreshToken = params.get('refresh_token')
+        const code = params.get('code')
+        const next = '/wav-track/dashboard' // Always redirect to dashboard after OAuth
 
-        // If we have token and type, handle email verification
-        if (token && type) {
-          console.log('Verifying email with token...')
-          const { error: verifyError } = await supabase.auth.verifyOtp({
-            token_hash: token,
-            type: type as any,
-          })
+        console.log('Callback URL params:', {
+          code: code ? 'present' : 'missing',
+          fullUrl: window.location.href
+        })
 
-          if (verifyError) {
-            console.error('Verification error:', verifyError)
-            toast.error('Email verification failed')
-            navigate('/login')
+        // Handle OAuth callback
+        if (code) {
+          console.log('Processing OAuth callback...')
+          const { error: signInError } = await supabase.auth.exchangeCodeForSession(code)
+
+          if (signInError) {
+            console.error('OAuth callback error:', signInError)
+            toast.error('Authentication failed')
+            navigate('/wav-track/login')
             return
           }
 
-          // After verification, try to get the session
-          const {
-            data: { session },
-            error: sessionError,
-          } = await supabase.auth.getSession()
+          // Get the session after successful code exchange
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
           if (sessionError || !session) {
-            console.error('Session error after verification:', sessionError)
-            toast.success('Email verified successfully. Please log in.')
-            navigate('/login')
+            console.error('Session error after OAuth:', sessionError)
+            toast.error('Failed to establish session')
+            navigate('/wav-track/login')
             return
           }
 
-          // Session exists after verification
-          console.log('Session established after verification')
-          toast.success('Email verified and logged in successfully')
-          navigate('/')
+          // Successfully authenticated
+          console.log('OAuth authentication successful', {
+            userId: session.user.id,
+            provider: session.user.app_metadata.provider
+          })
+          toast.success('Successfully signed in')
+          navigate(next)
           return
         }
 
-        // If no token/type, check for existing session
+        // If no code, check for existing session
         const {
           data: { session },
           error: sessionError,
@@ -60,18 +61,18 @@ const Callback = () => {
         if (sessionError || !session) {
           console.error('No session found:', sessionError)
           toast.error('Authentication failed')
-          navigate('/login')
+          navigate('/wav-track/login')
           return
         }
 
         // Existing session found
         console.log('Existing session found')
         toast.success('Authentication successful')
-        navigate('/')
+        navigate('/wav-track/dashboard')
       } catch (error) {
         console.error('Error in callback:', error)
         toast.error('Authentication error')
-        navigate('/login')
+        navigate('/wav-track/login')
       }
     }
 

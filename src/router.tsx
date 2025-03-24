@@ -34,7 +34,7 @@ const loginRoute = createRoute({
     } = await supabase.auth.getSession()
     if (session) {
       throw redirect({
-        to: '/',
+        to: '/dashboard',
       })
     }
   },
@@ -50,6 +50,10 @@ const callbackRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/auth/callback',
   component: Callback,
+  beforeLoad: async () => {
+    // Allow access to callback route even if not authenticated
+    return null
+  },
 })
 
 const protectedRoute = createRoute({
@@ -66,6 +70,12 @@ const protectedRoute = createRoute({
     }
   },
   component: () => <Outlet />,
+})
+
+const dashboardRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: '/dashboard',
+  component: Index, // Using Index as dashboard for now
 })
 
 const profileRoute = createRoute({
@@ -91,7 +101,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   registerRoute,
   callbackRoute,
-  protectedRoute.addChildren([profileRoute, profileSettingsRoute]),
+  protectedRoute.addChildren([dashboardRoute, profileRoute, profileSettingsRoute]),
   scrollDemoRoute,
 ])
 
@@ -99,4 +109,7 @@ export const router = createRouter({
   routeTree,
   basepath: '/wav-track',
   defaultPreload: 'intent',
+  context: {
+    auth: undefined,
+  },
 })
