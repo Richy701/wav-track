@@ -16,6 +16,7 @@ import {
   Star,
   Trophy,
   Flame,
+  Sparkles,
 } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -252,12 +253,21 @@ export function RecentProjects() {
           sortedProjects.map(project => (
             <Card
               key={project.id}
-              className="group hover:shadow-md hover:scale-[1.01] transition-all duration-200 rounded-xl overflow-hidden border-muted/50 hover:border-primary/20"
+              className="group relative hover:shadow-lg hover:scale-[1.02] transition-all duration-300 rounded-xl overflow-hidden border-muted/50 hover:border-primary/20"
             >
               <CardContent className="p-5 space-y-4">
                 {/* Project Header with Title and Badge */}
                 <div className="flex items-center justify-between gap-4">
-                  <h3 className="font-medium text-base truncate">{project.title}</h3>
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-base truncate group-hover:text-primary transition-colors">
+                      {project.title}
+                    </h3>
+                    {project.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
+                        {project.description}
+                      </p>
+                    )}
+                  </div>
                   <Badge
                     variant="outline"
                     className={`shrink-0 whitespace-nowrap ${
@@ -276,33 +286,53 @@ export function RecentProjects() {
                   </Badge>
                 </div>
 
-                {/* Project Description */}
-                {project.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {project.description}
-                  </p>
-                )}
-
-                {/* Project Tags */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge
-                    variant="secondary"
-                    className="bg-primary/10 text-primary hover:bg-primary/20 whitespace-nowrap"
-                  >
-                    {project.genre}
-                  </Badge>
-                  {project.tags?.map((tag, index) => (
-                    <Badge key={index} variant="outline" className="text-xs whitespace-nowrap">
-                      {tag}
-                    </Badge>
-                  ))}
+                {/* Project Metadata */}
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
+                    <Calendar className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{formatTimeAgo(new Date(project.dateCreated))}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
+                    <MusicNote className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{project.bpm} BPM</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
+                    <MusicNote className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{project.key}</span>
+                  </div>
+                  {project.genre && (
+                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/5 text-primary border border-primary/10">
+                      <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{project.genre}</span>
+                    </div>
+                  )}
                 </div>
 
+                {/* Project Tags */}
+                {project.tags && project.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {project.tags.map((tag, index) => (
+                      <div
+                        key={index}
+                        className="px-2 py-0.5 rounded-full text-xs bg-primary/5 text-primary border border-primary/10"
+                      >
+                        {tag}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Progress Bar */}
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 bg-muted/50 rounded-full h-2 overflow-hidden">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Progress</span>
+                    <span className="font-medium tabular-nums">
+                      {project.completionPercentage || 0}%
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-muted/50 overflow-hidden">
                     <div
-                      className={`h-2 rounded-full transition-all duration-300 ${
+                      className={`h-full rounded-full transition-all duration-500 ${
                         (project.completionPercentage || 0) === 100
                           ? 'bg-gradient-to-r from-green-500 to-emerald-500'
                           : (project.completionPercentage || 0) >= 75
@@ -316,49 +346,6 @@ export function RecentProjects() {
                       style={{ width: `${project.completionPercentage || 0}%` }}
                     />
                   </div>
-                  <span className="text-sm font-medium tabular-nums whitespace-nowrap">
-                    {project.completionPercentage || 0}%
-                  </span>
-                </div>
-
-                {/* Project Metadata */}
-                <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
-                  <div className="flex items-center gap-x-3 flex-wrap">
-                    <div className="flex items-center gap-x-2 whitespace-nowrap">
-                      <Calendar className="h-3.5 w-3.5" />
-                      <span>{formatTimeAgo(new Date(project.dateCreated))}</span>
-                    </div>
-                    <div className="flex items-center gap-x-2 whitespace-nowrap">
-                      <ClockCounterClockwise className="h-3.5 w-3.5" />
-                      <span>{project.bpm} BPM</span>
-                    </div>
-                    <div className="flex items-center gap-x-2 whitespace-nowrap">
-                      <MusicNote className="h-3.5 w-3.5" />
-                      <span>{project.key}</span>
-                    </div>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <DotsThreeVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem>
-                        <PencilSimple className="mr-2 h-4 w-4" />
-                        Edit Project
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <ArrowClockwise className="mr-2 h-4 w-4" />
-                        Move to Next Stage
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive focus:text-destructive">
-                        <Trash className="mr-2 h-4 w-4" />
-                        Delete Project
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
               </CardContent>
             </Card>

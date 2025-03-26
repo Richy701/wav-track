@@ -303,7 +303,7 @@ export default function ProjectCard({
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{project.audio_url?.trim() ? (isPlaying ? 'Pause Preview' : 'Play Preview') : 'No audio available'}</p>
+                  <p>{isPlaying ? 'Pause Preview' : 'Play Preview'}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -396,43 +396,38 @@ export default function ProjectCard({
                   {localProject.title}
                 </h3>
               </Link>
+              
+              {/* Project metadata with improved layout */}
               <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
                   <Calendar className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">{formatDate(localProject.dateCreated)}</span>
                 </div>
-                <span>•</span>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
                   <MusicNote className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">{localProject.bpm} BPM</span>
                 </div>
-                <span>•</span>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
                   <MusicNote className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">{localProject.key}</span>
                 </div>
-                <span>•</span>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
                   <ArrowClockwise className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">Updated {formatTimeAgo(localProject.lastModified)}</span>
                 </div>
               </div>
-              {project.audio_url && (
-                <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                  {project.bpm && project.key && (
-                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/5 border border-primary/10">
-                      <Sparkles className="h-3 w-3 text-primary" />
-                      <span>{project.bpm} BPM</span>
-                      <span>•</span>
-                      <span>{project.key}</span>
-                      {project.genre && (
-                        <>
-                          <span>•</span>
-                          <span>{project.genre}</span>
-                        </>
-                      )}
+
+              {/* Project tags with improved styling */}
+              {project.tags && project.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {project.tags.map((tag, index) => (
+                    <div
+                      key={index}
+                      className="px-2 py-0.5 rounded-full text-xs bg-primary/5 text-primary border border-primary/10"
+                    >
+                      {tag}
                     </div>
-                  )}
+                  ))}
                 </div>
               )}
             </div>

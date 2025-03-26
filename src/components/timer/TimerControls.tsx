@@ -1,47 +1,80 @@
-import { Play, Pause, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
+import { Play, Pause, SkipForward, RotateCcw } from 'lucide-react'
 
 interface TimerControlsProps {
   isRunning: boolean
-  time: number
-  initialTime: number
-  toggleTimer: () => void
-  resetTimer: () => void
+  onStart: () => void
+  onPause: () => void
+  onReset: () => void
+  onSkip: () => void
+  mode: 'work' | 'break'
 }
 
 export function TimerControls({
   isRunning,
-  time,
-  initialTime,
-  toggleTimer,
-  resetTimer,
+  onStart,
+  onPause,
+  onReset,
+  onSkip,
+  mode
 }: TimerControlsProps) {
   return (
-    <div className="flex items-center justify-center space-x-4">
-      <button
-        onClick={toggleTimer}
-        aria-label={isRunning ? 'Pause timer' : 'Start timer'}
+    <div className="flex items-center justify-center gap-4 mt-4">
+      {/* Reset Button */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={onReset}
         className={cn(
-          'h-12 w-12 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 active:scale-95',
-          isRunning
-            ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600 dark:from-red-500 dark:to-pink-500 dark:hover:from-red-600 dark:hover:to-pink-600'
-            : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 dark:from-green-500 dark:to-emerald-500 dark:hover:from-green-600 dark:hover:to-emerald-600'
+          "p-2 rounded-full transition-colors",
+          "hover:bg-muted/50 active:bg-muted",
+          "focus:outline-none focus:ring-2 focus:ring-offset-2",
+          mode === 'work' 
+            ? "focus:ring-emerald-500/50" 
+            : "focus:ring-blue-500/50"
         )}
       >
-        {isRunning ? <Pause size={20} /> : <Play size={20} className="ml-0.5" />}
-      </button>
+        <RotateCcw className="w-5 h-5 text-muted-foreground" />
+      </motion.button>
 
-      <button
-        onClick={resetTimer}
-        aria-label="Reset timer"
-        className="h-10 w-10 rounded-full bg-secondary hover:bg-secondary/70 flex items-center justify-center transition-all duration-300 transform hover:rotate-180 hover:scale-105 active:scale-95"
-        disabled={time === initialTime && !isRunning}
+      {/* Play/Pause Button */}
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={isRunning ? onPause : onStart}
+        className={cn(
+          "p-4 rounded-full transition-all",
+          "focus:outline-none focus:ring-2 focus:ring-offset-2",
+          mode === 'work' 
+            ? "bg-emerald-500 hover:bg-emerald-600 focus:ring-emerald-500/50" 
+            : "bg-blue-500 hover:bg-blue-600 focus:ring-blue-500/50",
+          "shadow-lg hover:shadow-xl"
+        )}
       >
-        <RotateCcw
-          size={16}
-          className={time === initialTime && !isRunning ? 'text-muted-foreground' : ''}
-        />
-      </button>
+        {isRunning ? (
+          <Pause className="w-6 h-6 text-white" />
+        ) : (
+          <Play className="w-6 h-6 text-white" />
+        )}
+      </motion.button>
+
+      {/* Skip Button */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={onSkip}
+        className={cn(
+          "p-2 rounded-full transition-colors",
+          "hover:bg-muted/50 active:bg-muted",
+          "focus:outline-none focus:ring-2 focus:ring-offset-2",
+          mode === 'work' 
+            ? "focus:ring-emerald-500/50" 
+            : "focus:ring-blue-500/50"
+        )}
+      >
+        <SkipForward className="w-5 h-5 text-muted-foreground" />
+      </motion.button>
     </div>
   )
 }

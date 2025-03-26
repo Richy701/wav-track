@@ -201,7 +201,7 @@ const ProfileSettings = () => {
         birthday: profile.birthday || '',
         timezone: profile.timezone || 'UTC',
         artist_name: profile.artist_name || '',
-        genres: profile.genres || [],
+        genres: Array.isArray(profile.genres) ? profile.genres : [],
         daw: profile.daw || '',
         bio: profile.bio || '',
         social_links: profile.social_links || {

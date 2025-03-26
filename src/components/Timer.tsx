@@ -18,6 +18,7 @@ import { TimerSettings } from './timer/TimerSettings'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { cleanupAudioContext } from '@/lib/audioContext'
+import { motion, AnimatePresence } from 'framer-motion'
 
 // Import quotes from MotivationalQuotes component
 const quotes = [
@@ -71,10 +72,26 @@ const quotes = [
   },
 ]
 
+const WORK_TIME = 25 * 60 // 25 minutes
+const BREAK_TIME = 5 * 60 // 5 minutes
+
+const motivationalQuotes = [
+  "Every beat counts. Make it matter.",
+  "Your next masterpiece is waiting.",
+  "Stay in the groove.",
+  "Keep the rhythm flowing.",
+  "Let the music guide you.",
+  "One session at a time.",
+  "Your creativity knows no bounds.",
+  "Make every note count.",
+  "Stay focused, stay inspired.",
+  "Your next hit is in this session."
+]
+
 export default function Timer() {
   const [isRunning, setIsRunning] = useState(false)
-  const [time, setTime] = useState(25 * 60) // Default 25 minutes for work period
-  const [initialTime, setInitialTime] = useState(25 * 60)
+  const [time, setTime] = useState(WORK_TIME)
+  const [initialTime, setInitialTime] = useState(WORK_TIME)
   const [sessions, setSessions] = useState<TimerSession[]>([])
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null)
   const [mode, setMode] = useState<'work' | 'break'>('work')
@@ -82,13 +99,14 @@ export default function Timer() {
   const [breakDuration, setBreakDuration] = useState(5) // Minutes
   const [showSettings, setShowSettings] = useState(false)
   const [notificationSound, setNotificationSound] = useState<NotificationSound>('beep')
+  const [currentQuote, setCurrentQuote] = useState(motivationalQuotes[0])
+  const [isAudioLoaded, setIsAudioLoaded] = useState(false)
+  const [audioError, setAudioError] = useState<string | null>(null)
+  const audioLoadAttempted = useRef(false)
 
   // Quote state
   const [quote, setQuote] = useState<(typeof quotes)[0]>(quotes[0])
   const [fadeIn, setFadeIn] = useState(true)
-  const [isAudioLoaded, setIsAudioLoaded] = useState(false)
-  const [audioError, setAudioError] = useState<string | null>(null)
-  const audioLoadAttempted = useRef(false)
 
   // Get a random quote that's different from the current one and hasn't been shown recently
   const getRandomQuote = () => {
@@ -333,34 +351,44 @@ export default function Timer() {
   useEffect(() => {
     let interval: NodeJS.Timeout
 
-    if (isRunning) {
+    if (isRunning && time > 0) {
       interval = setInterval(() => {
-        setTime(prevTime => {
+        setTime((prevTime) => {
           if (prevTime <= 1) {
-            clearInterval(interval)
-            handleTimerComplete()
-            return 0
+            setIsRunning(false)
+            setSessionStartTime(null)
+            return mode === 'work' ? BREAK_TIME : WORK_TIME
           }
           return prevTime - 1
         })
       }, 1000)
     }
 
-    return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [isRunning, handleTimerComplete])
+    return () => clearInterval(interval)
+  }, [isRunning, time, mode])
+
+  // Update quote every 30 seconds
+  useEffect(() => {
+    const quoteInterval = setInterval(() => {
+      setCurrentQuote(prev => {
+        const currentIndex = motivationalQuotes.indexOf(prev)
+        return motivationalQuotes[(currentIndex + 1) % motivationalQuotes.length]
+      })
+    }, 30000)
+
+    return () => clearInterval(quoteInterval)
+  }, [])
 
   return (
-    <div className="bg-card rounded-xl p-6 animate-fade-in theme-transition">
+    <div className="bg-card rounded-xl p-3 animate-fade-in theme-transition h-[529px] flex flex-col overflow-hidden">
       {/* Show audio error if exists */}
       {audioError && (
-        <div className="mb-4 p-2 bg-destructive/10 text-destructive text-sm rounded-md">
+        <div className="mb-2 p-2 bg-destructive/10 text-destructive text-sm rounded-md">
           {audioError}
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-2">
         <h3 className="font-medium flex items-center gap-2 theme-transition">
           <div className="p-1.5 rounded-md bg-primary/10">
             <Bell size={16} className="text-primary theme-transition" />
@@ -378,77 +406,66 @@ export default function Timer() {
       </div>
 
       {showSettings ? (
-        <TimerSettings
-          workDuration={workDuration}
-          breakDuration={breakDuration}
-          setWorkDuration={setWorkDuration}
-          setBreakDuration={setBreakDuration}
-          notificationSound={notificationSound}
-          setNotificationSound={setNotificationSound}
-          applySettings={applySettings}
-        />
+        <div className="flex-1">
+          <TimerSettings
+            workDuration={workDuration}
+            breakDuration={breakDuration}
+            setWorkDuration={setWorkDuration}
+            setBreakDuration={setBreakDuration}
+            notificationSound={notificationSound}
+            setNotificationSound={setNotificationSound}
+            applySettings={applySettings}
+          />
+        </div>
       ) : (
-        <>
-          <TimerModeSelector mode={mode} switchMode={switchMode} />
+        <div className="flex-1 flex flex-col justify-between">
+          <div className="space-y-6">
+            <TimerModeSelector mode={mode} onModeChange={switchMode} />
+            <TimerDisplay
+              time={time}
+              initialTime={initialTime}
+              sessionStartTime={sessionStartTime}
+              mode={mode}
+              isRunning={isRunning}
+            />
+            <TimerControls
+              isRunning={isRunning}
+              onStart={toggleTimer}
+              onPause={toggleTimer}
+              onReset={resetTimer}
+              onSkip={handleTimerComplete}
+              mode={mode}
+            />
+          </div>
 
-          <TimerDisplay
-            time={time}
-            initialTime={initialTime}
-            sessionStartTime={sessionStartTime}
-            mode={mode}
-          />
-
-          <TimerControls
-            isRunning={isRunning}
-            time={time}
-            initialTime={initialTime}
-            toggleTimer={toggleTimer}
-            resetTimer={resetTimer}
-          />
+          {/* Subtle divider */}
+          <div className="h-px bg-border/30 my-0.5" />
 
           {/* Motivational Quote Section */}
-          <div className="mt-4 pt-3 border-t border-border/50">
-            <div className="flex justify-between items-center mb-2">
-              <div className="flex items-center gap-2">
-                <div className="p-1 rounded-md bg-primary/10">
-                  <Quote className="h-3.5 w-3.5 text-primary/70" />
-                </div>
-                <h4 className="text-xs font-medium text-muted-foreground">Daily Inspiration</h4>
-              </div>
-              <button
-                onClick={changeQuote}
-                className="h-6 w-6 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
-                title="Get new quote"
-                aria-label="Get new inspirational quote"
-              >
-                <Sparkles size={10} className="text-primary" />
-              </button>
+          <div className="text-center space-y-0.5 -mt-5">
+            <div className="flex items-center justify-center gap-1.5">
+              <h4 className="text-xs font-medium text-muted-foreground/80">Daily Inspiration</h4>
             </div>
-
-            <div
-              className={cn(
-                'transition-opacity duration-300',
-                fadeIn ? 'opacity-100' : 'opacity-0'
-              )}
-            >
-              <div className="relative px-4 py-1.5">
-                <Quote className="absolute left-0 top-0 h-3.5 w-3.5 text-primary/10" />
-                <Quote className="absolute right-0 bottom-0 h-3.5 w-3.5 text-primary/10 rotate-180" />
-                <div className="text-center space-y-1">
-                  <p className="text-sm leading-relaxed text-foreground font-medium tracking-tight">
-                    "{quote.text}"
-                  </p>
-                  <div className="flex flex-col items-center gap-0.5">
-                    <div className="h-px w-5 bg-gradient-to-r from-transparent via-border/70 to-transparent"></div>
-                    <span className="text-xs text-muted-foreground tracking-wide">
-                      {quote.author}
-                    </span>
-                  </div>
-                </div>
-              </div>
+            <div className="relative">
+              <motion.div
+                key={currentQuote}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="relative"
+              >
+                <motion.div
+                  whileHover={{ rotate: 15 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Quote className="w-3 h-3 text-muted-foreground/50 absolute -top-1 -left-1" />
+                </motion.div>
+                <p className="text-xs text-muted-foreground/90 italic">{currentQuote}</p>
+              </motion.div>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   )

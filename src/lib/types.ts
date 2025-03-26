@@ -35,10 +35,29 @@ export interface Sample {
 export interface Session {
   id: string
   user_id: string
-  project_id: string
-  duration: number // in minutes
+  project_id?: string | null
+  duration: number
   created_at: string
+  ended_at?: string | null
   notes?: string
+  productivity_score: number
+  tags: string[]
+  status: 'active' | 'completed' | 'cancelled'
+  goal?: string
+  goal_completed?: boolean
+  feedback?: '😞' | '😐' | '🙂' | '😄'
+  streak_count?: number
+}
+
+export interface SessionStats {
+  totalDuration: number
+  averageDuration: number
+  totalSessions: number
+  productivityScore: number
+  mostProductiveTime: string | null
+  recentSessions: Session[]
+  currentStreak: number
+  bestStreak: number
 }
 
 export interface Note {

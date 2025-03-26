@@ -21,21 +21,8 @@ export type Database = {
           total_beats: number
           completed_projects: number
           completion_rate: number
-          social_links: {
-            instagram: string | null
-            instagram_username: string | null
-            twitter: string | null
-            twitter_username: string | null
-            youtube: string | null
-            youtube_username: string | null
-            soundcloud?: string
-            spotify?: string
-          }
-          notification_preferences: {
-            newFollowers: boolean
-            beatComments: boolean
-            collaborationRequests: boolean
-          }
+          social_links: Json | null
+          notification_preferences: Json | null
           join_date: string | null
           updated_at: string | null
         }
@@ -56,21 +43,8 @@ export type Database = {
           total_beats?: number
           completed_projects?: number
           completion_rate?: number
-          social_links?: {
-            instagram: string | null
-            instagram_username: string | null
-            twitter: string | null
-            twitter_username: string | null
-            youtube: string | null
-            youtube_username: string | null
-            soundcloud?: string
-            spotify?: string
-          }
-          notification_preferences?: {
-            newFollowers: boolean
-            beatComments: boolean
-            collaborationRequests: boolean
-          }
+          social_links?: Json | null
+          notification_preferences?: Json | null
           join_date?: string | null
           updated_at?: string | null
         }
@@ -91,25 +65,64 @@ export type Database = {
           total_beats?: number
           completed_projects?: number
           completion_rate?: number
-          social_links?: {
-            instagram: string | null
-            instagram_username: string | null
-            twitter: string | null
-            twitter_username: string | null
-            youtube: string | null
-            youtube_username: string | null
-            soundcloud?: string
-            spotify?: string
-          }
-          notification_preferences?: {
-            newFollowers: boolean
-            beatComments: boolean
-            collaborationRequests: boolean
-          }
+          social_links?: Json | null
+          notification_preferences?: Json | null
           join_date?: string | null
           updated_at?: string | null
         }
         Relationships: []
+      }
+      sessions: {
+        Row: {
+          id: string
+          user_id: string
+          project_id: string | null
+          duration: number
+          created_at: string
+          ended_at: string | null
+          notes: string | null
+          productivity_score: number | null
+          tags: string[]
+          status: 'active' | 'completed' | 'paused'
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          project_id?: string | null
+          duration?: number
+          created_at?: string
+          ended_at?: string | null
+          notes?: string | null
+          productivity_score?: number | null
+          tags?: string[]
+          status?: 'active' | 'completed' | 'paused'
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          project_id?: string | null
+          duration?: number
+          created_at?: string
+          ended_at?: string | null
+          notes?: string | null
+          productivity_score?: number | null
+          tags?: string[]
+          status?: 'active' | 'completed' | 'paused'
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_project_id_fkey"
+            columns: ["project_id"]
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {
