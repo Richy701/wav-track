@@ -24,8 +24,8 @@ export default function Callback() {
             email: session.user.email
           })
 
-          // Redirect to dashboard
-          navigate('/wav-track/dashboard', { replace: true })
+          // Redirect to index
+          navigate('/wav-track/', { replace: true })
         } else {
           throw new Error('No session found')
         }

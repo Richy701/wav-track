@@ -33,7 +33,7 @@ const loginRoute = createRoute({
     } = await supabase.auth.getSession()
     if (session) {
       throw redirect({
-        to: '/dashboard',
+        to: '/',
       })
     }
   },
