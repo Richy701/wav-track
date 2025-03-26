@@ -15,6 +15,8 @@ import { cn } from '@/lib/utils'
 import { trackEvent, ANALYTICS_EVENTS } from '@/lib/analytics'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { authService } from '@/lib/services/auth'
+import { useQueryClient } from '@tanstack/react-query'
+import { prefetchDashboardData } from '@/lib/prefetch'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -25,6 +27,7 @@ const Login = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   const from = location.state?.from || '/'
 
@@ -44,6 +47,9 @@ const Login = () => {
       if (!success) {
         setError('Invalid email or password')
       }
+      // Prefetch dashboard data after successful login
+      await prefetchDashboardData(queryClient)
+      navigate('/dashboard')
     } catch (err) {
       console.error('Login error:', err)
       setError(err instanceof Error ? err.message : 'Failed to sign in')

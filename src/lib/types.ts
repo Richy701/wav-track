@@ -14,6 +14,7 @@ export interface Project {
   genre?: string
   tags?: string[]
   completionPercentage?: number
+  audio_url?: string | null
   audioFile?: {
     name: string
     size: number
@@ -33,10 +34,11 @@ export interface Sample {
 
 export interface Session {
   id: string
-  projectId: string
+  user_id: string
+  project_id: string
   duration: number // in minutes
-  date: string
-  notes: string
+  created_at: string
+  notes?: string
 }
 
 export interface Note {

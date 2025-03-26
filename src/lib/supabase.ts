@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { Database } from '../types/supabase'
+import { Database } from '../integrations/supabase/types'
 
 // Get environment variables with fallbacks for testing/development
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-url.supabase.co'
@@ -18,22 +18,9 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce',
-    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    storageKey: 'sb-auth-token',
-  },
-  global: {
-    headers: {
-      'X-Client-Info': 'supabase-js-web/2.39.3',
-    },
   },
   db: {
-    schema: 'public',
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 2 // Limit realtime events to prevent rate limiting
-    }
+    schema: 'public'
   }
 })
 

@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge'
 import {
   Gear,
   ArrowLeft as PhArrowLeft,
-  MapPin as PhMapPin,
   Camera as PhCamera,
   SignOut,
   Clock,
@@ -17,7 +16,8 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { AboutMe } from '@/components/profile/AboutMe'
 import { StatsSummary } from '@/components/profile/StatsSummary'
-import { RecentProjects } from '@/components/profile/RecentProjects'
+import { Achievements } from '@/components/profile/Achievements'
+import { ProjectGraph } from '@/components/profile/ProjectGraph'
 import { Spinner } from '@/components/ui/spinner'
 import { useImageCache } from '@/hooks/useImageCache'
 
@@ -128,19 +128,6 @@ const Profile = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="min-h-screen bg-background/50 pt-20">
-        {/* Back Navigation */}
-        <div className="fixed top-24 left-4 z-[100]">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="group relative overflow-hidden bg-black/80 hover:bg-black/60 text-white rounded-full w-8 h-8 p-0 transition-all duration-300 ease-out hover:scale-110 hover:shadow-lg hover:shadow-black/25"
-            onClick={() => navigate('/')}
-          >
-            <PhArrowLeft className="h-4 w-4 transition-transform duration-300 ease-out group-hover:translate-x-[-2px]" />
-            <span className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          </Button>
-        </div>
-
         {/* Profile Header */}
         <div className="border-b border-muted">
           <div className="max-w-6xl mx-auto px-4 md:px-8 py-6">
@@ -195,11 +182,6 @@ const Profile = () => {
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <PhMapPin className="h-3 w-3" />
-                        {profile?.location || 'Location'}
-                      </span>
-                      <span>•</span>
                       <span>Member since {new Date().getFullYear()}</span>
                     </div>
                   </div>
@@ -239,9 +221,14 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Recent Projects Section */}
+          {/* Project Graph Section */}
           <div className="mt-12">
-            <RecentProjects />
+            <ProjectGraph />
+          </div>
+
+          {/* Achievements Section */}
+          <div className="mt-12">
+            <Achievements />
           </div>
         </div>
       </div>

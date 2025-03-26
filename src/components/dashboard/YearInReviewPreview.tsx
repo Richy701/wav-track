@@ -1,69 +1,34 @@
-import React from 'react'
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
-import { Button } from '@/components/ui/button'
-import { Download } from 'lucide-react'
+import { memo } from 'react'
+import { Calendar } from 'lucide-react'
+import { StatCard } from '../ui/stat-card'
+import { cn } from '@/lib/utils'
 
 interface YearInReviewPreviewProps {
   totalBeats: number
   completedProjects: number
   averageBPM: number
+  isLoading?: boolean
   onExport: () => void
-  children: React.ReactNode
+  className?: string
 }
 
-export const YearInReviewPreview: React.FC<YearInReviewPreviewProps> = ({
+export const YearInReviewPreview = memo(function YearInReviewPreview({
   totalBeats,
   completedProjects,
   averageBPM,
+  isLoading = false,
   onExport,
-  children,
-}) => {
+  className
+}: YearInReviewPreviewProps) {
   return (
-    <HoverCard>
-      <HoverCardTrigger asChild>
-        <div className="cursor-pointer">{children}</div>
-      </HoverCardTrigger>
-      <HoverCardContent className="w-80" side="top" align="center" sideOffset={10}>
-        <div className="space-y-4">
-          <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-            Your Year in Review
-          </h4>
-
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">Total Beats Created</span>
-              <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                {totalBeats}
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">Completed Projects</span>
-              <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                {completedProjects}
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">Average BPM</span>
-              <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                {averageBPM}
-              </span>
-            </div>
-          </div>
-
-          <Button
-            onClick={e => {
-              e.stopPropagation()
-              onExport()
-            }}
-            className="w-full bg-violet-600 hover:bg-violet-700 text-white"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Download Report
-          </Button>
-        </div>
-      </HoverCardContent>
-    </HoverCard>
+    <StatCard
+      title="Year in Review"
+      value={totalBeats}
+      description={`${completedProjects} projects completed • ${averageBPM} BPM avg`}
+      icon={<Calendar className="h-6 w-6" />}
+      isLoading={isLoading}
+      className={cn('cursor-pointer hover:bg-accent/50', className)}
+      onClick={onExport}
+    />
   )
-}
+})

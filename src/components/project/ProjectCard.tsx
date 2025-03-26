@@ -1,17 +1,16 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   ArrowClockwise,
   Calendar,
   CheckCircle,
   DotsThreeVertical,
   MusicNote,
-  Pause,
   PencilSimple,
-  Play,
-  SpeakerHigh,
   Trash,
   Waveform,
   Lightning,
+  Play,
+  Pause,
 } from '@phosphor-icons/react'
 import { Project } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -33,6 +32,13 @@ import EditProjectDialog from '@/components/project/EditProjectDialog'
 import { Progress } from '@/components/ui/progress'
 import { supabase } from '@/lib/supabase'
 import { Link } from 'react-router-dom'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { Sparkles } from 'lucide-react'
 
 interface ProjectCardProps {
   project: Project
@@ -53,13 +59,17 @@ export default function ProjectCard({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-  const [isPlaying, setIsPlaying] = useState(false)
   const [showWaveform, setShowWaveform] = useState(false)
   const [localProject, setLocalProject] = useState(project)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
   const [coverArtUrl, setCoverArtUrl] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [audioError, setAudioError] = useState<string | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  // Global state to track which card is currently playing
+  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null)
 
   const statusToCompletion = {
     idea: 0,
@@ -149,21 +159,6 @@ export default function ProjectCard({
     }
   }
 
-  const togglePlayback = () => {
-    if (!audioRef.current) return
-
-    if (isPlaying) {
-      audioRef.current.pause()
-    } else {
-      audioRef.current.play()
-    }
-    setIsPlaying(!isPlaying)
-  }
-
-  const handleAudioEnded = () => {
-    setIsPlaying(false)
-  }
-
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't trigger if clicking on buttons or menu
     if (
@@ -187,35 +182,164 @@ export default function ProjectCard({
     setMenuOpen(false) // Close the menu
   }
 
+  // Debug log for audio URL
+  useEffect(() => {
+    console.log(`Project "${project.title}" audio URL:`, {
+      url: project.audio_url,
+      exists: Boolean(project.audio_url),
+      type: typeof project.audio_url
+    })
+  }, [project.audio_url, project.title])
+
+  // Handle audio playback
+  const handlePlayPause = (e: React.MouseEvent) => {
+    e.preventDefault() // Prevent navigation
+    e.stopPropagation() // Prevent card click
+
+    // Enhanced audio URL validation
+    const hasAudio = Boolean(project.audio_url?.trim())
+    console.log('Play button clicked:', {
+      projectTitle: project.title,
+      hasAudio,
+      audioUrl: project.audio_url
+    })
+
+    if (!hasAudio) {
+      toast.error('No audio available', {
+        description: 'This project does not have any audio attached.',
+      })
+      return
+    }
+
+    if (!audioRef.current) {
+      console.warn('Audio element not initialized')
+      return
+    }
+
+    if (isPlaying) {
+      audioRef.current.pause()
+      setIsPlaying(false)
+    } else {
+      // Pause all other audio elements first
+      document.querySelectorAll('audio').forEach(audio => {
+        if (audio !== audioRef.current) {
+          audio.pause()
+        }
+      })
+      
+      // Add error handling for play attempt
+      audioRef.current.play().catch(error => {
+        console.error('Error playing audio:', error)
+        toast.error('Failed to play audio', {
+          description: 'There was an error playing the audio file.',
+        })
+        setIsPlaying(false)
+      })
+      setIsPlaying(true)
+    }
+  }
+
+  // Handle audio events
+  useEffect(() => {
+    if (!audioRef.current) return
+
+    const audio = audioRef.current
+    const handleEnded = () => setIsPlaying(false)
+    const handlePause = () => setIsPlaying(false)
+    const handlePlay = () => setIsPlaying(true)
+
+    audio.addEventListener('ended', handleEnded)
+    audio.addEventListener('pause', handlePause)
+    audio.addEventListener('play', handlePlay)
+
+    return () => {
+      audio.removeEventListener('ended', handleEnded)
+      audio.removeEventListener('pause', handlePause)
+      audio.removeEventListener('play', handlePlay)
+      audio.pause()
+    }
+  }, [])
+
   return (
     <div className="project-card-container">
-      <Link
-        to={`/project/${project.id}`}
-        onClick={e => {
-          if (
-            e.target instanceof HTMLElement &&
-            (e.target.closest('button') || e.target.closest('[role="menuitem"]'))
-          ) {
-            e.preventDefault()
-          }
-        }}
+      <div
+        className={cn(
+          'group relative bg-card rounded-xl overflow-hidden transition-all duration-300 w-full',
+          isHovered ? 'shadow-lg transform -translate-y-1' : 'shadow hover:shadow-md',
+          'border border-border/50 hover:border-primary/20',
+          isSelected && 'ring-2 ring-primary'
+        )}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        role="article"
       >
-        <div
-          className={cn(
-            'group relative bg-card rounded-xl overflow-hidden transition-all duration-300 cursor-pointer w-full',
-            isHovered ? 'shadow-lg transform -translate-y-1' : 'shadow hover:shadow-md',
-            'border border-border/50 hover:border-primary/20',
-            isSelected && 'ring-2 ring-primary'
-          )}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          onClick={handleCardClick}
-          role="button"
-          tabIndex={0}
-          aria-pressed="false"
-        >
-          <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
-            <div className="flex justify-between items-start gap-2 min-w-0">
+        <div className="flex">
+          {/* Left side play button container */}
+          <div className="p-4 sm:p-5">
+            {/* Audio Play/Pause Button */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handlePlayPause}
+                    className={cn(
+                      'play-button w-14 h-14 rounded-full transition-all duration-300',
+                      'flex items-center justify-center',
+                      'focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2 focus:ring-offset-background',
+                      'transform hover:scale-105',
+                      !project.audio_url?.trim()
+                        ? 'bg-gradient-to-br from-emerald-200 to-emerald-300 dark:from-violet-400/40 dark:via-fuchsia-500/40 dark:to-purple-600/40 opacity-60 cursor-not-allowed'
+                        : isPlaying
+                          ? 'bg-gradient-to-br from-emerald-400 to-emerald-500 dark:from-violet-500 dark:via-fuchsia-600 dark:to-purple-700 shadow-lg shadow-emerald-500/30 dark:shadow-purple-900/40'
+                          : 'bg-gradient-to-br from-emerald-300 to-emerald-400 hover:from-emerald-400 hover:to-emerald-500 dark:from-violet-400 dark:via-fuchsia-500 dark:to-purple-600 shadow-md shadow-emerald-500/20 dark:shadow-purple-900/30 hover:shadow-lg hover:shadow-emerald-500/25 dark:hover:shadow-purple-900/35'
+                    )}
+                    aria-label={isPlaying ? 'Pause Preview' : 'Play Preview'}
+                  >
+                    {isPlaying ? (
+                      <Pause className="h-7 w-7 text-white drop-shadow-md" weight="fill" />
+                    ) : (
+                      <Play className="h-7 w-7 ml-0.5 text-white drop-shadow-md" weight="fill" />
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{project.audio_url?.trim() ? (isPlaying ? 'Pause Preview' : 'Play Preview') : 'No audio available'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            {/* Hidden audio element */}
+            {project.audio_url?.trim() && (
+              <audio
+                ref={audioRef}
+                src={project.audio_url}
+                preload="auto"
+                onError={(e) => {
+                  console.error('Audio loading error:', e)
+                  setAudioError('Failed to load audio file')
+                  toast.error('Audio Error', {
+                    description: 'Failed to load the audio file.',
+                  })
+                }}
+                onEnded={() => setIsPlaying(false)}
+                onPause={() => setIsPlaying(false)}
+                onPlay={() => {
+                  // Pause all other audio elements first
+                  document.querySelectorAll('audio').forEach(audio => {
+                    if (audio !== audioRef.current) {
+                      audio.pause()
+                    }
+                  })
+                  setIsPlaying(true)
+                }}
+              />
+            )}
+          </div>
+
+          {/* Main content */}
+          <div className="flex-1 py-4 pr-4 pl-2 sm:py-5 sm:pr-5 sm:pl-3 flex flex-col justify-between">
+            {/* Top section with status and menu */}
+            <div className="flex justify-between items-start gap-2 min-w-0 mb-3">
               <div className="flex items-center gap-2 flex-wrap min-w-0">
                 <div
                   className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
@@ -236,6 +360,7 @@ export default function ProjectCard({
                   {localProject.completionPercentage}%
                 </div>
               </div>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -260,10 +385,17 @@ export default function ProjectCard({
               </DropdownMenu>
             </div>
 
-            <div className="space-y-2 min-w-0">
-              <h3 className="text-base font-medium tracking-tight line-clamp-1 break-words">
-                {localProject.title}
-              </h3>
+            {/* Middle section with title and metadata */}
+            <div className="space-y-2 min-w-0 mb-3">
+              <Link
+                to={`/project/${project.id}`}
+                className="block hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 className="text-base font-medium tracking-tight line-clamp-1 break-words">
+                  {localProject.title}
+                </h3>
+              </Link>
               <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <Calendar className="h-3.5 w-3.5 shrink-0" />
@@ -285,16 +417,35 @@ export default function ProjectCard({
                   <span className="truncate">Updated {formatTimeAgo(localProject.lastModified)}</span>
                 </div>
               </div>
+              {project.audio_url && (
+                <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                  {project.bpm && project.key && (
+                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/5 border border-primary/10">
+                      <Sparkles className="h-3 w-3 text-primary" />
+                      <span>{project.bpm} BPM</span>
+                      <span>•</span>
+                      <span>{project.key}</span>
+                      {project.genre && (
+                        <>
+                          <span>•</span>
+                          <span>{project.genre}</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            <div className="space-y-2">
+            {/* Bottom section with status bar */}
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Progress</span>
                 <span className="font-medium tabular-nums">
                   {localProject.completionPercentage}%
                 </span>
               </div>
-              <div className="h-2 rounded-full bg-muted/50 overflow-hidden">
+              <div className="h-1.5 rounded-full bg-muted/50 overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
                     (localProject.completionPercentage ?? 0) === 100
@@ -311,32 +462,9 @@ export default function ProjectCard({
                 />
               </div>
             </div>
-
-            {showWaveform && localProject.audioFile && (
-              <div className="pt-3 border-t border-border/50">
-                <div className="bg-muted/50 rounded-lg p-3 relative overflow-hidden">
-                  <div className="flex justify-center">
-                    <Lightning className="h-5 w-5 text-primary animate-pulse" weight="fill" />
-                  </div>
-                  <div className="text-xs text-center text-muted-foreground mt-1">
-                    Waveform visualization coming soon
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
-      </Link>
-
-      {/* Audio Element */}
-      {project.audioFile && (
-        <audio
-          ref={audioRef}
-          src={project.audioFile.url}
-          onEnded={handleAudioEnded}
-          className="hidden"
-        />
-      )}
+      </div>
 
       {/* Dialogs */}
       <EditProjectDialog
@@ -354,3 +482,4 @@ export default function ProjectCard({
     </div>
   )
 }
+

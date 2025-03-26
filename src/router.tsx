@@ -11,7 +11,6 @@ import Register from './pages/Register'
 import Profile from './pages/Profile'
 import ProfileSettings from './pages/ProfileSettings'
 import Callback from './pages/auth/Callback'
-import ScrollDemo from './pages/ScrollDemo'
 import { supabase } from './lib/supabase'
 
 const rootRoute = createRootRoute({
@@ -65,17 +64,11 @@ const protectedRoute = createRoute({
     } = await supabase.auth.getSession()
     if (!session) {
       throw redirect({
-        to: '/login',
+        to: '/wav-track/login',
       })
     }
   },
   component: () => <Outlet />,
-})
-
-const dashboardRoute = createRoute({
-  getParentRoute: () => protectedRoute,
-  path: '/dashboard',
-  component: Index, // Using Index as dashboard for now
 })
 
 const profileRoute = createRoute({
@@ -90,19 +83,12 @@ const profileSettingsRoute = createRoute({
   component: ProfileSettings,
 })
 
-const scrollDemoRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/scroll-demo',
-  component: ScrollDemo,
-})
-
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   registerRoute,
   callbackRoute,
-  protectedRoute.addChildren([dashboardRoute, profileRoute, profileSettingsRoute]),
-  scrollDemoRoute,
+  protectedRoute.addChildren([profileRoute, profileSettingsRoute]),
 ])
 
 export const router = createRouter({

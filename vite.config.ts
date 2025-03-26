@@ -1,9 +1,12 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
-import path from 'path'
+import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
 import compression from 'vite-plugin-compression'
 import { visualizer } from 'rollup-plugin-visualizer'
-// import imagemin from 'vite-plugin-imagemin' // Removing since module not found
+import { splitVendorChunkPlugin } from 'vite'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
+import viteImagemin from 'vite-plugin-imagemin'
+import { vitePluginFaviconsInject } from 'vite-plugin-favicons-inject'
 import { VitePWA } from 'vite-plugin-pwa'
 import type { ManifestOptions, VitePWAOptions, Display } from 'vite-plugin-pwa'
 import fs from 'fs'
@@ -89,24 +92,69 @@ const pwaConfiguration: Partial<VitePWAOptions> = {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   plugins: [
     react(),
+    splitVendorChunkPlugin(),
+    compression({
+      algorithm: 'gzip',
+      ext: '.gz',
+      threshold: 10240,
+      deleteOriginFile: false,
+    }),
     compression({
       algorithm: 'brotliCompress',
-      ext: '.br'
+      ext: '.br',
+      threshold: 10240,
+      deleteOriginFile: false,
     }),
+    viteImagemin({
+      gifsicle: {
+        optimizationLevel: 7,
+        interlaced: false,
+      },
+      optipng: {
+        optimizationLevel: 7,
+      },
+      mozjpeg: {
+        quality: 80,
+      },
+      pngquant: {
+        quality: [0.8, 0.9],
+        speed: 4,
+      },
+      svgo: {
+        plugins: [
+          {
+            name: 'removeViewBox',
+          },
+          {
+            name: 'removeEmptyAttrs',
+            active: false,
+          },
+        ],
+      },
+    }),
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'public/*',
+          dest: './',
+        },
+      ],
+    }),
+    vitePluginFaviconsInject('./public/favicon.ico'),
     VitePWA(pwaConfiguration),
-    mode === 'analyze' ? visualizer({
+    visualizer({
+      filename: 'dist/stats.html',
       open: true,
       gzipSize: true,
-      brotliSize: true
-    }) : null
-  ].filter(Boolean),
-  base: '/wav-track/',  // Set static base path
+      brotliSize: true,
+    }),
+  ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': resolve(__dirname, './src'),
     },
   },
   optimizeDeps: {
@@ -200,7 +248,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
     assetsDir: 'assets',
     modulePreload: {
       polyfill: true
@@ -209,66 +257,32 @@ export default defineConfig(({ mode }) => ({
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: mode === 'production',
-        drop_debugger: mode === 'production'
-      }
+        drop_console: true,
+        drop_debugger: true,
+      },
+      format: {
+        comments: false,
+      },
     },
     rollupOptions: {
       output: {
-        manualChunks: (id: string): string | null => {
-          // Core vendor dependencies
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'vendor.react';
-            }
-            if (id.includes('@radix-ui') || id.includes('lucide-react')) {
-              return 'vendor.ui';
-            }
-            if (id.includes('framer-motion')) {
-              return 'vendor.animation';
-            }
-            if (id.includes('recharts') || id.includes('d3')) {
-              return 'vendor.charts';
-            }
-            if (id.includes('sonner') || id.includes('audio') || id.includes('essentia')) {
-              return 'vendor.media';
-            }
-            return 'vendor.other';
-          }
-
-          // Feature-based code splitting
-          if (id.includes('/components/timer/')) {
-            return 'feature.timer';
-          }
-          if (id.includes('/components/ui/')) {
-            return 'feature.ui';
-          }
-          if (id.includes('/components/media/')) {
-            return 'feature.media';
-          }
-          if (id.includes('/pages/')) {
-            const pageName = id.split('/pages/')[1].split('/')[0];
-            return `page.${pageName}`;
-          }
-          return null;
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+          'utils-vendor': ['date-fns', 'lodash'],
         },
-        assetFileNames: (assetInfo: { name?: string }): string => {
-          if (!assetInfo.name) return './assets/[name].[hash][extname]';
-          
-          if (/\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/i.test(assetInfo.name)) {
-            return `./assets/audio/[name].[extname]`;  // Removed hash for audio files
-          }
-          if (/\.(png|jpe?g|gif|svg|webp|avif)(\?.*)?$/i.test(assetInfo.name)) {
-            return `./assets/images/[name].[hash][extname]`;
-          }
-          if (/\.(woff2?|eot|ttf|otf)(\?.*)?$/i.test(assetInfo.name)) {
-            return `./assets/fonts/[name].[hash][extname]`;
-          }
-          return `./assets/[name].[hash][extname]`;
-        },
-        chunkFileNames: './assets/js/[name].[hash].js',
-        entryFileNames: './assets/js/[name].[hash].js',
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
+        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
       },
     },
+    chunkSizeWarningLimit: 1000,
+    cssCodeSplit: true,
+    assetsInlineLimit: 4096,
+    reportCompressedSize: false,
   },
-}))
+  preview: {
+    port: 3000,
+    open: true,
+  },
+})

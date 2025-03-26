@@ -2,6 +2,8 @@ import { Project, Sample, Session, Note, BeatActivity } from './types'
 import { cache } from './cache'
 import { format as formatDate } from 'date-fns'
 import { supabase } from './supabase'
+import { User } from '@supabase/supabase-js'
+import { Database } from '@/integrations/supabase/types'
 
 // Batch size for storage operations
 const BATCH_SIZE = 100
@@ -204,13 +206,26 @@ const calculateProductivityScore = (
   return beatsScore + completionScore + sessionScore
 }
 
-// Add project with optimistic updates
+// Update the profile stats update function with proper typing
+const updateProfileStats = async (
+  userId: string,
+  stats: Database['public']['Tables']['profiles']['Update']
+) => {
+  const { error } = await supabase
+    .from('profiles')
+    .update(stats)
+    .eq('id', userId)
+
+  if (error) {
+    console.error('Error updating profile stats:', error)
+    throw error
+  }
+}
+
+// Update the addProject function to use the new updateProfileStats function
 export const addProject = async (project: Project): Promise<Project> => {
   try {
-    // Get the current user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       throw new Error('No user found')
@@ -274,17 +289,14 @@ export const addProject = async (project: Project): Promise<Project> => {
         totalSessions
       )
 
-      // Update profile stats
-      await supabase
-        .from('profiles')
-        .update({
-          total_beats: totalBeats,
-          completed_projects: completedProjects,
-          completion_rate: completionRate,
-          productivity_score: productivityScore,
-          updated_at: now,
-        })
-        .eq('id', user.id)
+      // Update profile stats using the new function
+      await updateProfileStats(user.id, {
+        total_beats: totalBeats,
+        completed_projects: completedProjects,
+        completion_rate: completionRate,
+        productivity_score: productivityScore,
+        updated_at: now,
+      })
     }
 
     // Ensure we have valid dates
@@ -310,12 +322,10 @@ export const addProject = async (project: Project): Promise<Project> => {
   }
 }
 
+// Update the updateProject function to use the new updateProfileStats function
 export const updateProject = async (updatedProject: Project): Promise<Project> => {
   try {
-    // Get the current user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       throw new Error('No user found')
@@ -387,17 +397,14 @@ export const updateProject = async (updatedProject: Project): Promise<Project> =
           totalSessions
         )
 
-        // Update profile stats
-        await supabase
-          .from('profiles')
-          .update({
-            total_beats: totalBeats,
-            completed_projects: completedProjects,
-            completion_rate: completionRate,
-            productivity_score: productivityScore,
-            updated_at: now,
-          })
-          .eq('id', user.id)
+        // Update profile stats using the new function
+        await updateProfileStats(user.id, {
+          total_beats: totalBeats,
+          completed_projects: completedProjects,
+          completion_rate: completionRate,
+          productivity_score: productivityScore,
+          updated_at: now,
+        })
       }
     }
 
@@ -405,7 +412,6 @@ export const updateProject = async (updatedProject: Project): Promise<Project> =
     const created_at = data.created_at || updatedProject.dateCreated
     const last_modified = data.last_modified || now
 
-    // Transform the response to match our Project interface
     const updatedData: Project = {
       ...data,
       dateCreated: created_at,
@@ -424,12 +430,10 @@ export const updateProject = async (updatedProject: Project): Promise<Project> =
   }
 }
 
+// Update the deleteProject function to use the new updateProfileStats function
 export const deleteProject = async (projectId: string): Promise<void> => {
   try {
-    // Get the current user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       throw new Error('No user found')
@@ -473,17 +477,14 @@ export const deleteProject = async (projectId: string): Promise<void> => {
         totalSessions
       )
 
-      // Update profile stats
-      await supabase
-        .from('profiles')
-        .update({
-          total_beats: totalBeats,
-          completed_projects: completedProjects,
-          completion_rate: completionRate,
-          productivity_score: productivityScore,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id)
+      // Update profile stats using the new function
+      await updateProfileStats(user.id, {
+        total_beats: totalBeats,
+        completed_projects: completedProjects,
+        completion_rate: completionRate,
+        productivity_score: productivityScore,
+        updated_at: new Date().toISOString(),
+      })
     }
   } catch (error) {
     console.error('Error in deleteProject:', error)
@@ -532,24 +533,115 @@ export const getProjectById = (id: string): Project | undefined => {
   return projects.find(project => project.id === id)
 }
 
-export const getSessionsByProjectId = (projectId: string): Session[] => {
-  return sessions.filter(session => session.projectId === projectId)
+export const getSessionsByProjectId = async (projectId: string): Promise<Session[]> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      console.error('No user found')
+      return []
+    }
+
+    const { data, error } = await supabase
+      .from('sessions')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching sessions:', error)
+      throw error
+    }
+
+    return data ? data.map(mapDatabaseSessionToSession) : []
+  } catch (error) {
+    console.error('Error in getSessionsByProjectId:', error)
+    throw error
+  }
 }
 
 export const getNotesByProjectId = (projectId: string): Note[] => {
   return notes.filter(note => note.projectId === projectId)
 }
 
-export const getTotalSessionTime = (): number => {
-  return sessions.reduce((total, session) => total + session.duration, 0)
+export const getTotalSessionTime = async (): Promise<number> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      console.error('No user found')
+      return 0
+    }
+
+    const { data, error } = await supabase
+      .from('sessions')
+      .select('duration')
+      .eq('user_id', user.id)
+
+    if (error) {
+      console.error('Error fetching sessions:', error)
+      throw error
+    }
+
+    return data ? data.reduce((total, session) => total + session.duration, 0) : 0
+  } catch (error) {
+    console.error('Error in getTotalSessionTime:', error)
+    throw error
+  }
 }
 
 export const getCompletedProjects = (): Project[] => {
   return projects.filter(project => project.status === 'completed')
 }
 
-export const getProjectsByStatus = (status: Project['status']): Project[] => {
-  return projects.filter(project => project.status === status)
+export const getProjectsByStatus = async (status: Project['status']): Promise<Project[]> => {
+  try {
+    // Get the current user
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      console.error('No user found')
+      return []
+    }
+
+    // Fetch from Supabase
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('status', status)
+      .order('last_modified', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching projects:', error)
+      throw error
+    }
+
+    if (!data) {
+      return []
+    }
+
+    // Transform the data to match our Project interface
+    return data.map(project => {
+      const now = new Date().toISOString()
+      return {
+        ...project,
+        dateCreated: project.created_at || now,
+        lastModified: project.last_modified || now,
+        bpm: project.bpm ?? 120,
+        key: project.key ?? 'C',
+        genre: project.genre ?? '',
+        tags: project.tags ?? [],
+        completionPercentage: statusToCompletion[project.status],
+      }
+    })
+  } catch (error) {
+    console.error('Error in getProjectsByStatus:', error)
+    throw error
+  }
 }
 
 // Beat activity tracking functions
@@ -1055,6 +1147,46 @@ export async function processDataInBatches<T>(
     }
   } catch (error) {
     console.error('Error processing data chunks:', error)
+    throw error
+  }
+}
+
+// Add this helper function after the imports
+const mapDatabaseSessionToSession = (dbSession: Database['public']['Tables']['sessions']['Row']): Session => {
+  return {
+    id: dbSession.id,
+    user_id: dbSession.user_id,
+    project_id: dbSession.project_id,
+    duration: dbSession.duration,
+    created_at: dbSession.created_at,
+    notes: dbSession.notes
+  }
+}
+
+// Update any functions that fetch sessions to use the mapper
+export const getSessions = async (): Promise<Session[]> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      console.error('No user found')
+      return []
+    }
+
+    const { data, error } = await supabase
+      .from('sessions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching sessions:', error)
+      throw error
+    }
+
+    return data ? data.map(mapDatabaseSessionToSession) : []
+  } catch (error) {
+    console.error('Error in getSessions:', error)
     throw error
   }
 }

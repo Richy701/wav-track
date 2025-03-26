@@ -19,8 +19,8 @@ import {
 import { StatCard } from './stats/StatCard'
 import { BeatsChart } from './stats/BeatsChart'
 import { TimeRangeSelector } from './stats/TimeRangeSelector'
-import { getTotalBeatsInTimeRange, getBeatsCreatedByProject, beatActivities } from '@/lib/data'
-import { Project, Session } from '@/lib/types'
+import { getTotalBeatsInTimeRange, getBeatsCreatedByProject, getBeatsDataForChart, getTotalSessionTime } from '@/lib/data'
+import { Project, Session, BeatActivity } from '@/lib/types'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
@@ -31,6 +31,7 @@ interface StatsProps {
   projects: Project[]
   sessions: Session[]
   selectedProject?: Project | null
+  beatActivities: BeatActivity[]
 }
 
 interface YearInReview {
@@ -47,16 +48,30 @@ interface YearInReview {
   topGenres: string[]
 }
 
-export default function Stats({ projects, sessions, selectedProject }: StatsProps) {
+export default function Stats({ projects, sessions, selectedProject, beatActivities }: StatsProps) {
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month' | 'year'>('week')
   const [totalBeatsCreated, setTotalBeatsCreated] = useState(0)
   const [totalBeatsInPeriod, setTotalBeatsInPeriod] = useState(0)
+  const [totalSessionTime, setTotalSessionTime] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [lastBeatUpdate, setLastBeatUpdate] = useState(Date.now())
   const [refreshKey, setRefreshKey] = useState(0)
   const [yearInReview, setYearInReview] = useState<YearInReview | null>(null)
   const [showYearInReview, setShowYearInReview] = useState(false)
   const [isGeneratingReview, setIsGeneratingReview] = useState(false)
+
+  // Fetch session time when component mounts
+  useEffect(() => {
+    const fetchSessionTime = async () => {
+      try {
+        const time = await getTotalSessionTime()
+        setTotalSessionTime(time)
+      } catch (error) {
+        console.error('Error fetching session time:', error)
+      }
+    }
+    fetchSessionTime()
+  }, [])
 
   // Fetch beat counts when projects or selected project changes
   useEffect(() => {
@@ -97,6 +112,8 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
   // Update when new beats are added or project is selected
   useEffect(() => {
     const checkForNewBeats = () => {
+      if (!beatActivities || beatActivities.length === 0) return
+      
       const latestBeat = beatActivities[beatActivities.length - 1]
       if (latestBeat && new Date(latestBeat.date).getTime() > lastBeatUpdate) {
         setLastBeatUpdate(Date.now())
@@ -117,7 +134,7 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
 
   // Calculate productivity score
   const productivityScore = useMemo(() => {
-    if (projects.length === 0 && sessions.length === 0) return 0
+    if (projects.length === 0) return 0
 
     // Base score from total beats (max 50 points)
     const beatsScore = Math.min(50, Math.round((totalBeatsCreated / 20) * 50))
@@ -126,11 +143,11 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
     const completionScore = Math.min(30, completedProjects * 5)
 
     // Score from active sessions (max 20 points)
-    const sessionScore = Math.min(20, Math.round((sessions.length / 10) * 20))
+    const sessionScore = Math.min(20, Math.round((totalSessionTime / 60 / 10) * 20))
 
     // Total score (max 100)
     return beatsScore + completionScore + sessionScore
-  }, [projects.length, sessions.length, totalBeatsCreated, completedProjects])
+  }, [projects.length, totalSessionTime, totalBeatsCreated, completedProjects])
 
   // Get recent projects sorted by last modified
   const recentProjects = [...projects]
@@ -248,7 +265,7 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
 
     // Filter projects and sessions for current year
     const yearProjects = projects.filter(p => new Date(p.dateCreated) >= yearStart)
-    const yearSessions = sessions.filter(s => new Date(s.date) >= yearStart)
+    const yearSessions = sessions.filter(s => new Date(s.created_at) >= yearStart)
 
     // Calculate year-specific stats
     const yearBeats = await Promise.all(
@@ -269,7 +286,7 @@ export default function Stats({ projects, sessions, selectedProject }: StatsProp
           return date >= monthStart && date <= monthEnd
         })
         const monthSessions = yearSessions.filter(s => {
-          const date = new Date(s.date)
+          const date = new Date(s.created_at)
           return date >= monthStart && date <= monthEnd
         })
 

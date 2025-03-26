@@ -16,21 +16,19 @@ export interface Profile {
   id: string
   email: string
   name: string | null
-  avatar_url: string | null
   artist_name: string | null
-  genres: string[]
+  genres: string[] | null
   daw: string | null
   bio: string | null
   location: string | null
   phone: string | null
   website: string | null
   birthday: string | null
-  timezone: string | null
-  productivity_score: number | null
-  beats_created: number | null
-  completed_projects: number | null
-  completion_rate: number | null
-  total_beats: number | null
+  timezone: string
+  productivity_score: number
+  total_beats: number
+  completed_projects: number
+  completion_rate: number
   join_date: string | null
   updated_at: string | null
   social_links: {
@@ -42,12 +40,12 @@ export interface Profile {
     youtube_username: string | null
     soundcloud?: string
     spotify?: string
-  } | null
+  }
   notification_preferences: {
     newFollowers: boolean
     beatComments: boolean
     collaborationRequests: boolean
-  } | null
+  }
 }
 
 type DbProfile = Database['public']['Tables']['profiles']['Row']
@@ -118,6 +116,7 @@ export function useAuth() {
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('[Debug] AuthProvider initializing')
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -135,12 +134,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   })
   const refreshTimeoutRef = useRef<NodeJS.Timeout>()
 
+  // Effect to handle initial navigation
+  useEffect(() => {
+    console.log('[Debug] Auth navigation effect - Current state:', {
+      user: !!user,
+      isLoading,
+      isInitialized,
+      pathname: location.pathname
+    })
+    
+    if (!user && !isLoading && isInitialized && location.pathname !== '/login' && location.pathname !== '/auth/callback') {
+      console.log('[Debug] Redirecting to login')
+      navigate('/login', { replace: true })
+    }
+  }, [user, isLoading, isInitialized, location.pathname, navigate])
+
   // Function to show welcome modal with delay
   const showWelcomeModalWithDelay = React.useCallback(() => {
+    console.log('[Debug] Checking welcome modal display conditions')
     // Only show on the home page
     if (location.pathname === '/') {
       setTimeout(() => {
         if (authStateRef.current.mounted) {
+          console.log('[Debug] Showing welcome modal')
           setShowWelcomeModal(true)
         }
       }, 500) // 500ms delay
@@ -149,112 +165,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Effect to handle auth state changes and invalidate queries
   useEffect(() => {
+    console.log('[Debug] Setting up auth state change listener')
+    
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[Debug] Auth state changed:', { event, userId: session?.user?.id })
+      
       if (event === 'SIGNED_IN' && session?.user) {
+        console.log('[Debug] Processing sign in')
         if (authStateRef.current.mounted) {
           setUser(session.user)
           
-          // Log user data for debugging
-          console.log('User signed in:', {
-            id: session.user.id,
-            email: session.user.email,
-            provider: session.user.app_metadata.provider,
-            metadata: session.user.user_metadata
-          });
-          
-          // Fetch or create profile
-          const profileData = await fetchProfile(session.user.id);
-          
-          if (authStateRef.current.mounted) {
-            if (profileData) {
-              setProfile(profileData);
-              // Log existing profile data
-              console.log('Existing profile:', profileData);
-            } else {
-              // Create default profile with Google data
-              const defaultProfile = createDefaultProfile(
-                session.user.id,
-                session.user.email!,
-                session.user.user_metadata?.name || session.user.email?.split('@')[0] || null
-              );
-
-              const { data: newProfile, error: createError } = await supabase
-                .from('profiles')
-                .insert([defaultProfile])
-                .select()
-                .single();
-
-              if (!createError && newProfile) {
-                setProfile(convertProfileFromDb(newProfile));
-                // Log newly created profile
-                console.log('New profile created:', convertProfileFromDb(newProfile));
-              } else {
-                console.error('Error creating profile:', createError);
-                toast({
-                  variant: 'destructive',
-                  title: 'Profile Error',
-                  description: 'Failed to create profile. Please try again.',
-                });
-              }
-            }
-          }
-
-          // Invalidate queries when user signs in
-          queryClient.invalidateQueries(['profile']);
-          queryClient.invalidateQueries(['projects']);
-        }
-      } else if (event === 'SIGNED_OUT') {
-        if (authStateRef.current.mounted) {
-          setUser(null);
-          setProfile(null);
-          // Clear queries when user signs out
-          queryClient.clear();
-        }
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [queryClient]);
-
-  // Initial auth check with improved error handling and loading states
-  useEffect(() => {
-    const initializeAuth = async () => {
-      if (authStateRef.current.initStarted) return
-      authStateRef.current.initStarted = true
-
-      try {
-        setIsLoading(true)
-        const { data: { session }, error } = await supabase.auth.getSession()
-
-        if (error) {
-          throw error
-        }
-
-        if (session?.user) {
-          // Ensure we have a valid session before proceeding
-          const { data: { session: currentSession }, error: sessionError } = await supabase.auth.refreshSession()
-          
-          if (sessionError) {
-            throw sessionError
-          }
-
-          if (currentSession?.user) {
-            setUser(currentSession.user)
-            const profileData = await fetchProfile(currentSession.user.id)
+          // Only fetch profile if we don't have one or if it's a new user
+          if (!profile) {
+            console.log('[Debug] Fetching user profile')
+            const profileData = await fetchProfile(session.user.id)
             
             if (authStateRef.current.mounted) {
               if (profileData) {
+                console.log('[Debug] Setting existing profile')
                 setProfile(profileData)
               } else {
-                // Create default profile if none exists
+                console.log('[Debug] Creating default profile')
+                // Create default profile with Google data
                 const defaultProfile = createDefaultProfile(
-                  currentSession.user.id,
-                  currentSession.user.email!,
-                  currentSession.user.user_metadata?.name || currentSession.user.email?.split('@')[0] || null
+                  session.user.id,
+                  session.user.email!,
+                  session.user.user_metadata?.name || session.user.email?.split('@')[0] || null
                 )
 
                 const { data: newProfile, error: createError } = await supabase
@@ -264,9 +202,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   .single()
 
                 if (!createError && newProfile) {
+                  console.log('[Debug] Setting new profile')
                   setProfile(convertProfileFromDb(newProfile))
                 } else {
-                  console.error('Error creating profile:', createError)
+                  console.error('[Debug] Error creating profile:', createError)
                   toast({
                     variant: 'destructive',
                     title: 'Profile Error',
@@ -276,14 +215,83 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
             }
           }
+
+          // Only invalidate queries if this is a new sign in
+          if (!isInitialized) {
+            console.log('[Debug] Invalidating queries after sign in')
+            queryClient.invalidateQueries(['profile'])
+            queryClient.invalidateQueries(['projects'])
+          }
+        }
+      } else if (event === 'SIGNED_OUT') {
+        console.log('[Debug] Processing sign out')
+        if (authStateRef.current.mounted) {
+          setUser(null)
+          setProfile(null)
+          // Clear queries when user signs out
+          queryClient.clear()
+        }
+      }
+    })
+
+    return () => {
+      console.log('[Debug] Cleaning up auth state change listener')
+      subscription.unsubscribe()
+    }
+  }, [queryClient, profile, isInitialized])
+
+  // Initial auth check with improved error handling and loading states
+  useEffect(() => {
+    console.log('[Debug] Starting auth initialization')
+    const initializeAuth = async () => {
+      if (authStateRef.current.initStarted) {
+        console.log('[Debug] Auth initialization already started')
+        return
+      }
+      authStateRef.current.initStarted = true
+
+      try {
+        setIsLoading(true)
+        console.log('[Debug] Checking current session')
+        const { data: { session }, error } = await supabase.auth.getSession()
+
+        if (error) {
+          console.error('[Debug] Session error:', error)
+          throw error
+        }
+
+        if (session?.user) {
+          console.log('[Debug] Found existing session')
+          // Only refresh session if it's expired
+          const { data: { session: currentSession }, error: sessionError } = await supabase.auth.refreshSession()
+          
+          if (sessionError) {
+            console.error('[Debug] Session refresh error:', sessionError)
+            throw sessionError
+          }
+
+          if (currentSession?.user) {
+            console.log('[Debug] Session refreshed successfully')
+            setUser(currentSession.user)
+            // Only fetch profile if we don't have one
+            if (!profile) {
+              console.log('[Debug] Fetching initial profile')
+              const profileData = await fetchProfile(currentSession.user.id)
+              
+              if (authStateRef.current.mounted) {
+                if (profileData) {
+                  console.log('[Debug] Setting initial profile')
+                  setProfile(profileData)
+                }
+              }
+            }
+          }
+        } else {
+          console.log('[Debug] No existing session found')
         }
       } catch (error) {
-        console.error('Auth error:', error)
-        toast({
-          variant: 'destructive',
-          title: 'Authentication Error',
-          description: 'Failed to initialize authentication. Please try again.',
-        })
+        console.error('Auth initialization error:', error)
+        authStateRef.current.initError = error as Error
       } finally {
         if (authStateRef.current.mounted) {
           setIsLoading(false)
@@ -294,7 +302,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     initializeAuth()
-  }, [])
+
+    return () => {
+      authStateRef.current.mounted = false
+    }
+  }, [profile])
 
   const showErrorToast = (title: string, description: string) => {
     toast({
@@ -313,9 +325,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     })
   }
 
+  const handleNewUser = async (session: Session) => {
+    if (!session.user) return null
+    
+    const defaultProfile = createDefaultProfile(
+      session.user.id,
+      session.user.email!,
+      session.user.user_metadata?.name || session.user.email?.split('@')[0] || null
+    )
+
+    try {
+      const { data: newProfile, error: createError } = await supabase
+        .from('profiles')
+        .insert(defaultProfile)
+        .select()
+        .single()
+
+      if (createError) {
+        console.error('[Debug] Error creating profile:', createError)
+        toast({
+          variant: 'destructive',
+          title: 'Profile Error',
+          description: 'Failed to create profile. Please try again.',
+        })
+        return null
+      }
+
+      if (!newProfile) {
+        console.error('[Debug] No profile created')
+        return null
+      }
+
+      return convertProfileFromDb(newProfile)
+    } catch (error) {
+      console.error('[Debug] Error in handleNewUser:', error)
+      return null
+    }
+  }
+
   const fetchProfile = async (userId: string, retryCount = 0): Promise<Profile | null> => {
     try {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single()
+      const { data, error } = await supabase
+        .from('profiles')
+        .select()
+        .eq('id', userId)
+        .single()
 
       if (error) {
         // If we get a 403/404 and haven't retried too many times, wait briefly and retry
@@ -333,7 +387,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error
       }
 
-      return data ? convertProfileFromDb(data) : null
+      if (!data) {
+        console.error('[Debug] No profile found')
+        return null
+      }
+
+      return convertProfileFromDb(data)
     } catch (error) {
       console.error('Profile fetch error:', error)
       toast({
@@ -426,7 +485,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      const updateData: DbProfileUpdate = {
+      const updateData = {
         name: userData.name ?? profile.name,
         email: userData.email ?? profile.email,
         artist_name: userData.artist_name ?? profile.artist_name,
@@ -442,7 +501,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         notification_preferences:
           userData.notification_preferences ?? profile.notification_preferences,
         updated_at: new Date().toISOString(),
-      }
+      } as DbProfileUpdate
 
       const { data, error } = await supabase
         .from('profiles')
@@ -472,7 +531,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(msg)
       }
 
-      const updatedProfile = convertProfileFromDb(data)
+      const updatedProfile = convertProfileFromDb(data as DbProfile)
       setProfile(updatedProfile)
 
       toast({
@@ -621,43 +680,10 @@ const convertGenresFromDb = (genres: string | null): string[] => {
   }
 }
 
-const convertProfileFromDb = (data: DbProfile): Profile => {
-  return {
-    id: data.id,
-    email: data.email,
-    name: data.name,
-    avatar_url: data.avatar_url,
-    artist_name: data.artist_name,
-    genres: convertGenresFromDb(data.genres),
-    daw: data.daw,
-    bio: data.bio,
-    location: data.location,
-    phone: data.phone,
-    website: data.website,
-    birthday: data.birthday,
-    timezone: data.timezone,
-    productivity_score: data.productivity_score,
-    beats_created: data.beats_created,
-    completed_projects: data.completed_projects,
-    completion_rate: data.completion_rate,
-    total_beats: data.total_beats,
-    join_date: data.join_date,
-    updated_at: data.updated_at,
-    social_links: data.social_links as Profile['social_links'],
-    notification_preferences:
-      (data.notification_preferences as Profile['notification_preferences']) ?? {
-        newFollowers: true,
-        beatComments: true,
-        collaborationRequests: true,
-      },
-  }
-}
-
-const createDefaultProfile = (userId: string, email: string, name: string | null): Profile => ({
+const createDefaultProfile = (userId: string, email: string, name: string | null): Database['public']['Tables']['profiles']['Insert'] => ({
   id: userId,
   email: email,
   name: name,
-  avatar_url: null,
   artist_name: null,
   genres: [],
   daw: null,
@@ -668,16 +694,58 @@ const createDefaultProfile = (userId: string, email: string, name: string | null
   birthday: null,
   timezone: 'UTC',
   productivity_score: 0,
-  beats_created: 0,
+  total_beats: 0,
   completed_projects: 0,
   completion_rate: 0,
-  total_beats: 0,
   join_date: new Date().toISOString(),
   updated_at: new Date().toISOString(),
-  social_links: null,
+  social_links: {
+    instagram: null,
+    instagram_username: null,
+    twitter: null,
+    twitter_username: null,
+    youtube: null,
+    youtube_username: null,
+  },
   notification_preferences: {
     newFollowers: true,
     beatComments: true,
     collaborationRequests: true,
   },
 })
+
+const convertProfileFromDb = (data: Database['public']['Tables']['profiles']['Row']): Profile => {
+  return {
+    id: data.id,
+    email: data.email,
+    name: data.name,
+    artist_name: data.artist_name,
+    genres: data.genres || [],
+    daw: data.daw,
+    bio: data.bio,
+    location: data.location,
+    phone: data.phone,
+    website: data.website,
+    birthday: data.birthday,
+    timezone: data.timezone,
+    productivity_score: data.productivity_score,
+    total_beats: data.total_beats,
+    completed_projects: data.completed_projects,
+    completion_rate: data.completion_rate,
+    join_date: data.join_date,
+    updated_at: data.updated_at,
+    social_links: data.social_links || {
+      instagram: null,
+      instagram_username: null,
+      twitter: null,
+      twitter_username: null,
+      youtube: null,
+      youtube_username: null,
+    },
+    notification_preferences: data.notification_preferences || {
+      newFollowers: true,
+      beatComments: true,
+      collaborationRequests: true,
+    },
+  }
+}

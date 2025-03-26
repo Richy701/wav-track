@@ -1,7 +1,7 @@
-import React from 'react'
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
-import { Button } from '@/components/ui/button'
-import { BarChart3, Download } from 'lucide-react'
+import { memo } from 'react'
+import { BarChart } from 'lucide-react'
+import { StatCard } from '../ui/stat-card'
+import { cn } from '@/lib/utils'
 
 interface MonthlyData {
   month: string
@@ -10,57 +10,36 @@ interface MonthlyData {
 
 interface MonthlyBreakdownPreviewProps {
   monthlyData: MonthlyData[]
+  isLoading?: boolean
   onExport: () => void
-  children: React.ReactNode
+  className?: string
 }
 
-export const MonthlyBreakdownPreview: React.FC<MonthlyBreakdownPreviewProps> = ({
+export const MonthlyBreakdownPreview = memo(function MonthlyBreakdownPreview({
   monthlyData,
+  isLoading = false,
   onExport,
-  children,
-}) => {
-  const maxBeats = Math.max(...monthlyData.map(d => d.beats))
+  className
+}: MonthlyBreakdownPreviewProps) {
+  const totalBeats = monthlyData.reduce((sum, month) => sum + month.beats, 0)
+  const averageBeats = Math.round(totalBeats / monthlyData.length)
+  const latestMonth = monthlyData[monthlyData.length - 1]
+  const previousMonth = monthlyData[monthlyData.length - 2]
+  const trend = previousMonth ? ((latestMonth.beats - previousMonth.beats) / previousMonth.beats) * 100 : 0
 
   return (
-    <HoverCard>
-      <HoverCardTrigger asChild>
-        <div className="cursor-pointer">{children}</div>
-      </HoverCardTrigger>
-      <HoverCardContent className="w-[280px] sm:w-80" side="top" align="center" sideOffset={10}>
-        <div className="space-y-4">
-          <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-            This Year's Monthly Stats
-          </h4>
-
-          <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-            {monthlyData.map(data => (
-              <div key={data.month} className="flex items-center gap-2">
-                <div className="w-12 sm:w-16 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">{data.month}</div>
-                <div className="flex-1 h-1.5 sm:h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-violet-500 rounded-full transition-all duration-300"
-                    style={{ width: `${(data.beats / maxBeats) * 100}%` }}
-                  />
-                </div>
-                <div className="w-6 sm:w-8 text-xs sm:text-sm text-right text-zinc-700 dark:text-zinc-300">
-                  {data.beats}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <Button
-            onClick={e => {
-              e.stopPropagation()
-              onExport()
-            }}
-            className="w-full bg-violet-600 hover:bg-violet-700 text-white text-sm sm:text-base"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Download CSV
-          </Button>
-        </div>
-      </HoverCardContent>
-    </HoverCard>
+    <StatCard
+      title="Monthly Breakdown"
+      value={totalBeats}
+      description={`${averageBeats} beats per month`}
+      icon={<BarChart className="h-6 w-6" />}
+      isLoading={isLoading}
+      className={cn('cursor-pointer hover:bg-accent/50', className)}
+      onClick={onExport}
+      trend={{
+        value: Math.abs(trend),
+        isPositive: trend > 0
+      }}
+    />
   )
-}
+})

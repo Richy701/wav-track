@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getProjects, addProject, updateProject, deleteProject } from '../lib/data'
 import { Project } from '../lib/types'
 import { useAuth } from '@/contexts/AuthContext'
-import { useEffect } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 
 // Query keys for React Query
 const QUERY_KEYS = {
@@ -35,39 +35,38 @@ const sortProjects = (projects: Project[]) => {
 export function useProjects() {
   const queryClient = useQueryClient()
   const { user, refreshProfile } = useAuth()
+  const [isRefetching, setIsRefetching] = useState(false)
 
-  // Fetch projects with optimized caching
   const {
-    data: projects = [],
+    data: projects,
     isLoading,
-    isError,
     error,
-    isFetching,
+    refetch,
   } = useQuery({
-    queryKey: [...QUERY_KEYS.projects, user?.id],
-    queryFn: getProjects,
-    select: sortProjects,
-    enabled: !!user,
-    staleTime: 1000 * 30, // Consider data stale after 30 seconds
-    cacheTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchOnReconnect: true,
-    refetchInterval: false,
-    gcTime: 0,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    queryKey: ['projects', user?.id],
+    queryFn: () => getProjects(user?.id),
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   })
 
-  // Add effect to invalidate queries when user changes
   useEffect(() => {
-    if (user?.id) {
-      queryClient.invalidateQueries({ 
-        queryKey: [...QUERY_KEYS.projects, user.id],
-        exact: true
-      })
+    if (!user?.id) return
+
+    const abortController = new AbortController()
+    
+    if (isRefetching) {
+      refetch()
+        .finally(() => setIsRefetching(false))
     }
-  }, [user?.id, queryClient])
+
+    return () => {
+      abortController.abort()
+    }
+  }, [user?.id, isRefetching, refetch])
+
+  const triggerRefetch = useCallback(() => {
+    setIsRefetching(true)
+  }, [])
 
   // Add project with optimistic updates
   const addProjectMutation = useMutation({
@@ -221,9 +220,8 @@ export function useProjects() {
   return {
     projects,
     isLoading,
-    isError,
     error,
-    isFetching,
+    refetch: triggerRefetch,
     addProject: addProjectMutation.mutateAsync,
     updateProject: updateProjectMutation.mutateAsync,
     deleteProject: deleteProjectMutation.mutate,

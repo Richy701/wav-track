@@ -17,7 +17,10 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+
+    /* Type Roots */
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts", "src/types"]
 }

@@ -94,6 +94,7 @@
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
     "react-hook-form": "^7.48.2",
+    "react-hot-toast": "^2.5.2",
     "react-intersection-observer": "^9.8.1",
     "react-resizable-panels": "^1.0.5",
     "react-router-dom": "^6.20.0",
@@ -121,11 +122,13 @@
     "@tailwindcss/nesting": "^0.0.0-insiders.565cd3e",
     "@tailwindcss/postcss": "^4.0.12",
     "@tailwindcss/typography": "^0.5.10",
+    "@tanstack/react-query-devtools": "^5.69.0",
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.39",
     "@types/react-dom": "^18.2.17",
     "@typescript-eslint/eslint-plugin": "^8.27.0",
     "@typescript-eslint/parser": "^8.27.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.16",
     "cross-env": "^7.0.3",
@@ -156,7 +159,9 @@
     "vite-bundle-analyzer": "^0.8.1",
     "vite-imagetools": "^7.0.5",
     "vite-plugin-compression": "^0.5.1",
+    "vite-plugin-favicons-inject": "^2.2.0",
     "vite-plugin-imagemin": "^0.6.1",
-    "vite-plugin-pwa": "^0.21.1"
+    "vite-plugin-pwa": "^0.21.1",
+    "vite-plugin-static-copy": "^2.3.0"
   }
 }

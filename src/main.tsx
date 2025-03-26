@@ -22,16 +22,49 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
       cacheTime: 30 * 60 * 1000, // 30 minutes
       refetchOnWindowFocus: false,
-      refetchOnMount: true,
-      refetchOnReconnect: true,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
       refetchInterval: false,
       suspense: false,
       networkMode: 'online',
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+      // Add placeholder data to prevent loading states
+      placeholderData: (oldData) => oldData,
+      // Keep showing old data while loading
+      keepPreviousData: true,
+      // Prevent background refetches
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      // Optimize for offline-first experience
+      networkMode: 'always',
+      // Add optimistic updates
+      optimisticUpdates: true,
+      // Add loading state handling
+      loadingDelay: 300, // Delay showing loading state
+      loadingTimeout: 5000, // Timeout for loading state
+      // Add error handling
+      onError: (error) => {
+        console.error('Query error:', error)
+      },
+      // Add success handling
+      onSuccess: (data) => {
+        // Prefetch related data
+        if (data && typeof data === 'object' && 'id' in data) {
+          queryClient.prefetchQuery(['related', data.id], {
+            staleTime: 5 * 60 * 1000,
+            cacheTime: 30 * 60 * 1000,
+          })
+        }
+      },
     },
     mutations: {
       retry: false,
       networkMode: 'online',
+      // Add optimistic updates
+      optimisticUpdates: true,
+      // Add loading state handling
+      loadingDelay: 300,
+      loadingTimeout: 5000,
     },
   },
 })
@@ -50,33 +83,6 @@ let initSteps = {
 
 // Initialize the app
 console.log('[Init] Starting app initialization')
-
-// Add visibility change handling
-document.addEventListener('visibilitychange', () => {
-  const isHidden = document.visibilityState === 'hidden'
-  const isVisible = document.visibilityState === 'visible'
-
-  if (isHidden) {
-    // Save state of all queries
-    queryClient
-      .getQueryCache()
-      .findAll()
-      .forEach(query => {
-        if (query.isActive()) {
-          lastActiveQueries.set(JSON.stringify(query.queryKey), query.state.data)
-        }
-      })
-  }
-
-  if (isVisible) {
-    // Restore saved queries
-    lastActiveQueries.forEach((data, queryKeyStr) => {
-      const queryKey = JSON.parse(queryKeyStr)
-      queryClient.setQueryData(queryKey, data)
-      queryClient.resetQueries({ queryKey })
-    })
-  }
-})
 
 // Add focus/blur handling
 window.addEventListener('focus', () => {

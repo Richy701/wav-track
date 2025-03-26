@@ -61,6 +61,7 @@ export default function HeaderActions({
   const isMainPage = location.pathname === '/'
 
   const items = [
+    { label: 'Sessions', href: '/sessions' },
     { label: 'Profile', href: '/profile' },
     { label: 'Settings', href: '/profile/settings' },
   ]

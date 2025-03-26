@@ -61,9 +61,9 @@ const Index = () => {
           console.error('Supabase error:', error)
           throw error
         }
-
         console.log('Fetched sessions:', data)
-        setSessions(data || [])
+        // Cast the data to Session[] to match the state type
+        setSessions((data || []) as Session[])
       } catch (error) {
         console.error('Error fetching sessions:', error)
         toast.error('Failed to load sessions')

@@ -5,76 +5,109 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
-          artist_name: string | null
-          avatar_url: string | null
-          beats_created: number | null
-          bio: string | null
-          birthday: string | null
-          completed_projects: number | null
-          completion_rate: number | null
-          daw: string | null
-          email: string
-          genres: string | null
           id: string
-          join_date: string | null
-          location: string | null
+          email: string
           name: string | null
-          notification_preferences: Json | null
+          artist_name: string | null
+          genres: string[] | null
+          daw: string | null
+          bio: string | null
+          location: string | null
           phone: string | null
-          productivity_score: number | null
-          social_links: Json | null
-          timezone: string | null
-          total_beats: number | null
-          updated_at: string | null
           website: string | null
+          birthday: string | null
+          timezone: string
+          productivity_score: number
+          total_beats: number
+          completed_projects: number
+          completion_rate: number
+          social_links: {
+            instagram: string | null
+            instagram_username: string | null
+            twitter: string | null
+            twitter_username: string | null
+            youtube: string | null
+            youtube_username: string | null
+            soundcloud?: string
+            spotify?: string
+          }
+          notification_preferences: {
+            newFollowers: boolean
+            beatComments: boolean
+            collaborationRequests: boolean
+          }
+          join_date: string | null
+          updated_at: string | null
         }
         Insert: {
-          artist_name?: string | null
-          avatar_url?: string | null
-          beats_created?: number | null
-          bio?: string | null
-          birthday?: string | null
-          completed_projects?: number | null
-          completion_rate?: number | null
-          daw?: string | null
-          email: string
-          genres?: string | null
           id: string
-          join_date?: string | null
-          location?: string | null
+          email: string
           name?: string | null
-          notification_preferences?: Json | null
+          artist_name?: string | null
+          genres?: string[] | null
+          daw?: string | null
+          bio?: string | null
+          location?: string | null
           phone?: string | null
-          productivity_score?: number | null
-          social_links?: Json | null
-          timezone?: string | null
-          total_beats?: number | null
-          updated_at?: string | null
           website?: string | null
+          birthday?: string | null
+          timezone?: string
+          productivity_score?: number
+          total_beats?: number
+          completed_projects?: number
+          completion_rate?: number
+          social_links?: {
+            instagram: string | null
+            instagram_username: string | null
+            twitter: string | null
+            twitter_username: string | null
+            youtube: string | null
+            youtube_username: string | null
+            soundcloud?: string
+            spotify?: string
+          }
+          notification_preferences?: {
+            newFollowers: boolean
+            beatComments: boolean
+            collaborationRequests: boolean
+          }
+          join_date?: string | null
+          updated_at?: string | null
         }
         Update: {
-          artist_name?: string | null
-          avatar_url?: string | null
-          beats_created?: number | null
-          bio?: string | null
-          birthday?: string | null
-          completed_projects?: number | null
-          completion_rate?: number | null
-          daw?: string | null
-          email?: string
-          genres?: string | null
           id?: string
-          join_date?: string | null
-          location?: string | null
+          email?: string
           name?: string | null
-          notification_preferences?: Json | null
+          artist_name?: string | null
+          genres?: string[] | null
+          daw?: string | null
+          bio?: string | null
+          location?: string | null
           phone?: string | null
-          productivity_score?: number | null
-          social_links?: Json | null
-          timezone?: string | null
-          total_beats?: number | null
-          updated_at?: string | null
           website?: string | null
+          birthday?: string | null
+          timezone?: string
+          productivity_score?: number
+          total_beats?: number
+          completed_projects?: number
+          completion_rate?: number
+          social_links?: {
+            instagram: string | null
+            instagram_username: string | null
+            twitter: string | null
+            twitter_username: string | null
+            youtube: string | null
+            youtube_username: string | null
+            soundcloud?: string
+            spotify?: string
+          }
+          notification_preferences?: {
+            newFollowers: boolean
+            beatComments: boolean
+            collaborationRequests: boolean
+          }
+          join_date?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

@@ -1,11 +1,123 @@
 /** @type {import('tailwindcss').Config} */
-const animate = require("tailwindcss-animate")
-
-module.exports = {
+export default {
   darkMode: ["class"],
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
+  ],
+  safelist: [
+    // Dynamic classes that need to be preserved
+    {
+      pattern: /^(bg|text|border)-(primary|secondary|accent|success|warning|error|info)/,
+      variants: ['hover', 'focus', 'active', 'disabled'],
+    },
+    {
+      pattern: /^(w|h)-(full|screen|auto|min|max)/,
+    },
+    {
+      pattern: /^(p|m)-(0|1|2|3|4|5|6|8|10|12|16|20|24|32|40|48)/,
+    },
+    {
+      pattern: /^(flex|grid)-(row|col)-(1|2|3|4|5|6|8|10|12)/,
+    },
+    {
+      pattern: /^(gap)-(0|1|2|3|4|5|6|8|10|12|16|20|24|32|40|48)/,
+    },
+    {
+      pattern: /^(rounded)-(none|sm|md|lg|xl|2xl|3xl|full)/,
+    },
+    {
+      pattern: /^(shadow)-(none|sm|md|lg|xl|2xl|3xl|inner)/,
+    },
+    {
+      pattern: /^(opacity)-(0|25|50|75|100)/,
+    },
+    {
+      pattern: /^(scale)-(0|50|75|90|95|100|105|110|125|150)/,
+    },
+    {
+      pattern: /^(rotate)-(0|1|2|3|6|12|45|90|180)/,
+    },
+    {
+      pattern: /^(translate)-(x|y)-(0|1|2|3|4|5|6|8|10|12|16|20|24|32|40|48|56|64|72|80|96)/,
+    },
+    {
+      pattern: /^(blur)-(none|sm|md|lg|xl|2xl|3xl)/,
+    },
+    {
+      pattern: /^(backdrop-blur)-(none|sm|md|lg|xl|2xl|3xl)/,
+    },
+    {
+      pattern: /^(filter)-(none|blur|brightness|contrast|grayscale|hue-rotate|invert|saturate|sepia)/,
+    },
+    {
+      pattern: /^(transition)-(all|none|colors|opacity|shadow|transform)/,
+    },
+    {
+      pattern: /^(duration)-(75|100|150|200|300|500|700|1000)/,
+    },
+    {
+      pattern: /^(ease)-(linear|in|out|in-out)/,
+    },
+    {
+      pattern: /^(delay)-(75|100|150|200|300|500|700|1000)/,
+    },
+    {
+      pattern: /^(animate)-(none|spin|ping|pulse|bounce|fade-in|fade-out|slide-in|slide-out|zoom-in|zoom-out)/,
+    },
+    {
+      pattern: /^(cursor)-(auto|default|pointer|wait|text|move|help|not-allowed)/,
+    },
+    {
+      pattern: /^(pointer-events)-(none|auto)/,
+    },
+    {
+      pattern: /^(resize)-(none|y|x|both)/,
+    },
+    {
+      pattern: /^(select)-(none|text|all|auto)/,
+    },
+    {
+      pattern: /^(whitespace)-(normal|nowrap|pre|pre-line|pre-wrap)/,
+    },
+    {
+      pattern: /^(break)-(normal|words|all)/,
+    },
+    {
+      pattern: /^(overflow)-(auto|hidden|clip|visible|scroll)/,
+    },
+    {
+      pattern: /^(overflow-x)-(auto|hidden|clip|visible|scroll)/,
+    },
+    {
+      pattern: /^(overflow-y)-(auto|hidden|clip|visible|scroll)/,
+    },
+    {
+      pattern: /^(overscroll)-(auto|contain|none)/,
+    },
+    {
+      pattern: /^(overscroll-x)-(auto|contain|none)/,
+    },
+    {
+      pattern: /^(overscroll-y)-(auto|contain|none)/,
+    },
+    {
+      pattern: /^(scroll)-(auto|smooth)/,
+    },
+    {
+      pattern: /^(scrollbar)-(thin|none)/,
+    },
+    {
+      pattern: /^(touch)-(auto|none|manipulation)/,
+    },
+    {
+      pattern: /^(user-select)-(none|text|all|auto)/,
+    },
+    {
+      pattern: /^(will-change)-(auto|scroll-position|contents|transform)/,
+    },
   ],
   theme: {
     container: {
@@ -68,10 +180,24 @@ module.exports = {
         display: ["Clash Display", "sans-serif"],
         mono: ["JetBrains Mono", "monospace"],
       },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
     },
   },
   plugins: [
-    animate,
+    require("tailwindcss-animate"),
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
   ],

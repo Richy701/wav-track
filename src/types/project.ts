@@ -16,4 +16,5 @@ export type Project = {
   key: string
   genre: string
   completionPercentage: number
+  audio_url?: string | null
 }

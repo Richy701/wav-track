@@ -16,7 +16,7 @@ import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { Project } from '@/lib/types'
 import { recordBeatCreation } from '@/lib/data'
-import { AudioUpload } from '@/components/AudioUpload'
+import { AudioUploader } from '@/components/audio/AudioUploader'
 import {
   Dialog,
   DialogContent,
@@ -45,6 +45,7 @@ import { useProjects } from '@/hooks/useProjects'
 import { Badge } from '@/components/ui/badge'
 import { X } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
+import { analyzeAudioWithSpotify, updateProjectWithAnalysis } from '@/lib/services/spotifyAnalysis'
 
 interface CreateProjectDialogProps {
   isOpen: boolean
@@ -62,7 +63,8 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   const queryClient = useQueryClient()
   const { addProject, isAddingProject } = useProjects()
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [audioFile, setAudioFile] = useState<File | null>(null)
+  const [audioUrl, setAudioUrl] = useState<string | null>(null)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [formData, setFormData] = useState<Omit<Project, 'id' | 'genre'> & { genres: string[] }>({
     title: '',
     description: '',
@@ -77,7 +79,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
     user_id: undefined,
     created_at: new Date().toISOString(),
     last_modified: new Date().toISOString(),
-    audioFile: null
+    audio_url: null
   })
 
   const validateForm = () => {
@@ -186,9 +188,49 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
       user_id: undefined,
       created_at: new Date().toISOString(),
       last_modified: new Date().toISOString(),
-      audioFile: null
+      audio_url: null
     })
     setErrors({})
+    setAudioUrl(null)
+  }
+
+  const handleAudioUpload = async (url: string) => {
+    setAudioUrl(url)
+    setFormData(prev => ({ ...prev, audio_url: url }))
+    
+    // Start analysis immediately after upload
+    setIsAnalyzing(true)
+    try {
+      console.log('Starting audio analysis...')
+      const analysis = await analyzeAudioWithSpotify(url)
+      console.log('Analysis complete:', analysis)
+      
+      // Pre-fill form with analysis results
+      setFormData(prev => ({
+        ...prev,
+        bpm: analysis.bpm,
+        key: `${analysis.key} ${analysis.mode}`,
+        timeSignature: analysis.timeSignature,
+      }))
+      
+      if (analysis.analyzed) {
+        toast.success('Audio analysis complete', {
+          description: `BPM: ${analysis.bpm} • Key: ${analysis.key} ${analysis.mode} • Time: ${analysis.timeSignature}/4`,
+        })
+      } else {
+        toast.warning('Audio analysis not available', {
+          description: 'The audio file could not be analyzed at this time.',
+        })
+      }
+    } catch (error) {
+      console.error('Analysis error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      toast.error('Audio analysis failed', {
+        description: `Error: ${errorMessage}`,
+      })
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
 
   const handleCreateBeat = async (e: React.FormEvent) => {
@@ -206,12 +248,9 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
         genre: formData.genres.join(', '), // Join multiple genres for storage
         lastModified: new Date().toISOString(),
         last_modified: new Date().toISOString(), // Update both timestamp formats
-        created_at: formData.created_at || new Date().toISOString()
+        created_at: formData.created_at || new Date().toISOString(),
+        audio_url: audioUrl // Add the audio URL to the project
       }
-
-      // Close dialog and reset form immediately for better UX
-      onOpenChange(false)
-      resetForm()
 
       // Create the project and get back the database-generated ID
       const createdProject = await addProject(newProject)
@@ -227,6 +266,10 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
       toast.success('Project created successfully', {
         description: 'Your new project has been added to the list.',
       })
+
+      // Close dialog and reset form
+      onOpenChange(false)
+      resetForm()
 
       // Notify parent component
       onProjectCreated?.()
@@ -543,14 +586,27 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                 </Select>
               </div>
             </div>
+
+            {/* Audio Upload Section */}
+            <div className="grid grid-cols-4 items-start gap-3">
+              <Label htmlFor="audio" className="text-right text-sm font-medium">
+                Audio File
+              </Label>
+              <div className="col-span-3">
+                <AudioUploader
+                  onUploadComplete={handleAudioUpload}
+                  className="w-full"
+                />
+              </div>
+            </div>
           </div>
 
           <DialogFooter className="pt-3">
-            <Button type="submit" disabled={isAddingProject} className="w-full h-9 text-sm">
-              {isAddingProject ? (
+            <Button type="submit" disabled={isAnalyzing} className="w-full h-9 text-sm">
+              {isAnalyzing ? (
                 <>
                   <CircleNotch className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Project...
+                  Analyzing...
                 </>
               ) : (
                 <>
