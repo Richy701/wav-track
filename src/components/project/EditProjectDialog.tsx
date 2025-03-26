@@ -59,7 +59,6 @@ export default function EditProjectDialog({
     title: project.title,
     description: project.description || '',
     genre: project.genre || '',
-    genres: project.genres || [],
     bpm: project.bpm || '',
     key: project.key || '',
     status: project.status,
@@ -125,23 +124,9 @@ export default function EditProjectDialog({
   }
 
   const handleGenreChange = (value: string) => {
-    if (formData.genres.includes(value)) return
-    if (formData.genres.length >= 3) {
-      toast.error('Maximum genres reached', {
-        description: 'You can only select up to 3 genres.',
-      })
-      return
-    }
     setFormData(prev => ({
       ...prev,
-      genres: [...prev.genres, value],
-    }))
-  }
-
-  const handleRemoveGenre = (genreToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      genres: prev.genres.filter(genre => genre !== genreToRemove),
+      genre: value,
     }))
   }
 
@@ -167,6 +152,7 @@ export default function EditProjectDialog({
       const updatedProject = {
         ...project,
         ...formData,
+        bpm: formData.bpm ? Number(formData.bpm) : undefined,
       }
 
       onProjectUpdated(updatedProject)
@@ -233,60 +219,32 @@ export default function EditProjectDialog({
               </div>
             </div>
 
-            {/* Genres */}
-            <div className="grid grid-cols-4 items-start gap-3">
+            {/* Genre */}
+            <div className="grid grid-cols-4 items-center gap-3">
               <Label htmlFor="genre" className="text-right text-sm font-medium">
-                Genres
+                Genre
               </Label>
-              <div className="col-span-3 space-y-2">
-                <div className="relative">
-                  <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
-                    <div className="p-1 rounded-md bg-pink-500/10">
-                      <Tag className="h-4 w-4 text-pink-500" />
-                    </div>
+              <div className="col-span-3 relative">
+                <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
+                  <div className="p-1 rounded-md bg-pink-500/10">
+                    <Tag className="h-4 w-4 text-pink-500" />
                   </div>
-                  <Select value="" onValueChange={handleGenreChange}>
-                    <SelectTrigger className="pl-10 h-9 text-sm">
-                      <SelectValue placeholder="Select genres" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Genres</SelectLabel>
-                        {genreOptions.map(genre => (
-                          <SelectItem
-                            key={genre}
-                            value={genre}
-                            disabled={formData.genres.includes(genre)}
-                          >
-                            {genre}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
                 </div>
-
-                {formData.genres.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {formData.genres.map(genre => (
-                      <Badge
-                        key={genre}
-                        variant="secondary"
-                        className="text-xs bg-pink-500/10 text-pink-500 hover:bg-pink-500/20"
-                      >
-                        {genre}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveGenre(genre)}
-                          className="ml-1 hover:text-pink-600"
-                          aria-label={`Remove ${genre} genre`}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
+                <Select value={formData.genre} onValueChange={handleGenreChange}>
+                  <SelectTrigger className="pl-10 h-9 text-sm">
+                    <SelectValue placeholder="Select genre" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Genre</SelectLabel>
+                      {genreOptions.map(genre => (
+                        <SelectItem key={genre} value={genre}>
+                          {genre}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

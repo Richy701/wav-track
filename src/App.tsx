@@ -19,6 +19,15 @@ import { StatCardSkeleton } from '@/components/ui/stat-card-skeleton'
 import { FadeIn } from '@/components/ui/fade-in'
 import Sessions from './pages/Sessions'
 
+// Custom lazy loading wrapper with preload support
+function lazyWithPreload<T extends React.ComponentType<any>>(
+  factory: () => Promise<{ default: T }>
+): React.LazyExoticComponent<T> & { preload: () => Promise<{ default: T }> } {
+  const Component = React.lazy(factory) as React.LazyExoticComponent<T> & { preload?: () => Promise<{ default: T }> }
+  Component.preload = factory
+  return Component as React.LazyExoticComponent<T> & { preload: () => Promise<{ default: T }> }
+}
+
 // Navigation wrapper component to handle prefetching
 function NavigationWrapper({ children }: { children: React.ReactNode }) {
   const location = useLocation()
@@ -34,13 +43,20 @@ function NavigationWrapper({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-// Lazy load route components
-const Login = React.lazy(() => import('./pages/Login'))
-const Profile = React.lazy(() => import('./pages/Profile'))
-const ProfileSettings = React.lazy(() => import('./pages/ProfileSettings'))
-const Index = React.lazy(() => import('./pages/Index'))
-const Callback = React.lazy(() => import('./pages/auth/Callback'))
-const ProjectDetail = React.lazy(() => import('./pages/ProjectDetail'))
+// Lazy load route components with preloading
+const Login = lazyWithPreload(() => import('./pages/Login'))
+const Profile = lazyWithPreload(() => import('./pages/Profile'))
+const ProfileSettings = lazyWithPreload(() => import('./pages/ProfileSettings'))
+const Index = lazyWithPreload(() => import('./pages/Index'))
+const Callback = lazyWithPreload(() => import('./pages/auth/Callback'))
+const ProjectDetail = lazyWithPreload(() => import('./pages/ProjectDetail'))
+
+// Preload components on hover
+const preloadComponent = (component: React.LazyExoticComponent<any> & { preload: () => Promise<any> }) => {
+  return () => {
+    component.preload()
+  }
+}
 
 function App() {
   const [isReady, setIsReady] = useState(false)
@@ -110,11 +126,11 @@ function App() {
                       }
                     />
                     <Route
-                      path="/project/:id"
+                      path="/"
                       element={
                         <ProtectedRoute>
-                          <Suspense fallback={<LoadingScreen message="Loading project details..." />}>
-                            <ProjectDetail />
+                          <Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
+                            <Index />
                           </Suspense>
                         </ProtectedRoute>
                       }
@@ -130,30 +146,13 @@ function App() {
                       }
                     />
                     <Route
-                      path="/"
+                      path="/project/:id"
                       element={
-                        <Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
-                          <Index />
-                        </Suspense>
-                      }
-                    />
-
-                    {/* Catch-all route - Must be last */}
-                    <Route
-                      path="*"
-                      element={
-                        <div className="h-screen flex flex-col items-center justify-center p-4 text-center">
-                          <h1 className="text-3xl font-bold mb-4">Page Not Found</h1>
-                          <p className="mb-6 text-muted-foreground">
-                            The page you are looking for doesn't exist or has been moved.
-                          </p>
-                          <button
-                            onClick={() => (window.location.href = import.meta.env.BASE_URL)}
-                            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-                          >
-                            Go to Homepage
-                          </button>
-                        </div>
+                        <ProtectedRoute>
+                          <Suspense fallback={<LoadingScreen message="Loading project..." />}>
+                            <ProjectDetail />
+                          </Suspense>
+                        </ProtectedRoute>
                       }
                     />
                   </Routes>

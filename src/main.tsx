@@ -11,60 +11,10 @@ setupGlobalErrorHandlers()
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (failureCount, error: any) => {
-        // Don't retry on 401/403 errors (auth issues)
-        if (error?.status === 401 || error?.status === 403) {
-          return false
-        }
-        // Otherwise retry twice with exponential backoff
-        return failureCount < 2
-      },
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 30 * 60 * 1000, // 30 minutes
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      cacheTime: 1000 * 60 * 30, // 30 minutes
+      retry: 1,
       refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-      refetchInterval: false,
-      suspense: false,
-      networkMode: 'online',
-      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-      // Add placeholder data to prevent loading states
-      placeholderData: (oldData) => oldData,
-      // Keep showing old data while loading
-      keepPreviousData: true,
-      // Prevent background refetches
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      // Optimize for offline-first experience
-      networkMode: 'always',
-      // Add optimistic updates
-      optimisticUpdates: true,
-      // Add loading state handling
-      loadingDelay: 300, // Delay showing loading state
-      loadingTimeout: 5000, // Timeout for loading state
-      // Add error handling
-      onError: (error) => {
-        console.error('Query error:', error)
-      },
-      // Add success handling
-      onSuccess: (data) => {
-        // Prefetch related data
-        if (data && typeof data === 'object' && 'id' in data) {
-          queryClient.prefetchQuery(['related', data.id], {
-            staleTime: 5 * 60 * 1000,
-            cacheTime: 30 * 60 * 1000,
-          })
-        }
-      },
-    },
-    mutations: {
-      retry: false,
-      networkMode: 'online',
-      // Add optimistic updates
-      optimisticUpdates: true,
-      // Add loading state handling
-      loadingDelay: 300,
-      loadingTimeout: 5000,
     },
   },
 })
@@ -83,20 +33,6 @@ let initSteps = {
 
 // Initialize the app
 console.log('[Init] Starting app initialization')
-
-// Add focus/blur handling
-window.addEventListener('focus', () => {
-  // Handle focus events
-})
-
-window.addEventListener('blur', () => {
-  // Handle blur events
-})
-
-// Add React Query state change handling
-queryClient.getQueryCache().subscribe(event => {
-  // Handle query cache events
-})
 
 // Add detailed error logging with rate limiting
 let lastErrorTime = 0
@@ -163,32 +99,6 @@ const showLoading = () => {
 
 // Show loading state immediately
 showLoading()
-
-// Add custom error handler for module import errors
-window.addEventListener(
-  'error',
-  event => {
-    // Check if this is a module loading error
-    if (
-      event.error &&
-      (event.error.message?.includes('Importing a module script failed') ||
-        event.error.message?.includes('Importing a module failed') ||
-        event.error.message?.includes('ChunkLoadError'))
-    ) {
-      // If this happens after app init, try to recover by forcing a refresh after a delay
-      if (initSteps.renderStarted && !initSteps.renderCompleted) {
-        setTimeout(() => {
-          window.location.reload()
-        }, 2000)
-      }
-
-      // Prevent the error from bubbling up
-      event.preventDefault()
-      return true
-    }
-  },
-  true
-)
 
 // Initialize app with error boundary
 const initializeApp = () => {

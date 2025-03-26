@@ -138,7 +138,6 @@ export default {
 		hoverOnlyWhenSupported: true,
 		respectDefaultRingColorOpacity: true,
 		disableColorOpacityUtilitiesByDefault: true,
-		removeDeprecatedGapUtilities: true,
 	},
 	corePlugins: {
 		float: false,

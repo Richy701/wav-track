@@ -1,7 +1,6 @@
 # Supabase CLI (v1)
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
 [Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
@@ -31,39 +30,40 @@ npm i supabase@beta --save-dev
 
 When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
 
-```
+```bash
 NODE_OPTIONS=--no-experimental-fetch yarn add supabase
 ```
 
 > **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
+> For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
 
+<!-- markdownlint-disable MD033 -->
 <details>
-  <summary><b>macOS</b></summary>
+  <summary><strong>macOS</strong></summary>
 
   Available via [Homebrew](https://brew.sh). To install:
 
-  ```sh
+  ```bash
   brew install supabase/tap/supabase
   ```
 
   To install the beta release channel:
   
-  ```sh
+  ```bash
   brew install supabase/tap/supabase-beta
   brew link --overwrite supabase-beta
   ```
   
   To upgrade:
 
-  ```sh
+  ```bash
   brew upgrade supabase
   ```
 
 </details>
 
 <details>
-  <summary><b>Windows</b></summary>
+  <summary><strong>Windows</strong></summary>
 
   Available via [Scoop](https://scoop.sh). To install:
 
@@ -81,7 +81,7 @@ For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency
 </details>
 
 <details>
-  <summary><b>Linux</b></summary>
+  <summary><strong>Linux</strong></summary>
 
   Available via [Homebrew](https://brew.sh) and Linux packages.
 
@@ -89,13 +89,13 @@ For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency
 
   To install:
 
-  ```sh
+  ```bash
   brew install supabase/tap/supabase
   ```
 
   To upgrade:
 
-  ```sh
+  ```bash
   brew upgrade supabase
   ```
 
@@ -103,36 +103,36 @@ For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency
 
   Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
 
-  ```sh
+  ```bash
   sudo apk add --allow-untrusted <...>.apk
   ```
 
-  ```sh
+  ```bash
   sudo dpkg -i <...>.deb
   ```
 
-  ```sh
+  ```bash
   sudo rpm -i <...>.rpm
   ```
 
-  ```sh
+  ```bash
   sudo pacman -U <...>.pkg.tar.zst
   ```
 
 </details>
 
 <details>
-  <summary><b>Other Platforms</b></summary>
+  <summary><strong>Other Platforms</strong></summary>
 
   You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
 
-  ```sh
+  ```bash
   go install github.com/supabase/cli@latest
   ```
 
   Add a symlink to the binary in `$PATH` for easier access:
 
-  ```sh
+  ```bash
   ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
   ```
 
@@ -140,7 +140,7 @@ For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency
 </details>
 
 <details>
-  <summary><b>Community Maintained Packages</b></summary>
+  <summary><strong>Community Maintained Packages</strong></summary>
 
   Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
   To install in your working directory:
@@ -151,6 +151,7 @@ For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency
 
   Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
 </details>
+<!-- markdownlint-enable MD033 -->
 
 ### Run the CLI
 
@@ -180,7 +181,7 @@ However, due to dependencies on other service images, we cannot guarantee that s
 
 To run from source:
 
-```sh
+```bash
 # Go >= 1.22
 go run . help
 ```

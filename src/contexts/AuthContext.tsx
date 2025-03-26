@@ -115,16 +115,16 @@ export function useAuth() {
   return context
 }
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  console.log('[Debug] AuthProvider initializing')
+// Create a wrapper component that handles navigation
+const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const queryClient = useQueryClient()
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isInitialized, setIsInitialized] = useState(false)
   const [showWelcomeModal, setShowWelcomeModal] = useState(false)
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
-  const location = useLocation()
   const authStateRef = React.useRef<AuthStateRef>({
     mounted: true,
     initStarted: false,
@@ -664,6 +664,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   )
 }
 
+// Export the wrapper as the AuthProvider
+export const AuthProvider = AuthProviderWrapper
+
 // Helper function to convert form genres to DB format
 const convertGenresToDb = (genres: string[] | undefined): string | null => {
   return genres ? JSON.stringify(genres) : null
@@ -715,6 +718,79 @@ const createDefaultProfile = (userId: string, email: string, name: string | null
 })
 
 const convertProfileFromDb = (data: Database['public']['Tables']['profiles']['Row']): Profile => {
+  // Type guard to check if social_links is valid
+  const isValidSocialLinks = (links: any): links is Profile['social_links'] => {
+    if (!links || typeof links !== 'object') return false
+    return (
+      'instagram' in links &&
+      'instagram_username' in links &&
+      'twitter' in links &&
+      'twitter_username' in links &&
+      'youtube' in links &&
+      'youtube_username' in links
+    )
+  }
+
+  // Type guard to check if notification_preferences is valid
+  const isValidNotificationPreferences = (prefs: any): prefs is Profile['notification_preferences'] => {
+    if (!prefs || typeof prefs !== 'object') return false
+    return (
+      'newFollowers' in prefs &&
+      'beatComments' in prefs &&
+      'collaborationRequests' in prefs &&
+      typeof prefs.newFollowers === 'boolean' &&
+      typeof prefs.beatComments === 'boolean' &&
+      typeof prefs.collaborationRequests === 'boolean'
+    )
+  }
+
+  // Default social links object
+  const defaultSocialLinks: Profile['social_links'] = {
+    instagram: null,
+    instagram_username: null,
+    twitter: null,
+    twitter_username: null,
+    youtube: null,
+    youtube_username: null,
+  }
+
+  // Default notification preferences
+  const defaultNotificationPreferences: Profile['notification_preferences'] = {
+    newFollowers: true,
+    beatComments: true,
+    collaborationRequests: true,
+  }
+
+  // Parse and validate social links
+  let socialLinks: Profile['social_links']
+  try {
+    const parsedLinks = typeof data.social_links === 'string' 
+      ? JSON.parse(data.social_links) 
+      : data.social_links
+
+    socialLinks = isValidSocialLinks(parsedLinks) 
+      ? parsedLinks 
+      : defaultSocialLinks
+  } catch (error) {
+    console.error('Error parsing social links:', error)
+    socialLinks = defaultSocialLinks
+  }
+
+  // Parse and validate notification preferences
+  let notificationPreferences: Profile['notification_preferences']
+  try {
+    const parsedPrefs = typeof data.notification_preferences === 'string'
+      ? JSON.parse(data.notification_preferences)
+      : data.notification_preferences
+
+    notificationPreferences = isValidNotificationPreferences(parsedPrefs)
+      ? parsedPrefs
+      : defaultNotificationPreferences
+  } catch (error) {
+    console.error('Error parsing notification preferences:', error)
+    notificationPreferences = defaultNotificationPreferences
+  }
+
   return {
     id: data.id,
     email: data.email,
@@ -734,18 +810,7 @@ const convertProfileFromDb = (data: Database['public']['Tables']['profiles']['Ro
     completion_rate: data.completion_rate,
     join_date: data.join_date,
     updated_at: data.updated_at,
-    social_links: data.social_links || {
-      instagram: null,
-      instagram_username: null,
-      twitter: null,
-      twitter_username: null,
-      youtube: null,
-      youtube_username: null,
-    },
-    notification_preferences: data.notification_preferences || {
-      newFollowers: true,
-      beatComments: true,
-      collaborationRequests: true,
-    },
+    social_links: socialLinks,
+    notification_preferences: notificationPreferences,
   }
 }

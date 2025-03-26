@@ -88,6 +88,9 @@ const motivationalQuotes = [
   "Your next hit is in this session."
 ]
 
+// Audio context and buffer management
+const createAudioContext = () => new (window.AudioContext || (window as any).webkitAudioContext)()
+
 export default function Timer() {
   const [isRunning, setIsRunning] = useState(false)
   const [time, setTime] = useState(WORK_TIME)
@@ -103,6 +106,10 @@ export default function Timer() {
   const [isAudioLoaded, setIsAudioLoaded] = useState(false)
   const [audioError, setAudioError] = useState<string | null>(null)
   const audioLoadAttempted = useRef(false)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const audioBufferRef = useRef<AudioBuffer | null>(null)
+  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null)
+  const gainNodeRef = useRef<GainNode | null>(null)
 
   // Quote state
   const [quote, setQuote] = useState<(typeof quotes)[0]>(quotes[0])
@@ -260,7 +267,7 @@ export default function Timer() {
     // Play sound notification with error handling
     if (isAudioLoaded) {
       try {
-        await playNotificationSound(notificationSound)
+        await playNotification()
       } catch (error) {
         console.error('Failed to play notification sound:', error)
         // Only show error if we haven't shown one already
@@ -379,6 +386,127 @@ export default function Timer() {
     return () => clearInterval(quoteInterval)
   }, [])
 
+  // Preload audio file
+  const preloadAudio = async () => {
+    try {
+      if (!audioContextRef.current) {
+        audioContextRef.current = createAudioContext()
+      }
+
+      // Map notification sounds to their file names
+      const soundFiles: Record<NotificationSound, string> = {
+        'beep': 'beep.mp3',
+        'bell': 'bell.mp3',
+        'chime': 'chime.mp3',
+        'chirp': 'chirp.mp3',
+        'ding': 'ding.mp3'
+      }
+
+      const audioFile = soundFiles[notificationSound]
+      const response = await fetch(`/wav-track/assets/audio/${audioFile}`)
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load audio file: ${response.statusText}`)
+      }
+
+      const arrayBuffer = await response.arrayBuffer()
+      audioBufferRef.current = await audioContextRef.current.decodeAudioData(arrayBuffer)
+      setIsAudioLoaded(true)
+      setAudioError(null)
+    } catch (error) {
+      console.error('Error preloading audio:', error)
+      setAudioError('Failed to load notification sound. Please check your audio settings.')
+      setIsAudioLoaded(false)
+    }
+  }
+
+  // Effect to reload audio when notification sound changes
+  useEffect(() => {
+    if (isAudioLoaded) {
+      preloadAudio()
+    }
+  }, [notificationSound])
+
+  // Initialize audio nodes
+  const initializeAudioNodes = () => {
+    if (!audioContextRef.current || !audioBufferRef.current) return
+
+    gainNodeRef.current = audioContextRef.current.createGain()
+    gainNodeRef.current.gain.value = 0.5 // Set default volume to 50%
+
+    audioSourceRef.current = audioContextRef.current.createBufferSource()
+    audioSourceRef.current.buffer = audioBufferRef.current
+    audioSourceRef.current.connect(gainNodeRef.current)
+    gainNodeRef.current.connect(audioContextRef.current.destination)
+  }
+
+  // Play notification sound
+  const playNotification = async () => {
+    try {
+      if (!audioBufferRef.current) {
+        await preloadAudio()
+      }
+
+      if (!audioContextRef.current || !audioBufferRef.current) {
+        throw new Error('Audio context or buffer not initialized')
+      }
+
+      // Resume audio context if it was suspended
+      if (audioContextRef.current.state === 'suspended') {
+        await audioContextRef.current.resume()
+      }
+
+      // Create new source for each play
+      const source = audioContextRef.current.createBufferSource()
+      source.buffer = audioBufferRef.current
+
+      // Create new gain node for each play
+      const gain = audioContextRef.current.createGain()
+      gain.gain.value = 0.5
+
+      // Connect nodes
+      source.connect(gain)
+      gain.connect(audioContextRef.current.destination)
+
+      // Play sound
+      source.start(0)
+
+      // Cleanup after playback
+      source.onended = () => {
+        source.disconnect()
+        gain.disconnect()
+      }
+    } catch (error) {
+      console.error('Error playing notification:', error)
+      setAudioError('Failed to play notification sound. Please check your audio settings.')
+    }
+  }
+
+  // Cleanup audio resources
+  const cleanupAudio = () => {
+    if (audioSourceRef.current) {
+      audioSourceRef.current.stop()
+      audioSourceRef.current.disconnect()
+      audioSourceRef.current = null
+    }
+    if (gainNodeRef.current) {
+      gainNodeRef.current.disconnect()
+      gainNodeRef.current = null
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close()
+      audioContextRef.current = null
+    }
+  }
+
+  // Effect to handle audio initialization and cleanup
+  useEffect(() => {
+    preloadAudio()
+    return () => {
+      cleanupAudio()
+    }
+  }, [])
+
   return (
     <div className="bg-card rounded-xl p-3 animate-fade-in theme-transition h-[529px] flex flex-col overflow-hidden">
       {/* Show audio error if exists */}
@@ -470,3 +598,4 @@ export default function Timer() {
     </div>
   )
 }
+
