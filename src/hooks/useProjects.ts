@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getProjects, addProject, updateProject, deleteProject } from '../lib/data'
 import { Project } from '../lib/types'
 import { useAuth } from '@/contexts/AuthContext'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 
 // Query keys for React Query
 const QUERY_KEYS = {
@@ -32,13 +32,15 @@ const sortProjects = (projects: Project[]) => {
   })
 }
 
-export function useProjects() {
+export function useProjects(projectsPerPage: number = 9) {
   const queryClient = useQueryClient()
   const { user, refreshProfile } = useAuth()
   const [isRefetching, setIsRefetching] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
 
+  // Always call useQuery, but disable it when there's no user
   const {
-    data: projects,
+    data: projects = [],
     isLoading,
     error,
     refetch,
@@ -49,26 +51,35 @@ export function useProjects() {
     staleTime: 1000 * 60 * 5, // 5 minutes
   })
 
-  useEffect(() => {
-    if (!user?.id) return
+  // Calculate paginated projects
+  const paginatedProjects = useMemo(() => 
+    projects.slice(
+      (currentPage - 1) * projectsPerPage,
+      currentPage * projectsPerPage
+    ),
+    [projects, currentPage, projectsPerPage]
+  )
 
-    const abortController = new AbortController()
-    
-    if (isRefetching) {
-      refetch()
-        .finally(() => setIsRefetching(false))
-    }
+  // Calculate total pages
+  const totalPages = useMemo(() => 
+    Math.ceil(projects.length / projectsPerPage),
+    [projects.length, projectsPerPage]
+  )
 
-    return () => {
-      abortController.abort()
-    }
-  }, [user?.id, isRefetching, refetch])
+  // Pagination handlers
+  const handleNextPage = useCallback(() => {
+    setCurrentPage(prev => Math.min(totalPages, prev + 1))
+  }, [totalPages])
 
-  const triggerRefetch = useCallback(() => {
-    setIsRefetching(true)
+  const handlePreviousPage = useCallback(() => {
+    setCurrentPage(prev => Math.max(1, prev - 1))
   }, [])
 
-  // Add project with optimistic updates
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  // Add project mutation
   const addProjectMutation = useMutation({
     mutationFn: addProject,
     onMutate: async newProject => {
@@ -98,7 +109,9 @@ export function useProjects() {
         return sortProjects([optimisticProject, ...old])
       })
 
-      // Return context with snapshotted values
+      // Reset to first page when adding new project
+      setCurrentPage(1)
+
       return { 
         previousProjects,
         previousStats,
@@ -107,7 +120,6 @@ export function useProjects() {
       }
     },
     onError: (err, newProject, context) => {
-      // Roll back all optimistic updates
       if (context) {
         queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], context.previousProjects)
         queryClient.setQueryData(QUERY_KEYS.stats, context.previousStats)
@@ -116,7 +128,6 @@ export function useProjects() {
       console.error('Failed to add project:', err)
     },
     onSuccess: (createdProject, variables, context) => {
-      // Update the temporary ID with the real one
       if (context?.tempId) {
         queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], (old: Project[] = []) => {
           return old.map(project => 
@@ -126,7 +137,6 @@ export function useProjects() {
       }
     },
     onSettled: async () => {
-      // Refetch in the background to ensure cache consistency
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] }),
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.beatActivities }),
@@ -136,7 +146,7 @@ export function useProjects() {
     },
   })
 
-  // Update project with optimistic updates
+  // Update project mutation
   const updateProjectMutation = useMutation({
     mutationFn: updateProject,
     onMutate: async updatedProject => {
@@ -179,7 +189,7 @@ export function useProjects() {
     },
   })
 
-  // Delete project with optimistic updates
+  // Delete project mutation
   const deleteProjectMutation = useMutation({
     mutationFn: deleteProject,
     onMutate: async projectId => {
@@ -217,8 +227,29 @@ export function useProjects() {
     },
   })
 
+  // Refetch effect
+  useEffect(() => {
+    if (!user?.id) return
+
+    const abortController = new AbortController()
+    
+    if (isRefetching) {
+      refetch()
+        .finally(() => setIsRefetching(false))
+    }
+
+    return () => {
+      abortController.abort()
+    }
+  }, [user?.id, isRefetching, refetch])
+
+  const triggerRefetch = useCallback(() => {
+    setIsRefetching(true)
+  }, [])
+
   return {
-    projects,
+    projects: paginatedProjects,
+    allProjects: projects,
     isLoading,
     error,
     refetch: triggerRefetch,
@@ -228,5 +259,12 @@ export function useProjects() {
     isAddingProject: addProjectMutation.isPending,
     isUpdatingProject: updateProjectMutation.isPending,
     isDeletingProject: deleteProjectMutation.isPending,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    projectsPerPage,
+    handleNextPage,
+    handlePreviousPage,
+    handlePageChange,
   }
 }

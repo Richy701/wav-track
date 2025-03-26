@@ -26,9 +26,9 @@ import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
 import { toast } from 'sonner'
 import { Badge } from './ui/badge'
+import { useProjects } from '@/hooks/useProjects'
 
 interface StatsProps {
-  projects: Project[]
   sessions: Session[]
   selectedProject?: Project | null
   beatActivities: BeatActivity[]
@@ -48,7 +48,8 @@ interface YearInReview {
   topGenres: string[]
 }
 
-export default function Stats({ projects, sessions, selectedProject, beatActivities }: StatsProps) {
+export default function Stats({ sessions, selectedProject, beatActivities }: StatsProps) {
+  const { allProjects: projects } = useProjects()
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month' | 'year'>('week')
   const [totalBeatsCreated, setTotalBeatsCreated] = useState(0)
   const [totalBeatsInPeriod, setTotalBeatsInPeriod] = useState(0)

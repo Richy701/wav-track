@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { Trash, ArrowsDownUp, Clock, ArrowsVertical } from '@phosphor-icons/react'
+import { Trash, ArrowsDownUp, Clock, ArrowsVertical, CaretLeft, CaretRight } from '@phosphor-icons/react'
 import { clearAllProjects } from '@/lib/data'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { motion } from 'framer-motion'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,10 +59,21 @@ const ProjectList: React.FC<ProjectListProps> = ({
 }) => {
   const queryClient = useQueryClient()
   const [isClearDialogOpen, setIsClearDialogOpen] = React.useState(false)
-  const { isFetching, error } = useProjects()
+  const { 
+    projects, 
+    allProjects, 
+    isLoading: isProjectsLoading, 
+    currentPage,
+    totalPages,
+    handleNextPage,
+    handlePreviousPage,
+    handlePageChange,
+    projectsPerPage
+  } = useProjects()
   const [filter, setFilter] = useState<Project['status'] | 'all'>('all')
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   // Configure DnD sensors
   const sensors = useSensors(
@@ -114,6 +126,17 @@ const ProjectList: React.FC<ProjectListProps> = ({
     onProjectSelect?.(selectedProjectId === project.id ? null : project)
   }
 
+  // Handle loading more projects
+  const handleLoadMore = async () => {
+    if (isLoadingMore) return
+    setIsLoadingMore(true)
+    try {
+      await loadMore()
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
+
   const statuses: { value: Project['status'] | 'all'; label: string; className?: string }[] = [
     { value: 'all', label: 'All', className: 'bg-zinc-500/20 text-zinc-100' },
     { value: 'idea', label: 'Ideas', className: 'bg-blue-500/20 text-blue-500 dark:text-blue-400' },
@@ -143,7 +166,7 @@ const ProjectList: React.FC<ProjectListProps> = ({
   const filteredAndSortedProjects = useMemo(() => {
     // First filter
     const filtered =
-      filter === 'all' ? projectList : projectList.filter(project => project.status === filter)
+      filter === 'all' ? projects : projects.filter(project => project.status === filter)
 
     // Then sort
     return [...filtered].sort((a, b) => {
@@ -160,7 +183,7 @@ const ProjectList: React.FC<ProjectListProps> = ({
           return 0
       }
     })
-  }, [projectList, filter, sortBy])
+  }, [projects, filter, sortBy])
 
   // Get the appropriate icon and text for the current sort option
   const getSortOptionDisplay = (option: SortOption) => {
@@ -181,11 +204,18 @@ const ProjectList: React.FC<ProjectListProps> = ({
 
   const currentSortDisplay = getSortOptionDisplay(sortBy)
 
-  if (isLoading) {
-    return <div>Loading...</div>
+  // Auto-correct current page if it's beyond the total pages
+  useEffect(() => {
+    if (projects.length > 0 && currentPage > totalPages) {
+      handlePageChange(totalPages)
+    }
+  }, [projects, currentPage, totalPages, handlePageChange])
+
+  if (isProjectsLoading) {
+    return <Loading />
   }
 
-  if (projectList.length === 0) {
+  if (projects.length === 0) {
     return <EmptyState />
   }
 
@@ -248,78 +278,93 @@ const ProjectList: React.FC<ProjectListProps> = ({
           <Button
             variant="destructive"
             size="sm"
-            className="gap-2"
             onClick={() => setIsClearDialogOpen(true)}
           >
             <Trash className="h-4 w-4" />
-            Clear All
           </Button>
         </div>
       </div>
 
-      {error ? (
-        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-          <p className="text-sm text-destructive">
-            Error loading projects. Please try again later.
-          </p>
-        </div>
-      ) : null}
-
-      <Loading
-        isLoading={isLoading}
-        timeout={10000}
-        onTimeout={() => {
-          toast.error('Loading is taking longer than expected', {
-            description: 'Please check your connection and try again.',
-          })
-        }}
-      />
-
-      {!isLoading && filteredAndSortedProjects.length === 0 ? (
-        <div className="rounded-lg border border-border p-8 text-center">
-          <p className="text-sm text-muted-foreground">No projects found.</p>
-          {filter !== 'all' && (
-            <p className="mt-2 text-sm text-muted-foreground">
-              Try changing your filter or creating a new project.
-            </p>
-          )}
-        </div>
-      ) : null}
-
-      {!isLoading && filteredAndSortedProjects.length > 0 ? (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <div className="relative">
-            {isFetching && !isLoading ? (
-              <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/80">
-                <Loading
-                  isLoading={true}
-                  loadingText="Refreshing..."
-                  className="bg-background/95 shadow-lg rounded-lg"
-                />
-              </div>
-            ) : null}
-            <SortableContext
-              items={filteredAndSortedProjects.map(p => p.id)}
-              strategy={rectSortingStrategy}
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 min-w-0">
-                {filteredAndSortedProjects.map(project => (
-                  <div key={project.id} className="min-w-0">
-                    <SortableProjectCard
-                      project={project}
-                      onProjectUpdated={handleProjectUpdated}
-                      onProjectDeleted={handleProjectDeleted}
-                      onProjectSelect={handleProjectSelect}
-                      isSelected={selectedProjectId === project.id}
-                    />
-                  </div>
-                ))}
-              </div>
-            </SortableContext>
+      {/* Project Grid */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={filteredAndSortedProjects.map(project => project.id)}
+          strategy={rectSortingStrategy}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[700px]">
+            {filteredAndSortedProjects.map(project => (
+              <SortableProjectCard
+                key={project.id}
+                project={project}
+                isSelected={selectedProjectId === project.id}
+                onSelect={handleProjectSelect}
+                onUpdate={handleProjectUpdated}
+                onDelete={handleProjectDeleted}
+              />
+            ))}
           </div>
-        </DndContext>
-      ) : null}
+        </SortableContext>
+      </DndContext>
 
+      {/* Pagination Controls */}
+      {projects.length > 0 && totalPages > 1 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="flex flex-col items-center mt-12 mb-20 space-y-3"
+        >
+          <p className="text-sm text-zinc-400">Showing all {projects.length} projects</p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1 || isLoadingMore}
+              className={cn(
+                "px-4 py-2 rounded-full border border-zinc-700 text-zinc-400",
+                "hover:bg-zinc-800 transition",
+                "disabled:opacity-30 disabled:cursor-not-allowed"
+              )}
+            >
+              ← Previous
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => handlePageChange(i + 1)}
+                disabled={isLoadingMore}
+                className={cn(
+                  "w-10 h-10 rounded-full font-semibold transition",
+                  "disabled:opacity-30 disabled:cursor-not-allowed",
+                  currentPage === i + 1
+                    ? "bg-violet-500 text-white hover:bg-violet-600"
+                    : "text-zinc-300 hover:bg-zinc-800"
+                )}
+              >
+                {i + 1}
+              </button>
+            ))}
+
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages || isLoadingMore}
+              className={cn(
+                "px-4 py-2 rounded-full border border-zinc-700 text-zinc-400",
+                "hover:bg-zinc-800 transition",
+                "disabled:opacity-30 disabled:cursor-not-allowed"
+              )}
+            >
+              Next →
+            </button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Clear All Projects Dialog */}
       <AlertDialog open={isClearDialogOpen} onOpenChange={setIsClearDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -330,7 +375,9 @@ const ProjectList: React.FC<ProjectListProps> = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleClearAllProjects}>Clear All</AlertDialogAction>
+            <AlertDialogAction onClick={handleClearAllProjects}>
+              Clear All
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
