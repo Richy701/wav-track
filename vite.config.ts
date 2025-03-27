@@ -204,10 +204,9 @@ export default defineConfig({
     }),
     viteStaticCopy({
       targets: [
-        {
-          src: 'public/*',
-          dest: './',
-        },
+        { src: 'public/favicon.ico', dest: '.' },             // For root
+        { src: 'public/favicon.ico', dest: 'wav-track' },      // For app base
+        { src: 'public/*', dest: './' },
       ],
     }),
     vitePluginFaviconsInject('./public/favicon.ico'),
