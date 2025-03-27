@@ -39,6 +39,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Project } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 
 const filters = ['All', 'In Progress', 'Completed']
 const sortOptions = ['Newest', 'Oldest', 'Most Progress', 'Least Progress']
@@ -158,9 +160,19 @@ const CustomTooltip = memo(({ active, payload }: any) => {
 CustomTooltip.displayName = 'CustomTooltip'
 
 export function RecentProjects() {
-  const { projects, isLoading } = useProjects()
+  const { 
+    projects, 
+    isLoading, 
+    currentPage,
+    totalPages,
+    handleNextPage,
+    handlePreviousPage,
+    handlePageChange,
+    projectsPerPage
+  } = useProjects()
   const [activeFilter, setActiveFilter] = useState('All')
   const [sortBy, setSortBy] = useState('Newest')
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   const productivityData = getProjectActivityData(projects)
   const totalBeats = productivityData.reduce((sum, day) => sum + day.beats, 0)
@@ -352,6 +364,60 @@ export function RecentProjects() {
           ))
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {projects.length > 0 && totalPages > 1 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="flex flex-col items-center mt-12 mb-20 space-y-3"
+        >
+          <p className="text-sm text-zinc-400">Showing all {projects.length} projects</p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1 || isLoadingMore}
+              className={cn(
+                "px-4 py-2 rounded-full border border-zinc-700 text-zinc-400",
+                "hover:bg-zinc-800 transition",
+                "disabled:opacity-30 disabled:cursor-not-allowed"
+              )}
+            >
+              ← Previous
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => handlePageChange(i + 1)}
+                disabled={isLoadingMore}
+                className={cn(
+                  "w-10 h-10 rounded-full font-semibold transition",
+                  "disabled:opacity-30 disabled:cursor-not-allowed",
+                  currentPage === i + 1
+                    ? "bg-violet-500 text-white hover:bg-violet-600"
+                    : "text-zinc-300 hover:bg-zinc-800"
+                )}
+              >
+                {i + 1}
+              </button>
+            ))}
+
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages || isLoadingMore}
+              className={cn(
+                "px-4 py-2 rounded-full border border-zinc-700 text-zinc-400",
+                "hover:bg-zinc-800 transition",
+                "disabled:opacity-30 disabled:cursor-not-allowed"
+              )}
+            >
+              Next →
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       {/* Productivity Chart Section */}
       <div className="col-span-full">
