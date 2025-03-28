@@ -1,8 +1,8 @@
-import React, { useEffect, useCallback, useState } from 'react'
+import React, { useEffect, useCallback, useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AICoach } from '@/components/ai-coach/AICoach'
 import { FadeIn } from '@/components/ui/fade-in'
-import { Brain, Clock, Target, TrendingUp, Play, Pause, RotateCcw, Quote, ArrowLeft, BarChart, Coffee, Settings, Menu, Plus, Moon, Check, Edit, Trash, RefreshCw, Radio, Music, X, SkipForward, MoreVertical } from 'lucide-react'
+import { Brain, Clock, Target, TrendingUp, Play, Pause, RotateCcw, Quote, ArrowLeft, BarChart, Coffee, Settings, Menu, Plus, Moon, Check, Edit, Trash, RefreshCw, Radio, Music, X, SkipForward, MoreVertical, Flame, Trophy, Timer, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -196,23 +196,22 @@ const AICoachCard = ({ suggestions, className }: AICoachCardProps) => (
     variants={cardVariants}
     whileHover="hover"
     className={cn(
-      "rounded-2xl bg-gradient-to-br",
-      "from-violet-100/80 via-white/95 to-white/90",
-      "dark:from-purple-500/10 dark:via-background/95 dark:to-background/90",
-      "border border-violet-200/80 dark:border-purple-500/20",
+      "rounded-2xl bg-white/50 dark:bg-zinc-900/50",
+      "border border-zinc-200 dark:border-zinc-800",
       "backdrop-blur-xl",
-      "hover:border-violet-300/80 dark:hover:border-purple-500/30",
+      "hover:border-zinc-300 dark:hover:border-zinc-700",
       "transition-all duration-300 ease-in-out",
-      "shadow-md dark:shadow-none",
+      "shadow-sm hover:shadow-md dark:shadow-none",
       "hover:scale-[1.01]",
+      "flex flex-col",
       className
     )}
   >
     <div className="flex items-center space-x-2 mb-4">
-      <Brain className="w-5 h-5 text-violet-600 dark:text-purple-400" />
+      <Brain className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
       <h3 className="text-lg font-medium text-zinc-800 dark:text-zinc-50">AI Coach</h3>
     </div>
-    <div className="space-y-4">
+    <div className="flex-1 space-y-3">
       {suggestions.map((suggestion, index) => (
         <motion.div
           key={index}
@@ -221,12 +220,12 @@ const AICoachCard = ({ suggestions, className }: AICoachCardProps) => (
           transition={{ delay: index * 0.1 }}
           className={cn(
             "p-3 rounded-xl",
-            suggestion.priority === 'high' && "bg-violet-100/80 dark:bg-purple-500/10 border border-violet-200/80 dark:border-purple-500/20",
-            suggestion.priority === 'medium' && "bg-violet-50/80 dark:bg-purple-400/10 border border-violet-100/80 dark:border-purple-400/20",
-            suggestion.priority === 'low' && "bg-violet-50/50 dark:bg-purple-300/10 border border-violet-100/50 dark:border-purple-300/20"
+            suggestion.priority === 'high' && "bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700",
+            suggestion.priority === 'medium' && "bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80",
+            suggestion.priority === 'low' && "bg-zinc-50/50 dark:bg-zinc-800/30 border border-zinc-200/80 dark:border-zinc-700/50"
           )}
         >
-          <p className="text-sm text-zinc-700 dark:text-white/70">{suggestion.content}</p>
+          <p className="text-sm text-zinc-700 dark:text-zinc-300">{suggestion.content}</p>
         </motion.div>
       ))}
     </div>
@@ -748,28 +747,31 @@ const AddGoalModal = ({ isOpen, onClose, onSave }) => {
 
     setIsSaving(true)
     try {
-      await onSave({
-        goal_text: title.trim(),
-        notes: description.trim(),
-        expected_duration_minutes: duration ? Number(duration) : 0,
-        status: 'pending',
-        created_at: new Date().toISOString()
-      })
+      const { data, error } = await supabase
+        .from('session_goals')
+        .insert({
+          goal_text: title.trim(),
+          description: description.trim(),
+          expected_duration_minutes: duration ? Number(duration) : 25,
+          status: 'pending',
+          user_id: user?.id,
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
 
-      // Reset form
-      setTitle('')
-      setDescription('')
-      setDuration('')
+      if (error) throw error;
 
-      // Show success toast
+      // Invalidate queries to refresh the goals list
+      queryClient.invalidateQueries(['goals', user?.id]);
+      queryClient.invalidateQueries(['session-stats']);
+
+      form.reset();
       toast({
         title: "Goal Created",
         description: "Your session goal has been created successfully",
         duration: 3000,
-      })
-
-      // Close modal
-      onClose()
+      });
     } catch (error) {
       toast({
         title: "Error",
@@ -869,6 +871,7 @@ const AddGoalModal = ({ isOpen, onClose, onSave }) => {
 const Sessions: React.FC = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [user, setUser] = useState<UserType | null>(null)
   const { toast } = useToast()
   const [isWorking, setIsWorking] = useLocalStorage<boolean>('timer-is-working', true)
   const [isPlaying, setIsPlaying] = useLocalStorage<boolean>('timer-is-playing', false)
@@ -882,16 +885,8 @@ const Sessions: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isAddGoalModalOpen, setIsAddGoalModalOpen] = useState(false)
   const [activeGoal, setActiveGoal] = React.useState<Goal | null>(null)
-  const [user, setUser] = React.useState<UserType | null>(null)
-
-  // Get user on component mount
-  React.useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-    }
-    getUser()
-  }, [])
+  const [durationValue, setDurationValue] = useState(25)
+  const formRef = useRef<HTMLFormElement>(null)
 
   // AI Coach integration
   const { suggestions, refreshSuggestions } = useAICoach()
@@ -1012,6 +1007,26 @@ const Sessions: React.FC = () => {
           startDate = new Date(now.setDate(now.getDate() - now.getDay()))
       }
 
+      // Fetch beat activities for most productive day calculation
+      const { data: beatActivities, error: beatError } = await supabase
+        .from('beat_activities')
+        .select('date, count')
+        .eq('user_id', user.id)
+        .gte('date', startDate.toISOString().split('T')[0])
+        .order('date', { ascending: false })
+
+      if (beatError) throw beatError
+
+      // Calculate most productive day based on beat count
+      const beatsByDay = beatActivities?.reduce((acc, activity) => {
+        const date = activity.date
+        acc[date] = (acc[date] || 0) + activity.count
+        return acc
+      }, {})
+
+      const mostProductiveDay = beatsByDay && Object.entries(beatsByDay)
+        .sort(([,a], [,b]) => (b as number) - (a as number))[0]?.[0]
+
       const { data: goals, error: goalsError } = await supabase
         .from('session_goals')
         .select('*')
@@ -1066,16 +1081,6 @@ const Sessions: React.FC = () => {
       const totalDuration = goals?.reduce((sum, goal) => sum + (goal.expected_duration_minutes || 0), 0) || 0
       const averageSessionTime = totalGoals > 0 ? Math.round(totalDuration / totalGoals) : 0
 
-      // Find most productive day
-      const productivityByDay = goals?.reduce((acc, goal) => {
-        const date = new Date(goal.created_at).toDateString()
-        acc[date] = (acc[date] || 0) + 1
-        return acc
-      }, {})
-
-      const mostProductiveDay = Object.entries(productivityByDay || {})
-        .sort(([,a], [,b]) => (b as number) - (a as number))[0]?.[0]
-
       return {
         totalGoals,
         completedGoals,
@@ -1083,7 +1088,7 @@ const Sessions: React.FC = () => {
         currentStreak,
         bestStreak,
         averageSessionTime,
-        mostProductiveDay
+        mostProductiveDay: mostProductiveDay || null
       }
     }
   })
@@ -1248,6 +1253,124 @@ const Sessions: React.FC = () => {
     }
   }
 
+  // Add goal mutation
+  const createGoalMutation = useMutation({
+    mutationFn: async (data: {
+      title: string;
+      description: string;
+      duration: string;
+    }) => {
+      if (!user?.id) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('session_goals')
+        .insert({
+          user_id: user.id,
+          goal_text: data.title.trim(),
+          description: data.description.trim() || null,
+          expected_duration_minutes: data.duration ? Number(data.duration) : 25,
+          status: 'pending' as const,
+          created_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      if (!user?.id) return;
+      queryClient.invalidateQueries(['goals', user.id]);
+      queryClient.invalidateQueries(['session-stats']);
+      toast({
+        title: "Goal Created",
+        description: "Your session goal has been created successfully",
+        duration: 3000,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create goal",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  });
+
+  // Get user on component mount
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+    }
+    getUser()
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault() // Prevent form from submitting normally
+    
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create goals",
+        variant: "destructive",
+        duration: 3000,
+      })
+      return
+    }
+
+    // Validate form
+    const formData = new FormData(e.currentTarget)
+    const title = formData.get('title') as string
+    const description = formData.get('description') as string
+
+    if (!title.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Title is required",
+        variant: "destructive",
+        duration: 3000,
+      })
+      return
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('session_goals')
+        .insert({
+          goal_text: title.trim(),
+          description: description.trim() || null,
+          expected_duration_minutes: durationValue,
+          status: 'pending' as const,
+          user_id: user.id,
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // Invalidate queries to refresh the goals list
+      queryClient.invalidateQueries(['goals', user.id])
+      queryClient.invalidateQueries(['session-stats'])
+
+      // Reset form using the ref
+      formRef.current?.reset()
+      setDurationValue(25) // Reset duration slider
+
+      toast({
+        title: "Goal Created",
+        description: "Your session goal has been created successfully",
+        duration: 3000,
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create goal",
+        variant: "destructive",
+        duration: 3000,
+      })
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white dark:bg-background text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
       {/* Navigation */}
@@ -1333,7 +1456,7 @@ const Sessions: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-[2fr,1fr] gap-4 sm:gap-5">
           {/* Main Content (Left Column) */}
           <div className="space-y-4 sm:space-y-5">
-            {/* Timer Card - Reduced padding */}
+            {/* Timer Card */}
             <TimerCard
               isWorking={isWorking}
               timeLeft={timeLeft}
@@ -1349,7 +1472,7 @@ const Sessions: React.FC = () => {
               className="p-4 sm:p-6"
             />
 
-            {/* Session Goal and Progress Grid - Optimized spacing */}
+            {/* Session Goal and Progress Grid */}
             <motion.div
               initial="hidden"
               animate="visible"
@@ -1361,9 +1484,9 @@ const Sessions: React.FC = () => {
                   },
                 },
               }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 min-h-[520px]"
             >
-              {/* Session Goal Card - Reduced padding */}
+              {/* Session Goal Card and Progress Stats Card content */}
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 10 },
@@ -1376,14 +1499,15 @@ const Sessions: React.FC = () => {
                   "from-orange-50 via-white/95 to-white/90",
                   "dark:from-orange-500/10 dark:via-background/95 dark:to-background/90",
                   "border border-orange-200/80 dark:border-orange-500/20",
-                  "p-4 sm:p-6",
+                  "p-6 sm:p-8",
                   "hover:border-orange-300/80 dark:hover:border-orange-500/30",
                   "transition-all duration-300 ease-in-out",
                   "shadow-md dark:shadow-none",
-                  "ring-1 ring-orange-200/50 dark:ring-orange-500/10"
+                  "ring-1 ring-orange-200/50 dark:ring-orange-500/10",
+                  "flex flex-col h-full"
                 )}
               >
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-2">
                     <Target className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                     <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">Session Goal</h3>
@@ -1407,7 +1531,7 @@ const Sessions: React.FC = () => {
                       <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100/80 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400">
                         {activeGoal.status === 'completed' ? 'Completed' : 'In Progress'}
                       </span>
-                      <span className="text-xs text-neutral-500 dark:text-white/50">
+                      <span className="text-xs text-neutral-500 dark:text-neutral-500">
                         {new Date(activeGoal.created_at).toLocaleDateString()}
                       </span>
                     </div>
@@ -1454,15 +1578,86 @@ const Sessions: React.FC = () => {
                     </div>
                   </>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <Target className="w-8 h-8 text-orange-400/50" />
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">No active session goal</p>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-500">Add a goal to track your progress</p>
-                  </div>
+                  <motion.form 
+                    ref={formRef}
+                    onSubmit={handleSubmit}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex flex-col gap-4"
+                  >
+                    <div className="space-y-4">
+                      <div>
+                        <input
+                          type="text"
+                          name="title"
+                          placeholder="e.g. 'Create a melodic hook for the chorus' or 'Mix the drum patterns'"
+                          className="w-full bg-gradient-to-br from-white/80 to-white/60 dark:from-zinc-800/80 dark:to-zinc-900/60 border border-orange-200/50 dark:border-orange-500/20 rounded-2xl px-4 py-3 text-base font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-sm placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40 focus:border-orange-500/30 dark:focus:border-orange-500/40 transition-all shadow-sm dark:shadow-inner-sm"
+                        />
+                      </div>
+                      <div>
+                        <textarea
+                          name="description"
+                          placeholder="Add some details about your goal (optional)"
+                          rows={3}
+                          className="w-full bg-gradient-to-br from-white/80 to-white/60 dark:from-zinc-800/80 dark:to-zinc-900/60 border border-orange-200/50 dark:border-orange-500/20 rounded-2xl px-4 py-3 text-base font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-sm placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40 focus:border-orange-500/30 dark:focus:border-orange-500/40 transition-all resize-none shadow-sm dark:shadow-inner-sm"
+                        />
+                      </div>
+                      <div className="flex items-end gap-3">
+                        <div className="flex-1">
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1.5">
+                                <Clock className="w-4 h-4 text-orange-600/50 dark:text-orange-400/50" />
+                                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Duration</span>
+                              </div>
+                              <span className="text-sm font-medium px-2 py-0.5 rounded-lg bg-orange-100/50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">
+                                {durationValue} min
+                              </span>
+                            </div>
+                            <div className="px-1">
+                              <Slider
+                                value={[durationValue]}
+                                min={5}
+                                max={60}
+                                step={5}
+                                onValueChange={(value) => setDurationValue(value[0])}
+                                className={cn(
+                                  "relative flex items-center select-none touch-none w-full transition-colors",
+                                  "[&_[role=slider]]:h-4 [&_[role=slider]]:w-4",
+                                  "[&_[role=slider]]:transition-all",
+                                  "[&_[role=slider]]:bg-orange-500 [&_[role=slider]]:border-orange-500",
+                                  "dark:[&_[role=slider]]:bg-orange-400 dark:[&_[role=slider]]:border-orange-400",
+                                  "[&_[role=slider]]:hover:scale-110",
+                                  "[&_[role=slider]]:focus:scale-110",
+                                  "[&_[role=slider]]:outline-none",
+                                  "[&_[role=slider]]:rounded-full",
+                                  "[&_[role=slider]]:border-2",
+                                  "[&_[role=slider]]:shadow-sm",
+                                  "[&_[role=slider]]:transition-transform",
+                                  "[&_[role=slider]]:duration-200"
+                                )}
+                              />
+                              <div className="flex justify-between mt-1">
+                                <span className="text-xs text-neutral-500 dark:text-neutral-400">5 min</span>
+                                <span className="text-xs text-neutral-500 dark:text-neutral-400">60 min</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          type="submit"
+                          className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2.5 rounded-xl transition-all duration-150 shadow-md hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40"
+                        >
+                          Create Goal
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.form>
                 )}
               </motion.div>
 
-              {/* Progress Stats Card - Reduced padding */}
+              {/* Progress Stats Card */}
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 10 },
@@ -1472,248 +1667,387 @@ const Sessions: React.FC = () => {
                 transition={{ duration: 0.3, ease: 'easeOut' }}
                 className={cn(
                   "rounded-2xl bg-gradient-to-br",
-                  "from-emerald-100/80 via-white/95 to-white/90",
-                  "dark:from-emerald-500/10 dark:via-background/95 dark:to-background/90",
-                  "border border-emerald-200/80 dark:border-emerald-500/20",
-                  "p-4 sm:p-6",
-                  "hover:border-emerald-300/80 dark:hover:border-emerald-500/30",
+                  "from-purple-100/90 via-white/95 to-purple-50/80",
+                  "dark:from-purple-500/20 dark:via-background/95 dark:to-purple-900/10",
+                  "border border-purple-200/80 dark:border-purple-500/20",
+                  "p-6 sm:p-8",
+                  "hover:border-purple-300/80 dark:hover:border-purple-500/30",
                   "transition-all duration-300 ease-in-out",
-                  "shadow-md dark:shadow-none",
-                  "ring-1 ring-emerald-200/50 dark:ring-emerald-500/10"
+                  "shadow-sm hover:shadow-md dark:shadow-none",
+                  "flex flex-col h-full"
                 )}
               >
-                <div className="flex items-center justify-between mb-4 sm:mb-5">
-                  <div className="flex items-center space-x-2">
-                    <BarChart className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                    <h3 className="text-lg font-medium text-zinc-800 dark:text-neutral-100">Your Progress</h3>
+                {/* Header */}
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-1.5">
+                    <BarChart className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    <h3 className="text-base font-medium tracking-tight text-purple-900 dark:text-purple-100">
+                      Your Progress
+                    </h3>
                   </div>
-                  <Select 
-                    value={selectedTimeRange} 
-                    onValueChange={setSelectedTimeRange}
-                  >
-                    <SelectTrigger className="w-[120px] h-8 text-xs bg-transparent border-emerald-200/80 dark:border-emerald-500/20 text-zinc-700 dark:text-neutral-300 hover:border-emerald-300/80 dark:hover:border-emerald-500/30">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-background border-emerald-200/80 dark:border-emerald-500/20">
-                      <SelectItem value="Today" className="text-zinc-700 dark:text-neutral-300">Today</SelectItem>
-                      <SelectItem value="This Week" className="text-zinc-700 dark:text-neutral-300">This Week</SelectItem>
-                      <SelectItem value="This Month" className="text-zinc-700 dark:text-neutral-300">This Month</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="relative">
+                    <Select 
+                      value={selectedTimeRange} 
+                      onValueChange={setSelectedTimeRange}
+                    >
+                      <SelectTrigger 
+                        className={cn(
+                          "w-[130px] h-9",
+                          "text-xs font-medium",
+                          "bg-purple-100/50 dark:bg-purple-500/10",
+                          "border-purple-200/50 dark:border-purple-500/20",
+                          "text-purple-700 dark:text-purple-200",
+                          "hover:bg-purple-100/80 dark:hover:bg-purple-500/20",
+                          "hover:border-purple-300/50 dark:hover:border-purple-500/30",
+                          "focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-500/30",
+                          "focus:border-purple-500/30 dark:focus:border-purple-500/40",
+                          "rounded-xl",
+                          "transition-all duration-150",
+                          "shadow-sm dark:shadow-purple-500/10"
+                        )}
+                      >
+                        <Calendar className="w-3.5 h-3.5 mr-2 text-purple-600/70 dark:text-purple-400/70" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent 
+                        className={cn(
+                          "bg-white/95 dark:bg-zinc-900/95",
+                          "border border-purple-200/50 dark:border-purple-500/20",
+                          "backdrop-blur-xl",
+                          "rounded-xl",
+                          "shadow-lg dark:shadow-purple-500/10",
+                          "min-w-[130px]"
+                        )}
+                      >
+                        <SelectItem 
+                          value="Today"
+                          className="text-purple-700 dark:text-purple-200 hover:bg-purple-100/50 dark:hover:bg-purple-500/10 focus:bg-purple-100/50 dark:focus:bg-purple-500/10 rounded-lg"
+                        >
+                          Today
+                        </SelectItem>
+                        <SelectItem 
+                          value="This Week"
+                          className="text-purple-700 dark:text-purple-200 hover:bg-purple-100/50 dark:hover:bg-purple-500/10 focus:bg-purple-100/50 dark:focus:bg-purple-500/10 rounded-lg"
+                        >
+                          This Week
+                        </SelectItem>
+                        <SelectItem 
+                          value="This Month"
+                          className="text-purple-700 dark:text-purple-200 hover:bg-purple-100/50 dark:hover:bg-purple-500/10 focus:bg-purple-100/50 dark:focus:bg-purple-500/10 rounded-lg"
+                        >
+                          This Month
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-5">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center space-x-2">
-                      <Music className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                      <span className="text-sm text-zinc-600 dark:text-neutral-400">Beats</span>
+                {/* Main Content */}
+                <div className="flex-1 flex flex-col justify-between space-y-6">
+                  {/* Key Metrics */}
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <Music className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                          <span className="text-[12px] tracking-tight text-purple-700 dark:text-purple-200">Beats</span>
+                        </div>
+                        <p className="text-sm font-medium tracking-tight text-purple-900 dark:text-purple-50">{beatsCount ?? 0}</p>
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <Target className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                          <span className="text-[12px] tracking-tight text-purple-700 dark:text-purple-200">Goals Completed</span>
+                        </div>
+                        <p className="text-sm font-medium tracking-tight text-purple-900 dark:text-purple-50">{sessionStats?.completedGoals || 0}</p>
+                      </div>
                     </div>
-                    <p className="text-2xl font-semibold tracking-tight text-zinc-800 dark:text-neutral-100">{beatsCount ?? 0}</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center space-x-2">
-                      <Target className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                      <span className="text-sm text-zinc-600 dark:text-neutral-400">Goals</span>
-                    </div>
-                    <p className="text-2xl font-semibold tracking-tight text-zinc-800 dark:text-neutral-100">{sessionStats?.totalGoals || 0}</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center space-x-2">
-                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                      <span className="text-sm text-zinc-600 dark:text-neutral-400">Done</span>
-                    </div>
-                    <p className="text-2xl font-semibold tracking-tight text-zinc-800 dark:text-neutral-100">{sessionStats?.completedGoals || 0}</p>
-                  </div>
-                </div>
 
-                <div className="space-y-3 sm:space-y-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-zinc-600 dark:text-neutral-400">Completion Rate</span>
-                      <span className="text-sm text-zinc-500 dark:text-neutral-500">{sessionStats?.completionRate || 0}%</span>
+                    {/* Completion Rate */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] tracking-tight text-purple-700 dark:text-purple-200">Completion Rate</span>
+                        <span className="text-[12px] tracking-tight text-purple-600/70 dark:text-purple-300/70">{sessionStats?.completionRate || 0}%</span>
+                      </div>
+                      <div className="h-1.5 bg-purple-100/80 dark:bg-purple-500/10 rounded-full">
+                        <div 
+                          className="h-full bg-purple-600 dark:bg-purple-400 rounded-full transition-all duration-500" 
+                          style={{ width: `${sessionStats?.completionRate || 0}%` }} 
+                        />
+                      </div>
                     </div>
-                    <div className="h-2 bg-emerald-100/80 dark:bg-emerald-500/10 rounded-full">
-                      <div 
-                        className="h-full bg-emerald-600 dark:bg-emerald-400 rounded-full transition-all duration-500" 
-                        style={{ width: `${sessionStats?.completionRate || 0}%` }} 
-                      />
+
+                    {/* Streaks */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1">
+                          <Flame className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                          <span className="text-[12px] tracking-tight text-purple-700 dark:text-purple-200">Current Streak</span>
+                        </div>
+                        <p className="text-sm font-medium tracking-tight text-purple-900 dark:text-purple-50">{sessionStats?.currentStreak || 0} days</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1">
+                          <Trophy className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                          <span className="text-[12px] tracking-tight text-purple-700 dark:text-purple-200">Best Streak</span>
+                        </div>
+                        <p className="text-sm font-medium tracking-tight text-purple-900 dark:text-purple-50">{sessionStats?.bestStreak || 0} days</p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Additional Stats */}
+                  <div className="space-y-6">
                     <div className="space-y-1">
-                      <span className="text-sm text-zinc-600 dark:text-neutral-400">Current Streak</span>
-                      <p className="text-lg font-medium text-zinc-800 dark:text-neutral-100">{sessionStats?.currentStreak || 0} days</p>
+                      <div className="flex items-center gap-1">
+                        <Timer className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <span className="text-[12px] tracking-tight text-purple-700 dark:text-purple-200">Average Session Time</span>
+                      </div>
+                      <p className="text-sm font-medium tracking-tight text-purple-900 dark:text-purple-50">{sessionStats?.averageSessionTime || 0} minutes</p>
                     </div>
+
                     <div className="space-y-1">
-                      <span className="text-sm text-zinc-600 dark:text-neutral-400">Best Streak</span>
-                      <p className="text-lg font-medium text-zinc-800 dark:text-neutral-100">{sessionStats?.bestStreak || 0} days</p>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <span className="text-[12px] tracking-tight text-purple-700 dark:text-purple-200">Most Productive Day</span>
+                      </div>
+                      <p className="text-base font-semibold tracking-tight text-purple-900 dark:text-purple-50">
+                        {sessionStats?.mostProductiveDay && sessionStats.mostProductiveDay !== 'No data yet'
+                          ? new Date(sessionStats.mostProductiveDay).toLocaleDateString('en-US', {
+                              month: 'long',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })
+                          : (
+                            <span className="text-purple-600/60 dark:text-purple-400/60 text-sm">
+                              Not enough data yet
+                            </span>
+                          )}
+                      </p>
                     </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <span className="text-sm text-zinc-600 dark:text-neutral-400">Average Session Time</span>
-                    <p className="text-lg font-medium text-zinc-800 dark:text-neutral-100">{sessionStats?.averageSessionTime || 0} minutes</p>
-                  </div>
-
-                  <div className="space-y-1">
-                    <span className="text-sm text-zinc-600 dark:text-neutral-400">Most Productive Day</span>
-                    <p className="text-lg font-medium text-zinc-800 dark:text-neutral-100">
-                      {sessionStats?.mostProductiveDay ? new Date(sessionStats.mostProductiveDay).toLocaleDateString() : 'No data yet'}
-                    </p>
                   </div>
                 </div>
               </motion.div>
             </motion.div>
-          </div>
 
-          {/* Right Sidebar - Optimized spacing */}
-          <div className="lg:col-span-1">
+            {/* Goals List - Moved from right column */}
             <motion.div
+              variants={containerVariants}
               initial="hidden"
               animate="visible"
-              variants={{
-                hidden: {},
-                visible: {
-                  transition: {
-                    staggerChildren: 0.1,
-                  },
-                },
-              }}
-              className="sticky top-24 space-y-4"
+              className="space-y-4"
             >
-              {/* AI Coach */}
-              <AICoachCard suggestions={suggestions} className="p-6 backdrop-blur-xl" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Target className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
+                  <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">Recent Goals</h3>
+                </div>
+              </div>
 
-              {/* Production Tips */}
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, y: 10 },
-                  visible: { opacity: 1, y: 0 }
-                }}
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-                className={cn(
-                  "rounded-xl bg-gradient-to-br",
-                  "from-yellow-50 via-white/95 to-white/90",
-                  "dark:from-yellow-500/10 dark:via-background/95 dark:to-background/90",
-                  "border border-yellow-200/80 dark:border-yellow-500/20",
-                  "p-6 backdrop-blur-xl",
-                  "hover:border-yellow-300/80 dark:hover:border-yellow-500/30",
-                  "transition-all duration-300 ease-in-out",
-                  "shadow-md dark:shadow-none"
-                )}
-              >
-                <div className="flex items-center space-x-2 mb-4">
-                  <Quote className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                  <h3 className="text-lg font-medium text-neutral-900 dark:text-zinc-50">Production Tips</h3>
+              {goals.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {goals.map((goal) => (
+                    <motion.div
+                      key={goal.id}
+                      variants={cardVariants}
+                      className={cn(
+                        "rounded-xl bg-white dark:bg-zinc-900/5",
+                        "border border-zinc-200 dark:border-zinc-800",
+                        "p-4",
+                        "hover:border-zinc-300 dark:hover:border-zinc-700",
+                        "transition-all duration-200"
+                      )}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                          {goal.title}
+                        </span>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleEditGoal(goal)}
+                          >
+                            <Edit className="h-3 w-3 text-neutral-600 dark:text-neutral-400" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => {
+                              setSelectedGoal(goal)
+                              setIsDeleteModalOpen(true)
+                            }}
+                          >
+                            <Trash className="h-3 w-3 text-neutral-600 dark:text-neutral-400" />
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-3">
+                        {goal.description || 'No description'}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-neutral-500 dark:text-neutral-500">
+                          {new Date(goal.created_at).toLocaleDateString()}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "text-xs",
+                            goal.status === 'completed'
+                              ? "border-emerald-500/20 text-emerald-600 dark:border-emerald-500/30 dark:text-emerald-400"
+                              : "border-orange-500/20 text-orange-600 dark:border-orange-500/30 dark:text-orange-400"
+                          )}
+                        >
+                          {goal.status === 'completed' ? 'Completed' : 'In Progress'}
+                        </Badge>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
-                <p className="text-sm text-neutral-700 dark:text-white/70 mb-4">
-                  Personalized tips to enhance your production workflow.
-                </p>
-                <p className="text-sm text-neutral-700 dark:text-white/70 mb-4">
-                  Explore different tempos outside your usual range for fresh creative ideas.
-                </p>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-neutral-500 dark:text-white/50">Key:</span>
-                    <span className="text-xs text-neutral-700 dark:text-white/70">C</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-neutral-500 dark:text-white/50">Energy:</span>
-                    <span className="text-xs text-neutral-700 dark:text-white/70">50%</span>
-                  </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 text-center rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
+                  <Target className="w-8 h-8 text-neutral-400/50" />
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">No recent goals yet</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-500">Add a goal to get started</p>
                 </div>
-              </motion.div>
+              )}
+            </motion.div>
+          </div>
 
-              {/* Workflow Analytics */}
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, y: 10 },
-                  visible: { opacity: 1, y: 0 }
-                }}
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-                className={cn(
-                  "rounded-xl bg-gradient-to-br",
-                  "from-blue-50 via-white/95 to-white/90",
-                  "dark:from-blue-500/10 dark:via-background/95 dark:to-background/90",
-                  "border border-blue-200/80 dark:border-blue-500/20",
-                  "p-6 backdrop-blur-xl",
-                  "hover:border-blue-300/80 dark:hover:border-blue-500/30",
-                  "transition-all duration-300 ease-in-out",
-                  "shadow-md dark:shadow-none"
-                )}
-              >
-                <div className="flex items-center space-x-2 mb-4">
-                  <BarChart className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  <h3 className="text-lg font-medium text-neutral-900 dark:text-zinc-50">Workflow Analytics</h3>
-                </div>
-                <p className="text-sm text-neutral-700 dark:text-white/70 mb-4">
-                  Insights about your production workflow and habits.
-                </p>
-                <p className="text-sm text-neutral-700 dark:text-white/70 mb-4">
-                  You're putting in significant hours. Remember to balance work with rest.
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    <span className="text-xs text-neutral-700 dark:text-white/70">0 sessions/day</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    <span className="text-xs text-neutral-700 dark:text-white/70">33% completion</span>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Recent Goals */}
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, y: 10 },
-                  visible: { opacity: 1, y: 0 }
-                }}
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-                className={cn(
-                  "rounded-xl bg-gradient-to-br",
-                  "from-green-50 via-white/95 to-white/90",
-                  "dark:from-green-500/10 dark:via-background/95 dark:to-background/90",
-                  "border border-green-200/80 dark:border-green-500/20",
-                  "p-6 backdrop-blur-xl",
-                  "hover:border-green-300/80 dark:hover:border-green-500/30",
-                  "transition-all duration-300 ease-in-out",
-                  "shadow-md dark:shadow-none"
-                )}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-2">
-                    <Target className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    <h3 className="text-lg font-medium text-neutral-900 dark:text-zinc-50">Recent Goals</h3>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs border-green-200/80 dark:border-green-500/20 text-neutral-700 dark:text-white/70 hover:bg-green-100/80 dark:hover:bg-green-500/10 hover:border-green-300/80 dark:hover:border-green-500/30 transition-colors"
+          {/* Right Column - Now contains AI Coach and additional AI boxes */}
+          <div className="space-y-4 sm:space-y-5">
+            {/* AI Coach Card */}
+            <motion.div
+              variants={cardVariants}
+              whileHover="hover"
+              className={cn(
+                "rounded-2xl bg-gradient-to-br",
+                "from-indigo-100/90 via-white/95 to-indigo-50/80",
+                "dark:from-indigo-500/20 dark:via-background/95 dark:to-indigo-900/10",
+                "border border-indigo-200/80 dark:border-indigo-500/20",
+                "backdrop-blur-xl",
+                "hover:border-indigo-300/80 dark:hover:border-indigo-500/30",
+                "transition-all duration-300 ease-in-out",
+                "shadow-sm hover:shadow-md dark:shadow-none",
+                "hover:scale-[1.01]",
+                "flex flex-col",
+                "p-6 sm:p-8"
+              )}
+            >
+              <div className="flex items-center space-x-2 mb-4">
+                <Brain className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <h3 className="text-lg font-medium text-indigo-900 dark:text-indigo-100">AI Coach</h3>
+              </div>
+              <div className="flex-1 space-y-3">
+                {suggestions.map((suggestion, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className={cn(
+                      "p-3 rounded-xl",
+                      suggestion.priority === 'high' && "bg-indigo-100/80 dark:bg-indigo-500/20 border border-indigo-200/80 dark:border-indigo-500/30",
+                      suggestion.priority === 'medium' && "bg-indigo-50/80 dark:bg-indigo-500/10 border border-indigo-200/60 dark:border-indigo-500/20",
+                      suggestion.priority === 'low' && "bg-indigo-50/50 dark:bg-indigo-500/5 border border-indigo-200/40 dark:border-indigo-500/10"
+                    )}
                   >
-                    <RefreshCw className="w-3 h-3 mr-1" />
-                    Reset Goals
-                  </Button>
-                </div>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100/80 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400">
-                        In Progress
-                      </span>
-                      <span className="text-xs text-neutral-500 dark:text-white/50">37 minutes ago</span>
-                    </div>
-                    <p className="text-sm text-neutral-700 dark:text-white/70">
-                      Finish create and add final touches to the arrangement
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
+                    <p className="text-sm text-indigo-700 dark:text-indigo-200">{suggestion.content}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Session Insights Card */}
+            <motion.div
+              variants={cardVariants}
+              whileHover="hover"
+              className={cn(
+                "rounded-2xl bg-gradient-to-br",
+                "from-emerald-100/90 via-white/95 to-emerald-50/80",
+                "dark:from-emerald-500/20 dark:via-background/95 dark:to-emerald-900/10",
+                "border border-emerald-200/80 dark:border-emerald-500/20",
+                "backdrop-blur-xl",
+                "hover:border-emerald-300/80 dark:hover:border-emerald-500/30",
+                "transition-all duration-300 ease-in-out",
+                "shadow-sm hover:shadow-md dark:shadow-none",
+                "hover:scale-[1.01]",
+                "flex flex-col",
+                "p-6 sm:p-8"
+              )}
+            >
+              <div className="flex items-center space-x-2 mb-4">
+                <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <h3 className="text-lg font-medium text-emerald-900 dark:text-emerald-100">Session Insights</h3>
+              </div>
+              <div className="flex-1 space-y-3">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-3 rounded-xl bg-emerald-100/80 dark:bg-emerald-500/20 border border-emerald-200/80 dark:border-emerald-500/30"
+                >
+                  <p className="text-sm text-emerald-700 dark:text-emerald-200">
+                    Your most productive sessions are typically in the morning, with an average duration of {sessionStats?.averageSessionTime || 0} minutes.
+                  </p>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="p-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20"
+                >
+                  <p className="text-sm text-emerald-700 dark:text-emerald-200">
+                    You've completed {sessionStats?.completedGoals || 0} goals this period, maintaining a {sessionStats?.completionRate || 0}% completion rate.
+                  </p>
+                </motion.div>
+              </div>
+            </motion.div>
+
+            {/* Productivity Tips Card */}
+            <motion.div
+              variants={cardVariants}
+              whileHover="hover"
+              className={cn(
+                "rounded-2xl bg-gradient-to-br",
+                "from-amber-100/90 via-white/95 to-amber-50/80",
+                "dark:from-amber-500/20 dark:via-background/95 dark:to-amber-900/10",
+                "border border-amber-200/80 dark:border-amber-500/20",
+                "backdrop-blur-xl",
+                "hover:border-amber-300/80 dark:hover:border-amber-500/30",
+                "transition-all duration-300 ease-in-out",
+                "shadow-sm hover:shadow-md dark:shadow-none",
+                "hover:scale-[1.01]",
+                "flex flex-col",
+                "p-6 sm:p-8"
+              )}
+            >
+              <div className="flex items-center space-x-2 mb-4">
+                <Coffee className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <h3 className="text-lg font-medium text-amber-900 dark:text-amber-100">Productivity Tips</h3>
+              </div>
+              <div className="flex-1 space-y-3">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-3 rounded-xl bg-amber-100/80 dark:bg-amber-500/20 border border-amber-200/80 dark:border-amber-500/30"
+                >
+                  <p className="text-sm text-amber-700 dark:text-amber-200">
+                    Try the "Two-Minute Rule": If a task takes less than two minutes, do it immediately rather than putting it off.
+                  </p>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20"
+                >
+                  <p className="text-sm text-amber-700 dark:text-amber-200">
+                    Consider taking a 5-minute break every 25 minutes to maintain peak productivity and creativity.
+                  </p>
+                </motion.div>
+              </div>
             </motion.div>
           </div>
         </div>
