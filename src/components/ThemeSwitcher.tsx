@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { Moon, Sun } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/lib/ThemeContext'
+import { Button } from '@/components/ui/button'
+import { motion } from 'framer-motion'
 
 export default function ThemeSwitcher() {
   const { theme, setTheme } = useTheme()
@@ -10,8 +12,13 @@ export default function ThemeSwitcher() {
   // After mounting, we have access to the theme
   useEffect(() => setMounted(true), [])
 
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark')
+  const handleThemeChange = () => {
+    console.log('Current theme:', theme)
+    const newTheme = theme === 'light' ? 'dark' : 'light'
+    console.log('Switching to theme:', newTheme)
+    setTheme(newTheme)
+    console.log('HTML classes:', document.documentElement.classList)
+    console.log('Body classes:', document.body.classList)
   }
 
   if (!mounted) {
@@ -19,32 +26,31 @@ export default function ThemeSwitcher() {
   }
 
   return (
-    <button
-      onClick={toggleTheme}
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={handleThemeChange}
       className={cn(
-        'relative h-7 w-14 rounded-full',
-        'bg-secondary/80 hover:bg-secondary',
-        'flex items-center px-1',
+        'relative h-10 w-10 rounded-full',
+        'bg-background/80 hover:bg-background',
+        'flex items-center justify-center',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-        theme === 'dark' ? 'shadow-inner' : 'shadow-sm'
+        'transition-all duration-200'
       )}
-      aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      {/* Sliding circle with icon */}
-      <div
-        className={cn(
-          'absolute h-5 w-5 rounded-full flex items-center justify-center',
-          'transform transition-transform duration-200 ease-out',
-          theme === 'dark' ? 'translate-x-[1.625rem] bg-[#1A1F2C]' : 'translate-x-0 bg-white',
-          'shadow-md'
-        )}
+      <motion.div
+        initial={{ scale: 0.5, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.5, opacity: 0 }}
+        transition={{ duration: 0.2 }}
       >
-        {theme === 'dark' ? (
-          <Moon size={12} className="text-purple-400" />
+        {theme === 'light' ? (
+          <Sun className="h-5 w-5 text-foreground/80 dark:text-foreground/70" />
         ) : (
-          <Sun size={12} className="text-amber-500" />
+          <Moon className="h-5 w-5 text-foreground/80 dark:text-foreground/70" />
         )}
-      </div>
-    </button>
+      </motion.div>
+      <span className="sr-only">Toggle theme</span>
+    </Button>
   )
 }

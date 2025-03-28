@@ -12,6 +12,8 @@
 @layer base {
   :root {
     /* Light mode - Base colors */
+    --bg: hsl(0 0% 100%);
+    --text: hsl(240 10% 3.9%);
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
 
@@ -44,7 +46,7 @@
     /* Borders and inputs */
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 240 10% 3.9%;
+    --ring: 240 5.9% 10%;
 
     /* Sidebar specific colors */
     --sidebar-background: 210 40% 98%;
@@ -100,25 +102,27 @@
   }
 
   .dark {
-    /* Dark mode colors remain unchanged */
-    --background: 240 10% 4.5%;
+    /* Dark mode colors */
+    --bg: hsl(240 10% 3.9%);
+    --text: hsl(0 0% 98%);
+    --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
-    --card: 240 10% 6.5%;
+    --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 6.5%;
+    --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
     --primary: 0 0% 98%;
     --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 4% 12%;
+    --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 4% 16%;
+    --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 240 4% 16%;
+    --accent: 240 3.7% 15.9%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
 
     --sidebar-background: 270 50% 10%;
@@ -365,6 +369,13 @@
     @apply border-border;
   }
 
+  html {
+    @apply bg-background text-foreground;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    background-color: var(--bg);
+    color: var(--text);
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings:
@@ -379,6 +390,16 @@
     width: 100%;
     max-width: 100vw;
     overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    background-color: var(--bg);
+    color: var(--text);
+  }
+
+  #root {
+    @apply bg-background text-foreground;
+    background-color: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
   }
 
   h1,
