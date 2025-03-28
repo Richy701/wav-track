@@ -27,6 +27,8 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
+import { useAIAssistant } from '@/lib/ai-assistant'
+import { AISuggestions } from '@/components/ai-suggestions'
 
 type DatabaseGoal = {
   id: string
@@ -720,8 +722,52 @@ const AddGoalModal = ({ isOpen, onClose, onSave }) => {
   const [duration, setDuration] = React.useState('')
   const [isSaving, setIsSaving] = React.useState(false)
   const { toast } = useToast()
+  const queryClient = useQueryClient()
+  const [user, setUser] = React.useState<UserType | null>(null)
+  const formRef = React.useRef<HTMLFormElement>(null)
+  const [showSuggestions, setShowSuggestions] = React.useState(false)
 
-  const handleSubmit = async (e) => {
+  // Get user on component mount
+  React.useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+    }
+    getUser()
+  }, [])
+
+  // Add AI Assistant integration
+  const {
+    suggestions,
+    isLoading,
+    fetchSuggestions,
+    handleSuggestionSelect,
+    generateGoal,
+  } = useAIAssistant({
+    onSuggestionSelect: (suggestion) => {
+      setTitle(suggestion.title)
+      setDescription(suggestion.description)
+      setDuration(suggestion.duration.toString())
+      setShowSuggestions(false)
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to get AI suggestions. Using fallback suggestions.",
+        variant: "destructive",
+        duration: 3000,
+      })
+    }
+  })
+
+  // Handle title input change with debounced AI suggestions
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setTitle(value)
+    fetchSuggestions(value)
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
     // Validate form
@@ -745,16 +791,26 @@ const AddGoalModal = ({ isOpen, onClose, onSave }) => {
       return
     }
 
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create goals",
+        variant: "destructive",
+        duration: 3000,
+      })
+      return
+    }
+
     setIsSaving(true)
     try {
       const { data, error } = await supabase
         .from('session_goals')
         .insert({
+          user_id: user.id,
           goal_text: title.trim(),
-          description: description.trim(),
+          description: description.trim() || null,
           expected_duration_minutes: duration ? Number(duration) : 25,
-          status: 'pending',
-          user_id: user?.id,
+          status: 'pending' as const,
           created_at: new Date().toISOString()
         })
         .select()
@@ -763,10 +819,15 @@ const AddGoalModal = ({ isOpen, onClose, onSave }) => {
       if (error) throw error;
 
       // Invalidate queries to refresh the goals list
-      queryClient.invalidateQueries(['goals', user?.id]);
+      queryClient.invalidateQueries(['goals', user.id]);
       queryClient.invalidateQueries(['session-stats']);
 
-      form.reset();
+      // Reset form
+      formRef.current?.reset();
+      setTitle('');
+      setDescription('');
+      setDuration('');
+      
       toast({
         title: "Goal Created",
         description: "Your session goal has been created successfully",
@@ -805,62 +866,145 @@ const AddGoalModal = ({ isOpen, onClose, onSave }) => {
             <X className="h-4 w-4" />
           </Button>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-background border border-input rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 transition-colors"
-              placeholder="Enter goal title"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-background border border-input rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 transition-colors"
-              rows={3}
-              placeholder="Enter goal description"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Duration (minutes)</label>
-            <input
-              type="number"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              className="w-full bg-background border border-input rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 transition-colors"
-              placeholder="Enter duration in minutes"
-              min="0"
-            />
-          </div>
-          <div className="flex justify-end space-x-3 mt-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="border-orange-500/20 text-muted-foreground hover:bg-orange-500/10 hover:border-orange-500/30"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSaving}
-              className="bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSaving ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Goal'
-              )}
-            </Button>
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-4">
+            <div className="relative">
+              <input
+                type="text"
+                name="title"
+                value={title}
+                onChange={handleTitleChange}
+                placeholder="e.g. 'Create a melodic hook for the chorus' or 'Mix the drum patterns'"
+                className="w-full bg-gradient-to-br from-white/80 to-white/60 dark:from-zinc-800/80 dark:to-zinc-900/60 border border-orange-200/50 dark:border-orange-500/20 rounded-2xl px-4 py-3 text-base font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-sm placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40 focus:border-orange-500/30 dark:focus:border-orange-500/40 transition-all shadow-sm dark:shadow-inner-sm pr-10"
+              />
+            </div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="description" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                  Description
+                </Label>
+                <Popover open={showSuggestions} onOpenChange={setShowSuggestions}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-orange-100/50 dark:hover:bg-orange-500/10 transition-colors"
+                    >
+                      <Brain className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    align="end" 
+                    className="w-72 p-4 bg-gradient-to-br from-zinc-900/95 to-black/95 dark:from-black/95 dark:to-zinc-900/95 border border-orange-500/20 rounded-xl shadow-xl backdrop-blur-sm z-50"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-neutral-200">
+                          Need help phrasing your goal?
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={generateGoal}
+                          className="text-xs text-orange-400 hover:text-orange-300 hover:bg-orange-500/10"
+                        >
+                          ✨ Generate
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        {isLoading ? (
+                          <div className="flex items-center justify-center py-2">
+                            <RefreshCw className="h-4 w-4 animate-spin text-orange-500" />
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {suggestions.map((suggestion, index) => (
+                              <Button
+                                key={index}
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleSuggestionSelect(suggestion)}
+                                className="px-3 py-1 h-auto text-xs bg-zinc-800 hover:bg-zinc-700 text-neutral-200 hover:text-white rounded-full border border-orange-500/20 hover:border-orange-500/30 transition-colors"
+                              >
+                                {suggestion.title}
+                              </Button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <textarea
+                name="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Add some details about your goal (optional)"
+                rows={3}
+                className="w-full bg-gradient-to-br from-white/80 to-white/60 dark:from-zinc-800/80 dark:to-zinc-900/60 border border-orange-200/50 dark:border-orange-500/20 rounded-2xl px-4 py-3 text-base font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-sm placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40 focus:border-orange-500/30 dark:focus:border-orange-500/40 transition-all resize-none shadow-sm dark:shadow-inner-sm"
+              />
+            </div>
+            <div className="flex items-end gap-3">
+              <div className="flex-1">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-4 h-4 text-orange-600/50 dark:text-orange-400/50" />
+                      <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Duration</span>
+                    </div>
+                    <span className="text-sm font-medium px-2 py-0.5 rounded-lg bg-orange-100/50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">
+                      {duration || 25} min
+                    </span>
+                  </div>
+                  <div className="px-1">
+                    <Slider
+                      value={[duration ? Number(duration) : 25]}
+                      min={5}
+                      max={60}
+                      step={5}
+                      onValueChange={(value) => setDuration(value[0].toString())}
+                      className={cn(
+                        "relative flex items-center select-none touch-none w-full transition-colors",
+                        "[&_[role=slider]]:h-4 [&_[role=slider]]:w-4",
+                        "[&_[role=slider]]:transition-all",
+                        "[&_[role=slider]]:bg-orange-500 [&_[role=slider]]:border-orange-500",
+                        "dark:[&_[role=slider]]:bg-orange-400 dark:[&_[role=slider]]:border-orange-400",
+                        "[&_[role=slider]]:hover:scale-110",
+                        "[&_[role=slider]]:focus:scale-110",
+                        "[&_[role=slider]]:outline-none",
+                        "[&_[role=slider]]:rounded-full",
+                        "[&_[role=slider]]:border-2",
+                        "[&_[role=slider]]:shadow-sm",
+                        "[&_[role=slider]]:transition-transform",
+                        "[&_[role=slider]]:duration-200"
+                      )}
+                    />
+                    <div className="flex justify-between mt-1">
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400">5 min</span>
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400">60 min</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <Button
+                type="submit"
+                disabled={isSaving}
+                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2.5 rounded-xl transition-all duration-150 shadow-md hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40"
+              >
+                {isSaving ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Create Goal'
+                )}
+              </Button>
+            </div>
           </div>
         </form>
       </motion.div>
@@ -886,10 +1030,176 @@ const Sessions: React.FC = () => {
   const [isAddGoalModalOpen, setIsAddGoalModalOpen] = useState(false)
   const [activeGoal, setActiveGoal] = React.useState<Goal | null>(null)
   const [durationValue, setDurationValue] = useState(25)
+  const [isSaving, setIsSaving] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
+  
+  // Add AI suggestions state and handlers
+  const { suggestions: coachSuggestions, refreshSuggestions } = useAICoach()
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [isLoadingAI, setIsLoadingAI] = useState(false)
+  const [aiSuggestions, setAISuggestions] = useState<Array<{
+    title: string;
+    description: string;
+    duration: number;
+    priority?: 'high' | 'medium' | 'low';
+    content?: string;
+  }>>([])
 
-  // AI Coach integration
-  const { suggestions, refreshSuggestions } = useAICoach()
+  const handleSuggestionSelect = (suggestion: { title: string; description: string; duration: number }) => {
+    setTitle(suggestion.title)
+    setDescription(suggestion.description)
+    setDurationValue(suggestion.duration)
+    setShowSuggestions(false)
+  }
+
+  const generateSuggestions = async () => {
+    setIsLoadingAI(true)
+    try {
+      // Use some default suggestions in case the API call fails
+      const fallbackSuggestions = [
+        {
+          title: "Create a melodic hook for the chorus",
+          description: "Focus on crafting a memorable and catchy melody that captures the emotional core of the song",
+          duration: 30
+        },
+        {
+          title: "Mix the drum patterns",
+          description: "Balance levels and add dynamic processing to create a solid rhythmic foundation",
+          duration: 45
+        },
+        {
+          title: "Record vocal harmonies",
+          description: "Layer multiple vocal tracks to create rich harmonic textures",
+          duration: 25
+        }
+      ]
+
+      const response = await fetch('/api/suggestions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          prompt: title || description || "Generate music production goals",
+          context: "music production session goals"
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch suggestions')
+      }
+
+      const data = await response.json()
+      
+      // If we got valid data, use it; otherwise use fallback
+      if (Array.isArray(data) && data.length > 0) {
+        setAISuggestions(data)
+      } else {
+        setAISuggestions(fallbackSuggestions)
+        toast({
+          title: "Using Fallback Suggestions",
+          description: "Could not get AI suggestions, showing default options instead.",
+          variant: "default",
+        })
+      }
+    } catch (error) {
+      console.error('Error generating suggestions:', error)
+      // Use fallback suggestions on error
+      setAISuggestions([
+        {
+          title: "Create a melodic hook for the chorus",
+          description: "Focus on crafting a memorable and catchy melody that captures the emotional core of the song",
+          duration: 30
+        },
+        {
+          title: "Mix the drum patterns",
+          description: "Balance levels and add dynamic processing to create a solid rhythmic foundation",
+          duration: 45
+        },
+        {
+          title: "Record vocal harmonies",
+          description: "Layer multiple vocal tracks to create rich harmonic textures",
+          duration: 25
+        }
+      ])
+      toast({
+        title: "Using Fallback Suggestions",
+        description: "Could not get AI suggestions, showing default options instead.",
+        variant: "default",
+      })
+    } finally {
+      setIsLoadingAI(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create goals",
+        variant: "destructive",
+        duration: 3000,
+      })
+      return
+    }
+
+    // Validate form
+    if (!title.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Title is required",
+        variant: "destructive",
+        duration: 3000,
+      })
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const { data, error } = await supabase
+        .from('session_goals')
+        .insert({
+          goal_text: title.trim(),
+          description: description.trim() || null,
+          expected_duration_minutes: durationValue,
+          status: 'pending' as const,
+          user_id: user.id,
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // Invalidate queries to refresh the goals list
+      queryClient.invalidateQueries(['goals', user.id])
+      queryClient.invalidateQueries(['session-stats'])
+
+      // Reset form
+      setTitle('')
+      setDescription('')
+      setDurationValue(25)
+      
+      toast({
+        title: "Goal Created",
+        description: "Your session goal has been created successfully",
+        duration: 3000,
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create goal",
+        variant: "destructive",
+        duration: 3000,
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   // Timer logic
   useEffect(() => {
@@ -1304,73 +1614,6 @@ const Sessions: React.FC = () => {
     getUser()
   }, [])
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault() // Prevent form from submitting normally
-    
-    if (!user?.id) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to create goals",
-        variant: "destructive",
-        duration: 3000,
-      })
-      return
-    }
-
-    // Validate form
-    const formData = new FormData(e.currentTarget)
-    const title = formData.get('title') as string
-    const description = formData.get('description') as string
-
-    if (!title.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Title is required",
-        variant: "destructive",
-        duration: 3000,
-      })
-      return
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('session_goals')
-        .insert({
-          goal_text: title.trim(),
-          description: description.trim() || null,
-          expected_duration_minutes: durationValue,
-          status: 'pending' as const,
-          user_id: user.id,
-          created_at: new Date().toISOString()
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-
-      // Invalidate queries to refresh the goals list
-      queryClient.invalidateQueries(['goals', user.id])
-      queryClient.invalidateQueries(['session-stats'])
-
-      // Reset form using the ref
-      formRef.current?.reset()
-      setDurationValue(25) // Reset duration slider
-
-      toast({
-        title: "Goal Created",
-        description: "Your session goal has been created successfully",
-        duration: 3000,
-      })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create goal",
-        variant: "destructive",
-        duration: 3000,
-      })
-    }
-  }
-
   return (
     <div className="min-h-screen bg-white dark:bg-background text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
       {/* Navigation */}
@@ -1512,17 +1755,6 @@ const Sessions: React.FC = () => {
                     <Target className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                     <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">Session Goal</h3>
                   </div>
-                  {!activeGoal && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 hover:bg-orange-100/80 dark:hover:bg-orange-500/10"
-                      onClick={() => setIsAddGoalModalOpen(true)}
-                    >
-                      <Plus className="w-3 h-3 mr-1" />
-                      Add Goal
-                    </Button>
-                  )}
                 </div>
                 
                 {activeGoal ? (
@@ -1541,7 +1773,7 @@ const Sessions: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Clock className="w-4 h-4 text-orange-600/70 dark:text-orange-400/70" />
-                        <span className="text-xs text-zinc-600 dark:text-neutral-400">{activeGoal.expected_duration_minutes} min</span>
+                        <span className="text-xs text-zinc-600 dark:text-white/50">{activeGoal.expected_duration_minutes} min</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Button
@@ -1591,13 +1823,77 @@ const Sessions: React.FC = () => {
                         <input
                           type="text"
                           name="title"
+                          value={title}
+                          onChange={(e) => setTitle(e.target.value)}
                           placeholder="e.g. 'Create a melodic hook for the chorus' or 'Mix the drum patterns'"
-                          className="w-full bg-gradient-to-br from-white/80 to-white/60 dark:from-zinc-800/80 dark:to-zinc-900/60 border border-orange-200/50 dark:border-orange-500/20 rounded-2xl px-4 py-3 text-base font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-sm placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40 focus:border-orange-500/30 dark:focus:border-orange-500/40 transition-all shadow-sm dark:shadow-inner-sm"
+                          className="w-full bg-gradient-to-br from-white/80 to-white/60 dark:from-zinc-800/80 dark:to-zinc-900/60 border border-orange-200/50 dark:border-orange-500/20 rounded-2xl px-4 py-3 text-base font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-sm placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40 focus:border-orange-500/30 dark:focus:border-orange-500/40 transition-all shadow-sm dark:shadow-inner-sm pr-10"
                         />
                       </div>
-                      <div>
+                      <div className="relative">
+                        <div className="flex items-center justify-between mb-2">
+                          <Label htmlFor="description" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                            Description
+                          </Label>
+                          <Popover open={showSuggestions} onOpenChange={setShowSuggestions}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-orange-100/50 dark:hover:bg-orange-500/10 transition-colors"
+                              >
+                                <Brain className="h-4 w-4" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent 
+                              align="end" 
+                              className="w-72 p-4 bg-gradient-to-br from-zinc-900/95 to-black/95 dark:from-black/95 dark:to-zinc-900/95 border border-orange-500/20 rounded-xl shadow-xl backdrop-blur-sm z-50"
+                            >
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium text-neutral-200">
+                                    Need help phrasing your goal?
+                                  </span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={generateSuggestions}
+                                    className="text-xs text-orange-400 hover:text-orange-300 hover:bg-orange-500/10"
+                                  >
+                                    ✨ Generate
+                                  </Button>
+                                </div>
+                                <div className="space-y-2">
+                                  {isLoadingAI ? (
+                                    <div className="flex items-center justify-center py-2">
+                                      <RefreshCw className="h-4 w-4 animate-spin text-orange-500" />
+                                    </div>
+                                  ) : (
+                                    <div className="flex flex-wrap gap-2">
+                                      {aiSuggestions.map((suggestion, index) => (
+                                        <Button
+                                          key={index}
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleSuggestionSelect(suggestion)}
+                                          className="px-3 py-1 h-auto text-xs bg-zinc-800 hover:bg-zinc-700 text-neutral-200 hover:text-white rounded-full border border-orange-500/20 hover:border-orange-500/30 transition-colors"
+                                        >
+                                          {suggestion.title}
+                                        </Button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
                         <textarea
                           name="description"
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
                           placeholder="Add some details about your goal (optional)"
                           rows={3}
                           className="w-full bg-gradient-to-br from-white/80 to-white/60 dark:from-zinc-800/80 dark:to-zinc-900/60 border border-orange-200/50 dark:border-orange-500/20 rounded-2xl px-4 py-3 text-base font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-sm placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40 focus:border-orange-500/30 dark:focus:border-orange-500/40 transition-all resize-none shadow-sm dark:shadow-inner-sm"
@@ -1647,9 +1943,17 @@ const Sessions: React.FC = () => {
                         </div>
                         <Button
                           type="submit"
+                          disabled={isSaving}
                           className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2.5 rounded-xl transition-all duration-150 shadow-md hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40"
                         >
-                          Create Goal
+                          {isSaving ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                              Saving...
+                            </>
+                          ) : (
+                            'Create Goal'
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -1941,7 +2245,7 @@ const Sessions: React.FC = () => {
                 <h3 className="text-lg font-medium text-indigo-900 dark:text-indigo-100">AI Coach</h3>
               </div>
               <div className="flex-1 space-y-3">
-                {suggestions.map((suggestion, index) => (
+                {coachSuggestions.map((suggestion, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 10 }}
