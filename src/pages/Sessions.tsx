@@ -2,13 +2,12 @@ import React, { useEffect, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AICoach } from '@/components/ai-coach/AICoach'
 import { FadeIn } from '@/components/ui/fade-in'
-import { Brain, Clock, Target, TrendingUp, Play, Pause, RotateCcw, Quote, ArrowLeft, BarChart, Coffee, Settings, Menu, Plus, Moon } from 'lucide-react'
+import { Brain, Clock, Target, TrendingUp, Play, Pause, RotateCcw, Quote, ArrowLeft, BarChart, Coffee, Settings, Menu, Plus, Moon, Check, Edit, Trash, RefreshCw, Radio, Music, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate, Link } from 'react-router-dom'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { SessionCard } from '@/components/sessions/SessionCard'
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from '@/lib/supabase'
 import { Database } from '@/types/database'
@@ -16,10 +15,25 @@ import { Track } from '@/types/track'
 import { User } from '@supabase/supabase-js'
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Slider } from "@/components/ui/slider"
-import { Logo } from '@/components/logo'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import Footer from '@/components/Footer'
+import confetti from 'canvas-confetti'
+import { useLocalStorage } from '@/hooks/use-local-storage'
+import { useAICoach } from '@/hooks/use-ai-coach'
 
-type Project = Database['public']['Tables']['projects']['Row']
-type ProjectUpdate = Database['public']['Tables']['projects']['Update']
+// Update the Goal type to match Supabase schema exactly
+type Goal = {
+  id: string
+  user_id: string
+  goal_text: string
+  expected_duration_minutes: number
+  status: 'pending' | 'active' | 'completed' | 'paused'
+  created_at: string
+  ended_at?: string | null
+  notes?: string | null
+  productivity_score?: number | null
+  tags?: string[]
+}
 
 // Animation variants
 const containerVariants = {
@@ -46,6 +60,15 @@ const cardVariants = {
       stiffness: 100,
       damping: 15,
       mass: 1
+    }
+  },
+  hover: {
+    scale: 1.02,
+    boxShadow: "0 0 20px rgba(16,185,129,0.2)",
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 10
     }
   }
 }
@@ -123,16 +146,656 @@ const textStyles = {
   dateText: "text-xs text-zinc-500 dark:text-muted-foreground/70"
 }
 
+// Update the AI Coach section to use the suggestions
+const AICoachCard = ({ suggestions }) => (
+  <motion.div
+    variants={cardVariants}
+    whileHover="hover"
+    className="rounded-xl bg-gradient-to-br from-purple-500/10 via-[#111111]/50 to-[#111111]/50 border border-purple-500/20 p-6 backdrop-blur-xl hover:border-purple-500/30 transition-all duration-300"
+  >
+    <div className="flex items-center space-x-2 mb-4">
+      <Brain className="w-5 h-5 text-purple-400" />
+      <h3 className="text-lg font-medium">AI Coach</h3>
+    </div>
+    <div className="space-y-4">
+      {suggestions.map((suggestion, index) => (
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1 }}
+          className={cn(
+            "p-3 rounded-lg",
+            suggestion.priority === 'high' && "bg-purple-500/10 border border-purple-500/20",
+            suggestion.priority === 'medium' && "bg-purple-400/10 border border-purple-400/20",
+            suggestion.priority === 'low' && "bg-purple-300/10 border border-purple-300/20"
+          )}
+        >
+          <p className="text-sm text-white/70">{suggestion.content}</p>
+        </motion.div>
+      ))}
+    </div>
+  </motion.div>
+)
+
+// Update the Timer Card with settings and break theme
+const TimerCard = ({ 
+  isWorking, 
+  timeLeft, 
+  isPlaying, 
+  handlePlayPause, 
+  handleReset, 
+  handleModeChange,
+  workDuration,
+  breakDuration,
+  onWorkDurationChange,
+  onBreakDurationChange,
+  formatTime 
+}: {
+  isWorking: boolean;
+  timeLeft: number;
+  isPlaying: boolean;
+  handlePlayPause: () => void;
+  handleReset: () => void;
+  handleModeChange: (working: boolean) => void;
+  workDuration: number;
+  breakDuration: number;
+  onWorkDurationChange: (duration: number) => void;
+  onBreakDurationChange: (duration: number) => void;
+  formatTime: (seconds: number) => string;
+}) => (
+  <motion.div
+    variants={cardVariants}
+    initial="hidden"
+    animate="visible"
+    whileHover="hover"
+    className={cn(
+      "rounded-xl bg-gradient-to-br backdrop-blur-xl p-8 transition-all duration-300",
+      isWorking
+        ? "from-[#111111]/50 via-[#111111]/50 to-[#111111]/50 border-[#10B981]/20 hover:border-[#10B981]/30"
+        : "from-[#111111]/50 via-[#111111]/50 to-[#111111]/50 border-indigo-500/20 hover:border-indigo-500/30"
+    )}
+    style={{
+      borderWidth: '1px',
+      borderStyle: 'solid'
+    }}
+  >
+    {/* Mode Toggle */}
+    <div className="flex justify-between items-center mb-8">
+      <div className="flex space-x-2">
+        <Button
+          variant="ghost"
+          onClick={() => handleModeChange(true)}
+          className={cn(
+            "px-6 py-2 rounded-full text-sm font-medium transition-all duration-200",
+            isWorking 
+              ? "bg-emerald-600 text-white hover:bg-emerald-700" 
+              : "text-white/50 hover:text-white hover:bg-white/5"
+          )}
+        >
+          Work
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() => handleModeChange(false)}
+          className={cn(
+            "px-6 py-2 rounded-full text-sm font-medium transition-all duration-200",
+            !isWorking 
+              ? "bg-indigo-600 text-white hover:bg-indigo-700" 
+              : "text-white/50 hover:text-white hover:bg-white/5"
+          )}
+        >
+          Break
+        </Button>
+      </div>
+
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "rounded-full hover:bg-white/5",
+              isWorking ? "text-emerald-500" : "text-indigo-500"
+            )}
+          >
+            <Settings className="w-5 h-5" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent 
+          className={cn(
+            "w-80 bg-[#111111] border",
+            isWorking ? "border-emerald-500/20" : "border-indigo-500/20"
+          )}
+        >
+          <div className="space-y-4">
+            <h4 className="font-medium text-sm mb-4">Timer Settings</h4>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-sm text-white/70">Work Duration</label>
+                <span className="text-sm text-white/50">{workDuration} min</span>
+              </div>
+              <Slider
+                value={[workDuration]}
+                onValueChange={([value]) => onWorkDurationChange(value)}
+                min={5}
+                max={60}
+                step={5}
+                className={cn(
+                  "[&_[role=slider]]:bg-emerald-600",
+                  "[&_[role=slider]]:border-emerald-600",
+                  "[&_[role=slider]]:hover:bg-emerald-500"
+                )}
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-sm text-white/70">Break Duration</label>
+                <span className="text-sm text-white/50">{breakDuration} min</span>
+              </div>
+              <Slider
+                value={[breakDuration]}
+                onValueChange={([value]) => onBreakDurationChange(value)}
+                min={5}
+                max={30}
+                step={5}
+                className={cn(
+                  "[&_[role=slider]]:bg-indigo-600",
+                  "[&_[role=slider]]:border-indigo-600",
+                  "[&_[role=slider]]:hover:bg-indigo-500"
+                )}
+              />
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+    
+    {/* Timer Display */}
+    <motion.div
+      className="flex justify-center mb-8"
+      animate={{
+        scale: isPlaying ? [1, 1.02, 1] : 1,
+        transition: {
+          duration: 1,
+          repeat: isPlaying ? Infinity : 0,
+          repeatType: "reverse"
+        }
+      }}
+    >
+      <div 
+        className={cn(
+          "text-[96px] font-bold tracking-tighter",
+          isWorking 
+            ? "text-emerald-500" 
+            : "text-indigo-500"
+        )}
+      >
+        {formatTime(timeLeft)}
+      </div>
+    </motion.div>
+    
+    {/* Timer Controls */}
+    <div className="flex justify-center space-x-4">
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handlePlayPause}
+        className={cn(
+          "w-14 h-14 rounded-full text-white flex items-center justify-center transition-colors",
+          isWorking
+            ? "bg-emerald-600 hover:bg-emerald-700"
+            : "bg-indigo-600 hover:bg-indigo-700"
+        )}
+      >
+        {isPlaying ? (
+          <Pause className="w-6 h-6" />
+        ) : (
+          <Play className="w-6 h-6 ml-0.5" />
+        )}
+      </motion.button>
+      
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleReset}
+        className={cn(
+          "w-14 h-14 rounded-full border text-white flex items-center justify-center transition-colors",
+          isWorking
+            ? "border-emerald-600/20 hover:bg-emerald-600/10 hover:border-emerald-600/30"
+            : "border-indigo-600/20 hover:bg-indigo-600/10 hover:border-indigo-600/30"
+        )}
+      >
+        <RotateCcw className="w-6 h-6" />
+      </motion.button>
+    </div>
+  </motion.div>
+)
+
+// Update the SessionCard component with enhanced button functionality
+const SessionCard = ({ session, onPlay, onPause, onComplete, onEdit, onDelete }) => (
+  <motion.div
+    variants={cardVariants}
+    whileHover="hover"
+    className="rounded-xl bg-gradient-to-br from-[#10B981]/10 via-[#111111]/50 to-[#111111]/50 border border-[#10B981]/20 p-6 backdrop-blur-xl hover:border-[#10B981]/30 transition-all duration-300"
+  >
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-2">
+        <Target className="w-5 h-5 text-[#10B981]" />
+        <h3 className="text-lg font-medium">{session.title}</h3>
+      </div>
+      <div className="flex items-center space-x-2">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => onEdit(session.id)}
+          className="text-xs text-[#10B981]/70 hover:text-[#10B981] hover:bg-[#10B981]/10 px-2 py-1 rounded-md transition-colors"
+        >
+          <Edit className="w-3 h-3 mr-1 inline-block" />
+          Edit
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => onDelete(session.id)}
+          className="text-xs text-rose-500/70 hover:text-rose-500 hover:bg-rose-500/10 px-2 py-1 rounded-md transition-colors"
+        >
+          <Trash className="w-3 h-3 mr-1 inline-block" />
+          Delete
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => onComplete(session.id)}
+          className="text-xs text-[#10B981]/70 hover:text-[#10B981] hover:bg-[#10B981]/10 px-2 py-1 rounded-md transition-colors"
+        >
+          <Check className="w-3 h-3 mr-1 inline-block" />
+          Complete
+        </motion.button>
+      </div>
+    </div>
+    
+    <div className="flex items-center space-x-2 mb-2">
+      <span className={cn(
+        "text-xs px-2 py-0.5 rounded-full",
+        session.status === 'completed' 
+          ? "bg-[#10B981]/20 text-[#10B981]" 
+          : "bg-orange-500/20 text-orange-400"
+      )}>
+        {session.status === 'completed' ? 'Completed' : 'In Progress'}
+      </span>
+      <span className="text-xs text-white/50">
+        {new Date(session.created_at).toLocaleDateString()}
+      </span>
+    </div>
+
+    <p className="text-sm text-white/70 mb-4">
+      {session.project.description || 'No description available'}
+    </p>
+
+    <div className="flex items-center justify-between">
+      <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
+          <Clock className="w-4 h-4 text-[#10B981]/70" />
+          <span className="text-xs text-white/50">{session.duration} min</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Music className="w-4 h-4 text-[#10B981]/70" />
+          <span className="text-xs text-white/50">{session.project.bpm} BPM</span>
+        </div>
+      </div>
+      
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => session.status === 'completed' ? onPause(session.id) : onPlay(session.id)}
+        className="w-8 h-8 rounded-full border border-[#10B981]/20 text-white hover:bg-[#10B981]/10 hover:border-[#10B981]/30 transition-colors flex items-center justify-center"
+      >
+        {session.status === 'completed' ? (
+          <Pause className="w-4 h-4" />
+        ) : (
+          <Play className="w-4 h-4 ml-0.5" />
+        )}
+      </motion.button>
+    </div>
+  </motion.div>
+)
+
+// Update the EditGoalModal component
+const EditGoalModal = ({ isOpen, onClose, goal, onSave, onDelete }) => {
+  const [title, setTitle] = React.useState(goal?.goal_text || '')
+  const [description, setDescription] = React.useState(goal?.notes || '')
+  const [duration, setDuration] = React.useState(goal?.expected_duration_minutes || '')
+
+  React.useEffect(() => {
+    if (goal) {
+      setTitle(goal.goal_text)
+      setDescription(goal.notes)
+      setDuration(goal.expected_duration_minutes)
+    }
+  }, [goal])
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    onSave({
+      ...goal,
+      goal_text: title,
+      notes: description,
+      expected_duration_minutes: parseInt(duration) || 0
+    })
+    onClose()
+  }
+
+  const handleDelete = () => {
+    onDelete(goal)
+    onClose()
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        className="bg-[#111111] rounded-xl p-6 w-full max-w-md border border-[#10B981]/20"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Edit Session Goal</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="text-white/70 hover:text-white hover:bg-white/5"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full bg-[#1A1A1A] border border-[#10B981]/20 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-[#10B981]/40"
+              placeholder="Enter goal title"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full bg-[#1A1A1A] border border-[#10B981]/20 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-[#10B981]/40"
+              rows={3}
+              placeholder="Enter goal description"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Duration (minutes)</label>
+            <input
+              type="number"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              className="w-full bg-[#1A1A1A] border border-[#10B981]/20 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-[#10B981]/40"
+              placeholder="Enter duration in minutes"
+            />
+          </div>
+          <div className="flex justify-between items-center mt-6">
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDelete}
+              className="bg-rose-500 hover:bg-rose-600 text-white"
+            >
+              <Trash className="w-4 h-4 mr-2" />
+              Delete Goal
+            </Button>
+            <div className="flex space-x-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="border-[#10B981]/20 text-white/70 hover:bg-[#10B981]/10 hover:border-[#10B981]/30"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="bg-[#10B981] hover:bg-[#059669] text-black"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  )
+}
+
+// Add this component for the delete confirmation modal
+const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, title }) => {
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        className="bg-[#111111] rounded-xl p-6 w-full max-w-md border border-rose-500/20"
+      >
+        <h2 className="text-xl font-semibold mb-4 text-rose-500">Delete Session Goal</h2>
+        <p className="text-sm text-white/70 mb-6">
+          Are you sure you want to delete this session goal? This action cannot be undone.
+        </p>
+        <div className="flex justify-end space-x-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="border-rose-500/20 text-white/70 hover:bg-rose-500/10 hover:border-rose-500/30"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={onConfirm}
+            className="bg-rose-500 hover:bg-rose-600 text-white"
+          >
+            Delete
+          </Button>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+// Add the AddGoalModal component
+const AddGoalModal = ({ isOpen, onClose, onSave }) => {
+  const [title, setTitle] = React.useState('')
+  const [description, setDescription] = React.useState('')
+  const [duration, setDuration] = React.useState('')
+  const [isSaving, setIsSaving] = React.useState(false)
+  const { toast } = useToast()
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    
+    // Validate form
+    if (!title.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Title is required",
+        variant: "destructive",
+        duration: 3000,
+      })
+      return
+    }
+
+    if (duration && isNaN(Number(duration))) {
+      toast({
+        title: "Validation Error",
+        description: "Duration must be a number",
+        variant: "destructive",
+        duration: 3000,
+      })
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      await onSave({
+        goal_text: title.trim(),
+        notes: description.trim(),
+        expected_duration_minutes: duration ? Number(duration) : 0,
+        status: 'pending',
+        created_at: new Date().toISOString()
+      })
+
+      // Reset form
+      setTitle('')
+      setDescription('')
+      setDuration('')
+
+      // Show success toast
+      toast({
+        title: "Goal Created",
+        description: "Your session goal has been created successfully",
+        duration: 3000,
+      })
+
+      // Close modal
+      onClose()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create goal",
+        variant: "destructive",
+        duration: 3000,
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        className="bg-background rounded-xl p-6 w-full max-w-md border border-orange-500/20"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-foreground">Add Session Goal</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground hover:bg-accent"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full bg-background border border-input rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 transition-colors"
+              placeholder="Enter goal title"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full bg-background border border-input rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 transition-colors"
+              rows={3}
+              placeholder="Enter goal description"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Duration (minutes)</label>
+            <input
+              type="number"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              className="w-full bg-background border border-input rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 transition-colors"
+              placeholder="Enter duration in minutes"
+              min="0"
+            />
+          </div>
+          <div className="flex justify-end space-x-3 mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="border-orange-500/20 text-muted-foreground hover:bg-orange-500/10 hover:border-orange-500/30"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSaving}
+              className="bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSaving ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Goal'
+              )}
+            </Button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  )
+}
+
 const Sessions: React.FC = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { toast } = useToast()
-  const [isWorking, setIsWorking] = React.useState(true)
-  const [isPlaying, setIsPlaying] = React.useState(false)
-  const [timeLeft, setTimeLeft] = React.useState(25 * 60)
-  const [activeProject, setActiveProject] = React.useState<string | null>(null)
-  const [workDuration, setWorkDuration] = React.useState(25)
-  const [breakDuration, setBreakDuration] = React.useState(5)
+  const [isWorking, setIsWorking] = useLocalStorage<boolean>('timer-is-working', true)
+  const [isPlaying, setIsPlaying] = useLocalStorage<boolean>('timer-is-playing', false)
+  const [timeLeft, setTimeLeft] = useLocalStorage<number>('timer-time-left', 25 * 60)
+  const [activeProject, setActiveProject] = useLocalStorage<string | null>('active-project', null)
+  const [workDuration, setWorkDuration] = useLocalStorage<number>('timer-work-duration', 25)
+  const [breakDuration, setBreakDuration] = useLocalStorage<number>('timer-break-duration', 5)
+  const [selectedTimeRange, setSelectedTimeRange] = useLocalStorage<string>('selected-time-range', 'This Week')
+  const [selectedGoal, setSelectedGoal] = React.useState<Goal | null>(null)
+  const [goalToDelete, setGoalToDelete] = React.useState<Goal | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false)
+  const [isAddGoalModalOpen, setIsAddGoalModalOpen] = React.useState(false)
+  const [activeGoal, setActiveGoal] = React.useState<Goal | null>(null)
+  const [user, setUser] = React.useState<User | null>(null)
+
+  // Get user on component mount
+  React.useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+    }
+    getUser()
+  }, [])
+
+  // AI Coach integration
+  const { suggestions, refreshSuggestions } = useAICoach()
 
   // Timer logic
   useEffect(() => {
@@ -140,7 +803,7 @@ const Sessions: React.FC = () => {
 
     if (isPlaying && timeLeft > 0) {
       interval = setInterval(() => {
-        setTimeLeft((time) => time - 1)
+        setTimeLeft(timeLeft - 1)
       }, 1000)
     } else if (timeLeft === 0) {
       // Timer completed
@@ -184,8 +847,8 @@ const Sessions: React.FC = () => {
 
   // Handle play/pause
   const handlePlayPause = useCallback(() => {
-    setIsPlaying(playing => !playing)
-  }, [])
+    setIsPlaying(!isPlaying)
+  }, [isPlaying])
 
   // Handle reset
   const handleReset = useCallback(() => {
@@ -205,619 +868,657 @@ const Sessions: React.FC = () => {
   const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS
   const progress = ((isWorking ? workDuration * 60 : breakDuration * 60) - timeLeft) / (isWorking ? workDuration * 60 : breakDuration * 60) * CIRCLE_CIRCUMFERENCE
 
-  // Fetch projects
-  const { data: projects, isLoading } = useQuery({
-    queryKey: ['projects'],
+  // Fetch session goals
+  const { data: sessionGoals } = useQuery({
+    queryKey: ['session-goals'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        throw new Error('No authenticated user')
-      }
+      if (!user) throw new Error('No authenticated user')
 
       const { data, error } = await supabase
-        .from('projects')
+        .from('session_goals')
         .select('*')
         .eq('user_id', user.id)
-        .order('last_modified', { ascending: false })
+        .order('created_at', { ascending: false })
 
       if (error) throw error
-      return (data || []) as Project[]
+      return data || []
     }
   })
 
-  // Fetch project stats
-  const { data: projectStats } = useQuery({
-    queryKey: ['project-stats'],
+  // Fetch session stats
+  const { data: sessionStats } = useQuery({
+    queryKey: ['session-stats', selectedTimeRange],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        throw new Error('No authenticated user')
+      if (!user) throw new Error('No authenticated user')
+
+      const now = new Date()
+      let startDate: Date
+
+      // Calculate start date based on selected time range
+      switch (selectedTimeRange) {
+        case 'Today':
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+          break
+        case 'This Week':
+          startDate = new Date(now.setDate(now.getDate() - now.getDay()))
+          break
+        case 'This Month':
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+          break
+        default:
+          startDate = new Date(now.setDate(now.getDate() - now.getDay()))
       }
 
-      const { data, error } = await supabase
-        .from('projects')
+      const { data: goals, error: goalsError } = await supabase
+        .from('session_goals')
         .select('*')
         .eq('user_id', user.id)
+        .gte('created_at', startDate.toISOString())
 
-      if (error) throw error
+      if (goalsError) throw goalsError
 
-      const projects = (data || []) as Project[]
-      const totalProjects = projects.length
-      const completedProjects = projects.filter(p => p.status === 'completed').length
+      // Calculate statistics
+      const totalGoals = goals?.length || 0
+      const completedGoals = goals?.filter(g => g.status === 'completed').length || 0
+      const completionRate = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0
+
+      // Calculate streaks
+      const dailyActivity = goals?.reduce((acc, goal) => {
+        const date = new Date(goal.created_at).toDateString()
+        acc[date] = (acc[date] || 0) + 1
+        return acc
+      }, {})
+
+      let currentStreak = 0
+      let bestStreak = 0
+      let tempStreak = 0
+
+      const dates = Object.keys(dailyActivity || {}).sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+      
+      // Calculate current streak
+      const today = new Date().toDateString()
+      for (let i = 0; i < dates.length; i++) {
+        const date = new Date(dates[i])
+        const expectedDate = new Date()
+        expectedDate.setDate(expectedDate.getDate() - i)
+        
+        if (date.toDateString() === expectedDate.toDateString()) {
+          currentStreak++
+        } else {
+          break
+        }
+      }
+
+      // Calculate best streak
+      dates.forEach((date, i) => {
+        if (i === 0 || new Date(dates[i-1]).getTime() - new Date(date).getTime() === 86400000) {
+          tempStreak++
+        } else {
+          tempStreak = 1
+        }
+        bestStreak = Math.max(bestStreak, tempStreak)
+      })
+
+      // Calculate average session time
+      const totalDuration = goals?.reduce((sum, goal) => sum + (goal.expected_duration_minutes || 0), 0) || 0
+      const averageSessionTime = totalGoals > 0 ? Math.round(totalDuration / totalGoals) : 0
+
+      // Find most productive day
+      const productivityByDay = goals?.reduce((acc, goal) => {
+        const date = new Date(goal.created_at).toDateString()
+        acc[date] = (acc[date] || 0) + 1
+        return acc
+      }, {})
+
+      const mostProductiveDay = Object.entries(productivityByDay || {})
+        .sort(([,a], [,b]) => (b as number) - (a as number))[0]?.[0]
 
       return {
-        totalProjects,
-        completionRate: totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0
+        totalGoals,
+        completedGoals,
+        completionRate,
+        currentStreak,
+        bestStreak,
+        averageSessionTime,
+        mostProductiveDay
       }
     }
   })
 
-  // Mutations for project actions
-  const completeProjectMutation = useMutation({
-    mutationFn: async (projectId: string) => {
-      const update: ProjectUpdate = { status: 'completed' }
+  // Add completeGoalMutation
+  const completeGoalMutation = useMutation({
+    mutationFn: async (goalId: string) => {
       const { error } = await supabase
-        .from('projects')
-        .update(update)
-        .eq('id', projectId)
+        .from('session_goals')
+        .update({ 
+          status: 'completed',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', goalId)
 
       if (error) throw error
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] })
-      queryClient.invalidateQueries({ queryKey: ['project-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['session-goals'] })
+      queryClient.invalidateQueries({ queryKey: ['session-stats'] })
     }
   })
 
-  const updateProjectMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string, updates: ProjectUpdate }) => {
-      const { error } = await supabase
-        .from('projects')
-        .update(updates)
-        .eq('id', id)
+  // Query for beats count
+  const { data: beatsCount } = useQuery({
+    queryKey: ['beats', selectedTimeRange],
+    queryFn: async () => {
+      if (!user) return 0
 
-      if (error) throw error
+      const startDate = new Date()
+      switch (selectedTimeRange) {
+        case 'Today':
+          startDate.setHours(0, 0, 0, 0)
+          break
+        case 'This Week':
+          startDate.setDate(startDate.getDate() - 7)
+          break
+        case 'This Month':
+          startDate.setMonth(startDate.getMonth() - 1)
+          break
+      }
+
+      // Get total beats from beat activities
+      const { data: beatActivities } = await supabase
+        .from('beat_activities')
+        .select('count')
+        .eq('user_id', user.id)
+        .gte('date', startDate.toISOString().split('T')[0])
+        .lte('date', new Date().toISOString().split('T')[0])
+
+      // Sum up all the counts
+      const totalBeats = beatActivities ? beatActivities.reduce((sum, activity) => sum + (activity.count || 0), 0) : 0
+
+      // Update profile stats if needed
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('total_beats')
+        .eq('id', user.id)
+        .single()
+
+      if (profile && profile.total_beats !== totalBeats) {
+        await supabase
+          .from('profiles')
+          .update({ total_beats: totalBeats })
+          .eq('id', user.id)
+      }
+
+      return totalBeats
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] })
-    }
-  })
-
-  // Project action handlers
-  const handleCompleteProject = async (projectId: string) => {
-    try {
-      await completeProjectMutation.mutateAsync(projectId)
-      toast({
-        title: "Success",
-        description: "Project marked as complete",
-      })
-    } catch (error) {
+    enabled: !!user,
+    staleTime: 30000, // 30 seconds
+    refetchOnWindowFocus: false,
+    retry: false,
+    onError: (error) => {
+      console.error('Error fetching beats:', error)
       toast({
         title: "Error",
-        description: "Failed to mark project as complete",
+        description: "Failed to fetch beats count",
         variant: "destructive",
       })
     }
-  }
-
-  const handleEditProject = (projectId: string) => {
-    // TODO: Implement edit modal
-    toast({
-      title: "Coming Soon",
-      description: "Project editing will be available soon",
-    })
-  }
-
-  const handlePlayProject = (projectId: string) => {
-    setActiveProject(projectId)
-    setIsPlaying(true)
-    // TODO: Implement actual time tracking
-  }
-
-  const handlePauseProject = (projectId: string) => {
-    setActiveProject(null)
-    setIsPlaying(false)
-    // TODO: Save progress
-  }
-
-  // Map project data to match session card structure and limit to last 3
-  const mappedProjects = projects?.slice(0, 3).map(project => ({
-    id: project.id,
-    user_id: project.user_id,
-    title: project.title,
-    status: project.status === 'completed' ? 'completed' : 'in_progress',
-    duration: '0', // We can calculate this if needed
-    created_at: project.date_created,
-    last_modified: project.last_modified,
-    project: {
-      id: project.id,
-      title: project.title,
-      description: project.description,
-      status: project.status,
-      genre: project.genre,
-      bpm: project.bpm,
-      key: project.key,
-      completion_percentage: project.completion_percentage,
-      audio_file: project.audio_file
-    }
-  })) || []
+  })
 
   return (
-    <>
-      {/* Navigation Controls */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border/40">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-4">
-          <div className="flex items-center space-x-4">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-            >
+    <div className="min-h-screen bg-[#0A0A0A] text-white">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-black/30 backdrop-blur-xl">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate('/')}
-                className={cn(
-                  "w-9 h-9 rounded-full",
-                  "bg-background/80 dark:bg-background/50",
-                  "border border-border/50 dark:border-border/30",
-                  "shadow-sm dark:shadow-none",
-                  "hover:bg-accent hover:text-accent-foreground",
-                  "transition-all duration-300"
-                )}
+                className="rounded-full hover:bg-white/5"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="h-4 w-4" />
               </Button>
-            </motion.div>
-
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent">
-              WavTrack
-            </h1>
-          </div>
-          
-          <div className="hidden md:flex items-center space-x-4">
-            <nav className="flex items-center space-x-4">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent">
+                WavTrack
+              </h1>
+            </div>
+            
+            <div className="flex items-center space-x-6">
+              <Button variant="ghost" className="text-white/70 hover:text-white hover:bg-white/5">
+                Sessions
+              </Button>
+              <Button variant="ghost" className="text-white/70 hover:text-white hover:bg-white/5">
+                Profile
+              </Button>
+              <Button variant="ghost" className="text-white/70 hover:text-white hover:bg-white/5">
+                Settings
+              </Button>
+              <ThemeToggle />
               <Button
                 variant="ghost"
-                asChild
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-95 transform hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+                size="icon"
+                className="rounded-full bg-white/5 hover:bg-white/10"
               >
-                <Link to="/sessions">Sessions</Link>
+                R
               </Button>
-              <Button
-                variant="ghost"
-                asChild
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-95 transform hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
-              >
-                <Link to="/profile">Profile</Link>
-              </Button>
-              <Button
-                variant="ghost"
-                asChild
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-95 transform hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
-              >
-                <Link to="/profile/settings">Settings</Link>
-              </Button>
-              
-              <div className="flex items-center gap-2">
-                <ThemeToggle />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative h-9 w-9 rounded-full"
-                  aria-label="User menu"
-                >
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-9 w-9">
-                    <span className="flex h-full w-full items-center justify-center rounded-full bg-primary/10 text-primary">
-                      R
-                    </span>
-                  </span>
-                </Button>
-              </div>
-            </nav>
-          </div>
-
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-95 transform hover:bg-accent hover:text-accent-foreground h-10 w-10"
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle menu</span>
-            </Button>
+            </div>
           </div>
         </div>
-      </div>
+      </nav>
 
-      <div className="container mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4 lg:py-8 mt-20">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-        >
-          <motion.div 
-            variants={cardVariants}
-            className="flex items-center space-x-2 sm:space-x-3 mb-4 sm:mb-6 lg:mb-8"
-          >
-            <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-            <h1 className={textStyles.pageTitle}>
-              Production Sessions
-            </h1>
-          </motion.div>
+      <main className="container mx-auto px-4 pt-24">
+        <div className="flex items-center space-x-3 mb-8">
+          <Clock className="w-5 h-5 text-[#10B981]" />
+          <h1 className="text-xl font-semibold text-[#10B981]">Production Sessions</h1>
+        </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-            <div className="lg:col-span-2 space-y-3 sm:space-y-4">
-              {/* Pomodoro Timer Card */}
-              <motion.div
-                variants={cardVariants}
-                className={cn(
-                  "relative overflow-hidden rounded-xl",
-                  "bg-gradient-to-br from-emerald-50 via-white to-white dark:from-emerald-950/40 dark:via-background/20 dark:to-background/5",
-                  "border border-emerald-200/70 dark:border-emerald-800/30",
-                  "shadow-sm dark:shadow-none",
-                  "hover:shadow-[0_0_25px_rgba(16,185,129,0.15)] dark:hover:shadow-[0_0_25px_rgba(16,185,129,0.1)]",
-                  "transition-all duration-300",
-                  "p-4 sm:p-6"
-                )}
-                whileHover={{ 
-                  scale: 1.01,
-                  transition: { duration: 0.2 }
-                }}
-              >
-                {/* Timer content */}
-                <div className="relative flex flex-col items-center space-y-6">
-                  {/* Mode selector buttons */}
-                  <div className="flex space-x-3">
-                    <motion.div variants={buttonHoverVariants} whileHover="hover" whileTap="tap">
-                      <Button
-                        variant={isWorking ? "default" : "outline"}
-                        onClick={() => handleModeChange(true)}
-                        className={cn(
-                          "w-20 sm:w-24 h-8 sm:h-9 font-medium relative overflow-hidden rounded-full",
-                          isWorking 
-                            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]"
-                            : "border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50",
-                          "transition-all duration-300"
-                        )}
-                      >
-                        <Clock className="w-3 h-3 mr-1.5 inline-block" />
-                        Work
-                      </Button>
-                    </motion.div>
-                    <motion.div variants={buttonHoverVariants} whileHover="hover" whileTap="tap">
-                      <Button
-                        variant={!isWorking ? "default" : "outline"}
-                        onClick={() => handleModeChange(false)}
-                        className={cn(
-                          "w-20 sm:w-24 h-8 sm:h-9 font-medium relative overflow-hidden rounded-full",
-                          !isWorking 
-                            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]"
-                            : "border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50",
-                          "transition-all duration-300"
-                        )}
-                      >
-                        <Coffee className="w-3 h-3 mr-1.5 inline-block" />
-                        Break
-                      </Button>
-                    </motion.div>
-                    
-                    {/* Add Timer Settings */}
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <motion.div variants={buttonHoverVariants} whileHover="hover" whileTap="tap">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className={cn(
-                              "w-8 h-8 sm:w-9 sm:h-9 rounded-full",
-                              "border-emerald-300 dark:border-emerald-800",
-                              "text-emerald-700 dark:text-emerald-400",
-                              "hover:bg-emerald-50 dark:hover:bg-emerald-950/50",
-                              "transition-all duration-300"
-                            )}
-                          >
-                            <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </Button>
-                        </motion.div>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-72">
-                        <div className="space-y-3">
-                          <h4 className="font-medium text-sm">Timer Settings</h4>
-                          <div className="space-y-3">
-                            <div className="space-y-1.5">
-                              <div className="flex justify-between">
-                                <label className="text-sm font-medium">Work Duration</label>
-                                <span className="text-sm text-muted-foreground">{workDuration} min</span>
-                              </div>
-                              <Slider
-                                min={1}
-                                max={60}
-                                step={1}
-                                value={[workDuration]}
-                                onValueChange={([value]) => {
-                                  setWorkDuration(value)
-                                  if (!isPlaying) {
-                                    setTimeLeft(value * 60)
-                                  }
-                                }}
-                                className="[&_[role=slider]]:bg-emerald-500"
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <div className="flex justify-between">
-                                <label className="text-sm font-medium">Break Duration</label>
-                                <span className="text-sm text-muted-foreground">{breakDuration} min</span>
-                              </div>
-                              <Slider
-                                min={1}
-                                max={30}
-                                step={1}
-                                value={[breakDuration]}
-                                onValueChange={([value]) => {
-                                  setBreakDuration(value)
-                                  if (!isPlaying && !isWorking) {
-                                    setTimeLeft(value * 60)
-                                  }
-                                }}
-                                className="[&_[role=slider]]:bg-emerald-500"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  
-                  {/* Timer display */}
-                  <div className="relative">
-                    <svg className="w-52 h-52 sm:w-60 sm:h-60 -rotate-90 transform">
-                      {/* Background track */}
-                      <circle
-                        cx="50%"
-                        cy="50%"
-                        r={CIRCLE_RADIUS}
-                        className="stroke-emerald-100 dark:stroke-emerald-950/20"
-                        strokeWidth="8"
-                        fill="none"
-                      />
-                      {/* Progress circle */}
-                      <circle
-                        cx="50%"
-                        cy="50%"
-                        r={CIRCLE_RADIUS}
-                        className="stroke-emerald-600 dark:stroke-emerald-400"
-                        strokeWidth="8"
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeDasharray={`${CIRCLE_CIRCUMFERENCE} ${CIRCLE_CIRCUMFERENCE}`}
-                        strokeDashoffset={CIRCLE_CIRCUMFERENCE - progress}
-                        style={{
-                          transition: isPlaying ? "stroke-dashoffset 1s linear" : "none"
-                        }}
-                      />
-                    </svg>
-                    <motion.div 
-                      className="absolute inset-0 flex items-center justify-center"
-                      animate={{ 
-                        scale: isPlaying ? [1, 1.02, 1] : 1,
-                        opacity: isPlaying ? [1, 0.8, 1] : 1
-                      }}
-                      transition={{ 
-                        duration: 1, 
-                        repeat: isPlaying ? Infinity : 0,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      <span className={cn(
-                        "text-4xl sm:text-5xl font-bold tracking-tighter",
-                        "bg-gradient-to-r from-emerald-700 to-emerald-600 dark:from-emerald-400 dark:to-emerald-500",
-                        "bg-clip-text text-transparent",
-                        "drop-shadow-sm"
-                      )}>
-                        {formatTime(timeLeft)}
-                      </span>
-                    </motion.div>
-                  </div>
-                  
-                  {/* Control buttons */}
-                  <div className="mt-4 space-y-3">
-                    <div className="flex justify-center space-x-2">
-                      <motion.div variants={buttonHoverVariants} whileHover="hover" whileTap="tap">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={handlePlayPause}
-                          className={cn(
-                            "w-8 h-8 sm:w-9 sm:h-9 rounded-full",
-                            "border-emerald-300 dark:border-emerald-800",
-                            "text-emerald-700 dark:text-emerald-400",
-                            "hover:bg-emerald-50 dark:hover:bg-emerald-950/50",
-                            "transition-all duration-300"
-                          )}
-                        >
-                          {isPlaying ? (
-                            <Pause className="w-3 h-3 sm:w-4 sm:h-4" />
-                          ) : (
-                            <Play className="w-3 h-3 sm:w-4 sm:h-4 ml-0.5" />
-                          )}
-                        </Button>
-                      </motion.div>
-                      <motion.div variants={buttonHoverVariants} whileHover="hover" whileTap="tap">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={handleReset}
-                          className={cn(
-                            "w-8 h-8 sm:w-9 sm:h-9 rounded-full",
-                            "border-emerald-300 dark:border-emerald-800",
-                            "text-emerald-700 dark:text-emerald-400",
-                            "hover:bg-emerald-50 dark:hover:bg-emerald-950/50",
-                            "transition-all duration-300"
-                          )}
-                        >
-                          <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </Button>
-                      </motion.div>
-                    </div>
-                  </div>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content (Left 2 Columns) */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Timer Card */}
+            <TimerCard
+              isWorking={isWorking}
+              timeLeft={timeLeft}
+              isPlaying={isPlaying}
+              handlePlayPause={handlePlayPause}
+              handleReset={handleReset}
+              handleModeChange={handleModeChange}
+              workDuration={workDuration}
+              breakDuration={breakDuration}
+              onWorkDurationChange={setWorkDuration}
+              onBreakDurationChange={setBreakDuration}
+              formatTime={formatTime}
+            />
 
-                {/* Background decoration */}
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent dark:from-emerald-400/5" />
-                  <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-background/5" />
-                </div>
-              </motion.div>
-
-              {/* Session Goals and Progress Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <motion.div variants={cardVariants}>
-                  <motion.div
-                    className={cn(
-                      cardStyles.base,
-                      cardStyles.padding,
-                      cardStyles.success,
-                      cardStyles.hover,
-                      cardStyles.gradient
-                    )}
-                    whileHover={{ scale: 1.01 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className={cardStyles.innerCard}>
-                      <div className="flex items-center space-x-2 sm:space-x-3 mb-3">
-                        <Target className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 dark:text-emerald-400" />
-                        <h3 className={textStyles.cardTitle}>Session Goals</h3>
-                      </div>
-                      <p className={textStyles.bodyText}>
-                        Set and track your production goals for each session.
-                      </p>
-                      <motion.div variants={buttonHoverVariants} whileHover="hover" whileTap="tap">
-                        <Button 
-                          className={buttonStyles.gradient}
-                        >
-                          <Target className="w-4 h-4 mr-2" />
-                          Set New Goal
-                        </Button>
-                      </motion.div>
-                    </div>
-                  </motion.div>
-                </motion.div>
-
-                <motion.div variants={cardVariants}>
-                  <motion.div
-                    className={cn(
-                      cardStyles.base,
-                      cardStyles.padding,
-                      cardStyles.mediumPriority,
-                      cardStyles.hover,
-                      cardStyles.gradient
-                    )}
-                    whileHover={{ scale: 1.01 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className={cardStyles.innerCard}>
-                      <div className="flex items-center space-x-2 sm:space-x-3 mb-3">
-                        <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 dark:text-amber-400" />
-                        <h3 className={textStyles.cardTitle}>Progress Tracking</h3>
-                      </div>
-                      <p className={textStyles.bodyText}>
-                        Monitor your session progress and achievements.
-                      </p>
-                      <motion.div variants={buttonHoverVariants} whileHover="hover" whileTap="tap">
-                        <Button 
-                          className={buttonStyles.outlineGradient}
-                        >
-                          <BarChart className="w-4 h-4 mr-2" />
-                          View Progress
-                        </Button>
-                      </motion.div>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              </div>
-
-              {/* Recent Projects */}
-              <motion.div variants={cardVariants}>
-                <motion.div
-                  className={cn(
-                    cardStyles.base,
-                    cardStyles.padding,
-                    cardStyles.success,
-                    cardStyles.hover,
-                    cardStyles.gradient,
-                    "backdrop-blur-sm"
-                  )}
-                  whileHover={{ scale: 1.01 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <div className={cardStyles.innerCard}>
-                    <div className="flex items-center justify-between mb-3 sm:mb-4">
-                      <h3 className={textStyles.cardTitle}>Recent Projects</h3>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate('/projects')}
-                        className={cn(
-                          "text-xs",
-                          "hover:bg-emerald-50 dark:hover:bg-emerald-900/20",
-                          "hover:text-emerald-600 dark:hover:text-emerald-400",
-                          "transition-all duration-200"
-                        )}
-                      >
-                        View All
-                      </Button>
-                    </div>
-                    <div className="space-y-3">
-                      <AnimatePresence>
-                        {isLoading ? (
-                          <div className="flex items-center justify-center py-6">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-500"></div>
-                          </div>
-                        ) : mappedProjects.length === 0 ? (
-                          <div className="text-center py-6 text-muted-foreground">
-                            No projects found. Start a new project to begin tracking your progress.
-                          </div>
-                        ) : (
-                          mappedProjects.map((project) => (
-                            <SessionCard
-                              key={project.id}
-                              track={{
-                                ...project,
-                                artist: project.artist || 'Unknown Artist',
-                                genre: project.genre || 'Uncategorized',
-                                created_at: project.created_at || 'Not Started',
-                                last_modified: project.last_modified || project.created_at || 'Not Started'
-                              }}
-                              onComplete={handleCompleteProject}
-                              onEdit={handleEditProject}
-                              onPlay={handlePlayProject}
-                              onPause={handlePauseProject}
-                            />
-                          ))
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-                </motion.div>
-              </motion.div>
-            </div>
-
-            {/* AI Coach sidebar */}
-            <motion.div 
-              className="lg:col-span-1"
-              variants={cardVariants}
+            {/* Session Goal and Progress Card */}
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: {},
+                visible: {
+                  transition: {
+                    staggerChildren: 0.1,
+                  },
+                },
+              }}
+              className="grid grid-cols-2 gap-6"
             >
-              <div className="sticky top-4 lg:top-8">
-                <AICoach tracks={mappedProjects || []} />
-              </div>
+              {/* Session Goal */}
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="rounded-xl bg-gradient-to-br from-orange-500/10 via-[#111111]/50 to-[#111111]/50 border border-orange-500/20 p-6 backdrop-blur-xl hover:border-orange-500/30 transition-colors"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <Target className="w-5 h-5 text-orange-400" />
+                    <h3 className="text-lg font-medium">Session Goal</h3>
+                  </div>
+                  {!activeGoal && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/10"
+                      onClick={() => setIsAddGoalModalOpen(true)}
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Add Goal
+                    </Button>
+                  )}
+                </div>
+                
+                {activeGoal ? (
+                  <>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400">
+                        {activeGoal.status === 'completed' ? 'Completed' : 'In Progress'}
+                      </span>
+                      <span className="text-xs text-white/50">
+                        {new Date(activeGoal.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-white/70 mb-4">
+                      {activeGoal.goal_text || 'No description available'}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Clock className="w-4 h-4 text-orange-400/70" />
+                        <span className="text-xs text-white/50">{activeGoal.expected_duration_minutes} min</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/10"
+                          onClick={() => {
+                            setSelectedGoal(activeGoal)
+                            setIsEditModalOpen(true)
+                          }}
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs text-rose-500/70 hover:text-rose-500 hover:bg-rose-500/10"
+                          onClick={() => {
+                            setGoalToDelete(activeGoal)
+                            setIsDeleteModalOpen(true)
+                          }}
+                        >
+                          <Trash className="w-3 h-3 mr-1" />
+                          Delete
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs text-emerald-400/70 hover:text-emerald-400 hover:bg-emerald-500/10"
+                          onClick={() => {
+                            completeGoalMutation.mutate(activeGoal.id)
+                          }}
+                        >
+                          <Check className="w-3 h-3 mr-1" />
+                          Complete
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <Target className="w-8 h-8 text-orange-400/50 mb-3" />
+                    <p className="text-sm text-white/50 mb-2">No active session goal</p>
+                    <p className="text-xs text-white/30">Add a goal to track your progress</p>
+                  </div>
+                )}
+              </motion.div>
+
+              {/* Progress Stats */}
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="rounded-xl bg-gradient-to-br from-[#10B981]/10 via-[#111111]/50 to-[#111111]/50 border border-[#10B981]/20 p-6 backdrop-blur-xl hover:border-[#10B981]/30 transition-colors"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-2">
+                    <BarChart className="w-5 h-5 text-[#10B981]" />
+                    <h3 className="text-lg font-medium">Your Progress</h3>
+                  </div>
+                  <form onSubmit={(e) => e.preventDefault()}>
+                    <Select 
+                      value={selectedTimeRange} 
+                      onValueChange={setSelectedTimeRange}
+                    >
+                      <SelectTrigger className="w-[120px] h-8 text-xs bg-transparent border-[#10B981]/20 hover:border-[#10B981]/30 transition-colors">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#111111] border-[#10B981]/20">
+                        <SelectItem value="Today">Today</SelectItem>
+                        <SelectItem value="This Week">This Week</SelectItem>
+                        <SelectItem value="This Month">This Month</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </form>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <Music className="w-4 h-4 text-[#10B981]" />
+                      <span className="text-sm text-white/70">Beats Created</span>
+                    </div>
+                    <p className="text-2xl font-bold">{beatsCount ?? 0}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <Target className="w-4 h-4 text-[#10B981]" />
+                      <span className="text-sm text-white/70">Total Goals</span>
+                    </div>
+                    <p className="text-2xl font-bold">{sessionStats?.totalGoals || 0}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <Check className="w-4 h-4 text-[#10B981]" />
+                      <span className="text-sm text-white/70">Completed</span>
+                    </div>
+                    <p className="text-2xl font-bold">{sessionStats?.completedGoals || 0}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-white/70">Completion Rate</span>
+                      <span className="text-sm text-white/50">{sessionStats?.completionRate || 0}%</span>
+                    </div>
+                    <div className="h-2 bg-[#10B981]/10 rounded-full">
+                      <div 
+                        className="h-full bg-[#10B981] rounded-full transition-all duration-500" 
+                        style={{ width: `${sessionStats?.completionRate || 0}%` }} 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <span className="text-sm text-white/70">Current Streak</span>
+                      <p className="text-lg font-medium">{sessionStats?.currentStreak || 0} days</p>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-sm text-white/70">Best Streak</span>
+                      <p className="text-lg font-medium">{sessionStats?.bestStreak || 0} days</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-sm text-white/70">Average Session Time</span>
+                    <p className="text-lg font-medium">{sessionStats?.averageSessionTime || 0} minutes</p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-sm text-white/70">Most Productive Day</span>
+                    <p className="text-lg font-medium">
+                      {sessionStats?.mostProductiveDay ? new Date(sessionStats.mostProductiveDay).toLocaleDateString() : 'No data yet'}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
             </motion.div>
           </div>
-        </motion.div>
-      </div>
-    </>
+
+          {/* Right Sidebar */}
+          <div className="lg:col-span-1">
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: {},
+                visible: {
+                  transition: {
+                    staggerChildren: 0.1,
+                  },
+                },
+              }}
+              className="sticky top-24 space-y-4"
+            >
+              {/* AI Coach */}
+              <AICoachCard suggestions={suggestions} />
+
+              {/* Production Tips */}
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="rounded-xl bg-gradient-to-br from-yellow-500/10 via-[#111111]/50 to-[#111111]/50 border border-yellow-500/20 p-6 backdrop-blur-xl hover:border-yellow-500/30 transition-colors"
+              >
+                <div className="flex items-center space-x-2 mb-4">
+                  <Quote className="w-5 h-5 text-yellow-400" />
+                  <h3 className="text-lg font-medium">Production Tips</h3>
+                </div>
+                <p className="text-sm text-white/70 mb-4">
+                  Personalized tips to enhance your production workflow.
+                </p>
+                <p className="text-sm text-white/70 mb-4">
+                  Explore different tempos outside your usual range for fresh creative ideas.
+                </p>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-white/50">Key:</span>
+                    <span className="text-xs text-white/70">C</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-white/50">Energy:</span>
+                    <span className="text-xs text-white/70">50%</span>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Workflow Analytics */}
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="rounded-xl bg-gradient-to-br from-blue-500/10 via-[#111111]/50 to-[#111111]/50 border border-blue-500/20 p-6 backdrop-blur-xl hover:border-blue-500/30 transition-colors"
+              >
+                <div className="flex items-center space-x-2 mb-4">
+                  <BarChart className="w-5 h-5 text-blue-400" />
+                  <h3 className="text-lg font-medium">Workflow Analytics</h3>
+                </div>
+                <p className="text-sm text-white/70 mb-4">
+                  Insights about your production workflow and habits.
+                </p>
+                <p className="text-sm text-white/70 mb-4">
+                  You're putting in significant hours. Remember to balance work with rest.
+                </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Clock className="w-4 h-4 text-blue-400" />
+                    <span className="text-xs text-white/70">0 sessions/day</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <TrendingUp className="w-4 h-4 text-blue-400" />
+                    <span className="text-xs text-white/70">33% completion</span>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Recent Goals */}
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="rounded-xl bg-gradient-to-br from-green-500/10 via-[#111111]/50 to-[#111111]/50 border border-green-500/20 p-6 backdrop-blur-xl hover:border-green-500/30 transition-colors"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <Target className="w-5 h-5 text-green-400" />
+                    <h3 className="text-lg font-medium">Recent Goals</h3>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs border-green-500/20 text-white/70 hover:bg-green-500/10 hover:border-green-500/30 transition-colors"
+                  >
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    Reset Goals
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400">
+                        In Progress
+                      </span>
+                      <span className="text-xs text-white/50">37 minutes ago</span>
+                    </div>
+                    <p className="text-sm text-white/70">
+                      Finish create and add final touches to the arrangement
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+
+      {/* Add the EditGoalModal */}
+      <EditGoalModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setSelectedGoal(null)
+        }}
+        goal={selectedGoal}
+        onSave={(updatedGoal) => {
+          // Implement the actual update mutation
+          toast({
+            title: "Goal Updated",
+            description: "Your session goal has been updated successfully",
+            duration: 3000,
+          })
+        }}
+        onDelete={(goal) => {
+          setGoalToDelete(goal)
+          setIsDeleteModalOpen(true)
+        }}
+      />
+
+      {/* Add the DeleteConfirmationModal */}
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false)
+          setGoalToDelete(null)
+        }}
+        onConfirm={() => {
+          // Implement the actual delete mutation
+          toast({
+            title: "Goal Deleted",
+            description: "Your session goal has been deleted successfully",
+            duration: 3000,
+          })
+        }}
+        title={goalToDelete?.goal_text || ''}
+      />
+
+      {/* Add the AddGoalModal */}
+      <AddGoalModal
+        isOpen={isAddGoalModalOpen}
+        onClose={() => setIsAddGoalModalOpen(false)}
+        onSave={(goal) => {
+          // Implement the actual create mutation
+          toast({
+            title: "Goal Created",
+            description: "Your session goal has been created successfully",
+            duration: 3000,
+          })
+        }}
+      />
+    </div>
   )
 }
 

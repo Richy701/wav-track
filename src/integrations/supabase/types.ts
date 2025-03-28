@@ -124,6 +124,76 @@ export type Database = {
           }
         ]
       }
+      session_goals: {
+        Row: {
+          id: string
+          user_id: string
+          goal_text: string
+          description: string | null
+          expected_duration_minutes: number
+          status: 'pending' | 'completed'
+          created_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          goal_text: string
+          description?: string | null
+          expected_duration_minutes: number
+          status?: 'pending' | 'completed'
+          created_at?: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          goal_text?: string
+          description?: string | null
+          expected_duration_minutes?: number
+          status?: 'pending' | 'completed'
+          created_at?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_goals_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      beat_activities: {
+        Row: {
+          id: string
+          user_id: string
+          project_id: string
+          date: string
+          count: number
+          timestamp: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          project_id: string
+          date: string
+          count?: number
+          timestamp: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          project_id?: string
+          date?: string
+          count?: number
+          timestamp?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
