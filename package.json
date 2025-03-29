@@ -3,10 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "cd web && npm run dev",
-    "build": "cd web && npm run build"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2"
+    "build": "cd web && npm install && npm run build"
   }
 } 
