@@ -12,7 +12,12 @@ import {
   Brain,
   MusicNote,
   Microphone,
-  WaveSquare
+  WaveSquare,
+  Target,
+  Users,
+  Sliders,
+  GridFour,
+  Waveform
 } from "@phosphor-icons/react";
 import BaseLayout from "@/components/layout/BaseLayout";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,14 +36,14 @@ const features = [
     description: "Monitor your listening habits and discover patterns in your music taste."
   },
   {
-    icon: SpeakerHigh,
-    title: "Discover New Artists",
-    description: "Get personalized recommendations based on your listening history."
+    icon: Target,
+    title: "Set Creative Goals",
+    description: "Stay productive by setting short-term music goals and tracking your progress."
   },
   {
-    icon: Brain,
-    title: "Connect with Others",
-    description: "Share your music journey and connect with fellow music enthusiasts."
+    icon: Users,
+    title: "Collaborate with Producers",
+    description: "Share projects, request feedback, and grow with a community of beatmakers."
   }
 ];
 
@@ -47,19 +52,19 @@ const testimonials = [
     quote: "WavTrack helped me finish 4 tracks this month. The session tracking is a game-changer for productivity.",
     author: "K-Soul",
     role: "Producer",
-    icon: MusicNote
+    icon: Sliders
   },
   {
     quote: "This is the Notion for beatmakers. I can finally organize my creative process and track my progress.",
     author: "AudioCraft",
     role: "Beat Producer",
-    icon: WaveSquare
+    icon: GridFour
   },
   {
     quote: "The AI recommendations are spot on. Found some amazing collaborators through the platform.",
     author: "WaveRider",
     role: "Artist",
-    icon: Microphone
+    icon: Waveform
   }
 ];
 
@@ -204,12 +209,27 @@ export default function LandingPage() {
               className="absolute inset-0 w-full h-full object-cover opacity-20 dark:opacity-30"
             />
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="relative flex items-center justify-center">
-                <div className="text-5xl font-bold tracking-tighter bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent">
-                  WT
+              <motion.div 
+                className="relative flex flex-col items-center justify-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
+              >
+                {/* Glow Effect */}
+                <div className="absolute inset-0 z-[-1] blur-2xl bg-gradient-to-br from-purple-400/30 to-purple-600/30" />
+                
+                {/* Glassmorphism Container */}
+                <div className="bg-black/30 backdrop-blur-md rounded-xl px-6 py-4 shadow-xl shadow-purple-700/20">
+                  <div className="relative">
+                    <div className="text-5xl font-bold tracking-tighter bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent">
+                      WT
+                    </div>
+                    <p className="text-sm text-white/50 tracking-wide mt-2 text-center">
+                      WavTrack – Productivity for Music Producers
+                    </p>
+                  </div>
                 </div>
-                <div className="absolute -inset-4 bg-gradient-to-r from-[#8257E5]/20 to-[#B490FF]/20 blur-xl rounded-full" />
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         </section>
@@ -231,8 +251,11 @@ export default function LandingPage() {
                 <Card key={testimonial.author} className="rounded-xl p-6 transition hover:scale-[1.02] hover:shadow-md border-[#8257E5]/20 hover:border-[#8257E5]/40 bg-white dark:bg-black">
                   <CardContent className="p-0 space-y-4">
                     <div className="flex items-center space-x-4">
-                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#8257E5] to-[#B490FF] flex items-center justify-center">
-                        <testimonial.icon weight="duotone" className="h-5 w-5 text-white" />
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#8257E5] to-[#B490FF] flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-purple-500/25 group">
+                        <testimonial.icon 
+                          weight="duotone" 
+                          className="h-5 w-5 text-white transition-transform duration-300 group-hover:scale-110" 
+                        />
                       </div>
                       <div className="text-left">
                         <p className="text-sm font-medium text-foreground">{testimonial.author}</p>
