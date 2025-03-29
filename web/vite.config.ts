@@ -14,7 +14,7 @@ import fs from 'fs'
 
 // Function to get PWA manifest configuration
 const getManifestConfig = () => {
-  const basePath = '/wav-track/';
+  const basePath = process.env.BASE_URL || '/';
   
   return {
     name: 'WavTrack',
@@ -160,15 +160,11 @@ const pwaConfiguration: VitePWAOptions = {
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: process.env.BASE_URL || '/',
   plugins: [
     react(),
     splitVendorChunkPlugin(),
-    compression({
-      algorithm: 'gzip',
-      ext: '.gz',
-      threshold: 10240,
-      deleteOriginFile: false,
-    }),
+    compression(),
     compression({
       algorithm: 'brotliCompress',
       ext: '.br',
@@ -204,13 +200,35 @@ export default defineConfig({
     }),
     viteStaticCopy({
       targets: [
-        { src: 'public/favicon.ico', dest: '.' },             // For root
-        { src: 'public/favicon.ico', dest: 'wav-track' },      // For app base
-        { src: 'public/*', dest: './' },
+        {
+          src: 'public/*',
+          dest: '.',
+        },
       ],
     }),
     vitePluginFaviconsInject('./public/favicon.ico'),
-    VitePWA(pwaConfiguration),
+    VitePWA({
+      registerType: 'autoUpdate',
+      manifest: getManifestConfig(),
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,gif,webp,woff,woff2,ttf,eot}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+            },
+          },
+        ],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+      },
+    }),
     visualizer({
       filename: 'dist/stats.html',
       open: true,
@@ -218,6 +236,16 @@ export default defineConfig({
       brotliSize: true,
     }),
   ],
+  css: {
+    modules: {
+      localsConvention: 'camelCase',
+    },
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@import "./src/styles/variables.scss";`,
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
@@ -319,7 +347,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: false,
+    sourcemap: true,
     assetsDir: 'assets',
     modulePreload: {
       polyfill: true
@@ -338,19 +366,8 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-select',
-            '@radix-ui/react-slider',
-            '@radix-ui/react-toggle',
-            '@radix-ui/react-tooltip',
-          ],
-          'utils-vendor': ['date-fns', 'lodash', 'framer-motion'],
-          'query-vendor': ['@tanstack/react-query'],
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
         },
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
