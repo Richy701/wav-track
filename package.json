@@ -1,14 +1,9 @@
 {
-  "name": "wavtrack-monorepo",
+  "name": "wavtrack",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "web",
-    "shared"
-  ],
   "scripts": {
-    "dev": "cd web && npm run dev",
-    "build": "cd web && npm run build"
+    "dev": "cd web && npm run dev"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
