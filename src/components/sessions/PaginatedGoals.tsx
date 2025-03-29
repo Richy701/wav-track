@@ -1,10 +1,21 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Target, Edit, Trash, ChevronLeft, ChevronRight, Check } from 'lucide-react'
+import { Target, Edit, Trash, ChevronLeft, ChevronRight, Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { Goal } from '@/types/goal'
+import { useToast } from '@/components/ui/use-toast'
+import { supabase } from '@/lib/supabase'
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface PaginatedGoalsProps {
   goals: Goal[]
@@ -53,6 +64,9 @@ export const PaginatedGoals: React.FC<PaginatedGoalsProps> = ({
 }) => {
   const [currentPage, setCurrentPage] = React.useState(1)
   const totalPages = Math.ceil(goals.length / ITEMS_PER_PAGE)
+  const { toast } = useToast()
+  const queryClient = useQueryClient()
+  const [showClearDialog, setShowClearDialog] = React.useState(false)
 
   const paginatedGoals = goals.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -71,6 +85,38 @@ export const PaginatedGoals: React.FC<PaginatedGoalsProps> = ({
     }
   }
 
+  const handleClearGoals = async () => {
+    try {
+      // Get the IDs of the goals to delete
+      const goalIds = goals.map(goal => goal.id)
+      
+      const { error } = await supabase
+        .from('session_goals')
+        .delete()
+        .in('id', goalIds)
+
+      if (error) throw error
+
+      queryClient.invalidateQueries(['goals'])
+      queryClient.invalidateQueries(['session-stats'])
+      
+      toast({
+        title: "Recent Goals Cleared",
+        description: "All recent session goals have been cleared successfully",
+        duration: 3000,
+      })
+      setShowClearDialog(false)
+    } catch (error) {
+      console.error('Error clearing goals:', error)
+      toast({
+        title: "Error",
+        description: "Failed to clear recent goals",
+        variant: "destructive",
+        duration: 3000,
+      })
+    }
+  }
+
   return (
     <div className={cn("space-y-4", className)}>
       <div className="flex items-center justify-between">
@@ -78,7 +124,53 @@ export const PaginatedGoals: React.FC<PaginatedGoalsProps> = ({
           <Target className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
           <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">Recent Goals</h3>
         </div>
+        {goals.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowClearDialog(true)}
+            className={cn(
+              "text-rose-600 dark:text-rose-400",
+              "hover:text-rose-700 dark:hover:text-rose-300",
+              "hover:bg-rose-50 dark:hover:bg-rose-500/10",
+              "transition-colors duration-200",
+              "flex items-center space-x-2"
+            )}
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Clear Recent</span>
+          </Button>
+        )}
       </div>
+
+      {/* Clear Goals Confirmation Dialog */}
+      <Dialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+        <DialogContent className="bg-white dark:bg-background border-zinc-200 dark:border-zinc-800">
+          <DialogHeader>
+            <DialogTitle className="text-zinc-900 dark:text-zinc-50">
+              Clear Recent Goals
+            </DialogTitle>
+            <DialogDescription className="text-zinc-600 dark:text-zinc-400">
+              Are you sure you want to clear all recent session goals? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowClearDialog(false)}
+              className="border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-50"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleClearGoals}
+            >
+              Clear Goals
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {goals.length > 0 ? (
         <>

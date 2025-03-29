@@ -143,7 +143,11 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
       pathname: location.pathname
     })
     
-    if (!user && !isLoading && isInitialized && location.pathname !== '/login' && location.pathname !== '/auth/callback') {
+    // Only redirect to login for protected routes
+    const publicRoutes = ['/', '/login', '/auth/callback', '/register']
+    const isPublicRoute = publicRoutes.includes(location.pathname)
+    
+    if (!user && !isLoading && isInitialized && !isPublicRoute) {
       console.log('[Debug] Redirecting to login')
       navigate('/login', { replace: true })
     }

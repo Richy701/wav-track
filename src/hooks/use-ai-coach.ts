@@ -148,15 +148,23 @@ export function useAICoach() {
     },
     retry: false,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    cacheTime: 10 * 60 * 1000 // Keep in cache for 10 minutes
+    cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: false, // Prevent refetch on window focus
+    refetchOnMount: true, // Allow refetch on mount
+    refetchOnReconnect: false, // Prevent refetch on reconnect
+    keepPreviousData: true // Keep previous data while fetching new data
   })
 
+  // Separate effect for handling suggestions updates
   useEffect(() => {
-    // Always start with default suggestions
-    setSuggestions(DEFAULT_SUGGESTIONS)
+    if (isLoading) {
+      // Keep existing suggestions while loading
+      return
+    }
 
-    // If we're loading or there's an error, keep using default suggestions
-    if (isLoading || error || !activityData) {
+    if (error || !activityData) {
+      // On error or no data, ensure we have default suggestions
+      setSuggestions(DEFAULT_SUGGESTIONS)
       return
     }
 
@@ -165,6 +173,7 @@ export function useAICoach() {
       
       // If we have no real data, keep using default suggestions
       if (!sessions?.length && !preferences && !metrics && !categoryProgress?.length) {
+        setSuggestions(DEFAULT_SUGGESTIONS)
         return
       }
 
@@ -226,10 +235,16 @@ export function useAICoach() {
       const newSuggestions = generateSuggestions(sessions, preferences, metrics, categoryProgress)
       
       // Combine default and personalized suggestions, ensuring we always have some suggestions
-      setSuggestions([...newSuggestions, ...DEFAULT_SUGGESTIONS].slice(0, 5))
+      const combinedSuggestions = [...newSuggestions, ...DEFAULT_SUGGESTIONS].slice(0, 5)
+      
+      // Only update suggestions if we have new ones
+      if (combinedSuggestions.length > 0) {
+        setSuggestions(combinedSuggestions)
+      }
     } catch (error) {
       console.error('Error processing AI coach data:', error)
       // Keep using default suggestions on error
+      setSuggestions(DEFAULT_SUGGESTIONS)
     }
   }, [activityData, isLoading, error])
 

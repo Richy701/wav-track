@@ -33,11 +33,16 @@ export function StatCard({
             <TooltipTrigger asChild>
               <h3 className="font-medium text-sm sm:text-base cursor-help">{title}</h3>
             </TooltipTrigger>
-            <TooltipContent className="max-w-[280px] p-4 text-sm bg-gradient-to-b from-card to-card/95 backdrop-blur-sm border-border shadow-xl">
-              <div className="space-y-2">
-                <p className="font-medium text-foreground/90">{getTooltipTitle(title)}</p>
+            <TooltipContent 
+              className="max-w-[300px]"
+              sideOffset={5}
+            >
+              <div className="space-y-3">
+                <p className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2 pb-2 border-b border-zinc-200 dark:border-zinc-800">
+                  {getTooltipTitle(title)}
+                </p>
                 <div
-                  className="text-muted-foreground space-y-1.5"
+                  className="text-zinc-700 dark:text-zinc-300 space-y-2.5 leading-relaxed"
                   style={{ whiteSpace: 'pre-line' }}
                 >
                   {tooltip}

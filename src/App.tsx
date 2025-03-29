@@ -50,6 +50,7 @@ const ProfileSettings = lazyWithPreload(() => import('./pages/ProfileSettings'))
 const Index = lazyWithPreload(() => import('./pages/Index'))
 const Callback = lazyWithPreload(() => import('./pages/auth/Callback'))
 const ProjectDetail = lazyWithPreload(() => import('./pages/ProjectDetail'))
+const LandingPage = lazyWithPreload(() => import('./pages/LandingPage'))
 
 // Preload components on hover
 const preloadComponent = (component: React.LazyExoticComponent<any> & { preload: () => Promise<any> }) => {
@@ -81,17 +82,37 @@ function App() {
       }
     >
       <QueryClientProvider client={queryClient}>
-        <Router basename={import.meta.env.BASE_URL}>
+        <Router>
           <ThemeProvider>
             <AuthProvider>
-              <ThemeTransition />
-              <OfflineStatus />
               <NavigationWrapper>
                 <Suspense fallback={<LoadingScreen />}>
                   <Routes>
                     <Route
+                      path="/"
+                      element={
+                        <Suspense fallback={<LoadingScreen message="Loading landing page..." />}>
+                          <LandingPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="/login"
-                      element={<Login />}
+                      element={
+                        <Suspense fallback={<LoadingScreen message="Loading login..." />}>
+                          <Login />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <ProtectedRoute>
+                          <Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
+                            <Index />
+                          </Suspense>
+                        </ProtectedRoute>
+                      }
                     />
                     <Route
                       path="/auth/callback"
@@ -117,16 +138,6 @@ function App() {
                         <ProtectedRoute>
                           <Suspense fallback={<LoadingScreen message="Loading settings..." />}>
                             <ProfileSettings />
-                          </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/"
-                      element={
-                        <ProtectedRoute>
-                          <Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
-                            <Index />
                           </Suspense>
                         </ProtectedRoute>
                       }

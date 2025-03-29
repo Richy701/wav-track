@@ -31,6 +31,7 @@ import { useAIAssistant } from '@/lib/ai-assistant'
 import { AISuggestions } from '@/components/ai-suggestions'
 import { PaginatedGoals } from '@/components/sessions/PaginatedGoals'
 import { BaseLayout } from '@/components/layout'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 type DatabaseGoal = {
   id: string
@@ -341,6 +342,7 @@ const TimerCard = ({
   const [currentSession, setCurrentSession] = useState(1)
   const [isAmbientSoundPlaying, setIsAmbientSoundPlaying] = useState(false)
   const ambientSoundRef = useRef<HTMLAudioElement | null>(null)
+  const { toast } = useToast()
 
   // Calculate progress for the circular timer
   const CIRCLE_RADIUS = 120
@@ -379,6 +381,26 @@ const TimerCard = ({
       ambientSoundRef.current.pause()
     }
   }, [isAmbientSoundPlaying])
+
+  // Handle session completion
+  useEffect(() => {
+    if (timeLeft === 0 && !isWorking) {
+      // Break completed, increment session counter
+      setCurrentSession(prev => {
+        const newSession = prev + 1
+        if (newSession > 4) {
+          // All sessions completed
+          toast({
+            title: "🎉 All Sessions Complete!",
+            description: "Great job! You've completed all 4 sessions. Take a longer break!",
+            duration: 5000,
+          })
+          return 1 // Reset to first session
+        }
+        return newSession
+      })
+    }
+  }, [timeLeft, isWorking, toast])
 
   return (
     <motion.div
@@ -435,15 +457,54 @@ const TimerCard = ({
             </button>
           </div>
           <div className="flex items-center gap-2">
-            {/* Session Counter */}
-            <div className={cn(
-              "px-3 py-1 rounded-lg text-xs font-medium",
-              isWorking
-                ? "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
-                : "bg-violet-100/50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300"
-            )}>
-              Session {currentSession} of 4
-            </div>
+            {/* Session Counter with Tooltip */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className={cn(
+                    "px-2.5 py-1 rounded-lg text-xs font-medium cursor-help",
+                    isWorking
+                      ? "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
+                      : "bg-violet-100/50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300"
+                  )}>
+                    <div className="flex items-center gap-1">
+                      <Timer className="w-3 h-3" />
+                      <span>Session {currentSession} of 4</span>
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent 
+                  className="max-w-[280px] p-4 text-sm bg-gradient-to-b from-card to-card/95 backdrop-blur-sm border-border shadow-xl"
+                  side="bottom"
+                  align="end"
+                >
+                  <div className="space-y-2">
+                    <p className="font-medium text-foreground/90">Pomodoro Timer</p>
+                    <div className="text-muted-foreground space-y-1.5">
+                      <p>Complete 4 focused work sessions with breaks in between.</p>
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-2 text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
+                          <span>Work: {workDuration}m</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-violet-500/50" />
+                          <span>Break: {breakDuration}m</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-orange-500/50" />
+                          <span>4 sessions</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-amber-500/50" />
+                          <span>Long break after</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Popover open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
               <PopoverTrigger asChild>
                 <Button

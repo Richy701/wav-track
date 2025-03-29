@@ -5,7 +5,8 @@ import { ArrowLeft as PhArrowLeft } from '@phosphor-icons/react'
 export default function HeaderTitle() {
   const location = useLocation()
   const navigate = useNavigate()
-  const showBackButton = location.pathname !== '/'
+  const isLandingPage = location.pathname === '/wav-track'
+  const showBackButton = location.pathname !== '/' && !isLandingPage
 
   return (
     <div className="flex items-center gap-4">

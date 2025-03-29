@@ -5,7 +5,7 @@ import {
   Outlet,
   redirect,
 } from '@tanstack/react-router'
-import Index from './pages/Index'
+import LandingPage from './pages/LandingPage'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Profile from './pages/Profile'
@@ -17,10 +17,10 @@ const rootRoute = createRootRoute({
   component: () => <Outlet />,
 })
 
-const indexRoute = createRoute({
+const landingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: Index,
+  component: LandingPage,
 })
 
 const loginRoute = createRoute({
@@ -33,7 +33,7 @@ const loginRoute = createRoute({
     } = await supabase.auth.getSession()
     if (session) {
       throw redirect({
-        to: '/',
+        to: '/dashboard',
       })
     }
   },
@@ -64,7 +64,7 @@ const protectedRoute = createRoute({
     } = await supabase.auth.getSession()
     if (!session) {
       throw redirect({
-        to: '/wav-track/login',
+        to: '/login',
       })
     }
   },
@@ -83,17 +83,22 @@ const profileSettingsRoute = createRoute({
   component: ProfileSettings,
 })
 
+const dashboardRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: '/dashboard',
+  component: LandingPage,
+})
+
 const routeTree = rootRoute.addChildren([
-  indexRoute,
+  landingRoute,
   loginRoute,
   registerRoute,
   callbackRoute,
-  protectedRoute.addChildren([profileRoute, profileSettingsRoute]),
+  protectedRoute.addChildren([dashboardRoute, profileRoute, profileSettingsRoute]),
 ])
 
 export const router = createRouter({
   routeTree,
-  basepath: '/wav-track',
   defaultPreload: 'intent',
   context: {
     auth: undefined,
