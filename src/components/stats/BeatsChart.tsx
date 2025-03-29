@@ -151,7 +151,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
         </div>
       </div>
 
-      <div className="h-[250px] sm:h-[300px] w-full relative group overflow-hidden">
+      <div className="h-[200px] sm:h-[250px] md:h-[300px] w-full relative group overflow-hidden">
         <style>
           {`
             .recharts-bar-rectangle {
@@ -204,13 +204,31 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
             .recharts-tooltip-cursor {
               display: none !important;
             }
+            /* Mobile optimizations */
             @media (max-width: 640px) {
               .recharts-cartesian-axis-tick-text {
                 font-size: 10px;
+                transform: rotate(-45deg);
+                text-anchor: end;
               }
               .recharts-label {
                 font-size: 10px;
               }
+              .recharts-bar-rectangle {
+                width: 12px !important;
+                rx: 4px !important;
+              }
+              .recharts-bar-gap {
+                width: 4px !important;
+              }
+            }
+            /* Ensure chart stays within bounds */
+            .recharts-wrapper {
+              max-width: 100%;
+              overflow: hidden;
+            }
+            .recharts-surface {
+              max-width: 100%;
             }
           `}
         </style>
@@ -218,7 +236,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
           {chartView === 'bar' ? (
             <BarChart
               data={beatsData}
-              margin={{ top: 16, right: 8, left: 8, bottom: 24 }}
+              margin={{ top: 16, right: 8, left: 8, bottom: 32 }}
               barGap={4}
               className="animate-in fade-in duration-300"
             >

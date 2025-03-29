@@ -6,7 +6,7 @@ import { useProjects } from '@/hooks/useProjects'
 import UserAvatar from '@/components/UserAvatar'
 import ThemeSwitcher from '@/components/ThemeSwitcher'
 import CreateProjectDialog from '@/components/project/CreateProjectDialog'
-import { Plus, Wrench, House } from '@phosphor-icons/react'
+import { Plus, Wrench, House, LayoutDashboard } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { getProjects } from '@/lib/data'
 import { Spinner } from '@/components/ui/spinner'
@@ -64,6 +64,7 @@ export default function HeaderActions({
   const isLandingPage = location.pathname === '/wav-track'
 
   const items = [
+    { label: 'Dashboard', href: '/dashboard' },
     { label: 'Sessions', href: '/sessions' },
     { label: 'Profile', href: '/profile' },
     { label: 'Settings', href: '/profile/settings' },
@@ -138,7 +139,7 @@ export default function HeaderActions({
           variant="ghost"
           className={cn(
             location.pathname === '/'
-              ? 'bg-[#8257E5]/20 text-[#8257E5] dark:text-[#B490FF] pointer-events-none'
+              ? 'bg-[#8257E5]/40 text-[#8257E5] dark:text-[#B490FF] pointer-events-none'
               : 'hover:bg-[#8257E5]/20 dark:hover:bg-[#8257E5]/20 hover:text-[#8257E5] dark:hover:text-[#B490FF]',
             orientation === 'vertical' && 'w-full justify-start'
           )}
@@ -156,7 +157,7 @@ export default function HeaderActions({
           variant="ghost"
           className={cn(
             location.pathname === item.href
-              ? 'bg-[#8257E5]/20 text-[#8257E5] dark:text-[#B490FF] pointer-events-none'
+              ? 'bg-[#8257E5]/40 text-[#8257E5] dark:text-[#B490FF] pointer-events-none'
               : 'hover:bg-[#8257E5]/20 dark:hover:bg-[#8257E5]/20 hover:text-[#8257E5] dark:hover:text-[#B490FF]',
             orientation === 'vertical' && 'w-full justify-start'
           )}
