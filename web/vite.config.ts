@@ -270,7 +270,8 @@ export default defineConfig({
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info',
+      'Access-Control-Allow-Credentials': 'true',
     },
     proxy: {
       '/auth/v1': {
@@ -365,7 +366,8 @@ export default defineConfig({
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info',
+      'Access-Control-Allow-Credentials': 'true',
     },
   },
 })
