@@ -267,6 +267,11 @@ export default defineConfig({
     open: true,
     cors: true,
     host: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
     proxy: {
       '/auth/v1': {
         target: 'https://ewenoruuogtoqyaxelgm.supabase.co',
@@ -282,23 +287,6 @@ export default defineConfig({
             if (req.headers.authorization) {
               proxyReq.setHeader('authorization', req.headers.authorization);
             }
-          });
-
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            Object.keys(proxyRes.headers).forEach(key => {
-              const value = proxyRes.headers[key];
-              if (value !== undefined) {
-                res.setHeader(key, value);
-              }
-            });
-          });
-
-          proxy.on('error', (err, req, res) => {
-            console.error('Proxy error:', err);
-            res.writeHead(500, {
-              'Content-Type': 'text/plain'
-            });
-            res.end('Something went wrong with the proxy.');
           });
         }
       },
@@ -331,15 +319,6 @@ export default defineConfig({
             if (req.headers.authorization) {
               proxyReq.setHeader('authorization', req.headers.authorization);
             }
-          });
-
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            Object.keys(proxyRes.headers).forEach(key => {
-              const value = proxyRes.headers[key];
-              if (value !== undefined) {
-                res.setHeader(key, value);
-              }
-            });
           });
         }
       }
@@ -382,5 +361,11 @@ export default defineConfig({
   preview: {
     port: 3000,
     open: true,
+    cors: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
   },
 })
