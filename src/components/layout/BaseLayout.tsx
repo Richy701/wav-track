@@ -17,12 +17,12 @@ export default function BaseLayout({
   withPadding = true,
 }: BaseLayoutProps) {
   return (
-    <div className="min-h-screen bg-white dark:bg-black flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-black flex flex-col overflow-x-hidden touch-manipulation overscroll-none">
       <Header />
 
       <main
         className={cn(
-          'flex-1 w-full mx-auto',
+          'flex-1 w-full mx-auto overflow-x-hidden',
           withPadding && 'px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-8 sm:pb-12 lg:pb-16',
           containerWidth === 'narrow' && 'max-w-4xl',
           containerWidth === 'wide' && 'max-w-7xl',

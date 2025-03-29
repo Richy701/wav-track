@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import HeaderTitle from './header/HeaderTitle'
 import HeaderActions from './header/HeaderActions'
 import { Button } from './ui/button'
-import { Sheet, SheetContent, SheetTrigger } from './ui/sheet'
+import { Sheet, SheetContent, SheetTrigger, SheetOverlay } from './ui/sheet'
 import { List } from '@phosphor-icons/react'
 
 export default function Header() {
@@ -29,7 +29,7 @@ export default function Header() {
     <header
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out',
-        scrolled ? 'backdrop-blur-md' : '',
+        scrolled ? 'backdrop-blur-md bg-white/80 dark:bg-black/80' : 'bg-white dark:bg-black',
         'px-4 py-3 md:px-6 md:py-4'
       )}
     >
@@ -45,13 +45,14 @@ export default function Header() {
         <div className="md:hidden">
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="touch-manipulation">
                 <List className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[80vw] sm:w-[385px]">
-              <div className="flex flex-col space-y-4 py-4">
+            <SheetOverlay className="bg-black/80 backdrop-blur-sm" />
+            <SheetContent side="right" className="w-[85vw] sm:w-[385px] p-6">
+              <div className="flex flex-col space-y-6 py-4">
                 <HeaderActions orientation="vertical" />
               </div>
             </SheetContent>

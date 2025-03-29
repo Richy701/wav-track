@@ -109,12 +109,12 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-10 flex-1">
+      <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-10 flex-1 overflow-x-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10 md:mb-12 lg:items-end">
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 overflow-x-hidden">
             <Stats
               projects={projects || []}
               sessions={sessions}
@@ -122,13 +122,13 @@ const Index = () => {
               beatActivities={[]} // Add empty array for now
             />
           </div>
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 gap-6 overflow-x-hidden">
             <Timer />
             <SessionsOverview />
           </div>
         </div>
 
-        <div className="mb-12">
+        <div className="mb-12 overflow-x-hidden">
           <ProjectList
             projectList={projects || []}
             isLoading={isLoading}
