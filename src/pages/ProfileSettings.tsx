@@ -19,13 +19,13 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import {
-  ArrowLeft as PhArrowLeft,
   FloppyDisk,
   MusicNote,
   InstagramLogo,
   TwitterLogo,
   YoutubeLogo,
   X,
+  Gear,
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import {
@@ -52,6 +52,8 @@ import {
 } from '@/components/DawIcons'
 import { Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { motion } from 'framer-motion'
+import { cn } from '@/lib/utils'
 
 interface FormData {
   name: string
@@ -297,346 +299,361 @@ const ProfileSettings = () => {
     navigate('/')
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.3
+      }
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-32 pb-10 flex-1">
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="sm" className="gap-2" onClick={() => navigate(-1)}>
-            <PhArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-          <h1 className="text-2xl font-semibold">Profile Settings</h1>
-        </div>
+      <main className="w-full max-w-4xl mx-auto px-4 pt-24 pb-8 flex-1">
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ duration: 0.3 }}
+          className="flex items-center gap-2 mb-8"
+        >
+          <Gear className="h-5 w-5 text-muted-foreground" />
+          <h1 className="text-2xl font-semibold tracking-tight">Profile Settings</h1>
+        </motion.div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <motion.form 
+          onSubmit={handleSubmit} 
+          className="grid gap-8"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>Update your profile information</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Your name"
-                  />
+          <motion.div variants={itemVariants}>
+            <Card className="bg-white dark:bg-zinc-900 text-black dark:text-white p-6 rounded-2xl shadow-xl ring-1 ring-zinc-200 dark:ring-zinc-800">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-semibold">Basic Information</CardTitle>
+                <CardDescription className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Update your profile information
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                  <div className="space-y-2 w-full">
+                    <Label htmlFor="name" className="text-sm font-medium">Name</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="Your name"
+                      className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                    />
+                  </div>
+                  <div className="space-y-2 w-full">
+                    <Label htmlFor="artist_name" className="text-sm font-medium">Artist Name</Label>
+                    <Input
+                      id="artist_name"
+                      name="artist_name"
+                      value={formData.artist_name}
+                      onChange={handleChange}
+                      placeholder="Your artist name"
+                      className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                    />
+                  </div>
+                  <div className="space-y-2 w-full">
+                    <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="your@email.com"
+                      className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                    />
+                  </div>
+                  <div className="space-y-2 w-full">
+                    <Label htmlFor="phone" className="text-sm font-medium">Phone</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      placeholder="Your phone number"
+                      className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                    />
+                  </div>
+                  <div className="space-y-2 w-full">
+                    <Label htmlFor="location" className="text-sm font-medium">Location</Label>
+                    <Input
+                      id="location"
+                      name="location"
+                      value={formData.location}
+                      onChange={handleChange}
+                      placeholder="Your location"
+                      className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                    />
+                  </div>
+                  <div className="space-y-2 w-full">
+                    <Label htmlFor="website" className="text-sm font-medium">Website</Label>
+                    <Input
+                      id="website"
+                      name="website"
+                      type="url"
+                      value={formData.website}
+                      onChange={handleChange}
+                      placeholder="https://your-website.com"
+                      className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="artist_name">Artist Name</Label>
-                  <Input
-                    id="artist_name"
-                    name="artist_name"
-                    value={formData.artist_name}
-                    onChange={handleChange}
-                    placeholder="Your artist name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="your@email.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="Your phone number"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleChange}
-                    placeholder="Your location"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="website">Website</Label>
-                  <Input
-                    id="website"
-                    name="website"
-                    type="url"
-                    value={formData.website}
-                    onChange={handleChange}
-                    placeholder="https://your-website.com"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Producer Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Producer Information</CardTitle>
-              <CardDescription>Tell others about your music production</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
-                <textarea
-                  id="bio"
-                  name="bio"
-                  value={formData.bio}
-                  onChange={handleChange}
-                  placeholder="Tell others about yourself and your music..."
-                  className="w-full min-h-[100px] p-3 rounded-md border bg-background"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="daw">Preferred DAW</Label>
-                <Select
-                  value={formData.daw}
-                  onValueChange={value => setFormData(prev => ({ ...prev, daw: value }))}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue>
-                      {formData.daw ? (
-                        <div className="flex items-center">
-                          <div className="w-6 h-6 mr-2 flex items-center justify-center">
-                            {dawOptions.find(option => option.value === formData.daw)?.icon}
-                          </div>
-                          {dawOptions.find(option => option.value === formData.daw)?.label}
-                        </div>
-                      ) : (
-                        'Select your DAW'
-                      )}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dawOptions.map(option => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                        className="flex items-center"
+          <motion.div variants={itemVariants}>
+            <Card className="bg-white dark:bg-zinc-900 text-black dark:text-white p-6 rounded-2xl shadow-xl ring-1 ring-zinc-200 dark:ring-zinc-800">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-semibold">Producer Information</CardTitle>
+                <CardDescription className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Tell others about your music production
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                  <div className="space-y-2 w-full md:col-span-2">
+                    <Label htmlFor="bio" className="text-sm font-medium">Bio</Label>
+                    <textarea
+                      id="bio"
+                      name="bio"
+                      value={formData.bio}
+                      onChange={handleChange}
+                      placeholder="Tell others about yourself and your music..."
+                      className="w-full min-h-[100px] p-3 rounded-md bg-white dark:bg-zinc-900 text-sm hover:ring-1 hover:ring-purple-500"
+                    />
+                  </div>
+                  <div className="space-y-2 w-full">
+                    <Label htmlFor="daw" className="text-sm font-medium">Preferred DAW</Label>
+                    <div className="relative w-full min-h-[42px]">
+                      <Select
+                        value={formData.daw}
+                        onValueChange={value => setFormData(prev => ({ ...prev, daw: value }))}
                       >
-                        <div className="flex items-center">
-                          <div className="w-6 h-6 mr-2 flex items-center justify-center">
-                            {option.icon}
-                          </div>
-                          {option.label}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Genres</Label>
-                <Select
-                  onValueChange={value => {
-                    if (!formData.genres.includes(value)) {
-                      setFormData(prev => ({
-                        ...prev,
-                        genres: [...prev.genres, value].sort(),
-                      }))
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a genre" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {popularGenres.map(genre => (
-                      <SelectItem key={genre} value={genre}>
-                        {genre}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {formData.genres.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {formData.genres.map(genre => (
-                      <Badge
-                        key={genre}
-                        variant="secondary"
-                        className="flex items-center gap-1 px-2 py-1"
-                      >
-                        {genre}
-                        <button
-                          type="button"
-                          className="ml-1 hover:text-destructive"
-                          onClick={() => {
+                        <SelectTrigger className="w-full h-10 bg-transparent text-foreground border border-border transition-colors duration-300">
+                          <SelectValue>
+                            {formData.daw ? (
+                              <div className="flex items-center">
+                                <div className="w-6 h-6 mr-2 flex items-center justify-center">
+                                  {dawOptions.find(option => option.value === formData.daw)?.icon}
+                                </div>
+                                {dawOptions.find(option => option.value === formData.daw)?.label}
+                              </div>
+                            ) : (
+                              'Select your DAW'
+                            )}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {dawOptions.map(option => (
+                            <SelectItem
+                              key={option.value}
+                              value={option.value}
+                              className="flex items-center hover:bg-purple-50 dark:hover:bg-purple-950/50 hover:text-purple-600 dark:hover:text-purple-400"
+                            >
+                              <div className="flex items-center">
+                                <div className="w-6 h-6 mr-2 flex items-center justify-center">
+                                  {option.icon}
+                                </div>
+                                {option.label}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2 w-full">
+                    <Label className="text-sm font-medium">Genres</Label>
+                    <div className="relative w-full min-h-[42px]">
+                      <Select
+                        onValueChange={value => {
+                          if (!formData.genres.includes(value)) {
                             setFormData(prev => ({
                               ...prev,
-                              genres: prev.genres.filter(g => g !== genre),
+                              genres: [...prev.genres, value].sort(),
                             }))
-                          }}
-                          aria-label={`Remove ${genre} genre`}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="w-full h-10 bg-transparent text-foreground border border-border transition-colors duration-300">
+                          <SelectValue placeholder="Select a genre" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {popularGenres.map(genre => (
+                            <SelectItem 
+                              key={genre} 
+                              value={genre}
+                              className="hover:bg-purple-50 dark:hover:bg-purple-950/50 hover:text-purple-600 dark:hover:text-purple-400"
+                            >
+                              {genre}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {formData.genres.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {formData.genres.map(genre => (
+                          <Badge
+                            key={genre}
+                            variant="secondary"
+                            className="flex items-center gap-1 px-2 py-1 bg-zinc-100 dark:bg-zinc-800"
+                          >
+                            {genre}
+                            <button
+                              type="button"
+                              className="ml-1 hover:text-destructive"
+                              onClick={() => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  genres: prev.genres.filter(g => g !== genre),
+                                }))
+                              }}
+                              aria-label={`Remove ${genre} genre`}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Social Links */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Social Links</CardTitle>
-              <CardDescription>Connect your social media accounts</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Instagram */}
-              <div className="space-y-4">
-                <Label className="flex items-center gap-2">
-                  <InstagramLogo className="h-4 w-4" />
-                  Instagram
-                </Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    placeholder="Instagram profile URL"
-                    value={formData.social_links.instagram ?? ''}
-                    onChange={e => handleSocialChange('instagram', 'url', e.target.value)}
-                  />
-                  <Input
-                    placeholder="@username"
-                    value={formData.social_links.instagram_username ?? ''}
-                    onChange={e => handleSocialChange('instagram', 'username', e.target.value)}
-                  />
-                </div>
-              </div>
+          <motion.div variants={itemVariants}>
+            <Card className="bg-white dark:bg-zinc-900 text-black dark:text-white p-6 rounded-2xl shadow-xl ring-1 ring-zinc-200 dark:ring-zinc-800">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-semibold">Social Links</CardTitle>
+                <CardDescription className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Connect your social media accounts
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                  {/* Instagram */}
+                  <div className="space-y-4 md:col-span-2">
+                    <Label className="flex items-center gap-2 text-sm font-medium">
+                      <InstagramLogo className="h-4 w-4" />
+                      Instagram
+                    </Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        placeholder="Instagram profile URL"
+                        value={formData.social_links.instagram ?? ''}
+                        onChange={e => handleSocialChange('instagram', 'url', e.target.value)}
+                        className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                      />
+                      <Input
+                        placeholder="@username"
+                        value={formData.social_links.instagram_username ?? ''}
+                        onChange={e => handleSocialChange('instagram', 'username', e.target.value)}
+                        className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                      />
+                    </div>
+                  </div>
 
-              {/* Twitter */}
-              <div className="space-y-4">
-                <Label className="flex items-center gap-2">
-                  <TwitterLogo className="h-4 w-4" />
-                  Twitter
-                </Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    placeholder="Twitter profile URL"
-                    value={formData.social_links.twitter ?? ''}
-                    onChange={e => handleSocialChange('twitter', 'url', e.target.value)}
-                  />
-                  <Input
-                    placeholder="@username"
-                    value={formData.social_links.twitter_username ?? ''}
-                    onChange={e => handleSocialChange('twitter', 'username', e.target.value)}
-                  />
-                </div>
-              </div>
+                  {/* Twitter */}
+                  <div className="space-y-4 md:col-span-2">
+                    <Label className="flex items-center gap-2 text-sm font-medium">
+                      <TwitterLogo className="h-4 w-4" />
+                      Twitter
+                    </Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        placeholder="Twitter profile URL"
+                        value={formData.social_links.twitter ?? ''}
+                        onChange={e => handleSocialChange('twitter', 'url', e.target.value)}
+                        className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                      />
+                      <Input
+                        placeholder="@username"
+                        value={formData.social_links.twitter_username ?? ''}
+                        onChange={e => handleSocialChange('twitter', 'username', e.target.value)}
+                        className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                      />
+                    </div>
+                  </div>
 
-              {/* YouTube */}
-              <div className="space-y-4">
-                <Label className="flex items-center gap-2">
-                  <YoutubeLogo className="h-4 w-4" />
-                  YouTube
-                </Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    placeholder="YouTube channel URL"
-                    value={formData.social_links.youtube ?? ''}
-                    onChange={e => handleSocialChange('youtube', 'url', e.target.value)}
-                  />
-                  <Input
-                    placeholder="Channel name"
-                    value={formData.social_links.youtube_username ?? ''}
-                    onChange={e => handleSocialChange('youtube', 'username', e.target.value)}
-                  />
+                  {/* YouTube */}
+                  <div className="space-y-4 md:col-span-2">
+                    <Label className="flex items-center gap-2 text-sm font-medium">
+                      <YoutubeLogo className="h-4 w-4" />
+                      YouTube
+                    </Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        placeholder="YouTube channel URL"
+                        value={formData.social_links.youtube ?? ''}
+                        onChange={e => handleSocialChange('youtube', 'url', e.target.value)}
+                        className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                      />
+                      <Input
+                        placeholder="Channel name"
+                        value={formData.social_links.youtube_username ?? ''}
+                        onChange={e => handleSocialChange('youtube', 'username', e.target.value)}
+                        className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Notification Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Settings</CardTitle>
-              <CardDescription>Choose what notifications you want to receive</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>New Followers</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receive notifications when someone follows you
-                  </p>
-                </div>
-                <Switch
-                  checked={formData.notification_preferences.newFollowers}
-                  onCheckedChange={checked => handleNotificationChange('newFollowers', checked)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Beat Comments</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receive notifications when someone comments on your beats
-                  </p>
-                </div>
-                <Switch
-                  checked={formData.notification_preferences.beatComments}
-                  onCheckedChange={checked => handleNotificationChange('beatComments', checked)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Collaboration Requests</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receive notifications for new collaboration requests
-                  </p>
-                </div>
-                <Switch
-                  checked={formData.notification_preferences.collaborationRequests}
-                  onCheckedChange={checked =>
-                    handleNotificationChange('collaborationRequests', checked)
-                  }
-                />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Form Actions */}
-          <div className="flex justify-between items-center">
+          <motion.div variants={itemVariants} className="flex justify-end gap-2 mt-6">
             <Button type="button" variant="outline" onClick={() => navigate('/profile')}>
               Cancel
             </Button>
-            <div className="flex items-center gap-4">
-              <Button type="button" variant="destructive" onClick={() => setShowDeleteDialog(true)}>
-                Delete Account
-              </Button>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? (
-                  <>
-                    <Spinner className="mr-2" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <FloppyDisk className="mr-2 h-4 w-4" />
-                    Save Changes
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </form>
+            <Button type="button" variant="destructive" onClick={() => setShowDeleteDialog(true)}>
+              Delete Account
+            </Button>
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <Spinner className="mr-2" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <FloppyDisk className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </motion.div>
+        </motion.form>
       </main>
 
       {/* Delete Account Dialog */}

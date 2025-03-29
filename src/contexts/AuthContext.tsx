@@ -602,8 +602,11 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Navigate after state updates
       if (authStateRef.current.mounted) {
-        // Navigate first
-        navigate('/', { replace: true })
+        // Get the redirect location from state, default to dashboard
+        const from = location.state?.from || '/dashboard'
+        
+        // Navigate to the intended destination
+        navigate(from, { replace: true })
 
         // Show welcome modal and success toast after a short delay to ensure navigation is complete
         setTimeout(() => {

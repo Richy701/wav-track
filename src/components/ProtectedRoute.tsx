@@ -52,7 +52,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({ children }) => {
 
   // Redirect to login if no user is found
   if (!user) {
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />
+    // Store the current location in state for redirect after login
+    return <Navigate to="/login" state={{ from: location.pathname + location.search }} replace />
   }
 
   // Render children if user is authenticated

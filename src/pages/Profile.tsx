@@ -20,6 +20,21 @@ import { Achievements } from '@/components/profile/Achievements'
 import { ProjectGraph } from '@/components/profile/ProjectGraph'
 import { Spinner } from '@/components/ui/spinner'
 import { useImageCache } from '@/hooks/useImageCache'
+import { motion } from 'framer-motion'
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 }
+}
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+}
 
 const Profile = () => {
   const { profile, logout, refreshProfile, isLoading: authLoading, isInitialized } = useAuth()
@@ -129,11 +144,21 @@ const Profile = () => {
       <Header />
       <div className="min-h-screen bg-background/50 pt-20">
         {/* Profile Header */}
-        <div className="border-b border-muted">
+        <motion.div 
+          className="border-b border-muted"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="max-w-6xl mx-auto px-4 md:px-8 py-6">
             <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
               {/* Avatar with Upload Button */}
-              <div className="relative group">
+              <motion.div 
+                className="relative group"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
                 <Avatar className="w-24 h-24 border-2 border-muted shadow-sm">
                   {imageLoading && !imageError && (
                     <div className="h-full w-full flex items-center justify-center bg-muted">
@@ -167,10 +192,15 @@ const Profile = () => {
                   aria-label="Profile picture upload"
                   title="Choose a profile picture"
                 />
-              </div>
+              </motion.div>
 
               {/* Profile Details */}
-              <div className="flex-1 min-w-0">
+              <motion.div 
+                className="flex-1 min-w-0"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -185,7 +215,12 @@ const Profile = () => {
                       <span>Member since {new Date().getFullYear()}</span>
                     </div>
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <motion.div 
+                    className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                  >
                     <Button
                       variant="outline"
                       className="w-full sm:w-auto"
@@ -202,35 +237,49 @@ const Profile = () => {
                       <SignOut className="h-4 w-4 mr-2" />
                       Logout
                     </Button>
-                  </div>
+                  </motion.div>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Main Content */}
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-8">
+        <motion.div 
+          className="max-w-6xl mx-auto px-4 md:px-8 py-8"
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+        >
           {/* Top Section: About Me and Progress Overview */}
-          <div className="flex flex-col lg:flex-row items-start gap-6">
+          <motion.div 
+            className="flex flex-col lg:flex-row items-start gap-6"
+            variants={fadeInUp}
+          >
             <div className="w-full lg:w-2/3">
               <AboutMe />
             </div>
             <div className="w-full lg:w-1/3">
               <StatsSummary />
             </div>
-          </div>
+          </motion.div>
 
           {/* Project Graph Section */}
-          <div className="mt-12">
+          <motion.div 
+            className="mt-12"
+            variants={fadeInUp}
+          >
             <ProjectGraph />
-          </div>
+          </motion.div>
 
           {/* Achievements Section */}
-          <div className="mt-12">
+          <motion.div 
+            className="mt-12"
+            variants={fadeInUp}
+          >
             <Achievements />
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
       <Footer />
     </div>

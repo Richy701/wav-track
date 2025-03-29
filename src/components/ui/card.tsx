@@ -8,9 +8,6 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
       ref={ref}
       className={cn(
         'card-glass relative',
-        'transition-all duration-300',
-        'hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
-        'hover:scale-[1.01]',
         className
       )}
       {...props}

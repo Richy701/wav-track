@@ -49,7 +49,7 @@ const Login = () => {
       }
       // Prefetch dashboard data after successful login
       await prefetchDashboardData(queryClient)
-      navigate('/')
+      // Navigation will be handled by handleLoginSuccess in AuthContext
     } catch (err) {
       console.error('Login error:', err)
       setError(err instanceof Error ? err.message : 'Failed to sign in')
