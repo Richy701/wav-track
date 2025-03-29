@@ -1,9 +1,10 @@
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Loader2 } from 'lucide-react'
+import { Sparkles, Loader2, Tag, Clock, Target, Music } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Badge } from '@/components/ui/badge'
 import type { GoalSuggestion } from '@/hooks/use-ai-assistant'
 
 interface AISuggestionsProps {
@@ -40,7 +41,7 @@ export function AISuggestions({
         </PopoverTrigger>
         <PopoverContent
           className={cn(
-            'w-80 p-4',
+            'w-96 p-4',
             'bg-white/95 dark:bg-zinc-900/95',
             'border border-orange-200/80 dark:border-orange-500/20',
             'backdrop-blur-xl',
@@ -103,7 +104,7 @@ export function AISuggestions({
                       transition={{ delay: index * 0.1 }}
                       onClick={() => onSuggestionSelect(suggestion)}
                       className={cn(
-                        'w-full text-left p-2 rounded-lg',
+                        'w-full text-left p-3 rounded-xl',
                         'bg-orange-50/80 dark:bg-orange-500/10',
                         'border border-orange-200/50 dark:border-orange-500/20',
                         'hover:bg-orange-100/80 dark:hover:bg-orange-500/20',
@@ -111,14 +112,54 @@ export function AISuggestions({
                         'transition-colors duration-200'
                       )}
                     >
-                      <div className="text-sm font-medium text-orange-900 dark:text-orange-100">
-                        {suggestion.title}
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <div className="text-sm font-medium text-orange-900 dark:text-orange-100">
+                            {suggestion.title}
+                          </div>
+                          <div className="text-xs text-orange-600/70 dark:text-orange-400/70">
+                            {suggestion.description}
+                          </div>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            'ml-2',
+                            suggestion.priority === 'high' && 'border-orange-500/20 text-orange-600 dark:border-orange-500/30 dark:text-orange-400',
+                            suggestion.priority === 'medium' && 'border-orange-400/20 text-orange-500 dark:border-orange-400/30 dark:text-orange-300',
+                            suggestion.priority === 'low' && 'border-orange-300/20 text-orange-400 dark:border-orange-300/30 dark:text-orange-200'
+                          )}
+                        >
+                          {suggestion.priority}
+                        </Badge>
                       </div>
-                      <div className="text-xs text-orange-600/70 dark:text-orange-400/70 mt-0.5">
-                        {suggestion.description}
+
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="flex items-center gap-1 text-xs text-orange-500/70 dark:text-orange-400/70">
+                          <Clock className="h-3 w-3" />
+                          {suggestion.duration} min
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-orange-500/70 dark:text-orange-400/70">
+                          <Target className="h-3 w-3" />
+                          {suggestion.difficulty}
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-orange-500/70 dark:text-orange-400/70">
+                          <Music className="h-3 w-3" />
+                          {suggestion.category}
+                        </div>
                       </div>
-                      <div className="text-xs text-orange-500/50 dark:text-orange-400/50 mt-1">
-                        {suggestion.duration} min
+
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {suggestion.tags.map((tag, tagIndex) => (
+                          <Badge
+                            key={tagIndex}
+                            variant="secondary"
+                            className="text-xs bg-orange-100/50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-200/50 dark:border-orange-500/20"
+                          >
+                            <Tag className="h-2.5 w-2.5 mr-1" />
+                            {tag}
+                          </Badge>
+                        ))}
                       </div>
                     </motion.button>
                   ))}

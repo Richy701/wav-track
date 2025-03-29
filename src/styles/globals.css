@@ -27,11 +27,11 @@
   }
 
   .dark {
-    --background: 20 14.3% 4.1%;
+    --background: 240 10% 3.9%;
     --foreground: 0 0% 95%;
-    --card: 24 9.8% 10%;
+    --card: 240 10% 12%;
     --card-foreground: 0 0% 95%;
-    --popover: 0 0% 9%;
+    --popover: 240 10% 12%;
     --popover-foreground: 0 0% 95%;
     --primary: 346.8 77.2% 49.8%;
     --primary-foreground: 355.7 100% 97.3%;
@@ -56,6 +56,22 @@
 
   .animate-pulse {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .card-glow {
+    @apply rounded-2xl bg-[#1C1129] shadow-inner shadow-black/20 shadow-md shadow-black/10;
+  }
+
+  .card-glass {
+    @apply rounded-2xl 
+           bg-white/60 dark:bg-zinc-800/60 
+           backdrop-blur-xl 
+           border border-zinc-200/50 dark:border-zinc-800/50 
+           shadow-inner shadow-black/20 shadow-md shadow-black/10
+           before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br
+           before:from-white/30 before:to-transparent 
+           dark:before:from-white/40 dark:before:to-transparent
+           before:pointer-events-none before:z-0;
   }
 }
 

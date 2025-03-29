@@ -91,11 +91,7 @@ function App() {
                   <Routes>
                     <Route
                       path="/login"
-                      element={
-                        <Suspense fallback={<LoadingScreen message="Loading login..." />}>
-                          <Login />
-                        </Suspense>
-                      }
+                      element={<Login />}
                     />
                     <Route
                       path="/auth/callback"

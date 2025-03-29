@@ -49,6 +49,11 @@ export interface GoalSuggestion {
   title: string
   description: string
   duration: number
+  priority: 'high' | 'medium' | 'low'
+  context: string
+  category: string
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
+  tags: string[]
 }
 
 export interface UseAIAssistantProps {

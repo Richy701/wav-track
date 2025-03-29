@@ -2,7 +2,7 @@ import React, { useEffect, useCallback, useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AICoach } from '@/components/ai-coach/AICoach'
 import { FadeIn } from '@/components/ui/fade-in'
-import { Brain, Clock, Target, TrendingUp, Play, Pause, RotateCcw, Quote, ArrowLeft, BarChart, Coffee, Settings, Menu, Plus, Moon, Check, Edit, Trash, RefreshCw, Radio, Music, X, SkipForward, MoreVertical, Flame, Trophy, Timer, Calendar } from 'lucide-react'
+import { Brain, Clock, Target, TrendingUp, Play, Pause, RotateCcw, Quote, ArrowLeft, BarChart, Coffee, Settings, Menu, Plus, Moon, Check, Edit, Trash, RefreshCw, Radio, Music, X, SkipForward, MoreVertical, Flame, Trophy, Timer, Calendar, Lightbulb, Bell, Sparkles, Mic, Drum, Wand, Music2, Waves } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -29,6 +29,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { useAIAssistant } from '@/lib/ai-assistant'
 import { AISuggestions } from '@/components/ai-suggestions'
+import { PaginatedGoals } from '@/components/sessions/PaginatedGoals'
+import { BaseLayout } from '@/components/layout'
 
 type DatabaseGoal = {
   id: string
@@ -188,8 +190,15 @@ const buttonStyles = {
 }
 
 interface AICoachCardProps {
-  suggestions: Array<{ content: string; priority: 'high' | 'medium' | 'low' }>;
-  className?: string;
+  suggestions: {
+    type: 'tip' | 'goal' | 'reminder' | 'insight'
+    content: string
+    priority: 'high' | 'medium' | 'low'
+    category: string
+    context: string
+    tags: string[]
+  }[]
+  className?: string
 }
 
 // Update the AI Coach section to use the suggestions
@@ -198,23 +207,39 @@ const AICoachCard = ({ suggestions, className }: AICoachCardProps) => (
     variants={cardVariants}
     whileHover="hover"
     className={cn(
-      "rounded-2xl bg-white/50 dark:bg-zinc-900/50",
-      "border border-zinc-200 dark:border-zinc-800",
+      "rounded-2xl bg-gradient-to-br",
+      "from-[#4169E1]/10 via-white/95 to-[#4169E1]/5",
+      "dark:from-[#4169E1]/20 dark:via-background/95 dark:to-[#4169E1]/10",
+      "border border-[#4169E1]/20 dark:border-[#4169E1]/20",
       "backdrop-blur-xl",
-      "hover:border-zinc-300 dark:hover:border-zinc-700",
+      "hover:border-[#4169E1]/30 dark:hover:border-[#4169E1]/30",
       "transition-all duration-300 ease-in-out",
       "shadow-sm hover:shadow-md dark:shadow-none",
       "hover:scale-[1.01]",
-      "flex flex-col",
+      "flex flex-col p-6",
       className
     )}
   >
     <div className="flex items-center space-x-2 mb-4">
-      <Brain className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
-      <h3 className="text-lg font-medium text-zinc-800 dark:text-zinc-50">AI Coach</h3>
+      <Brain className="w-5 h-5 text-[#4169E1] dark:text-[#4169E1]" />
+      <h3 className="text-lg font-medium text-[#4169E1] dark:text-[#4169E1]">AI Coach</h3>
     </div>
     <div className="flex-1 space-y-3">
-      {suggestions.map((suggestion, index) => (
+      {!suggestions || suggestions.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-6 text-center">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Brain className="w-8 h-8 text-[#4169E1]/50 mb-3" />
+            <p className="text-sm text-[#4169E1] dark:text-[#4169E1]">
+              Generating personalized suggestions...
+            </p>
+          </motion.div>
+        </div>
+      ) : (
+        suggestions.map((suggestion, index) => (
         <motion.div
           key={index}
           initial={{ opacity: 0, y: 10 }}
@@ -222,14 +247,64 @@ const AICoachCard = ({ suggestions, className }: AICoachCardProps) => (
           transition={{ delay: index * 0.1 }}
           className={cn(
             "p-3 rounded-xl",
-            suggestion.priority === 'high' && "bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700",
-            suggestion.priority === 'medium' && "bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80",
-            suggestion.priority === 'low' && "bg-zinc-50/50 dark:bg-zinc-800/30 border border-zinc-200/80 dark:border-zinc-700/50"
+            "border",
+              suggestion.priority === 'high' && "bg-[#4169E1]/10 dark:bg-[#4169E1]/20 border-[#4169E1]/20 dark:border-[#4169E1]/30",
+              suggestion.priority === 'medium' && "bg-[#4169E1]/5 dark:bg-[#4169E1]/15 border-[#4169E1]/15 dark:border-[#4169E1]/25",
+              suggestion.priority === 'low' && "bg-[#4169E1]/5 dark:bg-[#4169E1]/10 border-[#4169E1]/10 dark:border-[#4169E1]/20"
           )}
         >
-          <p className="text-sm text-zinc-700 dark:text-zinc-300">{suggestion.content}</p>
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex items-center space-x-2">
+                {suggestion.type === 'tip' && <Lightbulb className="w-4 h-4 text-[#4169E1]" />}
+                {suggestion.type === 'goal' && <Target className="w-4 h-4 text-[#4169E1]" />}
+                {suggestion.type === 'reminder' && <Bell className="w-4 h-4 text-[#4169E1]" />}
+                {suggestion.type === 'insight' && <Sparkles className="w-4 h-4 text-[#4169E1]" />}
+                <span className="text-xs font-medium text-[#4169E1] dark:text-[#4169E1]">
+                {suggestion.type.charAt(0).toUpperCase() + suggestion.type.slice(1)}
+              </span>
+            </div>
+            <Badge
+              variant="outline"
+              className={cn(
+                'text-xs',
+                  suggestion.priority === 'high' && 'border-rose-500/20 text-rose-600 dark:border-rose-500/30 dark:text-rose-400',
+                  suggestion.priority === 'medium' && 'border-amber-500/20 text-amber-600 dark:border-amber-500/30 dark:text-amber-400',
+                  suggestion.priority === 'low' && 'border-emerald-500/20 text-emerald-600 dark:border-emerald-500/30 dark:text-emerald-400'
+              )}
+            >
+              {suggestion.priority}
+            </Badge>
+          </div>
+          <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-2">{suggestion.content}</p>
+          <div className="flex flex-wrap gap-1">
+            {suggestion.tags.map((tag, tagIndex) => (
+              <Badge
+                key={tagIndex}
+                variant="secondary"
+                  className={cn(
+                    "text-xs",
+                    tag.toLowerCase().includes('production') && "bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400",
+                    tag.toLowerCase().includes('mixing') && "bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400",
+                    tag.toLowerCase().includes('recording') && "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400",
+                    tag.toLowerCase().includes('mastering') && "bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400",
+                    tag.toLowerCase().includes('arrangement') && "bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400",
+                    tag.toLowerCase().includes('composition') && "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400",
+                    tag.toLowerCase().includes('sound') && "bg-cyan-100 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400",
+                    tag.toLowerCase().includes('effect') && "bg-pink-100 dark:bg-pink-900/20 text-pink-700 dark:text-pink-400",
+                    tag.toLowerCase().includes('vocal') && "bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400",
+                    tag.toLowerCase().includes('instrument') && "bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400",
+                    // Default color if no specific match
+                    !tag.toLowerCase().match(/(production|mixing|recording|mastering|arrangement|composition|sound|effect|vocal|instrument)/) && 
+                    "bg-slate-100 dark:bg-slate-900/20 text-slate-700 dark:text-slate-400"
+                  )}
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
         </motion.div>
-      ))}
+        ))
+      )}
     </div>
   </motion.div>
 )
@@ -521,94 +596,137 @@ const TimerCard = ({
   )
 }
 
-// Update the SessionCard component with enhanced button functionality
-const SessionCard = ({ session, onPlay, onPause, onComplete, onEdit, onDelete }) => (
+// Update the SessionCard component props interface
+const SessionCard = ({ session, onPlay, onPause, onComplete, onEdit, onDelete, activeGoal, deleteGoalMutation }) => (
   <motion.div
     variants={cardVariants}
-    whileHover="hover"
+    whileHover={{ scale: 1.005 }}
+    transition={{ duration: 0.2, ease: "easeOut" }}
     className={cn(
-      "rounded-2xl bg-gradient-to-br",
-      "from-emerald-100/80 via-white/95 to-white/90",
-      "dark:from-emerald-500/10 dark:via-background/95 dark:to-background/90",
-      "border border-emerald-200/80 dark:border-emerald-500/20",
-      "p-6 backdrop-blur-xl",
-      "hover:border-emerald-300/80 dark:hover:border-emerald-500/30",
+      "group relative rounded-2xl",
+      "bg-[#141414] hover:bg-[#181818]",
+      "border border-neutral-800/50 hover:border-neutral-700",
+      "p-6",
+      "shadow-inner shadow-black/10",
+      "hover:shadow-xl hover:shadow-neutral-900/20",
       "transition-all duration-300 ease-in-out",
-      "shadow-md dark:shadow-none",
-      "hover:scale-[1.01]"
+      "after:absolute after:inset-0 after:rounded-2xl",
+      "after:ring-1 after:ring-inset after:ring-white/5",
+      "after:transition-all after:duration-300",
+      "hover:after:ring-white/10"
     )}
   >
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-2">
-        <Target className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-        <h3 className="text-lg font-medium text-zinc-800 dark:text-zinc-50">{session.title}</h3>
+    {/* Title and Status Section */}
+    <div className="space-y-4">
+      <div className="flex items-start justify-between">
+        <h3 className="text-lg font-medium text-neutral-100 leading-tight group-hover:text-white transition-colors duration-300">
+          {session.title}
+        </h3>
+        <span className={cn(
+          "text-xs px-3 py-1 rounded-full font-medium transition-all duration-300",
+          session.status === 'completed' 
+            ? "bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20 group-hover:text-emerald-300"
+            : "bg-orange-500/10 text-orange-400 group-hover:bg-orange-500/20 group-hover:text-orange-300"
+        )}>
+          {session.status === 'completed' ? 'Completed' : 'In Progress'}
+        </span>
       </div>
-      <div className="flex items-center space-x-2">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => onEdit(session.id)}
-          className="text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100/80 dark:text-emerald-400/70 dark:hover:text-emerald-400 dark:hover:bg-emerald-500/10 px-2 py-1 rounded-lg transition-colors"
-        >
-          <Edit className="w-3 h-3 mr-1 inline-block" />
-          Edit
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => onDelete(session.id)}
-          className="text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-100/80 dark:text-rose-500/70 dark:hover:text-rose-500 dark:hover:bg-rose-500/10 px-2 py-1 rounded-lg transition-colors"
-        >
-          <Trash className="w-3 h-3 mr-1 inline-block" />
-          Delete
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => onComplete(session.id)}
-          className="text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100/80 dark:text-emerald-400/70 dark:hover:text-emerald-400 dark:hover:bg-emerald-500/10 px-2 py-1 rounded-lg transition-colors"
-        >
-          <Check className="w-3 h-3 mr-1 inline-block" />
-          Complete
-        </motion.button>
-      </div>
-    </div>
-    
-    <div className="flex items-center space-x-2 mb-2">
-      <span className={cn(
-        "text-xs px-2 py-0.5 rounded-lg",
-        session.status === 'completed' 
-          ? "bg-emerald-100/80 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400" 
-          : "bg-orange-100/80 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400"
-      )}>
-        {session.status === 'completed' ? 'Completed' : 'In Progress'}
-      </span>
-      <span className="text-xs text-zinc-500 dark:text-white/50">
-        {new Date(session.created_at).toLocaleDateString()}
-      </span>
-    </div>
 
-    <p className="text-sm text-zinc-700 dark:text-white/70 mb-4">
-      {session.project.description || 'No description available'}
-    </p>
+      {/* Description */}
+      <p className="text-sm text-neutral-400 leading-relaxed group-hover:text-neutral-300 transition-colors duration-300">
+        {session.project.description || 'No description available'}
+      </p>
 
-    <div className="flex items-center justify-between">
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-2">
-          <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400/70" />
-          <span className="text-xs text-zinc-600 dark:text-white/50">{session.duration} min</span>
+      {/* Meta Info and Actions */}
+      <div className="flex justify-between items-center pt-4 border-t border-neutral-800 mt-4 group-hover:border-neutral-700/50 transition-colors duration-300">
+        {/* Meta Information */}
+        <div className="flex flex-col gap-2">
+          <span className="text-xs text-neutral-500 group-hover:text-neutral-400 transition-colors duration-300">
+            {new Date(session.created_at).toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-neutral-500 group-hover:text-neutral-400 transition-colors duration-300" />
+              <span className="text-xs text-neutral-400 group-hover:text-neutral-300 transition-colors duration-300">
+                {session.duration} min
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Music className="w-3.5 h-3.5 text-neutral-500 group-hover:text-neutral-400 transition-colors duration-300" />
+              <span className="text-xs text-neutral-400 group-hover:text-neutral-300 transition-colors duration-300">
+                {session.project.bpm} BPM
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Music className="w-4 h-4 text-emerald-600 dark:text-emerald-400/70" />
-          <span className="text-xs text-zinc-600 dark:text-white/50">{session.project.bpm} BPM</span>
-        </div>
-      </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+            onClick={() => onComplete(session.id)}
+            className={cn(
+              "p-2 rounded-lg",
+              "bg-emerald-500/10 text-emerald-400/90",
+              "hover:bg-emerald-500/20 hover:text-emerald-300",
+              "group-hover:bg-emerald-500/15 group-hover:text-emerald-300",
+              "focus:outline-none focus:ring-2 focus:ring-emerald-500/30",
+              "transform transition-all duration-200"
+            )}
+          >
+            <Check className="w-4 h-4" />
+        </motion.button>
+          
+        <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onEdit(session.id)}
+            className={cn(
+              "p-2 rounded-lg",
+              "bg-orange-500/10 text-orange-400/90",
+              "hover:bg-orange-500/20 hover:text-orange-300",
+              "group-hover:bg-orange-500/15 group-hover:text-orange-300",
+              "focus:outline-none focus:ring-2 focus:ring-orange-500/30",
+              "transform transition-all duration-200"
+            )}
+          >
+            <Edit className="w-4 h-4" />
+        </motion.button>
+          
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+            onClick={() => onDelete(session.id)}
+            className={cn(
+              "p-2 rounded-lg",
+              "bg-rose-500/10 text-rose-400/90",
+              "hover:bg-rose-500/20 hover:text-rose-300",
+              "group-hover:bg-rose-500/15 group-hover:text-rose-300",
+              "focus:outline-none focus:ring-2 focus:ring-rose-500/30",
+              "transform transition-all duration-200"
+            )}
+          >
+            <Trash className="w-4 h-4" />
+        </motion.button>
       
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => session.status === 'completed' ? onPause(session.id) : onPlay(session.id)}
-        className="w-8 h-8 rounded-full border border-emerald-200/80 dark:border-emerald-500/20 text-emerald-600 dark:text-white hover:bg-emerald-100/80 dark:hover:bg-emerald-500/10 hover:border-emerald-300/80 dark:hover:border-emerald-500/30 transition-colors flex items-center justify-center"
+            className={cn(
+              "p-2 rounded-lg",
+              "bg-neutral-800 text-neutral-400",
+              "hover:bg-neutral-700 hover:text-neutral-300",
+              "group-hover:bg-neutral-700/80 group-hover:text-neutral-300",
+              "focus:outline-none focus:ring-2 focus:ring-neutral-500/30",
+              "transform transition-all duration-200"
+            )}
       >
         {session.status === 'completed' ? (
           <Pause className="w-4 h-4" />
@@ -616,78 +734,108 @@ const SessionCard = ({ session, onPlay, onPause, onComplete, onEdit, onDelete })
           <Play className="w-4 h-4 ml-0.5" />
         )}
       </motion.button>
+        </div>
+      </div>
     </div>
   </motion.div>
 )
 
 // Update the EditGoalModal component
 const EditGoalModal = ({ goal, isOpen, onClose, onSave }: EditGoalModalProps) => {
-  const [title, setTitle] = useState(goal?.title || '')
-  const [description, setDescription] = useState(goal?.description || '')
-  const [priority, setPriority] = useState<'high' | 'medium' | 'low'>(goal?.priority || 'medium')
+  const [title, setTitle] = useState(goal?.goal_text || '');
+  const [description, setDescription] = useState(goal?.description || '');
+  const [duration, setDuration] = useState(goal?.expected_duration_minutes?.toString() || '25');
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (goal) {
+      setTitle(goal.goal_text);
+      setDescription(goal.description || '');
+      setDuration(goal.expected_duration_minutes?.toString() || '25');
+    }
+  }, [goal]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const priority = getPriorityFromDuration(Number(duration));
+    onSave({ title, description, priority });
+    onClose();
+  };
+
+  if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-background border-zinc-200 dark:border-zinc-800 p-4 sm:p-6">
-        <DialogHeader>
-          <DialogTitle className="text-zinc-900 dark:text-zinc-50">
-            {goal ? 'Edit Goal' : 'Add Goal'}
-          </DialogTitle>
-          <DialogDescription className="text-zinc-600 dark:text-zinc-400">
-            Make changes to your session goal here.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-md p-6 mx-4 space-y-4 bg-[#121212] rounded-xl border border-orange-500/20">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-medium text-white">Edit Goal</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-8 h-8 text-neutral-400 hover:text-white"
+            onClick={onClose}
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title" className="text-zinc-900 dark:text-zinc-50">
-              Title
-            </Label>
-            <Input
-              id="title"
+            <label className="text-sm text-neutral-400">Title</label>
+            <input
+              type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="bg-white dark:bg-background border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-50"
+              className="w-full px-3 py-2 text-sm bg-[#1A1A1A] text-white border border-orange-500/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/30"
+              placeholder="What do you want to achieve?"
+              required
             />
           </div>
+          
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-zinc-900 dark:text-zinc-50">
-              Description
-            </Label>
-            <Textarea
-              id="description"
+            <label className="text-sm text-neutral-400">Description (optional)</label>
+            <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="bg-white dark:bg-background border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-50"
+              className="w-full h-24 px-3 py-2 text-sm bg-[#1A1A1A] text-white border border-orange-500/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/30 resize-none"
+              placeholder="Add more details about your goal..."
             />
           </div>
+          
           <div className="space-y-2">
-            <Label className="text-zinc-900 dark:text-zinc-50">
-              Priority
-            </Label>
-            <Select value={priority} onValueChange={(value: 'high' | 'medium' | 'low') => setPriority(value)}>
-              <SelectTrigger className="bg-white dark:bg-background border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-50">
-                <SelectValue placeholder="Select priority" />
-              </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-background border-zinc-200 dark:border-zinc-800">
-                <SelectItem value="high" className="text-zinc-900 dark:text-zinc-50">High</SelectItem>
-                <SelectItem value="medium" className="text-zinc-900 dark:text-zinc-50">Medium</SelectItem>
-                <SelectItem value="low" className="text-zinc-900 dark:text-zinc-50">Low</SelectItem>
-              </SelectContent>
-            </Select>
+            <label className="text-sm text-neutral-400">Duration (minutes)</label>
+            <input
+              type="number"
+              min="1"
+              max="120"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              className="w-full px-3 py-2 text-sm bg-[#1A1A1A] text-white border border-orange-500/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/30"
+              required
+            />
           </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} className="border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-50">
-            Cancel
-          </Button>
-          <Button onClick={() => onSave({ title, description, priority })} className={buttonStyles.gradient}>
-            Save
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
+          
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onClose}
+              className="text-neutral-400 hover:text-white hover:bg-neutral-800"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              Save Changes
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 // Delete Confirmation Modal
 const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm }: DeleteConfirmationModalProps) => {
@@ -719,13 +867,12 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm }: DeleteConfirmat
 const AddGoalModal = ({ isOpen, onClose, onSave }) => {
   const [title, setTitle] = React.useState('')
   const [description, setDescription] = React.useState('')
-  const [duration, setDuration] = React.useState('')
+  const [duration, setDuration] = React.useState('25')
   const [isSaving, setIsSaving] = React.useState(false)
+  const [isAIOpen, setIsAIOpen] = React.useState(false)
   const { toast } = useToast()
-  const queryClient = useQueryClient()
   const [user, setUser] = React.useState<UserType | null>(null)
   const formRef = React.useRef<HTMLFormElement>(null)
-  const [showSuggestions, setShowSuggestions] = React.useState(false)
 
   // Get user on component mount
   React.useEffect(() => {
@@ -736,37 +883,6 @@ const AddGoalModal = ({ isOpen, onClose, onSave }) => {
     getUser()
   }, [])
 
-  // Add AI Assistant integration
-  const {
-    suggestions,
-    isLoading,
-    fetchSuggestions,
-    handleSuggestionSelect,
-    generateGoal,
-  } = useAIAssistant({
-    onSuggestionSelect: (suggestion) => {
-      setTitle(suggestion.title)
-      setDescription(suggestion.description)
-      setDuration(suggestion.duration.toString())
-      setShowSuggestions(false)
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to get AI suggestions. Using fallback suggestions.",
-        variant: "destructive",
-        duration: 3000,
-      })
-    }
-  })
-
-  // Handle title input change with debounced AI suggestions
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setTitle(value)
-    fetchSuggestions(value)
-  }
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
@@ -775,16 +891,6 @@ const AddGoalModal = ({ isOpen, onClose, onSave }) => {
       toast({
         title: "Validation Error",
         description: "Title is required",
-        variant: "destructive",
-        duration: 3000,
-      })
-      return
-    }
-
-    if (duration && isNaN(Number(duration))) {
-      toast({
-        title: "Validation Error",
-        description: "Duration must be a number",
         variant: "destructive",
         duration: 3000,
       })
@@ -803,36 +909,19 @@ const AddGoalModal = ({ isOpen, onClose, onSave }) => {
 
     setIsSaving(true)
     try {
-      const { data, error } = await supabase
-        .from('session_goals')
-        .insert({
-          user_id: user.id,
-          goal_text: title.trim(),
-          description: description.trim() || null,
-          expected_duration_minutes: duration ? Number(duration) : 25,
-          status: 'pending' as const,
-          created_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Invalidate queries to refresh the goals list
-      queryClient.invalidateQueries(['goals', user.id]);
-      queryClient.invalidateQueries(['session-stats']);
+      // Call the onSave prop with the goal data
+      onSave({
+        title: title.trim(),
+        description: description.trim(),
+        duration: Number(duration)
+      });
 
       // Reset form
       formRef.current?.reset();
       setTitle('');
       setDescription('');
-      setDuration('');
-      
-      toast({
-        title: "Goal Created",
-        description: "Your session goal has been created successfully",
-        duration: 3000,
-      });
+      setDuration('25');
+      onClose();
     } catch (error) {
       toast({
         title: "Error",
@@ -873,72 +962,118 @@ const AddGoalModal = ({ isOpen, onClose, onSave }) => {
                 type="text"
                 name="title"
                 value={title}
-                onChange={handleTitleChange}
+                onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. 'Create a melodic hook for the chorus' or 'Mix the drum patterns'"
-                className="w-full bg-gradient-to-br from-white/80 to-white/60 dark:from-zinc-800/80 dark:to-zinc-900/60 border border-orange-200/50 dark:border-orange-500/20 rounded-2xl px-4 py-3 text-base font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-sm placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40 focus:border-orange-500/30 dark:focus:border-orange-500/40 transition-all shadow-sm dark:shadow-inner-sm pr-10"
+                className="w-full bg-gradient-to-br from-white/80 to-white/60 dark:from-zinc-800/80 dark:to-zinc-900/60 border border-orange-200/50 dark:border-orange-500/20 rounded-2xl px-4 py-3 text-base font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-sm placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40 focus:border-orange-500/30 dark:focus:border-orange-500/40 transition-all shadow-sm dark:shadow-inner-sm pr-20"
               />
-            </div>
-            <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <Label htmlFor="description" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                  Description
-                </Label>
-                <Popover open={showSuggestions} onOpenChange={setShowSuggestions}>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       type="button"
                       variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-orange-100/50 dark:hover:bg-orange-500/10 transition-colors"
+                      size="sm"
+                      className="text-orange-600/70 dark:text-orange-400/70 hover:text-orange-600 dark:hover:text-orange-400"
                     >
-                      <Brain className="h-4 w-4" />
+                      <Brain className="w-4 h-4" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent 
-                    align="end" 
-                    className="w-72 p-4 bg-gradient-to-br from-zinc-900/95 to-black/95 dark:from-black/95 dark:to-zinc-900/95 border border-orange-500/20 rounded-xl shadow-xl backdrop-blur-sm z-50"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-neutral-200">
-                          Need help phrasing your goal?
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={generateGoal}
-                          className="text-xs text-orange-400 hover:text-orange-300 hover:bg-orange-500/10"
-                        >
-                          ✨ Generate
-                        </Button>
-                      </div>
-                      <div className="space-y-2">
-                        {isLoading ? (
-                          <div className="flex items-center justify-center py-2">
-                            <RefreshCw className="h-4 w-4 animate-spin text-orange-500" />
-                          </div>
-                        ) : (
-                          <div className="flex flex-wrap gap-2">
-                            {suggestions.map((suggestion, index) => (
-                              <Button
-                                key={index}
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleSuggestionSelect(suggestion)}
-                                className="px-3 py-1 h-auto text-xs bg-zinc-800 hover:bg-zinc-700 text-neutral-200 hover:text-white rounded-full border border-orange-500/20 hover:border-orange-500/30 transition-colors"
-                              >
-                                {suggestion.title}
-                              </Button>
-                            ))}
-                          </div>
+                  <PopoverContent className="w-80 p-0 bg-[#121212] border-neutral-800">
+                    <div className="shadow-inner shadow-black/20 rounded-2xl p-4 space-y-2">
+                      <h3 className="text-sm text-muted-foreground mb-2 px-1">AI Suggestions</h3>
+                      
+                      <Button
+                        variant="ghost"
+                        className={cn(
+                          "w-full rounded-xl p-2.5 transition-all duration-200 group relative",
+                          title === "Record and layer vocal harmonies"
+                            ? "bg-[#2C1F1D] ring-1 ring-orange-500/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
+                            : "hover:bg-[#2C1F1D]/70"
                         )}
-                      </div>
+                        onClick={() => {
+                          setTitle("Record and layer vocal harmonies");
+                          setDescription("Create rich vocal textures by recording multiple harmony parts, focusing on thirds and fifths. Experiment with different vocal placements and stereo positioning.");
+                          setDuration("45");
+                          setIsAIOpen(false);
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Mic className="w-5 h-5 text-orange-400 shrink-0" />
+                          <p className="font-medium text-neutral-100">Record Vocal Harmonies</p>
+                        </div>
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        className={cn(
+                          "w-full rounded-xl p-2.5 transition-all duration-200 group relative",
+                          title === "Mix and process drum patterns"
+                            ? "bg-[#2C1F1D] ring-1 ring-orange-500/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
+                            : "hover:bg-[#2C1F1D]/70"
+                        )}
+                        onClick={() => {
+                          setTitle("Mix and process drum patterns");
+                          setDescription("Apply EQ, compression, and spatial effects to individual drum tracks. Focus on kick-snare balance, hi-hat dynamics, and overall groove cohesion.");
+                          setDuration("30");
+                          setIsAIOpen(false);
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Music2 className="w-5 h-5 text-orange-400 shrink-0" />
+                          <p className="font-medium text-neutral-100">Mix Drum Patterns</p>
+                        </div>
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        className={cn(
+                          "w-full rounded-xl p-2.5 transition-all duration-200 group relative",
+                          title === "Design synth bass sound"
+                            ? "bg-[#2C1F1D] ring-1 ring-orange-500/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
+                            : "hover:bg-[#2C1F1D]/70"
+                        )}
+                        onClick={() => {
+                          setTitle("Design synth bass sound");
+                          setDescription("Create a distinctive bass sound using subtractive synthesis, focusing on filter modulation and envelope shaping. Write a compelling bassline that complements the chord progression.");
+                          setDuration("35");
+                          setIsAIOpen(false);
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Waves className="w-5 h-5 text-orange-400 shrink-0" />
+                          <p className="font-medium text-neutral-100">Design Synth Bass</p>
+                        </div>
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        className={cn(
+                          "w-full rounded-xl p-2.5 transition-all duration-200 group relative",
+                          title === "Arrange transition effects"
+                            ? "bg-[#2C1F1D] ring-1 ring-orange-500/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
+                            : "hover:bg-[#2C1F1D]/70"
+                        )}
+                        onClick={() => {
+                          setTitle("Arrange transition effects");
+                          setDescription("Create engaging transitions between song sections using risers, impacts, and automated filter sweeps. Focus on building tension and release points.");
+                          setDuration("25");
+                          setIsAIOpen(false);
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Wand className="w-5 h-5 text-orange-400 shrink-0" />
+                          <p className="font-medium text-neutral-100">Design Transitions</p>
+                        </div>
+                      </Button>
                     </div>
                   </PopoverContent>
                 </Popover>
               </div>
+            </div>
+            <div className="relative">
+              <Label htmlFor="description" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                Description
+              </Label>
               <textarea
                 name="description"
                 value={description}
@@ -957,12 +1092,12 @@ const AddGoalModal = ({ isOpen, onClose, onSave }) => {
                       <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Duration</span>
                     </div>
                     <span className="text-sm font-medium px-2 py-0.5 rounded-lg bg-orange-100/50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">
-                      {duration || 25} min
+                      {duration} min
                     </span>
                   </div>
                   <div className="px-1">
                     <Slider
-                      value={[duration ? Number(duration) : 25]}
+                      value={[Number(duration)]}
                       min={5}
                       max={60}
                       step={5}
@@ -1033,8 +1168,8 @@ const Sessions: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   
-  // Add AI suggestions state and handlers
-  const { suggestions: coachSuggestions, refreshSuggestions } = useAICoach()
+  // Update AI suggestions state and handlers
+  const { suggestions: coachSuggestions, refreshSuggestions, isLoading: isLoadingAICoach } = useAICoach()
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -1160,36 +1295,42 @@ const Sessions: React.FC = () => {
 
     setIsSaving(true)
     try {
+      // Create the goal
       const { data, error } = await supabase
         .from('session_goals')
         .insert({
+          user_id: user.id,
           goal_text: title.trim(),
-          description: description.trim() || null,
           expected_duration_minutes: durationValue,
           status: 'pending' as const,
-          user_id: user.id,
           created_at: new Date().toISOString()
         })
         .select()
-        .single()
+        .single();
 
-      if (error) throw error
+      if (error) throw error;
+
+      // Set the active goal
+      if (data) {
+        setActiveGoal(mapDatabaseGoalToGoal(data));
+      }
 
       // Invalidate queries to refresh the goals list
-      queryClient.invalidateQueries(['goals', user.id])
-      queryClient.invalidateQueries(['session-stats'])
+      queryClient.invalidateQueries(['goals', user.id]);
+      queryClient.invalidateQueries(['session-stats']);
 
       // Reset form
-      setTitle('')
-      setDescription('')
-      setDurationValue(25)
-      
+      setTitle('');
+      setDescription('');
+      setDurationValue(25);
+
       toast({
         title: "Goal Created",
         description: "Your session goal has been created successfully",
         duration: 3000,
-      })
+      });
     } catch (error) {
+      console.error('Error creating goal:', error);
       toast({
         title: "Error",
         description: "Failed to create goal",
@@ -1614,92 +1755,45 @@ const Sessions: React.FC = () => {
     getUser()
   }, [])
 
+  // Add this near the other mutations
+  const deleteGoalMutation = useMutation({
+    mutationFn: async (goalId: string) => {
+      const { error } = await supabase
+        .from('session_goals')
+        .delete()
+        .eq('id', goalId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      if (!user?.id) return;
+      queryClient.invalidateQueries(['goals', user.id]);
+      setActiveGoal(null);
+      toast({
+        title: "Goal Deleted",
+        description: "Your goal has been deleted successfully",
+        duration: 3000,
+      });
+    },
+    onError: (error) => {
+      console.error('Error deleting goal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete goal",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  });
+
   return (
-    <div className="min-h-screen bg-white dark:bg-background text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-background/80 backdrop-blur-xl transition-colors duration-300">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/')}
-                className="rounded-full text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent">
-                WavTrack
-              </h1>
+    <BaseLayout>
+      <div className="space-y-8">
+        <div className="flex items-center space-x-3">
+          <Clock className="w-6 h-6 text-emerald-500" />
+          <h1 className="text-2xl font-semibold">Production Sessions</h1>
             </div>
             
-            <div className="flex items-center space-x-6">
-              <Button 
-                variant="ghost" 
-                className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-neutral-100/80 dark:hover:bg-white/5"
-                onClick={() => navigate('/sessions')}
-              >
-                Sessions
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-neutral-100/80 dark:hover:bg-white/5"
-                onClick={() => navigate('/profile')}
-              >
-                Profile
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-neutral-100/80 dark:hover:bg-white/5"
-                onClick={() => navigate('/settings')}
-              >
-                Settings
-              </Button>
-              <ThemeSwitcher />
-              {user && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-white/5 dark:hover:bg-white/10 text-neutral-700 dark:text-neutral-300"
-                    >
-                      {(user as UserType).email?.[0].toUpperCase() || 'U'}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem onClick={() => navigate('/profile')} className="text-neutral-700 dark:text-neutral-200">
-                      <UserIcon className="mr-2 h-4 w-4" />
-                      Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/settings')} className="text-neutral-700 dark:text-neutral-200">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Settings
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => supabase.auth.signOut()} className="text-neutral-700 dark:text-neutral-200">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <main className="container mx-auto px-3 sm:px-4 pt-20 max-w-7xl">
-        <div className="flex items-center space-x-3 mb-6">
-          <Clock className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-          <h1 className="text-xl font-semibold text-neutral-900 dark:text-emerald-400">Production Sessions</h1>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr,1fr] gap-4 sm:gap-5">
-          {/* Main Content (Left Column) */}
-          <div className="space-y-4 sm:space-y-5">
-            {/* Timer Card */}
             <TimerCard
               isWorking={isWorking}
               timeLeft={timeLeft}
@@ -1715,28 +1809,15 @@ const Sessions: React.FC = () => {
               className="p-4 sm:p-6"
             />
 
-            {/* Session Goal and Progress Grid */}
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: {},
-                visible: {
-                  transition: {
-                    staggerChildren: 0.1,
-                  },
-                },
-              }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 min-h-[520px]"
-            >
-              {/* Session Goal Card and Progress Stats Card content */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 w-full">
+          {/* Active Goal Card */}
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 10 },
                   visible: { opacity: 1, y: 0 }
                 }}
                 whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
                 className={cn(
                   "rounded-xl bg-gradient-to-br",
                   "from-orange-50 via-white/95 to-white/90",
@@ -1753,211 +1834,292 @@ const Sessions: React.FC = () => {
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-2">
                     <Target className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                    <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">Session Goal</h3>
+                <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
+                  Session Goal
+                </h3>
                   </div>
                 </div>
                 
                 {activeGoal ? (
-                  <>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100/80 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400">
-                        {activeGoal.status === 'completed' ? 'Completed' : 'In Progress'}
-                      </span>
-                      <span className="text-xs text-neutral-500 dark:text-neutral-500">
-                        {new Date(activeGoal.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <p className="text-sm text-neutral-700 dark:text-white/70 mb-4">
-                      {activeGoal.goal_text || 'No description available'}
-                    </p>
+              <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <Clock className="w-4 h-4 text-orange-600/70 dark:text-orange-400/70" />
-                        <span className="text-xs text-zinc-600 dark:text-white/50">{activeGoal.expected_duration_minutes} min</span>
+                        <div className="h-2 w-2 rounded-full bg-orange-500/70 animate-pulse" />
+                        <span className="text-xs font-medium text-orange-500/70">
+                          {activeGoal.status === 'completed' ? 'Completed' : 'In Progress'}
+                        </span>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 hover:bg-orange-100/80 dark:hover:bg-orange-500/10"
-                          onClick={() => handleEditGoal(activeGoal)}
-                        >
-                          <Edit className="w-3 h-3 mr-1" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 hover:bg-rose-100/80 dark:hover:bg-rose-500/10"
-                          onClick={() => {
-                            setSelectedGoal(activeGoal)
-                            setIsDeleteModalOpen(true)
-                          }}
-                        >
-                          <Trash className="w-3 h-3 mr-1" />
-                          Delete
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 hover:bg-emerald-100/80 dark:hover:bg-emerald-500/10"
-                          onClick={() => completeGoalMutation.mutate(activeGoal.id)}
-                        >
-                          <Check className="w-3 h-3 mr-1" />
-                          Complete
-                        </Button>
+                      <span className="text-xs text-neutral-500">
+                        {new Date(activeGoal.created_at).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                  <h3 className="text-base font-medium text-neutral-900 dark:text-neutral-100 leading-tight">
+                        {activeGoal.goal_text}
+                      </h3>
+                      
+                      {activeGoal.description && (
+                    <div className="space-y-3">
+                      <h3 className="text-base font-medium text-neutral-900 dark:text-neutral-100 leading-tight">
+                        {activeGoal.goal_text}
+                      </h3>
+                      
+                      {activeGoal.description && (
+                        <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                          {activeGoal.description}
+                        </p>
+                      )}
+
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="flex items-center space-x-2">
+                          <Clock className="w-4 h-4 text-orange-400/70" />
+                          <span className="text-xs text-neutral-500">
+                            {activeGoal.expected_duration_minutes} min
+                          </span>
+                        </div>
+
+                        <div className="flex items-center space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 text-xs text-orange-400 hover:text-orange-300 hover:bg-orange-500/10"
+                            onClick={() => {
+                              if (activeGoal) {
+                                setSelectedGoal(activeGoal);
+                                setIsEditModalOpen(true);
+                              }
+                            }}
+                          >
+                            <Edit className="w-3 h-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                            onClick={() => {
+                              if (activeGoal) {
+                                deleteGoalMutation.mutate(activeGoal.id);
+                              }
+                            }}
+                          >
+                            <Trash className="w-3 h-3 mr-1" />
+                            Delete
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                            onClick={async () => {
+                              if (!activeGoal?.id || !user?.id) return;
+                              
+                              try {
+                                const { error } = await supabase
+                                  .from('session_goals')
+                                  .update({ 
+                                    status: 'completed'
+                                  })
+                                  .eq('id', activeGoal.id);
+
+                                if (error) throw error;
+
+                                queryClient.invalidateQueries(['goals', user.id]);
+                                setActiveGoal(null);
+
+                                toast({
+                                  title: "Goal Completed",
+                                  description: "Your goal has been marked as complete",
+                                  duration: 3000,
+                                });
+                              } catch (error) {
+                                console.error('Error completing goal:', error);
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to complete goal",
+                                  variant: "destructive",
+                                  duration: 3000,
+                                });
+                              }
+                            }}
+                          >
+                            <Check className="w-3 h-3 mr-1" />
+                            Complete
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </>
-                ) : (
-                  <motion.form 
-                    ref={formRef}
-                    onSubmit={handleSubmit}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                    className="flex flex-col gap-4"
-                  >
-                    <div className="space-y-4">
-                      <div>
-                        <input
-                          type="text"
-                          name="title"
-                          value={title}
-                          onChange={(e) => setTitle(e.target.value)}
-                          placeholder="e.g. 'Create a melodic hook for the chorus' or 'Mix the drum patterns'"
-                          className="w-full bg-gradient-to-br from-white/80 to-white/60 dark:from-zinc-800/80 dark:to-zinc-900/60 border border-orange-200/50 dark:border-orange-500/20 rounded-2xl px-4 py-3 text-base font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-sm placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40 focus:border-orange-500/30 dark:focus:border-orange-500/40 transition-all shadow-sm dark:shadow-inner-sm pr-10"
-                        />
-                      </div>
-                      <div className="relative">
-                        <div className="flex items-center justify-between mb-2">
-                          <Label htmlFor="description" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                            Description
-                          </Label>
-                          <Popover open={showSuggestions} onOpenChange={setShowSuggestions}>
-                            <PopoverTrigger asChild>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-orange-100/50 dark:hover:bg-orange-500/10 transition-colors"
-                              >
-                                <Brain className="h-4 w-4" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent 
-                              align="end" 
-                              className="w-72 p-4 bg-gradient-to-br from-zinc-900/95 to-black/95 dark:from-black/95 dark:to-zinc-900/95 border border-orange-500/20 rounded-xl shadow-xl backdrop-blur-sm z-50"
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="e.g. 'Create a melodic hook for the chorus' or 'Mix the drum patterns'"
+                        className="w-full bg-gradient-to-br from-white/80 to-white/60 dark:from-zinc-800/80 dark:to-zinc-900/60 border border-orange-200/50 dark:border-orange-500/20 rounded-2xl px-4 py-3 text-base font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-sm placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40 focus:border-orange-500/30 dark:focus:border-orange-500/40 transition-all shadow-sm dark:shadow-inner-sm pr-20"
+                      />
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-orange-600/70 dark:text-orange-400/70 hover:text-orange-600 dark:hover:text-orange-400"
                             >
-                              <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm font-medium text-neutral-200">
-                                    Need help phrasing your goal?
-                                  </span>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={generateSuggestions}
-                                    className="text-xs text-orange-400 hover:text-orange-300 hover:bg-orange-500/10"
-                                  >
-                                    ✨ Generate
-                                  </Button>
-                                </div>
-                                <div className="space-y-2">
-                                  {isLoadingAI ? (
-                                    <div className="flex items-center justify-center py-2">
-                                      <RefreshCw className="h-4 w-4 animate-spin text-orange-500" />
-                                    </div>
-                                  ) : (
-                                    <div className="flex flex-wrap gap-2">
-                                      {aiSuggestions.map((suggestion, index) => (
-                                        <Button
-                                          key={index}
-                                          type="button"
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleSuggestionSelect(suggestion)}
-                                          className="px-3 py-1 h-auto text-xs bg-zinc-800 hover:bg-zinc-700 text-neutral-200 hover:text-white rounded-full border border-orange-500/20 hover:border-orange-500/30 transition-colors"
-                                        >
-                                          {suggestion.title}
-                                        </Button>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                        <textarea
-                          name="description"
-                          value={description}
-                          onChange={(e) => setDescription(e.target.value)}
-                          placeholder="Add some details about your goal (optional)"
-                          rows={3}
-                          className="w-full bg-gradient-to-br from-white/80 to-white/60 dark:from-zinc-800/80 dark:to-zinc-900/60 border border-orange-200/50 dark:border-orange-500/20 rounded-2xl px-4 py-3 text-base font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-sm placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40 focus:border-orange-500/30 dark:focus:border-orange-500/40 transition-all resize-none shadow-sm dark:shadow-inner-sm"
-                        />
-                      </div>
-                      <div className="flex items-end gap-3">
-                        <div className="flex-1">
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-1.5">
-                                <Clock className="w-4 h-4 text-orange-600/50 dark:text-orange-400/50" />
-                                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Duration</span>
-                              </div>
-                              <span className="text-sm font-medium px-2 py-0.5 rounded-lg bg-orange-100/50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">
-                                {durationValue} min
-                              </span>
-                            </div>
-                            <div className="px-1">
-                              <Slider
-                                value={[durationValue]}
-                                min={5}
-                                max={60}
-                                step={5}
-                                onValueChange={(value) => setDurationValue(value[0])}
+                              <Brain className="w-4 h-4" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-0 bg-[#121212] border-neutral-800">
+                            <div className="shadow-inner shadow-black/20 rounded-2xl p-4 space-y-2">
+                              <h3 className="text-sm text-muted-foreground mb-2 px-1">AI Suggestions</h3>
+                              
+                              <Button
+                                variant="ghost"
                                 className={cn(
-                                  "relative flex items-center select-none touch-none w-full transition-colors",
-                                  "[&_[role=slider]]:h-4 [&_[role=slider]]:w-4",
-                                  "[&_[role=slider]]:transition-all",
-                                  "[&_[role=slider]]:bg-orange-500 [&_[role=slider]]:border-orange-500",
-                                  "dark:[&_[role=slider]]:bg-orange-400 dark:[&_[role=slider]]:border-orange-400",
-                                  "[&_[role=slider]]:hover:scale-110",
-                                  "[&_[role=slider]]:focus:scale-110",
-                                  "[&_[role=slider]]:outline-none",
-                                  "[&_[role=slider]]:rounded-full",
-                                  "[&_[role=slider]]:border-2",
-                                  "[&_[role=slider]]:shadow-sm",
-                                  "[&_[role=slider]]:transition-transform",
-                                  "[&_[role=slider]]:duration-200"
+                                  "w-full rounded-xl p-2.5 transition-all duration-200 group relative",
+                                  title === "Record and layer vocal harmonies"
+                                    ? "bg-[#2C1F1D] ring-1 ring-orange-500/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
+                                    : "hover:bg-[#2C1F1D]/70"
                                 )}
-                              />
-                              <div className="flex justify-between mt-1">
-                                <span className="text-xs text-neutral-500 dark:text-neutral-400">5 min</span>
-                                <span className="text-xs text-neutral-500 dark:text-neutral-400">60 min</span>
-                              </div>
+                                onClick={() => {
+                                  setTitle("Record and layer vocal harmonies");
+                                  setDescription("Create rich vocal textures by recording multiple harmony parts, focusing on thirds and fifths. Experiment with different vocal placements and stereo positioning.");
+                                  setDurationValue(45);
+                                }}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <Mic className="w-5 h-5 text-orange-400 shrink-0" />
+                                  <p className="font-medium text-neutral-100">Record Vocal Harmonies</p>
+                                </div>
+                              </Button>
+
+                              <Button
+                                variant="ghost"
+                                className={cn(
+                                  "w-full rounded-xl p-2.5 transition-all duration-200 group relative",
+                                  title === "Mix and process drum patterns"
+                                    ? "bg-[#2C1F1D] ring-1 ring-orange-500/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
+                                    : "hover:bg-[#2C1F1D]/70"
+                                )}
+                                onClick={() => {
+                                  setTitle("Mix and process drum patterns");
+                                  setDescription("Apply EQ, compression, and spatial effects to individual drum tracks. Focus on kick-snare balance, hi-hat dynamics, and overall groove cohesion.");
+                                  setDurationValue(30);
+                                }}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <Music2 className="w-5 h-5 text-orange-400 shrink-0" />
+                                  <p className="font-medium text-neutral-100">Mix Drum Patterns</p>
+                                </div>
+                              </Button>
+
+                              <Button
+                                variant="ghost"
+                                className={cn(
+                                  "w-full rounded-xl p-2.5 transition-all duration-200 group relative",
+                                  title === "Design synth bass sound"
+                                    ? "bg-[#2C1F1D] ring-1 ring-orange-500/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
+                                    : "hover:bg-[#2C1F1D]/70"
+                                )}
+                                onClick={() => {
+                                  setTitle("Design synth bass sound");
+                                  setDescription("Create a distinctive bass sound using subtractive synthesis, focusing on filter modulation and envelope shaping. Write a compelling bassline that complements the chord progression.");
+                                  setDurationValue(35);
+                                }}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <Waves className="w-5 h-5 text-orange-400 shrink-0" />
+                                  <p className="font-medium text-neutral-100">Design Synth Bass</p>
+                                </div>
+                              </Button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <textarea
+                        name="description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Add some details about your goal (optional)"
+                        rows={3}
+                        className="w-full bg-gradient-to-br from-white/80 to-white/60 dark:from-zinc-800/80 dark:to-zinc-900/60 border border-orange-200/50 dark:border-orange-500/20 rounded-2xl px-4 py-3 text-base font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-sm placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40 focus:border-orange-500/30 dark:focus:border-orange-500/40 transition-all resize-none shadow-sm dark:shadow-inner-sm"
+                      />
+                    </div>
+                    <div className="flex items-end gap-3">
+                      <div className="flex-1">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5">
+                              <Clock className="w-4 h-4 text-orange-600/50 dark:text-orange-400/50" />
+                              <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Duration</span>
+                            </div>
+                            <span className="text-sm font-medium px-2 py-0.5 rounded-lg bg-orange-100/50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">
+                              {durationValue} min
+                            </span>
+                          </div>
+                          <div className="px-1">
+                            <Slider
+                              value={[durationValue]}
+                              min={5}
+                              max={60}
+                              step={5}
+                              onValueChange={(value) => setDurationValue(value[0])}
+                              className={cn(
+                                "relative flex items-center select-none touch-none w-full transition-colors",
+                                "[&_[role=slider]]:h-4 [&_[role=slider]]:w-4",
+                                "[&_[role=slider]]:transition-all",
+                                "[&_[role=slider]]:bg-orange-500 [&_[role=slider]]:border-orange-500",
+                                "dark:[&_[role=slider]]:bg-orange-400 dark:[&_[role=slider]]:border-orange-400",
+                                "[&_[role=slider]]:hover:scale-110",
+                                "[&_[role=slider]]:focus:scale-110",
+                                "[&_[role=slider]]:outline-none",
+                                "[&_[role=slider]]:rounded-full",
+                                "[&_[role=slider]]:border-2",
+                                "[&_[role=slider]]:shadow-sm",
+                                "[&_[role=slider]]:transition-transform",
+                                "[&_[role=slider]]:duration-200"
+                              )}
+                            />
+                            <div className="flex justify-between mt-1">
+                              <span className="text-xs text-neutral-500 dark:text-neutral-400">5 min</span>
+                              <span className="text-xs text-neutral-500 dark:text-neutral-400">60 min</span>
                             </div>
                           </div>
                         </div>
-                        <Button
-                          type="submit"
-                          disabled={isSaving}
-                          className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2.5 rounded-xl transition-all duration-150 shadow-md hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40"
-                        >
-                          {isSaving ? (
-                            <>
-                              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                              Saving...
-                            </>
-                          ) : (
-                            'Create Goal'
-                          )}
-                        </Button>
                       </div>
+                      <Button
+                        type="submit"
+                        disabled={isSaving}
+                        className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2.5 rounded-xl transition-all duration-150 shadow-md hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/40"
+                      >
+                        {isSaving ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          'Create Goal'
+                        )}
+                      </Button>
                     </div>
-                  </motion.form>
+                  </div>
+                </form>
+                  </div>
                 )}
               </motion.div>
 
@@ -1968,7 +2130,7 @@ const Sessions: React.FC = () => {
                   visible: { opacity: 1, y: 0 }
                 }}
                 whileHover={{ scale: 1.01 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
                 className={cn(
                   "rounded-2xl bg-gradient-to-br",
                   "from-purple-100/90 via-white/95 to-purple-50/80",
@@ -2131,235 +2293,46 @@ const Sessions: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              </motion.div>
             </motion.div>
 
-            {/* Goals List - Moved from right column */}
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="space-y-4"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Target className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
-                  <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">Recent Goals</h3>
-                </div>
-              </div>
-
-              {goals.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {goals.map((goal) => (
-                    <motion.div
-                      key={goal.id}
-                      variants={cardVariants}
-                      className={cn(
-                        "rounded-xl bg-white dark:bg-zinc-900/5",
-                        "border border-zinc-200 dark:border-zinc-800",
-                        "p-4",
-                        "hover:border-zinc-300 dark:hover:border-zinc-700",
-                        "transition-all duration-200"
-                      )}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                          {goal.title}
-                        </span>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => handleEditGoal(goal)}
-                          >
-                            <Edit className="h-3 w-3 text-neutral-600 dark:text-neutral-400" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => {
-                              setSelectedGoal(goal)
-                              setIsDeleteModalOpen(true)
-                            }}
-                          >
-                            <Trash className="h-3 w-3 text-neutral-600 dark:text-neutral-400" />
-                          </Button>
-                        </div>
-                      </div>
-                      <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-3">
-                        {goal.description || 'No description'}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-neutral-500 dark:text-neutral-500">
-                          {new Date(goal.created_at).toLocaleDateString()}
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-xs",
-                            goal.status === 'completed'
-                              ? "border-emerald-500/20 text-emerald-600 dark:border-emerald-500/30 dark:text-emerald-400"
-                              : "border-orange-500/20 text-orange-600 dark:border-orange-500/30 dark:text-orange-400"
-                          )}
-                        >
-                          {goal.status === 'completed' ? 'Completed' : 'In Progress'}
-                        </Badge>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-8 text-center rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
-                  <Target className="w-8 h-8 text-neutral-400/50" />
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">No recent goals yet</p>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-500">Add a goal to get started</p>
-                </div>
-              )}
-            </motion.div>
-          </div>
-
-          {/* Right Column - Now contains AI Coach and additional AI boxes */}
-          <div className="space-y-4 sm:space-y-5">
-            {/* AI Coach Card */}
-            <motion.div
-              variants={cardVariants}
-              whileHover="hover"
-              className={cn(
-                "rounded-2xl bg-gradient-to-br",
-                "from-indigo-100/90 via-white/95 to-indigo-50/80",
-                "dark:from-indigo-500/20 dark:via-background/95 dark:to-indigo-900/10",
-                "border border-indigo-200/80 dark:border-indigo-500/20",
-                "backdrop-blur-xl",
-                "hover:border-indigo-300/80 dark:hover:border-indigo-500/30",
-                "transition-all duration-300 ease-in-out",
-                "shadow-sm hover:shadow-md dark:shadow-none",
-                "hover:scale-[1.01]",
-                "flex flex-col",
-                "p-6 sm:p-8"
-              )}
-            >
-              <div className="flex items-center space-x-2 mb-4">
-                <Brain className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                <h3 className="text-lg font-medium text-indigo-900 dark:text-indigo-100">AI Coach</h3>
-              </div>
-              <div className="flex-1 space-y-3">
-                {coachSuggestions.map((suggestion, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className={cn(
-                      "p-3 rounded-xl",
-                      suggestion.priority === 'high' && "bg-indigo-100/80 dark:bg-indigo-500/20 border border-indigo-200/80 dark:border-indigo-500/30",
-                      suggestion.priority === 'medium' && "bg-indigo-50/80 dark:bg-indigo-500/10 border border-indigo-200/60 dark:border-indigo-500/20",
-                      suggestion.priority === 'low' && "bg-indigo-50/50 dark:bg-indigo-500/5 border border-indigo-200/40 dark:border-indigo-500/10"
-                    )}
-                  >
-                    <p className="text-sm text-indigo-700 dark:text-indigo-200">{suggestion.content}</p>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Session Insights Card */}
-            <motion.div
-              variants={cardVariants}
-              whileHover="hover"
-              className={cn(
-                "rounded-2xl bg-gradient-to-br",
-                "from-emerald-100/90 via-white/95 to-emerald-50/80",
-                "dark:from-emerald-500/20 dark:via-background/95 dark:to-emerald-900/10",
-                "border border-emerald-200/80 dark:border-emerald-500/20",
-                "backdrop-blur-xl",
-                "hover:border-emerald-300/80 dark:hover:border-emerald-500/30",
-                "transition-all duration-300 ease-in-out",
-                "shadow-sm hover:shadow-md dark:shadow-none",
-                "hover:scale-[1.01]",
-                "flex flex-col",
-                "p-6 sm:p-8"
-              )}
-            >
-              <div className="flex items-center space-x-2 mb-4">
-                <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                <h3 className="text-lg font-medium text-emerald-900 dark:text-emerald-100">Session Insights</h3>
-              </div>
-              <div className="flex-1 space-y-3">
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-3 rounded-xl bg-emerald-100/80 dark:bg-emerald-500/20 border border-emerald-200/80 dark:border-emerald-500/30"
-                >
-                  <p className="text-sm text-emerald-700 dark:text-emerald-200">
-                    Your most productive sessions are typically in the morning, with an average duration of {sessionStats?.averageSessionTime || 0} minutes.
-                  </p>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="p-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20"
-                >
-                  <p className="text-sm text-emerald-700 dark:text-emerald-200">
-                    You've completed {sessionStats?.completedGoals || 0} goals this period, maintaining a {sessionStats?.completionRate || 0}% completion rate.
-                  </p>
-                </motion.div>
-              </div>
-            </motion.div>
-
-            {/* Productivity Tips Card */}
-            <motion.div
-              variants={cardVariants}
-              whileHover="hover"
-              className={cn(
-                "rounded-2xl bg-gradient-to-br",
-                "from-amber-100/90 via-white/95 to-amber-50/80",
-                "dark:from-amber-500/20 dark:via-background/95 dark:to-amber-900/10",
-                "border border-amber-200/80 dark:border-amber-500/20",
-                "backdrop-blur-xl",
-                "hover:border-amber-300/80 dark:hover:border-amber-500/30",
-                "transition-all duration-300 ease-in-out",
-                "shadow-sm hover:shadow-md dark:shadow-none",
-                "hover:scale-[1.01]",
-                "flex flex-col",
-                "p-6 sm:p-8"
-              )}
-            >
-              <div className="flex items-center space-x-2 mb-4">
-                <Coffee className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                <h3 className="text-lg font-medium text-amber-900 dark:text-amber-100">Productivity Tips</h3>
-              </div>
-              <div className="flex-1 space-y-3">
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-3 rounded-xl bg-amber-100/80 dark:bg-amber-500/20 border border-amber-200/80 dark:border-amber-500/30"
-                >
-                  <p className="text-sm text-amber-700 dark:text-amber-200">
-                    Try the "Two-Minute Rule": If a task takes less than two minutes, do it immediately rather than putting it off.
-                  </p>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20"
-                >
-                  <p className="text-sm text-amber-700 dark:text-amber-200">
-                    Consider taking a 5-minute break every 25 minutes to maintain peak productivity and creativity.
-                  </p>
-                </motion.div>
-              </div>
-            </motion.div>
-          </div>
+          {/* AI Coach Card */}
+          <AICoachCard
+            suggestions={coachSuggestions}
+            className="col-span-1"
+          />
         </div>
-      </main>
 
-      <Footer />
+        {/* Goals List */}
+        <div className="mt-5">
+              <PaginatedGoals
+                goals={goals}
+                onEditGoal={handleEditGoal}
+                onDeleteGoal={(goal) => {
+              setSelectedGoal(goal);
+              setIsDeleteModalOpen(true);
+            }}
+            onCompleteGoal={async (goal) => {
+              try {
+                await completeGoalMutation.mutate(goal.id);
+                toast({
+                  title: "Goal Completed",
+                  description: "Your goal has been marked as complete",
+                  duration: 3000,
+                });
+              } catch (error) {
+                console.error('Error completing goal:', error);
+                toast({
+                  title: "Error",
+                  description: "Failed to complete goal",
+                  variant: "destructive",
+                  duration: 3000,
+                });
+              }
+            }}
+          />
+          </div>
 
-      {/* Add the EditGoalModal */}
+        {/* Modals */}
       <EditGoalModal
         goal={selectedGoal}
         isOpen={isEditModalOpen}
@@ -2367,27 +2340,25 @@ const Sessions: React.FC = () => {
         onSave={handleSaveGoal}
       />
 
-      {/* Add the DeleteConfirmationModal */}
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDeleteGoal}
       />
 
-      {/* Add the AddGoalModal */}
       <AddGoalModal
         isOpen={isAddGoalModalOpen}
         onClose={() => setIsAddGoalModalOpen(false)}
         onSave={(goal) => {
-          // Implement the actual create mutation
-          toast({
-            title: "Goal Created",
-            description: "Your session goal has been created successfully",
-            duration: 3000,
-          })
+          createGoalMutation.mutate({
+            title: goal.title,
+            description: goal.description,
+            duration: goal.duration
+          });
         }}
       />
     </div>
+    </BaseLayout>
   )
 }
 

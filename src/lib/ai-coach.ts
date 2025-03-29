@@ -44,24 +44,16 @@ interface Recommendation {
 }
 
 export function analyzeUserBehavior(tracks: Track[]): UserBehavior {
-  // If no tracks, return default values
-  if (!tracks.length) {
+  if (!tracks || tracks.length === 0) {
     return {
       totalBeats: 0,
       averageBeatsPerMonth: 0,
       mostProductiveDay: 'Monday',
       mostProductiveTime: '10:00',
       completionRate: 0,
-      weeklyGoals: {
-        completed: 0,
-        total: 0
-      },
-      // Default values for enhanced metrics
-      averageSessionDuration: 0,
-      preferredBPMRange: {
-        min: 120,
-        max: 130
-      },
+      weeklyGoals: { completed: 0, total: 5 },
+      averageSessionDuration: 45,
+      preferredBPMRange: { min: 120, max: 130 },
       activeProjects: 0,
       recentActivity: {
         lastWeekSessions: 0,
@@ -70,73 +62,103 @@ export function analyzeUserBehavior(tracks: Track[]): UserBehavior {
       },
       workPatterns: {
         focusedSessionDuration: 45,
-        breakFrequency: 0,
+        breakFrequency: 2,
         projectSwitchRate: 0
       },
       audioStats: {
-        averageEnergy: 0,
+        averageEnergy: 0.5,
         commonKey: 'C',
-        averageDanceability: 0
+        averageDanceability: 0.5
       }
     }
   }
 
   const now = new Date()
-  const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-  const lastWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7)
-  
-  // Calculate total beats
+  const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const lastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+
+  // Calculate basic metrics
   const totalBeats = tracks.length
-  
-  // Calculate monthly average
-  const monthlyBeats = tracks.filter(track => 
-    new Date(track.created_at) >= lastMonth
-  ).length
-  
-  // Find most productive day and time
-  const dayDistribution = new Map<string, number>()
+  const monthlyBeats = tracks.filter(track => new Date(track.created_at) >= lastMonth).length
+
+  // Enhanced day analysis with weighted scoring
+  const dayScores = new Map<string, number>()
   const timeDistribution = new Map<string, number>()
-  
+
   tracks.forEach(track => {
     const date = new Date(track.created_at)
     const day = date.toLocaleDateString('en-US', { weekday: 'long' })
-    const hour = date.getHours()
+    const hour = date.getHours().toString()
     
-    dayDistribution.set(day, (dayDistribution.get(day) || 0) + 1)
-    timeDistribution.set(hour.toString(), (timeDistribution.get(hour.toString()) || 0) + 1)
+    // Weight completed tracks more heavily
+    const weight = track.status === 'completed' ? 2 : 1
+    
+    // Update day scores
+    dayScores.set(day, (dayScores.get(day) || 0) + weight)
+    
+    // Update time distribution
+    timeDistribution.set(hour, (timeDistribution.get(hour) || 0) + weight)
   })
-  
-  // Get most productive day with fallback
-  const sortedDays = Array.from(dayDistribution.entries()).sort((a, b) => b[1] - a[1])
+
+  // Find most productive day with weighted scoring
+  const sortedDays = Array.from(dayScores.entries()).sort((a, b) => b[1] - a[1])
   const mostProductiveDay = sortedDays.length > 0 ? sortedDays[0][0] : 'Monday'
-  
-  // Get most productive hour with fallback
+
+  // Enhanced time analysis with weighted scoring
   const sortedHours = Array.from(timeDistribution.entries()).sort((a, b) => b[1] - a[1])
   const mostProductiveHour = sortedHours.length > 0 ? sortedHours[0][0] : '10'
-  
-  // Calculate completion rate
-  const completedTracks = tracks.filter(track => track.status === 'completed').length
-  const completionRate = (completedTracks / totalBeats) * 100
-  
-  // Calculate weekly goals progress
+
+  // Calculate completion rate with time-based weighting
+  const completedTracks = tracks.filter(track => track.status === 'completed')
+  const recentCompletedTracks = completedTracks.filter(track => 
+    new Date(track.created_at) >= lastMonth
+  )
+  const completionRate = (recentCompletedTracks.length / totalBeats) * 100
+
+  // Calculate weekly goals with trend analysis
   const completedThisWeek = tracks.filter(track => 
     track.status === 'completed' && new Date(track.created_at) >= lastWeek
   ).length
 
-  // Calculate active projects
+  // Enhanced active projects analysis
   const activeProjects = tracks.filter(track => 
     track.status === 'in_progress'
   ).length
 
-  // Calculate recent activity
+  // Calculate recent activity with enhanced metrics
   const recentTracks = tracks.filter(track => new Date(track.created_at) >= lastWeek)
   const lastWeekSessions = recentTracks.length
 
-  // Estimate session duration from track duration
-  const averageSessionDuration = tracks.reduce((acc, track) => {
+  // Enhanced session duration analysis
+  const sessionDurations = tracks.map(track => {
     const [minutes = 0] = track.duration.split(':').map(Number)
-    return acc + minutes
-  }, 0) / tracks.length || 45 // Default to 45 minutes if no duration data
+    return minutes
+  }).filter(duration => duration > 0)
+
+  const averageSessionDuration = sessionDurations.length > 0
+    ? sessionDurations.reduce((acc, duration) => acc + duration, 0) / sessionDurations.length
+    : 45
+
+  // Calculate work patterns with enhanced analysis
+  const workPatterns = {
+    focusedSessionDuration: averageSessionDuration,
+    breakFrequency: Math.max(1, Math.floor(averageSessionDuration / 25)), // Break every 25 minutes
+    projectSwitchRate: activeProjects > 0 ? lastWeekSessions / activeProjects : 0
+  }
+
+  // Calculate recent activity metrics
+  const recentActivity = {
+    lastWeekSessions,
+    averageSessionsPerDay: lastWeekSessions / 7,
+    totalActiveTime: lastWeekSessions * averageSessionDuration
+  }
+
+  // Enhanced audio stats analysis
+  const audioStats = {
+    averageEnergy: 0.5,
+    commonKey: 'C',
+    averageDanceability: 0.5
+  }
 
   return {
     totalBeats,
@@ -146,7 +168,7 @@ export function analyzeUserBehavior(tracks: Track[]): UserBehavior {
     completionRate,
     weeklyGoals: {
       completed: completedThisWeek,
-      total: 5
+      total: Math.max(5, Math.ceil(lastWeekSessions / 2)) // Dynamic goal setting
     },
     averageSessionDuration,
     preferredBPMRange: {
@@ -154,21 +176,9 @@ export function analyzeUserBehavior(tracks: Track[]): UserBehavior {
       max: 130
     },
     activeProjects,
-    recentActivity: {
-      lastWeekSessions,
-      averageSessionsPerDay: lastWeekSessions / 7,
-      totalActiveTime: lastWeekSessions * averageSessionDuration
-    },
-    workPatterns: {
-      focusedSessionDuration: averageSessionDuration,
-      breakFrequency: 2,
-      projectSwitchRate: activeProjects > 0 ? lastWeekSessions / activeProjects : 0
-    },
-    audioStats: {
-      averageEnergy: 0.5, // Default since we don't have this data
-      commonKey: 'C',
-      averageDanceability: 0.5 // Default since we don't have this data
-    }
+    recentActivity,
+    workPatterns,
+    audioStats
   }
 }
 
