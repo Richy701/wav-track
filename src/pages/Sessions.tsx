@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState, useRef } from 'react'
+import React, { useEffect, useCallback, useState, useRef, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AICoach } from '@/components/ai-coach/AICoach'
 import { FadeIn } from '@/components/ui/fade-in'
@@ -338,6 +338,47 @@ const TimerCard = ({
   className?: string;
 }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [currentSession, setCurrentSession] = useState(1)
+  const [isAmbientSoundPlaying, setIsAmbientSoundPlaying] = useState(false)
+  const ambientSoundRef = useRef<HTMLAudioElement | null>(null)
+
+  // Calculate progress for the circular timer
+  const CIRCLE_RADIUS = 120
+  const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS
+  const progress = ((isWorking ? workDuration * 60 : breakDuration * 60) - timeLeft) / (isWorking ? workDuration * 60 : breakDuration * 60) * CIRCLE_CIRCUMFERENCE
+
+  // Motivational tips based on mode
+  const motivationalTips = {
+    work: [
+      "Stay focused, you're doing great!",
+      "Every minute counts towards your goal",
+      "Keep pushing, you've got this!",
+      "Your creativity is flowing",
+      "Make this session count"
+    ],
+    break: [
+      "Take a deep breath",
+      "Stretch and relax",
+      "Clear your mind",
+      "Recharge your energy",
+      "You deserve this break"
+    ]
+  }
+
+  // Get random motivational tip
+  const currentTip = useMemo(() => {
+    const tips = isWorking ? motivationalTips.work : motivationalTips.break
+    return tips[Math.floor(Math.random() * tips.length)]
+  }, [isWorking])
+
+  // Handle ambient sound
+  useEffect(() => {
+    if (isAmbientSoundPlaying && ambientSoundRef.current) {
+      ambientSoundRef.current.play()
+    } else if (ambientSoundRef.current) {
+      ambientSoundRef.current.pause()
+    }
+  }, [isAmbientSoundPlaying])
 
   return (
     <motion.div
@@ -393,154 +434,232 @@ const TimerCard = ({
               Break
             </button>
           </div>
-          <Popover open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "text-neutral-500 hover:text-neutral-900 dark:text-zinc-400 dark:hover:text-white",
-                  isSettingsOpen && "bg-neutral-100 dark:bg-zinc-800"
-                )}
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-5 bg-white dark:bg-background border border-neutral-200 dark:border-zinc-800 rounded-xl shadow-lg">
-              <div className="space-y-6">
-                <div className="flex items-center justify-between border-b border-neutral-200 dark:border-zinc-800 pb-4">
-                  <div className="space-y-1">
-                    <h4 className="font-medium text-sm text-neutral-900 dark:text-zinc-50">Timer Settings</h4>
-                    <p className="text-xs text-neutral-500 dark:text-zinc-400">Customize your work and break durations</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsSettingsOpen(false)}
-                    className="text-neutral-500 hover:text-neutral-900 dark:text-zinc-400 dark:hover:text-white"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                <div className="space-y-5">
-                  {/* Work Duration */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <span className="text-sm font-medium text-neutral-900 dark:text-zinc-50">Work Duration</span>
-                        <p className="text-xs text-neutral-500 dark:text-zinc-400">Focus session length</p>
-                      </div>
-                      <span className={cn(
-                        "text-sm font-medium px-2 py-1 rounded-lg",
-                        isWorking
-                          ? "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
-                          : "bg-neutral-100 text-neutral-600 dark:bg-zinc-800 dark:text-zinc-400"
-                      )}>
-                        {workDuration} min
-                      </span>
-                    </div>
-                    <Slider
-                      value={[workDuration]}
-                      onValueChange={(value) => onWorkDurationChange(value[0])}
-                      min={5}
-                      max={60}
-                      step={5}
-                      className={cn(
-                        "relative flex items-center select-none touch-none w-full transition-colors",
-                        "[&_[role=slider]]:h-4 [&_[role=slider]]:w-4",
-                        "[&_[role=slider]]:transition-all",
-                        isWorking
-                          ? "[&_[role=slider]]:bg-emerald-600 [&_[role=slider]]:border-emerald-600 dark:[&_[role=slider]]:bg-emerald-400 dark:[&_[role=slider]]:border-emerald-400"
-                          : "[&_[role=slider]]:bg-neutral-600 [&_[role=slider]]:border-neutral-600 dark:[&_[role=slider]]:bg-zinc-400 dark:[&_[role=slider]]:border-zinc-400"
-                      )}
-                    />
-                    <div className="flex justify-between text-xs text-neutral-500 dark:text-zinc-400">
-                      <span>5 min</span>
-                      <span>60 min</span>
-                    </div>
-                  </div>
-
-                  {/* Break Duration */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <span className="text-sm font-medium text-neutral-900 dark:text-zinc-50">Break Duration</span>
-                        <p className="text-xs text-neutral-500 dark:text-zinc-400">Rest between sessions</p>
-                      </div>
-                      <span className={cn(
-                        "text-sm font-medium px-2 py-1 rounded-lg",
-                        !isWorking
-                          ? "bg-violet-100/50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300"
-                          : "bg-neutral-100 text-neutral-600 dark:bg-zinc-800 dark:text-zinc-400"
-                      )}>
-                        {breakDuration} min
-                      </span>
-                    </div>
-                    <Slider
-                      value={[breakDuration]}
-                      onValueChange={(value) => onBreakDurationChange(value[0])}
-                      min={1}
-                      max={15}
-                      step={1}
-                      className={cn(
-                        "relative flex items-center select-none touch-none w-full transition-colors",
-                        "[&_[role=slider]]:h-4 [&_[role=slider]]:w-4",
-                        "[&_[role=slider]]:transition-all",
-                        !isWorking
-                          ? "[&_[role=slider]]:bg-violet-600 [&_[role=slider]]:border-violet-600 dark:[&_[role=slider]]:bg-violet-400 dark:[&_[role=slider]]:border-violet-400"
-                          : "[&_[role=slider]]:bg-neutral-600 [&_[role=slider]]:border-neutral-600 dark:[&_[role=slider]]:bg-zinc-400 dark:[&_[role=slider]]:border-zinc-400"
-                      )}
-                    />
-                    <div className="flex justify-between text-xs text-neutral-500 dark:text-zinc-400">
-                      <span>1 min</span>
-                      <span>15 min</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-neutral-200 dark:border-zinc-800">
-                  <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {/* Session Counter */}
+            <div className={cn(
+              "px-3 py-1 rounded-lg text-xs font-medium",
+              isWorking
+                ? "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
+                : "bg-violet-100/50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300"
+            )}>
+              Session {currentSession} of 4
+            </div>
+            <Popover open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    "text-neutral-500 hover:text-neutral-900 dark:text-zinc-400 dark:hover:text-white",
+                    isSettingsOpen && "bg-neutral-100 dark:bg-zinc-800"
+                  )}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-5 bg-white dark:bg-background border border-neutral-200 dark:border-zinc-800 rounded-xl shadow-lg">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between border-b border-neutral-200 dark:border-zinc-800 pb-4">
                     <div className="space-y-1">
-                      <span className="text-sm font-medium text-neutral-900 dark:text-zinc-50">Auto-start Breaks</span>
-                      <p className="text-xs text-neutral-500 dark:text-zinc-400">Automatically start break timer</p>
+                      <h4 className="font-medium text-sm text-neutral-900 dark:text-zinc-50">Timer Settings</h4>
+                      <p className="text-xs text-neutral-500 dark:text-zinc-400">Customize your work and break durations</p>
                     </div>
-                    <Switch
-                      checked={true}
-                      className={cn(
-                        "data-[state=checked]:bg-emerald-600 dark:data-[state=checked]:bg-emerald-400",
-                        "data-[state=unchecked]:bg-neutral-200 dark:data-[state=unchecked]:bg-zinc-700"
-                      )}
-                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsSettingsOpen(false)}
+                      className="text-neutral-500 hover:text-neutral-900 dark:text-zinc-400 dark:hover:text-white"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div className="space-y-5">
+                    {/* Work Duration */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <span className="text-sm font-medium text-neutral-900 dark:text-zinc-50">Work Duration</span>
+                          <p className="text-xs text-neutral-500 dark:text-zinc-400">Focus session length</p>
+                        </div>
+                        <span className={cn(
+                          "text-sm font-medium px-2 py-1 rounded-lg",
+                          isWorking
+                            ? "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
+                            : "bg-neutral-100 text-neutral-600 dark:bg-zinc-800 dark:text-zinc-400"
+                        )}>
+                          {workDuration} min
+                        </span>
+                      </div>
+                      <Slider
+                        value={[workDuration]}
+                        onValueChange={(value) => onWorkDurationChange(value[0])}
+                        min={5}
+                        max={60}
+                        step={5}
+                        className={cn(
+                          "relative flex items-center select-none touch-none w-full transition-colors",
+                          "[&_[role=slider]]:h-4 [&_[role=slider]]:w-4",
+                          "[&_[role=slider]]:transition-all",
+                          isWorking
+                            ? "[&_[role=slider]]:bg-emerald-600 [&_[role=slider]]:border-emerald-600 dark:[&_[role=slider]]:bg-emerald-400 dark:[&_[role=slider]]:border-emerald-400"
+                            : "[&_[role=slider]]:bg-neutral-600 [&_[role=slider]]:border-neutral-600 dark:[&_[role=slider]]:bg-zinc-400 dark:[&_[role=slider]]:border-zinc-400"
+                        )}
+                      />
+                      <div className="flex justify-between text-xs text-neutral-500 dark:text-zinc-400">
+                        <span>5 min</span>
+                        <span>60 min</span>
+                      </div>
+                    </div>
+
+                    {/* Break Duration */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <span className="text-sm font-medium text-neutral-900 dark:text-zinc-50">Break Duration</span>
+                          <p className="text-xs text-neutral-500 dark:text-zinc-400">Rest between sessions</p>
+                        </div>
+                        <span className={cn(
+                          "text-sm font-medium px-2 py-1 rounded-lg",
+                          !isWorking
+                            ? "bg-violet-100/50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300"
+                            : "bg-neutral-100 text-neutral-600 dark:bg-zinc-800 dark:text-zinc-400"
+                        )}>
+                          {breakDuration} min
+                        </span>
+                      </div>
+                      <Slider
+                        value={[breakDuration]}
+                        onValueChange={(value) => onBreakDurationChange(value[0])}
+                        min={1}
+                        max={15}
+                        step={1}
+                        className={cn(
+                          "relative flex items-center select-none touch-none w-full transition-colors",
+                          "[&_[role=slider]]:h-4 [&_[role=slider]]:w-4",
+                          "[&_[role=slider]]:transition-all",
+                          !isWorking
+                            ? "[&_[role=slider]]:bg-violet-600 [&_[role=slider]]:border-violet-600 dark:[&_[role=slider]]:bg-violet-400 dark:[&_[role=slider]]:border-violet-400"
+                            : "[&_[role=slider]]:bg-neutral-600 [&_[role=slider]]:border-neutral-600 dark:[&_[role=slider]]:bg-zinc-400 dark:[&_[role=slider]]:border-zinc-400"
+                        )}
+                      />
+                      <div className="flex justify-between text-xs text-neutral-500 dark:text-zinc-400">
+                        <span>1 min</span>
+                        <span>15 min</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-neutral-200 dark:border-zinc-800">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <span className="text-sm font-medium text-neutral-900 dark:text-zinc-50">Auto-start Breaks</span>
+                        <p className="text-xs text-neutral-500 dark:text-zinc-400">Automatically start break timer</p>
+                      </div>
+                      <Switch
+                        checked={true}
+                        className={cn(
+                          "data-[state=checked]:bg-emerald-600 dark:data-[state=checked]:bg-emerald-400",
+                          "data-[state=unchecked]:bg-neutral-200 dark:data-[state=unchecked]:bg-zinc-700"
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
 
-        {/* Timer Display */}
-        <div className="flex flex-col items-center space-y-2">
-          <span className={cn(
-            "text-6xl sm:text-7xl font-bold tracking-tighter transition-colors",
-            isWorking
-              ? "text-emerald-700 dark:text-emerald-300"
-              : "text-violet-700 dark:text-violet-300"
-          )}>
-            {formatTime(timeLeft)}
-          </span>
-          <span className={cn(
-            "text-sm font-medium",
-            isWorking
-              ? "text-emerald-600/70 dark:text-emerald-400/70"
-              : "text-violet-600/70 dark:text-violet-400/70"
-          )}>
-            {isWorking ? "Focus Time" : "Break Time"}
-          </span>
+        {/* Timer Display with Circular Progress */}
+        <div className="relative flex flex-col items-center space-y-4">
+          <div className="relative">
+            {/* Circular Progress Ring */}
+            <svg className="w-80 h-80 -rotate-90">
+              <circle
+                className="text-gray-200/10 dark:text-gray-700/20"
+                strokeWidth="2"
+                stroke="currentColor"
+                fill="transparent"
+                r={CIRCLE_RADIUS}
+                cx="160"
+                cy="160"
+              />
+              <motion.circle
+                className={cn(
+                  "transition-colors duration-300",
+                  isWorking
+                    ? "text-emerald-500/40 dark:text-emerald-400/40"
+                    : "text-violet-500/40 dark:text-violet-400/40"
+                )}
+                strokeWidth="2"
+                strokeDasharray={CIRCLE_CIRCUMFERENCE}
+                strokeDashoffset={CIRCLE_CIRCUMFERENCE - progress}
+                strokeLinecap="round"
+                stroke="currentColor"
+                fill="transparent"
+                r={CIRCLE_RADIUS}
+                cx="160"
+                cy="160"
+                initial={{ strokeDashoffset: CIRCLE_CIRCUMFERENCE }}
+                animate={{ strokeDashoffset: CIRCLE_CIRCUMFERENCE - progress }}
+                transition={{ duration: 1, ease: "linear" }}
+              />
+            </svg>
+            {/* Timer Display - keeping the same size as before */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className={cn(
+                "text-6xl sm:text-7xl font-bold tracking-tighter transition-colors",
+                isWorking
+                  ? "text-emerald-400 dark:text-emerald-300"
+                  : "text-violet-400 dark:text-violet-300"
+              )}>
+                {formatTime(timeLeft)}
+              </span>
+              <span className={cn(
+                "text-sm font-medium mt-2",
+                isWorking
+                  ? "text-emerald-400/70 dark:text-emerald-400/70"
+                  : "text-violet-400/70 dark:text-violet-400/70"
+              )}>
+                {isWorking ? "Focus Time" : "Break Time"}
+              </span>
+            </div>
+          </div>
+
+          {/* Motivational Tip */}
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className={cn(
+              "text-sm text-center max-w-xs",
+              isWorking
+                ? "text-emerald-600/70 dark:text-emerald-400/70"
+                : "text-violet-600/70 dark:text-violet-400/70"
+            )}
+          >
+            {currentTip}
+          </motion.p>
         </div>
 
         {/* Controls */}
         <div className="flex items-center justify-center space-x-4">
+          {/* Ambient Sound Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsAmbientSoundPlaying(!isAmbientSoundPlaying)}
+            className={cn(
+              "w-10 h-10 rounded-xl transition-all duration-200",
+              isWorking
+                ? "border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 hover:border-emerald-300 dark:hover:border-emerald-700 hover:text-emerald-700 dark:hover:text-emerald-300"
+                : "border-violet-200 dark:border-violet-800 text-violet-600 dark:text-violet-400 hover:border-violet-300 dark:hover:border-violet-700 hover:text-violet-700 dark:hover:text-violet-300"
+            )}
+          >
+            <Music className="h-4 w-4" />
+          </Button>
+
           <Button
             variant="outline"
             size="icon"
@@ -591,6 +710,14 @@ const TimerCard = ({
             {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
+
+        {/* Hidden Audio Element for Ambient Sound */}
+        <audio
+          ref={ambientSoundRef}
+          src="/ambient-sound.mp3"
+          loop
+          className="hidden"
+        />
       </div>
     </motion.div>
   )
