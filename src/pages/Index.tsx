@@ -7,7 +7,7 @@ import Stats from '@/components/Stats'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { useProjects } from '@/hooks/useProjects'
-import { Project, Session } from '@/lib/types'
+import { Project, Session, BeatActivity } from '@/lib/types'
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
@@ -22,6 +22,7 @@ const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [sessions, setSessions] = useState<Session[]>([])
+  const [beatActivities, setBeatActivities] = useState<BeatActivity[]>([])
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const queryClient = useQueryClient()
@@ -47,31 +48,55 @@ const Index = () => {
       queryKey: ['projects', user.id]
     })
 
-    // Also fetch sessions
-    const fetchSessions = async () => {
+    // Also fetch sessions and beat activities
+    const fetchData = async () => {
       try {
-        console.log('Fetching sessions for user:', user.id)
+        console.log('Fetching data for user:', user.id)
 
-        const { data, error } = await supabase
+        // Fetch sessions
+        const { data: sessionsData, error: sessionsError } = await supabase
           .from('sessions')
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
 
-        if (error) {
-          console.error('Supabase error:', error)
-          throw error
+        if (sessionsError) {
+          console.error('Supabase error:', sessionsError)
+          throw sessionsError
         }
-        console.log('Fetched sessions:', data)
-        // Cast the data to Session[] to match the state type
-        setSessions((data || []) as Session[])
+        console.log('Fetched sessions:', sessionsData)
+        setSessions((sessionsData || []) as Session[])
+
+        // Fetch beat activities
+        const { data: beatActivitiesData, error: beatActivitiesError } = await supabase
+          .from('beat_activities')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('timestamp', { ascending: false })
+
+        if (beatActivitiesError) {
+          console.error('Error fetching beat activities:', beatActivitiesError)
+          throw beatActivitiesError
+        }
+
+        // Transform beat activities data
+        const transformedBeatActivities = (beatActivitiesData || []).map(activity => ({
+          id: activity.id,
+          projectId: activity.project_id,
+          date: activity.date,
+          count: activity.count,
+          timestamp: activity.timestamp,
+        }))
+
+        console.log('Fetched beat activities:', transformedBeatActivities)
+        setBeatActivities(transformedBeatActivities)
       } catch (error) {
-        console.error('Error fetching sessions:', error)
-        toast.error('Failed to load sessions')
+        console.error('Error fetching data:', error)
+        toast.error('Failed to load data')
       }
     }
 
-    fetchSessions()
+    fetchData()
   }, [user, authLoading, queryClient])
 
   const handleDragEnd = (activeId: string, overId: string) => {
@@ -119,7 +144,7 @@ const Index = () => {
               projects={projects || []}
               sessions={sessions}
               selectedProject={selectedProject}
-              beatActivities={[]} // Add empty array for now
+              beatActivities={beatActivities}
             />
           </div>
           <div className="grid grid-cols-1 gap-6 overflow-x-hidden">

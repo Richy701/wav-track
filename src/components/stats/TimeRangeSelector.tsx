@@ -2,8 +2,8 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface TimeRangeSelectorProps {
-  timeRange: 'day' | 'week' | 'month' | 'year'
-  onTimeRangeChange: (range: 'day' | 'week' | 'month' | 'year') => void
+  timeRange: 'day' | 'week' | 'year'
+  onTimeRangeChange: (range: 'day' | 'week' | 'year') => void
   className?: string
 }
 
@@ -29,14 +29,6 @@ export function TimeRangeSelector({
         className="text-xs h-7 px-3"
       >
         Week
-      </Button>
-      <Button
-        variant={timeRange === 'month' ? 'default' : 'ghost'}
-        size="sm"
-        onClick={() => onTimeRangeChange('month')}
-        className="text-xs h-7 px-3"
-      >
-        Month
       </Button>
       <Button
         variant={timeRange === 'year' ? 'default' : 'ghost'}

@@ -50,7 +50,7 @@ interface YearInReview {
 
 export default function Stats({ sessions, selectedProject, beatActivities }: StatsProps) {
   const { allProjects: projects } = useProjects()
-  const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month' | 'year'>('week')
+  const [timeRange, setTimeRange] = useState<'day' | 'week' | 'year'>('week')
   const [totalBeatsCreated, setTotalBeatsCreated] = useState(0)
   const [totalBeatsInPeriod, setTotalBeatsInPeriod] = useState(0)
   const [totalSessionTime, setTotalSessionTime] = useState(0)
