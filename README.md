@@ -185,3 +185,54 @@ To run from source:
 # Go >= 1.22
 go run . help
 ```
+
+# WavTrack Monorepo
+
+[![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/sindresorhus/awesome)
+
+## Project Structure
+
+```
+/wavtrack
+  /web            ← Vite + React web app
+  /mobile         ← Expo mobile app
+  /shared         ← Shared utilities, types, and config
+  package.json    ← Root monorepo config
+```
+
+## Getting Started
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Start the development servers:
+   - Web app: `npm run web`
+   - Mobile app: `npm run mobile`
+   - Both: `npm run dev`
+
+## Development
+
+### Web App
+The web app is built with Vite + React and is located in the `/web` directory.
+
+### Mobile App
+The mobile app is built with Expo and is located in the `/mobile` directory.
+
+### Shared Code
+The `/shared` directory contains code that can be used by both the web and mobile apps:
+- Types: Shared TypeScript types
+- Utils: Common utility functions
+- Config: Shared configuration (e.g., Supabase client)
+
+## Best Practices
+
+1. Keep platform-specific code in its respective directory
+2. Use the shared directory for code that can be reused across platforms
+3. Follow the established TypeScript and ESLint configurations
+4. Use relative imports from the shared directory when needed
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
