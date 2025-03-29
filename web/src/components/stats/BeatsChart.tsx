@@ -22,7 +22,7 @@ import { BarChart3, LineChart as LineChartIcon } from 'lucide-react'
 type ChartView = 'bar' | 'line'
 
 interface BeatsChartProps {
-  timeRange: 'day' | 'week' | 'month' | 'year'
+  timeRange: 'day' | 'week' | 'year'
   projects: Project[]
   selectedProject?: Project | null
 }
@@ -37,11 +37,10 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
   const [beatsData, setBeatsData] = useState<ChartData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [highlightedBar, setHighlightedBar] = useState<string | null>(null)
-  const [chartView, setChartView] = useState<ChartView>('bar')
   const [refreshKey, setRefreshKey] = useState(0)
 
   // Calculate max value for YAxis domain
-  const maxValue = Math.max(...beatsData.map(d => d.value))
+  const maxValue = Math.max(...beatsData.map(d => d.value || 0))
   const yAxisMax = maxValue === 0 ? 0 : Math.max(1, Math.ceil(maxValue * 1.2))
 
   // Calculate cumulative data for line chart
@@ -49,10 +48,13 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
     const lastValue = acc.length > 0 ? (acc[acc.length - 1]?.cumulative ?? 0) : 0
     acc.push({
       ...curr,
-      cumulative: lastValue + curr.value,
+      cumulative: lastValue + (curr.value || 0),
     })
     return acc
   }, [] as ChartData[])
+
+  // Add validation check for data
+  const hasValidData = beatsData.length > 0 && beatsData.every(item => typeof item.value === 'number')
 
   // Update refreshKey when projects change or when selectedProject changes
   useEffect(() => {
@@ -64,10 +66,27 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
     const fetchData = async () => {
       setIsLoading(true)
       try {
+        console.log('Starting to fetch beats data:', {
+          timeRange,
+          selectedProjectId: selectedProject?.id,
+          timestamp: new Date().toISOString()
+        })
         const data = await getBeatsDataForChart(timeRange, selectedProject?.id)
+        console.log('Beats data fetched successfully:', {
+          dataLength: data.length,
+          data,
+          timestamp: new Date().toISOString(),
+          hasValidData: data.length > 0 && data.every(item => typeof item.value === 'number'),
+          maxValue: Math.max(...data.map(d => d.value || 0))
+        })
         setBeatsData(data)
       } catch (error) {
-        console.error('Error fetching beats data:', error)
+        console.error('Error fetching beats data:', {
+          error,
+          timeRange,
+          selectedProjectId: selectedProject?.id,
+          timestamp: new Date().toISOString()
+        })
         setBeatsData([])
       } finally {
         setIsLoading(false)
@@ -76,6 +95,18 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
 
     fetchData()
   }, [timeRange, selectedProject, refreshKey])
+
+  // Add logging for render conditions
+  useEffect(() => {
+    console.log('Chart render conditions:', {
+      isLoading,
+      beatsDataLength: beatsData.length,
+      maxValue,
+      yAxisMax,
+      hasValidData,
+      cumulativeDataLength: cumulativeData.length
+    })
+  }, [isLoading, beatsData, maxValue, yAxisMax, hasValidData, cumulativeData])
 
   const CustomTooltip = ({
     active,
@@ -110,8 +141,13 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
     )
   }
 
-  // If there's no data, show a message
-  if (beatsData.length === 0 || maxValue === 0) {
+  // If there's no data or invalid data, show a message
+  if (!hasValidData) {
+    console.log('No valid data to display:', {
+      beatsDataLength: beatsData.length,
+      hasValidData,
+      maxValue
+    })
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
         <p className="text-sm">No beats recorded yet</p>
@@ -122,35 +158,6 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
 
   return (
     <div className="space-y-4 w-full">
-      <div className="flex justify-end px-2 sm:px-4">
-        <div className="inline-flex p-1 bg-zinc-100 dark:bg-zinc-800/50 rounded-full">
-          <button
-            onClick={() => setChartView('bar')}
-            className={cn(
-              'p-1.5 rounded-full transition-all',
-              chartView === 'bar'
-                ? 'bg-white dark:bg-zinc-900 text-violet-600 dark:text-violet-400 shadow-sm'
-                : 'text-zinc-500 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'
-            )}
-            title="Bar chart"
-          >
-            <BarChart3 className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setChartView('line')}
-            className={cn(
-              'p-1.5 rounded-full transition-all',
-              chartView === 'line'
-                ? 'bg-white dark:bg-zinc-900 text-violet-600 dark:text-violet-400 shadow-sm'
-                : 'text-zinc-500 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'
-            )}
-            title="Line chart"
-          >
-            <LineChartIcon className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
       <div className="h-[200px] sm:h-[250px] md:h-[300px] w-full relative group overflow-hidden">
         <style>
           {`
@@ -247,213 +254,125 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
           `}
         </style>
         <ResponsiveContainer width="100%" height="100%">
-          {chartView === 'bar' ? (
-            <BarChart
-              data={beatsData}
-              margin={{ top: 16, right: 8, left: 8, bottom: 32 }}
-              barGap={4}
-              className="animate-in fade-in duration-300"
+          <BarChart
+            data={beatsData}
+            margin={{ top: 16, right: 8, left: 8, bottom: 32 }}
+            barGap={4}
+            className="animate-in fade-in duration-300"
+          >
+            <defs>
+              <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgb(139, 92, 246)" stopOpacity={0.85} />
+                <stop offset="100%" stopColor="rgb(139, 92, 246)" stopOpacity={0.35} />
+              </linearGradient>
+              <linearGradient id="barGradientHoverLight" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgb(124, 58, 237)" stopOpacity={0.95} />
+                <stop offset="100%" stopColor="rgb(99, 102, 241)" stopOpacity={0.45} />
+              </linearGradient>
+              <linearGradient id="barGradientHoverDark" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgb(139, 92, 246)" stopOpacity={1} />
+                <stop offset="100%" stopColor="rgb(79, 70, 229)" stopOpacity={0.5} />
+              </linearGradient>
+            </defs>
+            <XAxis
+              dataKey="label"
+              axisLine={false}
+              tickLine={false}
+              interval={timeRange === 'day' ? 1 : 0}
+              tick={props => {
+                const { x, y, payload } = props
+                return (
+                  <g transform={`translate(${x},${y})`}>
+                    <text
+                      x={0}
+                      y={0}
+                      dy={12}
+                      textAnchor="middle"
+                      fill="currentColor"
+                      opacity={0.9}
+                      fontSize={11}
+                      className="dark:text-zinc-100 font-medium"
+                    >
+                      {payload.value}
+                    </text>
+                  </g>
+                )
+              }}
+              height={40}
+              className="dark:text-zinc-100"
+            />
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{
+                fontSize: 11,
+                fill: 'currentColor',
+                opacity: 0.9,
+                className: 'dark:text-zinc-100 font-medium',
+              }}
+              domain={[0, yAxisMax]}
+              dx={-8}
+              tickCount={Math.min(yAxisMax + 1, 5)}
+              className="dark:text-zinc-100 font-medium"
+            />
+            <Tooltip
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-3 animate-in fade-in zoom-in duration-200">
+                      <div className="text-sm font-medium text-foreground">
+                        {payload[0].value}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">{label}</div>
+                    </div>
+                  )
+                }
+                return null
+              }}
+              cursor={false}
+              isAnimationActive={false}
+            />
+            <Bar
+              dataKey="value"
+              fill="url(#barGradient)"
+              radius={[6, 6, 0, 0]}
+              barSize={timeRange === 'year' ? 16 : 32}
+              animationDuration={500}
+              className="transition-all duration-500 ease-in-out"
+              isAnimationActive={true}
+              activeBar={false}
+              onMouseOver={(data, index) => {
+                setHighlightedBar(data.label)
+              }}
+              onMouseLeave={() => {
+                setHighlightedBar(null)
+              }}
+              background={{ fill: 'transparent', radius: 0 }}
+              maxBarSize={100}
             >
               <defs>
                 <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="rgb(139, 92, 246)" stopOpacity={0.85} />
                   <stop offset="100%" stopColor="rgb(139, 92, 246)" stopOpacity={0.35} />
                 </linearGradient>
-                <linearGradient id="barGradientHoverLight" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgb(124, 58, 237)" stopOpacity={0.95} />
-                  <stop offset="100%" stopColor="rgb(99, 102, 241)" stopOpacity={0.45} />
-                </linearGradient>
-                <linearGradient id="barGradientHoverDark" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgb(139, 92, 246)" stopOpacity={1} />
-                  <stop offset="100%" stopColor="rgb(79, 70, 229)" stopOpacity={0.5} />
-                </linearGradient>
               </defs>
-              <XAxis
-                dataKey="label"
-                axisLine={false}
-                tickLine={false}
-                interval={timeRange === 'month' ? 2 : timeRange === 'day' ? 1 : 0}
-                tick={props => {
-                  const { x, y, payload } = props
-                  return (
-                    <g transform={`translate(${x},${y})`}>
-                      <text
-                        x={0}
-                        y={0}
-                        dy={12}
-                        textAnchor="middle"
-                        fill="currentColor"
-                        opacity={0.9}
-                        fontSize={11}
-                        className="dark:text-zinc-100 font-medium"
-                      >
-                        {payload.value}
-                      </text>
-                    </g>
-                  )
-                }}
-                height={40}
-                className="dark:text-zinc-100"
-              />
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                tick={{
-                  fontSize: 11,
-                  fill: 'currentColor',
-                  opacity: 0.9,
-                  className: 'dark:text-zinc-100 font-medium',
-                }}
-                domain={[0, yAxisMax]}
-                dx={-8}
-                tickCount={Math.min(yAxisMax + 1, 5)}
-                className="dark:text-zinc-100 font-medium"
-              />
-              <Tooltip
-                content={({ active, payload, label }) => {
-                  if (active && payload && payload.length) {
-                    return (
-                      <div className="bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-3 animate-in fade-in zoom-in duration-200">
-                        <div className="text-sm font-medium text-foreground">
-                          {payload[0].value}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">{label}</div>
-                      </div>
-                    )
-                  }
-                  return null
-                }}
-                cursor={false}
-                isAnimationActive={false}
-              />
-              <Bar
-                dataKey="value"
-                fill="url(#barGradient)"
-                radius={[6, 6, 0, 0]}
-                barSize={timeRange === 'year' ? 16 : 32}
-                animationDuration={500}
-                className="transition-all duration-500 ease-in-out"
-                isAnimationActive={true}
-                activeBar={false}
-                onMouseOver={(data, index) => {
-                  setHighlightedBar(data.label)
-                }}
-                onMouseLeave={() => {
-                  setHighlightedBar(null)
-                }}
-                background={{ fill: 'transparent', radius: 0 }}
-                maxBarSize={100}
-              >
-                <defs>
-                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="rgb(139, 92, 246)" stopOpacity={0.85} />
-                    <stop offset="100%" stopColor="rgb(139, 92, 246)" stopOpacity={0.35} />
-                  </linearGradient>
-                </defs>
-                {beatsData.map((entry, index) => (
-                  <LabelList
-                    key={entry.label}
-                    dataKey="value"
-                    position="top"
-                    fill={entry.label === highlightedBar ? 'rgb(139, 92, 246)' : 'currentColor'}
-                    fontSize={entry.label === highlightedBar ? 12 : 10}
-                    className={cn(
-                      'transition-all duration-300 dark:text-zinc-100 font-medium',
-                      entry.label === highlightedBar &&
-                        'font-semibold text-violet-500 dark:text-violet-400 opacity-100'
-                    )}
-                    formatter={(value: number) => (value > 0 ? value : '')}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          ) : (
-            <LineChart
-              data={cumulativeData}
-              margin={{ top: 16, right: 8, left: 8, bottom: 16 }}
-              className="animate-in fade-in duration-300"
-            >
-              <defs>
-                <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.9} />
-                  <stop offset="100%" stopColor="#d946ef" stopOpacity={0.6} />
-                </linearGradient>
-              </defs>
-              <XAxis
-                dataKey="label"
-                axisLine={false}
-                tickLine={false}
-                interval={timeRange === 'month' ? 2 : timeRange === 'day' ? 1 : 0}
-                tick={props => {
-                  const { x, y, payload } = props
-                  return (
-                    <g transform={`translate(${x},${y})`}>
-                      <text
-                        x={0}
-                        y={0}
-                        dy={12}
-                        textAnchor="middle"
-                        fill="currentColor"
-                        opacity={0.7}
-                        fontSize={11}
-                        className="dark:text-zinc-100 font-medium"
-                      >
-                        {payload.value}
-                      </text>
-                    </g>
-                  )
-                }}
-                height={40}
-                className="dark:text-zinc-100"
-              />
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                tick={{
-                  fontSize: 11,
-                  fill: 'currentColor',
-                  opacity: 0.7,
-                  className: 'dark:text-zinc-100 font-medium',
-                }}
-                dx={-8}
-                tickCount={Math.min(Math.max(...cumulativeData.map(d => d.cumulative || 0)) + 1, 5)}
-                className="dark:text-zinc-100 font-medium"
-              />
-              <Tooltip
-                content={({ active, payload, label }) => {
-                  if (active && payload && payload.length) {
-                    return (
-                      <div className="bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-3 animate-in fade-in zoom-in duration-200">
-                        <div className="text-sm font-medium text-foreground">
-                          {payload[0].value}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">{label}</div>
-                      </div>
-                    )
-                  }
-                  return null
-                }}
-                cursor={false}
-                isAnimationActive={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="cumulative"
-                stroke="url(#lineGradient)"
-                strokeWidth={2}
-                dot={false}
-                filter="url(#glow)"
-                activeDot={{
-                  r: 5,
-                  fill: '#8b5cf6',
-                  strokeWidth: 2,
-                  stroke: 'white',
-                  className: 'dark:stroke-zinc-900 drop-shadow-md transition-all duration-200',
-                }}
-                className="transition-all duration-200"
-              />
-            </LineChart>
-          )}
+              {beatsData.map((entry, index) => (
+                <LabelList
+                  key={entry.label}
+                  dataKey="value"
+                  position="top"
+                  fill={entry.label === highlightedBar ? 'rgb(139, 92, 246)' : 'currentColor'}
+                  fontSize={entry.label === highlightedBar ? 12 : 10}
+                  className={cn(
+                    'transition-all duration-300 dark:text-zinc-100 font-medium',
+                    entry.label === highlightedBar &&
+                      'font-semibold text-violet-500 dark:text-violet-400 opacity-100'
+                  )}
+                  formatter={(value: number) => (value > 0 ? value : '')}
+                />
+              ))}
+            </Bar>
+          </BarChart>
         </ResponsiveContainer>
       </div>
     </div>

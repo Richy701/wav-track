@@ -821,7 +821,7 @@ export const getBeatsCreatedInRange = async (
 }
 
 export const getTotalBeatsInTimeRange = async (
-  timeRange: 'day' | 'week' | 'month' | 'year',
+  timeRange: 'day' | 'week' | 'year',
   projectId?: string | null
 ): Promise<number> => {
   try {
@@ -843,9 +843,6 @@ export const getTotalBeatsInTimeRange = async (
         break
       case 'week':
         startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7)
-        break
-      case 'month':
-        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
         break
       case 'year':
         startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
@@ -884,24 +881,41 @@ export const getTotalBeatsInTimeRange = async (
 }
 
 export const getBeatsDataForChart = async (
-  timeRange: 'day' | 'week' | 'month' | 'year',
+  timeRange: 'day' | 'week' | 'year',
   projectId?: string | null
 ): Promise<ChartData[]> => {
   try {
+    console.log('Starting getBeatsDataForChart:', {
+      timeRange,
+      projectId,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV
+    })
+
     // Get the current user
     const {
       data: { user },
+      error: authError
     } = await supabase.auth.getUser()
 
-    if (!user) {
-      console.log('No user found when fetching beat data')
+    if (authError) {
+      console.error('Auth error in getBeatsDataForChart:', {
+        error: authError,
+        timestamp: new Date().toISOString()
+      })
       return []
     }
 
-    console.log('Fetching beat data for chart:', {
-      timeRange,
-      projectId,
+    if (!user) {
+      console.log('No user found when fetching beat data:', {
+        timestamp: new Date().toISOString()
+      })
+      return []
+    }
+
+    console.log('User authenticated successfully:', {
       userId: user.id,
+      timestamp: new Date().toISOString()
     })
 
     const now = new Date()
@@ -921,55 +935,10 @@ export const getBeatsDataForChart = async (
     console.log('Base query constructed:', {
       hasProjectFilter: !!projectId,
       projectId,
+      timestamp: new Date().toISOString()
     })
 
     switch (timeRange) {
-      case 'month': {
-        // Get the start of the current month
-        const startDate = new Date(now.getFullYear(), now.getMonth(), 1)
-        // Get the end of the current month
-        const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-
-        console.log('Fetching monthly data:', {
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-        })
-
-        // Fetch all beat activities for the month
-        const { data: activities, error } = await query
-          .gte('date', startDate.toISOString().split('T')[0])
-          .lte('date', endDate.toISOString().split('T')[0])
-          .order('date', { ascending: true })
-
-        if (error) {
-          console.error('Error fetching monthly beat activities:', {
-            code: error.code,
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-          })
-          return []
-        }
-
-        console.log('Monthly activities fetched:', {
-          count: activities?.length || 0,
-          activities,
-        })
-
-        // Generate data for each day of the month
-        for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
-          const dayStr = date.toISOString().split('T')[0]
-          const dayActivities = activities.filter(activity => activity.date === dayStr)
-          const value = dayActivities.reduce((sum, activity) => sum + (activity.count || 0), 0)
-
-          data.push({
-            label: formatDate(date, 'MMM d'),
-            value: value,
-          })
-        }
-        break
-      }
-
       case 'week': {
         const weekStart = new Date(now)
         weekStart.setDate(weekStart.getDate() - 6)
