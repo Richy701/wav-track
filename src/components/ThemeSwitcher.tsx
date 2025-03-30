@@ -38,18 +38,11 @@ export default function ThemeSwitcher() {
         'transition-all duration-200'
       )}
     >
-      <motion.div
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.5, opacity: 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        {theme === 'light' ? (
-          <Sun className="h-5 w-5 text-foreground/80 dark:text-foreground/70" />
-        ) : (
-          <Moon className="h-5 w-5 text-foreground/80 dark:text-foreground/70" />
-        )}
-      </motion.div>
+      {theme === 'light' ? (
+        <Sun className="h-5 w-5 text-foreground/80 dark:text-foreground/70" />
+      ) : (
+        <Moon className="h-5 w-5 text-foreground/80 dark:text-foreground/70" />
+      )}
       <span className="sr-only">Toggle theme</span>
     </Button>
   )

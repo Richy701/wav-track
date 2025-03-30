@@ -28,14 +28,13 @@ export function TimerControls({
         onClick={onReset}
         className={cn(
           "p-2 rounded-full transition-colors",
-          "hover:bg-muted/50 active:bg-muted",
           "focus:outline-none focus:ring-2 focus:ring-offset-2",
-          mode === 'work' 
-            ? "focus:ring-emerald-500/50" 
-            : "focus:ring-blue-500/50"
+          mode === 'work'
+            ? "text-emerald-600/70 hover:bg-emerald-100/50 focus:ring-emerald-500/50 dark:text-emerald-400/70 dark:hover:bg-emerald-500/10"
+            : "text-violet-600/70 hover:bg-violet-100/50 focus:ring-violet-500/50 dark:text-violet-400/70 dark:hover:bg-violet-500/10"
         )}
       >
-        <RotateCcw className="w-5 h-5 text-muted-foreground" />
+        <RotateCcw className="w-5 h-5" />
       </motion.button>
 
       {/* Play/Pause Button */}
@@ -46,10 +45,10 @@ export function TimerControls({
         className={cn(
           "p-4 rounded-full transition-all",
           "focus:outline-none focus:ring-2 focus:ring-offset-2",
-          mode === 'work' 
-            ? "bg-emerald-500 hover:bg-emerald-600 focus:ring-emerald-500/50" 
-            : "bg-blue-500 hover:bg-blue-600 focus:ring-blue-500/50",
-          "shadow-lg hover:shadow-xl"
+          "shadow-lg hover:shadow-xl",
+          mode === 'work'
+            ? "bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500/50 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+            : "bg-violet-600 hover:bg-violet-700 focus:ring-violet-500/50 dark:bg-violet-500 dark:hover:bg-violet-600"
         )}
       >
         {isRunning ? (
@@ -66,14 +65,13 @@ export function TimerControls({
         onClick={onSkip}
         className={cn(
           "p-2 rounded-full transition-colors",
-          "hover:bg-muted/50 active:bg-muted",
           "focus:outline-none focus:ring-2 focus:ring-offset-2",
-          mode === 'work' 
-            ? "focus:ring-emerald-500/50" 
-            : "focus:ring-blue-500/50"
+          mode === 'work'
+            ? "text-emerald-600/70 hover:bg-emerald-100/50 focus:ring-emerald-500/50 dark:text-emerald-400/70 dark:hover:bg-emerald-500/10"
+            : "text-violet-600/70 hover:bg-violet-100/50 focus:ring-violet-500/50 dark:text-violet-400/70 dark:hover:bg-violet-500/10"
         )}
       >
-        <SkipForward className="w-5 h-5 text-muted-foreground" />
+        <SkipForward className="w-5 h-5" />
       </motion.button>
     </div>
   )

@@ -5,6 +5,7 @@ import { LoadingWrapper } from '@/components/ui/loading-wrapper'
 import { ProjectList } from '@/components/ProjectList'
 import { Stats } from '@/components/Stats'
 import { Achievements } from '@/components/achievements'
+import { MotivationalQuotes } from '@/components/MotivationalQuotes'
 
 export function Dashboard() {
   const { projects, allProjects, isLoading: projectsLoading } = useProjects()
@@ -29,10 +30,17 @@ export function Dashboard() {
           </LoadingWrapper>
         </div>
 
-        <div>
+        <div className="space-y-6">
+          <LoadingWrapper
+            loadingKey="quotes"
+            className="h-[100px]"
+          >
+            <MotivationalQuotes />
+          </LoadingWrapper>
+
           <LoadingWrapper
             loadingKey="achievements"
-            className="h-[600px]"
+            className="h-[480px]"
           >
             <Achievements profile={profile} />
           </LoadingWrapper>

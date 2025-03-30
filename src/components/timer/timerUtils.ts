@@ -10,6 +10,12 @@ export interface TimerSession {
 
 export type NotificationSound = 'beep' | 'chime' | 'bell' | 'chirp' | 'ding'
 
+export interface TimerSettings {
+  workDuration: number
+  breakDuration: number
+  notificationSound: NotificationSound
+}
+
 // Use local audio files with dynamic base URL
 const getBaseUrl = () => {
   // Check if we're in development or production
@@ -179,4 +185,30 @@ export const notifySessionCompletion = (mode: 'work' | 'break', duration: number
       : `Break time over! (${minutes} minutes)`
 
   toast.success(message)
+}
+
+export const loadTimerSettings = (): TimerSettings => {
+  try {
+    const savedSettings = localStorage.getItem('timerSettings')
+    if (savedSettings) {
+      return JSON.parse(savedSettings)
+    }
+  } catch (error) {
+    console.error('Failed to load timer settings:', error)
+  }
+  
+  // Default settings
+  return {
+    workDuration: 25,
+    breakDuration: 5,
+    notificationSound: 'beep'
+  }
+}
+
+export const saveTimerSettings = (settings: TimerSettings): void => {
+  try {
+    localStorage.setItem('timerSettings', JSON.stringify(settings))
+  } catch (error) {
+    console.error('Failed to save timer settings:', error)
+  }
 }

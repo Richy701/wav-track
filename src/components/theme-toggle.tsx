@@ -9,9 +9,20 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { useState } from 'react'
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
+  const [isTransitioning, setIsTransitioning] = useState(false)
+
+  const handleThemeChange = () => {
+    if (isTransitioning) return
+    setIsTransitioning(true)
+    const newTheme = theme === 'light' ? 'dark' : 'light'
+    setTheme(newTheme)
+    // Reset transition state after animation completes
+    setTimeout(() => setIsTransitioning(false), 300)
+  }
 
   return (
     <TooltipProvider>
@@ -20,7 +31,8 @@ export function ThemeToggle() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            onClick={handleThemeChange}
+            disabled={isTransitioning}
             className={cn(
               "w-10 h-10 rounded-full",
               "bg-background/80 dark:bg-background/50",
@@ -30,13 +42,17 @@ export function ThemeToggle() {
               "hover:bg-primary/10 dark:hover:bg-primary/5",
               "hover:shadow-[0_0_15px_rgba(var(--primary),0.2)] dark:hover:shadow-[0_0_15px_rgba(var(--primary),0.1)]",
               "transition-all duration-300",
-              "focus-visible:ring-2 focus-visible:ring-primary/50 dark:focus-visible:ring-primary/30"
+              "focus-visible:ring-2 focus-visible:ring-primary/50 dark:focus-visible:ring-primary/30",
+              isTransitioning && "pointer-events-none"
             )}
           >
             <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.5, opacity: 0 }}
+              initial={false}
+              animate={{ 
+                scale: isTransitioning ? 0.8 : 1,
+                opacity: isTransitioning ? 0.5 : 1,
+                rotate: isTransitioning ? 180 : 0
+              }}
               transition={{ duration: 0.2 }}
             >
               {theme === 'light' ? (

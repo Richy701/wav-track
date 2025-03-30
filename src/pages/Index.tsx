@@ -141,7 +141,6 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10 md:mb-12 lg:items-end">
           <div className="lg:col-span-2 overflow-x-hidden">
             <Stats
-              projects={projects || []}
               sessions={sessions}
               selectedProject={selectedProject}
               beatActivities={beatActivities}

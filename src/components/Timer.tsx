@@ -10,6 +10,8 @@ import {
   saveNotificationSound,
   loadNotificationSound,
   preloadAudio,
+  loadTimerSettings,
+  saveTimerSettings,
 } from './timer/timerUtils'
 import { TimerDisplay } from './timer/TimerDisplay'
 import { TimerControls } from './timer/TimerControls'
@@ -20,91 +22,70 @@ import { toast } from 'sonner'
 import { cleanupAudioContext } from '@/lib/audioContext'
 import { motion, AnimatePresence } from 'framer-motion'
 
-// Import quotes from MotivationalQuotes component
-const quotes = [
-  {
-    text: 'The music is not in the notes, but in the silence between.',
-    author: 'Wolfgang Amadeus Mozart',
-  },
-  {
-    text: 'Your music is a reflection of your soul. Make it beautiful.',
-    author: 'Unknown',
-  },
-  {
-    text: 'Music gives a soul to the universe, wings to the mind, flight to the imagination.',
-    author: 'Plato',
-  },
-  {
-    text: 'One good thing about music, when it hits you, you feel no pain.',
-    author: 'Bob Marley',
-  },
-  {
-    text: 'Without music, life would be a mistake.',
-    author: 'Friedrich Nietzsche',
-  },
-  {
-    text: 'Music is the strongest form of magic.',
-    author: 'Marilyn Manson',
-  },
-  {
-    text: 'The only truth is music.',
-    author: 'Jack Kerouac',
-  },
-  {
-    text: "If you're not doing what you love, you're wasting your time.",
-    author: 'Billy Joel',
-  },
-  {
-    text: 'Music is a higher revelation than all wisdom and philosophy.',
-    author: 'Ludwig van Beethoven',
-  },
-  {
-    text: 'The more you create, the more creative you become.',
-    author: 'Unknown',
-  },
-  {
-    text: 'If it sounds good, it is good.',
-    author: 'Duke Ellington',
-  },
-  {
-    text: 'Trust your ear. If something sounds good to you, it is good.',
-    author: 'Rick Rubin',
-  },
-]
+const motivationalTips = {
+  work: [
+    { text: "Started from the bottom now we here", artist: "Drake - Started From The Bottom" },
+    { text: "I'm just trying to be better than I was yesterday", artist: "Drake - 0 To 100" },
+    { text: "Life is good", artist: "Future & Drake - Life Is Good" },
+    { text: "I got loyalty, got royalty inside my DNA", artist: "Kendrick Lamar - DNA." },
+    { text: "Work hard, stay focused, my vision tunneled", artist: "Tyler, The Creator - CORSO" },
+    { text: "Time is the most valuable currency", artist: "Dave - Twenty To One" },
+    { text: "Push myself to the limit, yeah, every day I'm winning", artist: "Lil Uzi Vert - Just Wanna Rock" },
+    { text: "I'm working twice as hard as I did last year", artist: "Dave - Professor X" },
+    { text: "Success is not a destination, it's a journey", artist: "Dave - Survivor's Guilt" },
+    { text: "Every L is a lesson, that's how I'm seeing it", artist: "Dave - Heart Attack" }
+  ],
+  break: [
+    { text: "Sometimes I need that time to myself", artist: "Drake - Take Care" },
+    { text: "Take time to heal yourself", artist: "SZA - Special" },
+    { text: "It's okay to put yourself first", artist: "SZA - Love Galore" },
+    { text: "Find peace in solitude", artist: "SZA - Gone Girl" },
+    { text: "Take a deep breath, reset your mind", artist: "SZA - Blind" },
+    { text: "Sometimes silence is better than words", artist: "Future - Deeper Than The Ocean" },
+    { text: "Take time to get my mind right", artist: "Future - All Bad" },
+    { text: "Gotta stay balanced", artist: "Future - Overdose" },
+    { text: "I love myself", artist: "Kendrick Lamar - i" },
+    { text: "Take time to heal", artist: "Kendrick Lamar - United In Grief" }
+  ]
+}
 
 const WORK_TIME = 25 * 60 // 25 minutes
 const BREAK_TIME = 5 * 60 // 5 minutes
 
-const motivationalQuotes = [
-  "Every beat counts. Make it matter.",
-  "Your next masterpiece is waiting.",
-  "Stay in the groove.",
-  "Keep the rhythm flowing.",
-  "Let the music guide you.",
-  "One session at a time.",
-  "Your creativity knows no bounds.",
-  "Make every note count.",
-  "Stay focused, stay inspired.",
-  "Your next hit is in this session."
-]
-
 // Audio context and buffer management
 const createAudioContext = () => new (window.AudioContext || (window as any).webkitAudioContext)()
 
+// Get a random quote that's different from the current one
+const getRandomQuote = (mode: 'work' | 'break', currentQuote?: { text: string; artist: string }) => {
+  const quotes = mode === 'work' ? motivationalTips.work : motivationalTips.break
+  if (currentQuote) {
+    const filteredQuotes = quotes.filter(q => q.text !== currentQuote.text)
+    const randomIndex = Math.floor(Math.random() * filteredQuotes.length)
+    return filteredQuotes[randomIndex]
+  } else {
+    const randomIndex = Math.floor(Math.random() * quotes.length)
+    return quotes[randomIndex]
+  }
+}
+
 export default function Timer() {
-  const [isRunning, setIsRunning] = useState(false)
-  const [time, setTime] = useState(WORK_TIME)
-  const [initialTime, setInitialTime] = useState(WORK_TIME)
-  const [sessions, setSessions] = useState<TimerSession[]>([])
-  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null)
+  // Load saved settings
+  const savedSettings = loadTimerSettings()
+  
+  // State
   const [mode, setMode] = useState<'work' | 'break'>('work')
-  const [workDuration, setWorkDuration] = useState(25) // Minutes
-  const [breakDuration, setBreakDuration] = useState(5) // Minutes
+  const [workDuration, setWorkDuration] = useState(savedSettings.workDuration)
+  const [breakDuration, setBreakDuration] = useState(savedSettings.breakDuration)
+  const [notificationSound, setNotificationSound] = useState<NotificationSound>(savedSettings.notificationSound)
+  const [time, setTime] = useState(workDuration * 60)
+  const [initialTime, setInitialTime] = useState(workDuration * 60)
+  const [isRunning, setIsRunning] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [notificationSound, setNotificationSound] = useState<NotificationSound>('beep')
-  const [currentQuote, setCurrentQuote] = useState(motivationalQuotes[0])
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null)
+  const [sessions, setSessions] = useState<TimerSession[]>(loadSessions())
   const [isAudioLoaded, setIsAudioLoaded] = useState(false)
   const [audioError, setAudioError] = useState<string | null>(null)
+  const [quote, setQuote] = useState(() => getRandomQuote('work'))
   const audioLoadAttempted = useRef(false)
   const audioContextRef = useRef<AudioContext | null>(null)
   const audioBufferRef = useRef<AudioBuffer | null>(null)
@@ -112,63 +93,22 @@ export default function Timer() {
   const gainNodeRef = useRef<GainNode | null>(null)
 
   // Quote state
-  const [quote, setQuote] = useState<(typeof quotes)[0]>(quotes[0])
   const [fadeIn, setFadeIn] = useState(true)
-
-  // Get a random quote that's different from the current one and hasn't been shown recently
-  const getRandomQuote = () => {
-    const lastQuoteData = localStorage.getItem('lastQuote')
-    const lastQuote = lastQuoteData ? JSON.parse(lastQuoteData) : null
-    const today = new Date().toDateString()
-
-    // If we have a last quote and it's from today, filter it out
-    const availableQuotes = quotes.filter(q => {
-      if (!lastQuote) return true
-      return q.text !== lastQuote.text || lastQuote.date !== today
-    })
-
-    // If all quotes have been shown today, reset the filter
-    if (availableQuotes.length === 0) {
-      return quotes[Math.floor(Math.random() * quotes.length)]
-    }
-
-    const randomIndex = Math.floor(Math.random() * availableQuotes.length)
-    return availableQuotes[randomIndex]
-  }
 
   // Change quote with animation
   const changeQuote = () => {
     setFadeIn(false)
     setTimeout(() => {
-      const newQuote = getRandomQuote()
+      const newQuote = getRandomQuote(mode, quote)
       setQuote(newQuote)
-      // Save the new quote and today's date
-      localStorage.setItem('lastQuote', JSON.stringify({
-        text: newQuote.text,
-        date: new Date().toDateString()
-      }))
       setFadeIn(true)
     }, 300)
   }
 
-  // Initialize with a random quote
+  // Update quote when mode changes
   useEffect(() => {
-    const lastQuoteData = localStorage.getItem('lastQuote')
-    const lastQuote = lastQuoteData ? JSON.parse(lastQuoteData) : null
-    const today = new Date().toDateString()
-
-    // If we have a last quote and it's from today, use it
-    if (lastQuote && lastQuote.date === today) {
-      const savedQuote = quotes.find(q => q.text === lastQuote.text)
-      if (savedQuote) {
-        setQuote(savedQuote)
-      } else {
-        setQuote(getRandomQuote())
-      }
-    } else {
-      setQuote(getRandomQuote())
-    }
-  }, [])
+    setQuote(getRandomQuote(mode))
+  }, [mode])
 
   // Load settings from localStorage when component mounts
   useEffect(() => {
@@ -329,10 +269,13 @@ export default function Timer() {
     }
 
     setMode(newMode)
-    const newTime = newMode === 'work' ? workDuration * 60 : breakDuration * 60
-    setTime(newTime)
-    setInitialTime(newTime)
+    const newDuration = newMode === 'work' ? workDuration : breakDuration
+    setTime(newDuration * 60)
+    setInitialTime(newDuration * 60)
     setSessionStartTime(null)
+    
+    // Change quote when switching modes
+    setQuote(getRandomQuote(newMode))
   }
 
   // Apply settings
@@ -343,15 +286,20 @@ export default function Timer() {
       }
     }
 
+    // Save all settings
+    saveTimerSettings({
+      workDuration,
+      breakDuration,
+      notificationSound
+    })
+
+    // Update timer state
     const newTime = mode === 'work' ? workDuration * 60 : breakDuration * 60
     setTime(newTime)
     setInitialTime(newTime)
     setIsRunning(false)
     setSessionStartTime(null)
     setShowSettings(false)
-
-    // Save notification sound setting
-    saveNotificationSound(notificationSound)
   }
 
   // Timer effect
@@ -373,18 +321,6 @@ export default function Timer() {
 
     return () => clearInterval(interval)
   }, [isRunning, time, mode])
-
-  // Update quote every 30 seconds
-  useEffect(() => {
-    const quoteInterval = setInterval(() => {
-      setCurrentQuote(prev => {
-        const currentIndex = motivationalQuotes.indexOf(prev)
-        return motivationalQuotes[(currentIndex + 1) % motivationalQuotes.length]
-      })
-    }, 30000)
-
-    return () => clearInterval(quoteInterval)
-  }, [])
 
   // Preload audio file
   const preloadAudio = async () => {
@@ -507,6 +443,12 @@ export default function Timer() {
     }
   }, [])
 
+  // Add effect to change quote every 3 minutes
+  useEffect(() => {
+    const quoteInterval = setInterval(changeQuote, 180000) // 3 minutes
+    return () => clearInterval(quoteInterval)
+  }, [mode]) // Reset interval when mode changes
+
   return (
     <div className="bg-card rounded-xl p-3 animate-fade-in theme-transition h-[529px] flex flex-col overflow-hidden">
       {/* Show audio error if exists */}
@@ -516,85 +458,133 @@ export default function Timer() {
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="font-medium flex items-center gap-2 theme-transition">
-          <div className="p-1.5 rounded-md bg-primary/10">
-            <Bell size={16} className="text-primary theme-transition" />
-          </div>
-          Pomodoro Timer
-        </h3>
-        <button
-          onClick={() => setShowSettings(!showSettings)}
-          title="Timer Settings"
-          className="h-8 w-8 rounded-full bg-secondary/50 hover:bg-secondary flex items-center justify-center transition-all duration-300 hover:rotate-45 transform"
-          aria-label="Open timer settings"
-        >
-          <Settings size={14} />
-        </button>
-      </div>
-
-      {showSettings ? (
-        <div className="flex-1">
-          <TimerSettings
-            workDuration={workDuration}
-            breakDuration={breakDuration}
-            setWorkDuration={setWorkDuration}
-            setBreakDuration={setBreakDuration}
-            notificationSound={notificationSound}
-            setNotificationSound={setNotificationSound}
-            applySettings={applySettings}
-          />
-        </div>
-      ) : (
-        <div className="flex-1 flex flex-col justify-between">
-          <div className="space-y-6">
-            <TimerModeSelector mode={mode} onModeChange={switchMode} />
-            <TimerDisplay
-              time={time}
-              initialTime={initialTime}
-              sessionStartTime={sessionStartTime}
-              mode={mode}
-              isRunning={isRunning}
-            />
-            <TimerControls
-              isRunning={isRunning}
-              onStart={toggleTimer}
-              onPause={toggleTimer}
-              onReset={resetTimer}
-              onSkip={handleTimerComplete}
-              mode={mode}
-            />
-          </div>
-
-          {/* Subtle divider */}
-          <div className="h-px bg-border/30 my-0.5" />
-
-          {/* Motivational Quote Section */}
-          <div className="text-center space-y-0.5 -mt-5">
-            <div className="flex items-center justify-center gap-1.5">
-              <h4 className="text-xs font-medium text-muted-foreground/80">Daily Inspiration</h4>
+      <div className="flex-1 flex flex-col">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className={cn(
+            "font-medium flex items-center gap-2 theme-transition",
+            mode === 'work'
+              ? "text-emerald-600/90 dark:text-emerald-400/90"
+              : "text-violet-600/90 dark:text-violet-400/90"
+          )}>
+            <div className={cn(
+              "p-1.5 rounded-md",
+              mode === 'work'
+                ? "bg-emerald-100 dark:bg-emerald-500/10"
+                : "bg-violet-100 dark:bg-violet-500/10"
+            )}>
+              <Bell size={16} className={cn(
+                mode === 'work'
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-violet-600 dark:text-violet-400"
+              )} />
             </div>
-            <div className="relative">
-              <motion.div
-                key={currentQuote}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
-                className="relative"
-              >
+            Pomodoro Timer
+          </h3>
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            title="Timer Settings"
+            className={cn(
+              "h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300 hover:rotate-45 transform",
+              mode === 'work'
+                ? "bg-emerald-100/50 hover:bg-emerald-200/50 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20"
+                : "bg-violet-100/50 hover:bg-violet-200/50 dark:bg-violet-500/10 dark:hover:bg-violet-500/20"
+            )}
+            aria-label="Open timer settings"
+          >
+            <Settings size={14} className={cn(
+              mode === 'work'
+                ? "text-emerald-600/90 dark:text-emerald-400/90"
+                : "text-violet-600/90 dark:text-violet-400/90"
+            )} />
+          </button>
+        </div>
+
+        {showSettings ? (
+          <div className="flex-1">
+            <TimerSettings
+              workDuration={workDuration}
+              breakDuration={breakDuration}
+              setWorkDuration={setWorkDuration}
+              setBreakDuration={setBreakDuration}
+              notificationSound={notificationSound}
+              setNotificationSound={setNotificationSound}
+              applySettings={applySettings}
+            />
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col justify-between">
+            <div className="space-y-6">
+              <TimerModeSelector mode={mode} onModeChange={switchMode} />
+              <TimerDisplay
+                time={time}
+                initialTime={initialTime}
+                sessionStartTime={sessionStartTime}
+                mode={mode}
+                isRunning={isRunning}
+              />
+              <TimerControls
+                isRunning={isRunning}
+                onStart={toggleTimer}
+                onPause={toggleTimer}
+                onReset={resetTimer}
+                onSkip={handleTimerComplete}
+                mode={mode}
+              />
+            </div>
+
+            {/* Subtle divider */}
+            <div className="h-px bg-border/30 my-0.5" />
+
+            {/* Motivational Quote */}
+            <div className="text-center h-[80px] flex items-center justify-center relative w-full px-4 group">
+              <AnimatePresence mode="wait">
                 <motion.div
-                  whileHover={{ rotate: 15 }}
-                  transition={{ duration: 0.2 }}
+                  key={quote.text}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ 
+                    duration: 0.4,
+                    ease: "easeOut"
+                  }}
+                  className={cn(
+                    "space-y-2 absolute inset-x-0 mx-auto",
+                    mode === 'work'
+                      ? "text-emerald-600/90 dark:text-emerald-400/90"
+                      : "text-violet-600/90 dark:text-violet-400/90"
+                  )}
                 >
-                  <Quote className="w-3 h-3 text-muted-foreground/50 absolute -top-1 -left-1" />
+                  <div className="relative">
+                    <button
+                      onClick={changeQuote}
+                      className={cn(
+                        "absolute -right-8 top-1/2 -translate-y-1/2 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
+                        mode === 'work'
+                          ? "hover:bg-emerald-100 dark:hover:bg-emerald-500/10"
+                          : "hover:bg-violet-100 dark:hover:bg-violet-500/10"
+                      )}
+                      title="Change quote"
+                    >
+                      <Sparkles className={cn(
+                        "w-3.5 h-3.5",
+                        mode === 'work'
+                          ? "text-emerald-600/90 dark:text-emerald-400/90"
+                          : "text-violet-600/90 dark:text-violet-400/90"
+                      )} />
+                    </button>
+                    <p className="text-base font-medium leading-relaxed tracking-tight text-center mx-auto">
+                      "{quote.text}"
+                    </p>
+                  </div>
+                  <p className="text-xs font-medium tracking-wide opacity-70 text-center">
+                    {quote.artist}
+                  </p>
                 </motion.div>
-                <p className="text-xs text-muted-foreground/90 italic">{currentQuote}</p>
-              </motion.div>
+              </AnimatePresence>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

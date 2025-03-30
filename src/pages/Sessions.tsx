@@ -81,8 +81,10 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      when: "beforeChildren"
+      staggerChildren: 0.15,
+      when: "beforeChildren",
+      duration: 0.5,
+      ease: "easeOut"
     }
   }
 }
@@ -99,7 +101,8 @@ const cardVariants = {
       type: "spring",
       stiffness: 100,
       damping: 15,
-      mass: 1
+      mass: 1,
+      duration: 0.5
     }
   },
   hover: {
@@ -108,7 +111,8 @@ const cardVariants = {
     transition: {
       type: "spring",
       stiffness: 400,
-      damping: 10
+      damping: 10,
+      duration: 0.3
     }
   }
 }
@@ -119,11 +123,15 @@ const buttonHoverVariants = {
     transition: {
       type: "spring",
       stiffness: 400,
-      damping: 10
+      damping: 10,
+      duration: 0.3
     }
   },
   tap: {
-    scale: 0.98
+    scale: 0.98,
+    transition: {
+      duration: 0.2
+    }
   }
 }
 
@@ -353,18 +361,255 @@ const TimerCard = ({
   // Motivational tips based on mode
   const motivationalTips = {
     work: [
-      "Stay focused, you're doing great!",
-      "Every minute counts towards your goal",
-      "Keep pushing, you've got this!",
-      "Your creativity is flowing",
-      "Make this session count"
+      { text: "Started from the bottom now we here", artist: "Drake - Started From The Bottom" },
+      { text: "I'm out here grinding like I'm working at the studio", artist: "Drake - Energy" },
+      { text: "I'm just feeling like the throne is for the taking, watch me take it", artist: "Drake - Forever" },
+      { text: "I'm trying to do better than good enough", artist: "Drake - Best I Ever Had" },
+      { text: "I'm the one that's living lavish, I'm the one that's getting passive", artist: "Drake - Money In The Grave" },
+      { text: "I'm just trying to stay alive and take care of my people", artist: "Drake - God's Plan" },
+      { text: "I'm just trying to be the best version of myself", artist: "Drake - Over" },
+      { text: "I'm just trying to make the most of my time", artist: "Drake - Time Flies" },
+      { text: "I'm just trying to be great", artist: "Drake - The Motto" },
+      { text: "I'm just trying to be better than I was yesterday", artist: "Drake - 0 To 100" },
+      { text: "I'm just trying to make it to the top", artist: "Drake - Make Me Proud" },
+      { text: "Last name walking, first name never", artist: "Drake - All Me" },
+      { text: "I'm upset, fifty thousand on my head, it's disrespect", artist: "Drake - I'm Upset" },
+      { text: "I'm working on myself and I'm healing", artist: "Drake - Fair Trade" },
+      { text: "I'm in the trenches, relaxing", artist: "Drake - Jimmy Cooks" },
+      { text: "They say they miss the old Drake, girl don't tempt me", artist: "Drake - Views" },
+      { text: "I'm outside, yeah, I'm outside and I'm still alive", artist: "Drake - Survival" },
+      { text: "I'm about to hit the top, no debating", artist: "Drake - Nonstop" },
+      { text: "I'm just getting started, let me tell you how it goes", artist: "Drake - Rich Flex" },
+      { text: "I made a career off reminiscing", artist: "Drake - Race My Mind" },
+      { text: "Life is good", artist: "Future & Drake - Life Is Good" },
+      { text: "Focused on the future", artist: "Future - Mask Off" },
+      { text: "Chase your dreams, never give up", artist: "Future - Never Stop" },
+      { text: "Keep grinding, keep shining", artist: "Future - Turn On The Lights" },
+      { text: "Stay dedicated to the vision", artist: "Future - Use Me" },
+      { text: "I'm living life like a boss", artist: "Future - I'm Da One" },
+      { text: "Every day I'm getting better", artist: "Future - 712PM" },
+      { text: "I've been winning so long", artist: "Future - Holy Ghost" },
+      { text: "I'm working harder than ever", artist: "Future - Ridin Strikers" },
+      { text: "I'm way too charged up", artist: "Future - Unicorn Purp" },
+      { text: "I'm on a roll, can't stop now", artist: "Future & Drake - Way 2 Sexy" },
+      { text: "I'm leveling up for real", artist: "Future - I'm Dat N****" },
+      { text: "Ain't no way around it, gotta face it", artist: "Future - Keep It Burning" },
+      { text: "They ain't believe in me, I believed in me", artist: "Future - Massaging Me" },
+      { text: "I'm mad, but I ain't stressin'", artist: "Kendrick Lamar - Count Me Out" },
+      { text: "The sky is the limit, I gotta stay focused", artist: "Kendrick Lamar - PRIDE." },
+      { text: "I transform like this is Optimus Prime", artist: "Kendrick Lamar - N95" },
+      { text: "Look inside of my soul and you can find gold", artist: "Kendrick Lamar - ADHD" },
+      { text: "If I gotta slap a critic, I'ma make it look sexy", artist: "Kendrick Lamar - ELEMENT." },
+      { text: "I got loyalty, got royalty inside my DNA", artist: "Kendrick Lamar - DNA." },
+      { text: "I'm so ahead of my time", artist: "Kendrick Lamar - i" },
+      { text: "Every day I wake up and breathe, I'm moving different", artist: "Kendrick Lamar - Mother I Sober" },
+      { text: "The hard work is paying off, I'm seeing progress", artist: "Kendrick Lamar - Savior" },
+      { text: "I know what I'm worth", artist: "Kendrick Lamar - Silent Hill" },
+      { text: "I'm cut from a different cloth, BOOM BOOM BOOM", artist: "Westside Gunn - Dr. Birds" },
+      { text: "They sleep until they see the vision", artist: "Westside Gunn - George Bondo" },
+      { text: "I'm painting pictures with the pen game", artist: "Westside Gunn - 327" },
+      { text: "Every move calculated, DOOT DOOT DOOT", artist: "Westside Gunn - Broadway Joes" },
+      { text: "I'm a living legend in the making", artist: "Westside Gunn - Versace" },
+      { text: "I'm writing history right now", artist: "Westside Gunn - Michael Irvin" },
+      { text: "The art is priceless, AYO", artist: "Westside Gunn - $500 Ounces" },
+      { text: "I'm cut from a different cloth, SKRRRRT", artist: "Westside Gunn - Liz Loves Luger" },
+      { text: "Every bar is a masterpiece", artist: "Westside Gunn - Banana Yacht" },
+      { text: "I'm on a different frequency", artist: "Westside Gunn - French Toast" },
+      { text: "I'm on my way, I'm on my way to get better", artist: "SZA - Good Days" },
+      { text: "I just keep elevating, no losses, just upgrading", artist: "SZA - Kill Bill" },
+      { text: "I'm so done with settling for less", artist: "SZA - SOS" },
+      { text: "I got my own light, don't need no battery pack", artist: "SZA - Conceited" },
+      { text: "I'm working on me, focusing on my growth", artist: "SZA - Garden (Say It Like Dat)" },
+      { text: "I shine so bright, no need for sparkles", artist: "SZA - Ghost in the Machine" },
+      { text: "I'm doing better than ever", artist: "SZA - Nobody Gets Me" },
+      { text: "I don't need permission to go get it", artist: "SZA - Smoking on my Ex Pack" },
+      { text: "I'm in control, doing it my way", artist: "SZA - Ctrl" },
+      { text: "Watch me while I bloom", artist: "SZA - Drew Barrymore" },
+      { text: "Push myself to the limit, yeah, every day I'm winning", artist: "Lil Uzi Vert - Just Wanna Rock" },
+      { text: "They said I couldn't do it, now look at me now", artist: "Lil Uzi Vert - 20 Min" },
+      { text: "Stack my paper fast, got no time to rest", artist: "Lil Uzi Vert - Money Longer" },
+      { text: "I'm working hard, yeah, right now", artist: "Lil Uzi Vert - Sauce It Up" },
+      { text: "All this work, no vacation", artist: "Lil Uzi Vert - Paradise" },
+      { text: "I don't really stop, I keep going", artist: "Lil Uzi Vert - Chrome Heart Tags" },
+      { text: "Level up, level up, I'm never going down", artist: "Lil Uzi Vert - Myron" },
+      { text: "I'm too advanced, I'm way too ahead", artist: "Lil Uzi Vert - For Fun" },
+      { text: "Every day I'm leveling up", artist: "Lil Uzi Vert - Endless Fashion" },
+      { text: "I'm working on a mission", artist: "Lil Uzi Vert - X" },
+      { text: "Work hard, stay focused, my vision tunneled", artist: "Tyler, The Creator - CORSO" },
+      { text: "I'm going forward, can't go backwards", artist: "Tyler, The Creator - LUMBERJACK" },
+      { text: "Find your wings, now it's time to fly", artist: "Tyler, The Creator - November" },
+      { text: "I'm working on building my empire", artist: "Tyler, The Creator - MASSA" },
+      { text: "Stay focused, don't let nothing stop your mission", artist: "Tyler, The Creator - SAFARI" },
+      { text: "Create, never imitate", artist: "Tyler, The Creator - Manifesto" },
+      { text: "Every move is calculated, watch me innovate", artist: "Tyler, The Creator - RUNITUP" },
+      { text: "I'm on a mission, can't stop won't stop", artist: "Tyler, The Creator - WHO DAT BOY" },
+      { text: "They didn't believe in the vision, I made them see it", artist: "Tyler, The Creator - RISE!" },
+      { text: "Keep creating, keep elevating", artist: "Tyler, The Creator - NEW MAGIC WAND" },
+      { text: "I'm in my prime, yeah (What?), I'm at the top (Yeah!)", artist: "Playboi Carti - Sky" },
+      { text: "They can't stop me, yeah, I'm on a roll (Yeah!)", artist: "Playboi Carti - New Tank" },
+      { text: "I've been grinding, yeah, all day (What?)", artist: "Playboi Carti - Magnolia" },
+      { text: "Never gonna stop until I'm done (Yeah!)", artist: "Playboi Carti - Stop Breathing" },
+      { text: "I'm on top, I got this locked (Slatt!)", artist: "Playboi Carti - ILoveUIHateU" },
+      { text: "Push these boundaries, yeah, no limits (What?)", artist: "Playboi Carti - Control" },
+      { text: "Working hard, yeah, that's my lifestyle (Yeah!)", artist: "Playboi Carti - Long Time" },
+      { text: "Can't nobody stop my grind (Slatt!)", artist: "Playboi Carti - Over" },
+      { text: "Level up every day, watch me rise (What?)", artist: "Playboi Carti - M3tamorphosis" },
+      { text: "Stay focused on the mission (Yeah!)", artist: "Playboi Carti - Slay3r" },
+      { text: "Work it to the maximum, yeah (It's lit!)", artist: "Travis Scott - SICKO MODE" },
+      { text: "Focus on the vision, never switch (Straight up!)", artist: "Travis Scott - HYAENA" },
+      { text: "Ain't no stoppin' on this mission (La Flame!)", artist: "Travis Scott - FE!N" },
+      { text: "Level up, watch me elevate (Yeah!)", artist: "Travis Scott - MODERN JAM" },
+      { text: "Keep pushing forward, never look back (It's lit!)", artist: "Travis Scott - STARGAZING" },
+      { text: "Stay focused on the grind (Straight up!)", artist: "Travis Scott - 5% TINT" },
+      { text: "Working hard until it's done right (La Flame!)", artist: "Travis Scott - MAFIA" },
+      { text: "Every move calculated, watch me work (Yeah!)", artist: "Travis Scott - CIRCUS MAXIMUS" },
+      { text: "Can't stop until we reach the top (It's lit!)", artist: "Travis Scott - goosebumps" },
+      { text: "Keep pushing boundaries, break the mold (Straight up!)", artist: "Travis Scott - BUTTERFLY EFFECT" },
+      { text: "I'm living in the future so the present is my past", artist: "Kanye West - Monster" },
+      { text: "You should be honored by my lateness, that I would even show up to this fake thing", artist: "Kanye West - Stronger" },
+      { text: "Reach for the stars, so if you fall you land on a cloud", artist: "Kanye West - Homecoming" },
+      { text: "My presence is a present, kiss my ring", artist: "Kanye West - Monster" },
+      { text: "I'm doing pretty good as far as geniuses go", artist: "Kanye West - Barry Bonds" },
+      { text: "I am the number one human being in music", artist: "Kanye West - Power" },
+      { text: "I'd rather be a dick than a swallower", artist: "Kanye West - New Slaves" },
+      { text: "I'm living in that 21st century, doing something mean to it", artist: "Kanye West - Power" },
+      { text: "No one man should have all that power", artist: "Kanye West - Power" },
+      { text: "This the real world, homie, school finished", artist: "Kanye West - Gorgeous" },
+      { text: "Time is the most valuable currency", artist: "Dave - Twenty To One" },
+      { text: "I got vision, that's something you can't buy", artist: "Dave - Starlight" },
+      { text: "Success is not a destination, it's a journey", artist: "Dave - Survivor's Guilt" },
+      { text: "They say success is the best revenge", artist: "Dave - Purple Heart" },
+      { text: "I'm working twice as hard as I did last year", artist: "Dave - Professor X" },
+      { text: "Every L is a lesson, that's how I'm seeing it", artist: "Dave - Heart Attack" },
+      { text: "I've been grinding, no days off", artist: "Dave - Clash" },
+      { text: "My work rate's been crazy, I've been working like a slave", artist: "Dave - Funky Friday" },
+      { text: "I've got a bigger purpose than the surface", artist: "Dave - Environment" },
+      { text: "Success is inevitable, failure's impossible", artist: "Dave - Psycho" }
     ],
     break: [
-      "Take a deep breath",
-      "Stretch and relax",
-      "Clear your mind",
-      "Recharge your energy",
-      "You deserve this break"
+      { text: "Sometimes I need that time to myself", artist: "Drake - Take Care" },
+      { text: "I'm just trying to keep my mind at ease", artist: "Drake - Keep The Family Close" },
+      { text: "I'm just trying to stay focused", artist: "Drake - Focus" },
+      { text: "I'm just trying to stay grounded", artist: "Drake - Weston Road Flows" },
+      { text: "I'm just trying to stay humble", artist: "Drake - Humble" },
+      { text: "I'm just trying to stay patient", artist: "Drake - Patient" },
+      { text: "I'm just trying to stay grateful", artist: "Drake - Grateful" },
+      { text: "I'm just trying to stay blessed", artist: "Drake - Blessings" },
+      { text: "I'm just trying to stay focused on the bigger picture", artist: "Drake - Big Picture" },
+      { text: "I'm just trying to stay focused on what matters", artist: "Drake - What Matters" },
+      { text: "Time heals all, and heels hurt to walk in", artist: "Drake - Fancy" },
+      { text: "Know yourself, know your worth", artist: "Drake - Know Yourself" },
+      { text: "Tables turn, bridges burn, you live and learn", artist: "Drake - Pound Cake" },
+      { text: "I'm just seeing my world through a window pane", artist: "Drake - Deep Pockets" },
+      { text: "I'm on a roll like Cottonelle", artist: "Drake - All Me" },
+      { text: "I'm honest, I make mistakes, I'd be the second to admit it", artist: "Drake - The Resistance" },
+      { text: "I'm tired of being patient, I want it all now", artist: "Drake - The Motion" },
+      { text: "Life is always worth living twice", artist: "Drake - Champagne Poetry" },
+      { text: "I'm trying to do better than alright", artist: "Drake - TSU" },
+      { text: "Gotta handle my business like a grown man", artist: "Drake - Pipe Down" },
+      { text: "Take some time to reflect", artist: "Future - Perkys Calling" },
+      { text: "Find your inner peace", artist: "Future - Peacoat" },
+      { text: "Sometimes silence is the best medicine", artist: "Future - Purple Reign" },
+      { text: "Take a moment to breathe", artist: "Future - Throw Away" },
+      { text: "Time for self reflection", artist: "Future - My Collection" },
+      { text: "Taking my time, that's the way it's supposed to be", artist: "Future - Love You Better" },
+      { text: "Sometimes you gotta take a step back", artist: "Future - The Percocet & Stripper Joint" },
+      { text: "Need some time to clear my mind", artist: "Future - Solo" },
+      { text: "Reflecting on my journey", artist: "Future - Accepting My Flaws" },
+      { text: "Peace of mind is priceless", artist: "Future - Outer Space Bih" },
+      { text: "Sometimes silence is better than words", artist: "Future - Deeper Than The Ocean" },
+      { text: "Taking time to get my mind right", artist: "Future - All Bad" },
+      { text: "Gotta stay balanced", artist: "Future - Overdose" },
+      { text: "I love myself", artist: "Kendrick Lamar - i" },
+      { text: "Be patient, be patient", artist: "Kendrick Lamar - Mirror" },
+      { text: "I need some water, something came over me", artist: "Kendrick Lamar - FEEL." },
+      { text: "I'm the biggest hypocrite of 2015", artist: "Kendrick Lamar - The Blacker The Berry" },
+      { text: "All my life I has to fight", artist: "Kendrick Lamar - Alright" },
+      { text: "Sometimes I need to be alone", artist: "Kendrick Lamar - u" },
+      { text: "Sit down, be humble", artist: "Kendrick Lamar - HUMBLE." },
+      { text: "I'm so grateful for the blessings", artist: "Kendrick Lamar - Count Me Out" },
+      { text: "Take time to heal", artist: "Kendrick Lamar - United In Grief" },
+      { text: "I choose me, I'm sorry", artist: "Kendrick Lamar - Mirror" },
+      { text: "Sometimes you gotta reflect on the journey", artist: "Westside Gunn - Richies" },
+      { text: "Peace to the gods, peace to the earth", artist: "Westside Gunn - Peace Fly God" },
+      { text: "Take time to appreciate the art", artist: "Westside Gunn - Fly God Jr" },
+      { text: "Wisdom is better than silver and gold", artist: "Westside Gunn - Stefflon Don" },
+      { text: "Sometimes silence speaks volumes", artist: "Westside Gunn - Kelly's Korner" },
+      { text: "Meditate on the moves", artist: "Westside Gunn - Mariota" },
+      { text: "Find your inner peace", artist: "Westside Gunn - BIG AL" },
+      { text: "Take time to count your blessings", artist: "Westside Gunn - Bubba Chuck" },
+      { text: "Reflect on how far we've come", artist: "Westside Gunn - RIP Eddie Kingston" },
+      { text: "Sometimes you gotta step back and observe", artist: "Westside Gunn - The Fly Who Couldn't Fly Straight" },
+      { text: "Take time, heal yourself", artist: "SZA - Special" },
+      { text: "It's okay to put yourself first", artist: "SZA - Love Galore" },
+      { text: "Sometimes you gotta sit with your thoughts", artist: "SZA - Open Arms" },
+      { text: "Take a moment to appreciate your journey", artist: "SZA - Far" },
+      { text: "Self-love is the best love", artist: "SZA - Broken Clocks" },
+      { text: "Find peace in solitude", artist: "SZA - Gone Girl" },
+      { text: "Take a deep breath, reset your mind", artist: "SZA - Blind" },
+      { text: "It's okay to take your time", artist: "SZA - Normal Girl" },
+      { text: "Give yourself grace", artist: "SZA - Supermodel" },
+      { text: "Remember how far you've come", artist: "SZA - I Hate U" },
+      { text: "Take your time, yeah, that's the wave", artist: "Lil Uzi Vert - The Way Life Goes" },
+      { text: "Slow it down, take it easy", artist: "Lil Uzi Vert - Neon Guts" },
+      { text: "Sometimes we need a moment just to breathe", artist: "Lil Uzi Vert - Dark Queen" },
+      { text: "Clear your mind, let your soul free", artist: "Lil Uzi Vert - XO Tour Llif3" },
+      { text: "Take a break, reset your mind state", artist: "Lil Uzi Vert - Venetia" },
+      { text: "Find your peace, that's what matters", artist: "Lil Uzi Vert - That Way" },
+      { text: "Sometimes silence is the answer", artist: "Lil Uzi Vert - Baby Pluto" },
+      { text: "Take time to find yourself", artist: "Lil Uzi Vert - P2" },
+      { text: "Reflect on how far you've come", artist: "Lil Uzi Vert - Bigger Than Life" },
+      { text: "Stay balanced, keep your mind right", artist: "Lil Uzi Vert - Celebration Station" },
+      { text: "Take time to find your garden", artist: "Tyler, The Creator - Garden Shed" },
+      { text: "Sometimes you gotta take a step back to see clear", artist: "Tyler, The Creator - GONE, GONE / THANK YOU" },
+      { text: "Find your peace, that's what matters most", artist: "Tyler, The Creator - ARE WE STILL FRIENDS?" },
+      { text: "Take a moment to appreciate where you are", artist: "Tyler, The Creator - See You Again" },
+      { text: "Self-reflection leads to growth", artist: "Tyler, The Creator - WILSHIRE" },
+      { text: "Sometimes silence helps you hear yourself better", artist: "Tyler, The Creator - Boredom" },
+      { text: "Take care of your garden, watch it grow", artist: "Tyler, The Creator - Where This Flower Blooms" },
+      { text: "Find what makes your soul smile", artist: "Tyler, The Creator - 911" },
+      { text: "Sometimes you need to pause and breathe", artist: "Tyler, The Creator - Running Out of Time" },
+      { text: "Take time to appreciate your journey", artist: "Tyler, The Creator - Sweet / I THOUGHT YOU WANTED TO DANCE" },
+      { text: "Take your time, yeah, let it breathe (What?)", artist: "Playboi Carti - Place" },
+      { text: "Find your peace, yeah, that's the wave (Yeah!)", artist: "Playboi Carti - Feel Like Dyin" },
+      { text: "Sometimes we need to slow it down (Slatt!)", artist: "Playboi Carti - Not PLaying" },
+      { text: "Take a moment, clear your mind (What?)", artist: "Playboi Carti - F33l Lik3 Dyin" },
+      { text: "Let your soul free, yeah, that's the vibe (Yeah!)", artist: "Playboi Carti - Teen X" },
+      { text: "Find your zone, stay in your lane (What?)", artist: "Playboi Carti - King Vamp" },
+      { text: "Take time to recharge (Slatt!)", artist: "Playboi Carti - On That Time" },
+      { text: "Reflect on the journey (Yeah!)", artist: "Playboi Carti - Die4Guy" },
+      { text: "Find your balance, keep it real (What?)", artist: "Playboi Carti - Meh" },
+      { text: "Take a break, reset your mind state (Yeah!)", artist: "Playboi Carti - Vamp Anthem" },
+      { text: "Take time to find your peace (La Flame!)", artist: "Travis Scott - ASTROTHUNDER" },
+      { text: "Sometimes you gotta slow it down (Yeah!)", artist: "Travis Scott - STOP TRYING TO BE GOD" },
+      { text: "Find your zone, let it flow (It's lit!)", artist: "Travis Scott - SKITZO" },
+      { text: "Take a moment to reflect (Straight up!)", artist: "Travis Scott - COFFEE BEAN" },
+      { text: "Clear your mind, let it breathe (La Flame!)", artist: "Travis Scott - SDMN" },
+      { text: "Find your balance in the chaos (Yeah!)", artist: "Travis Scott - R.I.P. SCREW" },
+      { text: "Take time to recharge your energy (It's lit!)", artist: "Travis Scott - YOSEMITE" },
+      { text: "Let your mind wander free (Straight up!)", artist: "Travis Scott - LOST FOREVER" },
+      { text: "Sometimes silence speaks volumes (La Flame!)", artist: "Travis Scott - MARIA I'M DRUNK" },
+      { text: "Take a break, reset your state (Yeah!)", artist: "Travis Scott - IMPOSSIBLE" },
+      { text: "Listen to the kids, bro", artist: "Kanye West - Father Stretch My Hands Pt. 1" },
+      { text: "Everything I'm not made me everything I am", artist: "Kanye West - Everything I Am" },
+      { text: "I'm just trying to say the way school need teachers, the way Kathie Lee needed Regis, that's the way I need Jesus", artist: "Kanye West - Jesus Walks" },
+      { text: "We're all self-conscious, I'm just the first to admit it", artist: "Kanye West - All Falls Down" },
+      { text: "I know I got to be right now, cause I can't get much wronger", artist: "Kanye West - Can't Tell Me Nothing" },
+      { text: "The plan was to drink until the pain over, but what's worse, the pain or the hangover?", artist: "Kanye West - Dark Fantasy" },
+      { text: "I'm not out of control, I'm just not in their control", artist: "Kanye West - Saint Pablo" },
+      { text: "I've been trying to right my wrongs", artist: "Kanye West - Real Friends" },
+      { text: "I guess every superhero need his theme music", artist: "Kanye West - Power" },
+      { text: "You're not perfect but you're not your mistakes", artist: "Kanye West - Only One" },
+      { text: "Take time to know yourself, that's the most important thing", artist: "Dave - Black" },
+      { text: "Sometimes the hardest person to forgive is yourself", artist: "Dave - Drama" },
+      { text: "Mental health is wealth, I need peace of mind", artist: "Dave - Both Sides of a Smile" },
+      { text: "Sometimes silence teaches you more than noise", artist: "Dave - How I Met My Ex" },
+      { text: "Take time to process everything you're going through", artist: "Dave - Psychodrama" },
+      { text: "Self-love is the foundation", artist: "Dave - Law of Attraction" },
+      { text: "Sometimes you need a moment just to breathe", artist: "Dave - Hangman" },
+      { text: "Your peace of mind is worth more than anything", artist: "Dave - Therapy" },
+      { text: "Take time to heal, that's real strength", artist: "Dave - Lesley" },
+      { text: "Sometimes the best thing you can do is reflect", artist: "Dave - Three Rivers" }
     ]
   }
 
@@ -690,19 +935,33 @@ const TimerCard = ({
           </div>
 
           {/* Motivational Tip */}
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
+          <div className="text-center max-w-xs h-[80px] flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentTip.text}
+                initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ 
+                  duration: 0.4,
+                  ease: "easeOut"
+                }}
             className={cn(
-              "text-sm text-center max-w-xs",
+                  "space-y-2 absolute",
               isWorking
-                ? "text-emerald-600/70 dark:text-emerald-400/70"
-                : "text-violet-600/70 dark:text-violet-400/70"
-            )}
-          >
-            {currentTip}
-          </motion.p>
+                    ? "text-emerald-600/90 dark:text-emerald-400/90"
+                    : "text-violet-600/90 dark:text-violet-400/90"
+                )}
+              >
+                <p className="text-base font-medium leading-relaxed tracking-tight">
+                  "{currentTip.text}"
+                </p>
+                <p className="text-xs font-medium tracking-wide opacity-70">
+                  {currentTip.artist}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Controls */}
@@ -1338,8 +1597,22 @@ const AddGoalModal = ({ isOpen, onClose, onSave }) => {
 
 const pageAnimation: Variants = {
   initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 }
+  animate: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut"
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    y: -20,
+    transition: {
+      duration: 0.5,
+      ease: "easeIn"
+    }
+  }
 }
 
 const Sessions: React.FC = () => {
@@ -1541,60 +1814,83 @@ const Sessions: React.FC = () => {
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
 
+    // Update timeLeft whenever workDuration or breakDuration changes
+    if (!isPlaying) {
+      setTimeLeft(isWorking ? workDuration * 60 : breakDuration * 60)
+    }
+
     if (isPlaying && timeLeft > 0) {
       interval = setInterval(() => {
-        setTimeLeft(timeLeft - 1)
+        if (timeLeft <= 1) {
+          setIsPlaying(false)
+          if (isWorking) {
+            // Work session completed
+            const newTime = breakDuration * 60
+            setIsWorking(false)
+            setTimeLeft(newTime)
+            new Audio('/notification.mp3').play().catch(() => {})
+            toast({
+              title: "Work Session Complete! 🎉",
+              description: "Time for a break!",
+              duration: 4000,
+            })
+          } else {
+            // Break completed
+            const newTime = workDuration * 60
+            setIsWorking(true)
+            setTimeLeft(newTime)
+            new Audio('/notification.mp3').play().catch(() => {})
+            toast({
+              title: "Break Complete! 💪",
+              description: "Ready to get back to work?",
+              duration: 4000,
+            })
+          }
+        } else {
+          setTimeLeft(timeLeft - 1)
+        }
       }, 1000)
-    } else if (timeLeft === 0) {
-      // Timer completed
-      setIsPlaying(false)
-      if (isWorking) {
-        // Work session completed
-        setTimeLeft(breakDuration * 60)
-        setIsWorking(false)
-        // Play notification sound and show toast
-        new Audio('/notification.mp3').play().catch(() => {})
-        toast({
-          title: "Work Session Complete! 🎉",
-          description: "Time for a break!",
-          duration: 4000,
-        })
-      } else {
-        // Break completed
-        setTimeLeft(workDuration * 60)
-        setIsWorking(true)
-        // Play notification sound and show toast
-        new Audio('/notification.mp3').play().catch(() => {})
-        toast({
-          title: "Break Complete! 💪",
-          description: "Ready to get back to work?",
-          duration: 4000,
-        })
-      }
     }
 
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isPlaying, timeLeft, isWorking, toast, workDuration, breakDuration])
+  }, [isPlaying, isWorking, workDuration, breakDuration, toast, timeLeft])
 
-  // Handle mode changes
+  // Handle mode changes with proper reset
   const handleModeChange = useCallback((working: boolean) => {
     setIsPlaying(false)
     setIsWorking(working)
-    setTimeLeft(working ? workDuration * 60 : breakDuration * 60)
+    const newDuration = working ? workDuration : breakDuration
+    setTimeLeft(newDuration * 60)
   }, [workDuration, breakDuration])
+
+  // Handle duration changes
+  const handleWorkDurationChange = useCallback((duration: number) => {
+    setWorkDuration(duration)
+    if (isWorking && !isPlaying) {
+      setTimeLeft(duration * 60)
+    }
+  }, [isWorking, isPlaying, setWorkDuration])
+
+  const handleBreakDurationChange = useCallback((duration: number) => {
+    setBreakDuration(duration)
+    if (!isWorking && !isPlaying) {
+      setTimeLeft(duration * 60)
+    }
+  }, [isWorking, isPlaying, setBreakDuration])
+
+  // Handle reset with proper duration
+  const handleReset = useCallback(() => {
+    setIsPlaying(false)
+    const currentDuration = isWorking ? workDuration : breakDuration
+    setTimeLeft(currentDuration * 60)
+  }, [isWorking, workDuration, breakDuration])
 
   // Handle play/pause
   const handlePlayPause = useCallback(() => {
     setIsPlaying(!isPlaying)
   }, [isPlaying])
-
-  // Handle reset
-  const handleReset = useCallback(() => {
-    setIsPlaying(false)
-    setTimeLeft(isWorking ? workDuration * 60 : breakDuration * 60)
-  }, [isWorking, workDuration, breakDuration])
 
   // Format time helper
   const formatTime = useCallback((seconds: number) => {
@@ -1987,6 +2283,7 @@ const Sessions: React.FC = () => {
       initial="initial"
       animate="animate"
       exit="exit"
+      variants={pageAnimation}
     >
       <Header />
       <div className="min-h-screen bg-background/50 pt-20">
@@ -2006,8 +2303,8 @@ const Sessions: React.FC = () => {
               handleModeChange={handleModeChange}
               workDuration={workDuration}
               breakDuration={breakDuration}
-              onWorkDurationChange={setWorkDuration}
-              onBreakDurationChange={setBreakDuration}
+              onWorkDurationChange={handleWorkDurationChange}
+              onBreakDurationChange={handleBreakDurationChange}
               formatTime={formatTime}
               className="p-4 sm:p-6"
             />

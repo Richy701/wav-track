@@ -34,21 +34,31 @@ export function TimerDisplay({
           "text-6xl font-bold tracking-tight",
           mode === 'work' 
             ? "text-emerald-600 dark:text-emerald-400" 
-            : "text-blue-600 dark:text-blue-400"
+            : "text-violet-600 dark:text-violet-400"
         )}
       >
         {formatTime(time)}
       </motion.div>
 
       {/* Mode label */}
-      <div className="text-sm text-muted-foreground mt-2">
+      <div className={cn(
+        "text-sm mt-2",
+        mode === 'work'
+          ? "text-emerald-600/70 dark:text-emerald-400/70"
+          : "text-violet-600/70 dark:text-violet-400/70"
+      )}>
         {mode === 'work' ? 'Focus Time' : 'Break Time'}
       </div>
 
       {/* Session start time */}
       {sessionStartTime && (
         <motion.div
-          className="text-xs text-muted-foreground mt-4"
+          className={cn(
+            "text-xs mt-4",
+            mode === 'work'
+              ? "text-emerald-600/50 dark:text-emerald-400/50"
+              : "text-violet-600/50 dark:text-violet-400/50"
+          )}
           initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}

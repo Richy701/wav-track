@@ -28,8 +28,10 @@ export default function Header() {
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out',
-        scrolled ? 'backdrop-blur-md bg-white/80 dark:bg-black/80' : 'bg-white dark:bg-black',
+        'fixed top-0 left-0 right-0 z-50 border-0',
+        scrolled 
+          ? 'backdrop-blur-2xl bg-white/20 dark:bg-black/20 supports-[backdrop-filter]:bg-white/5 supports-[backdrop-filter]:dark:bg-black/5' 
+          : 'bg-transparent',
         'px-4 py-3 md:px-6 md:py-4'
       )}
     >
