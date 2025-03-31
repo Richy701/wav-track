@@ -14,7 +14,7 @@ import fs from 'fs'
 
 // Function to get PWA manifest configuration
 const getManifestConfig = () => {
-  const basePath = '/wav-track/';
+  const basePath = process.env.BASE_URL || '/';
   
   return {
     name: 'WavTrack',
@@ -160,18 +160,14 @@ const pwaConfiguration: VitePWAOptions = {
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: process.env.BASE_URL || '/',
   plugins: [
     reactSWC({
       jsxImportSource: '@emotion/react',
       plugins: [['@swc/plugin-emotion', {}]],
     }),
     splitVendorChunkPlugin(),
-    compression({
-      algorithm: 'gzip',
-      ext: '.gz',
-      threshold: 10240,
-      deleteOriginFile: false,
-    }),
+    compression(),
     compression({
       algorithm: 'brotliCompress',
       ext: '.br',
@@ -207,13 +203,35 @@ export default defineConfig({
     }),
     viteStaticCopy({
       targets: [
-        { src: 'public/favicon.ico', dest: '.' },             // For root
-        { src: 'public/favicon.ico', dest: 'wav-track' },      // For app base
-        { src: 'public/*', dest: './' },
+        {
+          src: 'public/*',
+          dest: '.',
+        },
       ],
     }),
     vitePluginFaviconsInject('./public/favicon.ico'),
-    VitePWA(pwaConfiguration),
+    VitePWA({
+      registerType: 'autoUpdate',
+      manifest: getManifestConfig(),
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,gif,webp,woff,woff2,ttf,eot}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+            },
+          },
+        ],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+      },
+    }),
     visualizer({
       filename: 'dist/stats.html',
       open: true,
@@ -221,9 +239,19 @@ export default defineConfig({
       brotliSize: true,
     }),
   ],
+  css: {
+    modules: {
+      localsConvention: 'camelCase',
+    },
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@import "./src/styles/variables.scss";`,
+      },
+    },
+  },
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src'),
+      '@': resolve(__dirname, 'src')
     },
   },
   optimizeDeps: {
@@ -242,6 +270,12 @@ export default defineConfig({
     open: true,
     cors: true,
     host: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info',
+      'Access-Control-Allow-Credentials': 'true',
+    },
     proxy: {
       '/auth/v1': {
         target: 'https://ewenoruuogtoqyaxelgm.supabase.co',
@@ -257,23 +291,6 @@ export default defineConfig({
             if (req.headers.authorization) {
               proxyReq.setHeader('authorization', req.headers.authorization);
             }
-          });
-
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            Object.keys(proxyRes.headers).forEach(key => {
-              const value = proxyRes.headers[key];
-              if (value !== undefined) {
-                res.setHeader(key, value);
-              }
-            });
-          });
-
-          proxy.on('error', (err, req, res) => {
-            console.error('Proxy error:', err);
-            res.writeHead(500, {
-              'Content-Type': 'text/plain'
-            });
-            res.end('Something went wrong with the proxy.');
           });
         }
       },
@@ -307,22 +324,13 @@ export default defineConfig({
               proxyReq.setHeader('authorization', req.headers.authorization);
             }
           });
-
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            Object.keys(proxyRes.headers).forEach(key => {
-              const value = proxyRes.headers[key];
-              if (value !== undefined) {
-                res.setHeader(key, value);
-              }
-            });
-          });
         }
       }
     }
   },
   build: {
     outDir: 'dist',
-    sourcemap: false,
+    sourcemap: true,
     assetsDir: 'assets',
     modulePreload: {
       polyfill: true
@@ -341,19 +349,8 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-select',
-            '@radix-ui/react-slider',
-            '@radix-ui/react-toggle',
-            '@radix-ui/react-tooltip',
-          ],
-          'utils-vendor': ['date-fns', 'lodash', 'framer-motion'],
-          'query-vendor': ['@tanstack/react-query'],
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
         },
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
@@ -368,5 +365,12 @@ export default defineConfig({
   preview: {
     port: 3000,
     open: true,
+    cors: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info',
+      'Access-Control-Allow-Credentials': 'true',
+    },
   },
 })

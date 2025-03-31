@@ -119,8 +119,6 @@ export function useAuth() {
 
 // Create a wrapper component that handles navigation
 const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const navigate = useNavigate()
-  const location = useLocation()
   const queryClient = useQueryClient()
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -135,39 +133,6 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
     initRetryCount: 0,
   })
   const refreshTimeoutRef = useRef<NodeJS.Timeout>()
-
-  // Effect to handle initial navigation
-  useEffect(() => {
-    console.log('[Debug] Auth navigation effect - Current state:', {
-      user: !!user,
-      isLoading,
-      isInitialized,
-      pathname: location.pathname
-    })
-    
-    // Only redirect to login for protected routes
-    const publicRoutes = ['/', '/login', '/auth/callback', '/register']
-    const isPublicRoute = publicRoutes.includes(location.pathname)
-    
-    if (!user && !isLoading && isInitialized && !isPublicRoute) {
-      console.log('[Debug] Redirecting to login')
-      navigate('/login', { replace: true })
-    }
-  }, [user, isLoading, isInitialized, location.pathname, navigate])
-
-  // Function to show welcome modal with delay
-  const showWelcomeModalWithDelay = React.useCallback(() => {
-    console.log('[Debug] Checking welcome modal display conditions')
-    // Only show on the home page
-    if (location.pathname === '/') {
-      setTimeout(() => {
-        if (authStateRef.current.mounted) {
-          console.log('[Debug] Showing welcome modal')
-          setShowWelcomeModal(true)
-        }
-      }, 500) // 500ms delay
-    }
-  }, [location.pathname])
 
   // Effect to handle auth state changes and invalidate queries
   useEffect(() => {
@@ -200,33 +165,12 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
                   session.user.email!,
                   session.user.user_metadata?.name || session.user.email?.split('@')[0] || null
                 )
-
-                const { data: newProfile, error: createError } = await supabase
-                  .from('profiles')
-                  .insert([defaultProfile])
-                  .select()
-                  .single()
-
-                if (!createError && newProfile) {
-                  console.log('[Debug] Setting new profile')
-                  setProfile(convertProfileFromDb(newProfile))
-                } else {
-                  console.error('[Debug] Error creating profile:', createError)
-                  toast({
-                    variant: 'destructive',
-                    title: 'Profile Error',
-                    description: 'Failed to create profile. Please try again.',
-                  })
+                const newProfile = await createProfile(defaultProfile)
+                if (authStateRef.current.mounted) {
+                  setProfile(newProfile)
                 }
               }
             }
-          }
-
-          // Only invalidate queries if this is a new sign in
-          if (!isInitialized) {
-            console.log('[Debug] Invalidating queries after sign in')
-            queryClient.invalidateQueries(['profile'])
-            queryClient.invalidateQueries(['projects'])
           }
         }
       } else if (event === 'SIGNED_OUT') {
@@ -234,17 +178,14 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
         if (authStateRef.current.mounted) {
           setUser(null)
           setProfile(null)
-          // Clear queries when user signs out
-          queryClient.clear()
         }
       }
     })
 
     return () => {
-      console.log('[Debug] Cleaning up auth state change listener')
       subscription.unsubscribe()
     }
-  }, [queryClient, profile, isInitialized])
+  }, [])
 
   // Initial auth check with improved error handling and loading states
   useEffect(() => {
@@ -663,8 +604,43 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
   )
 }
 
-// Export the wrapper as the AuthProvider
-export const AuthProvider = AuthProviderWrapper
+// Create a navigation wrapper component
+const AuthNavigationWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { user, isLoading, isInitialized } = useAuth()
+
+  useEffect(() => {
+    console.log('[Debug] Auth navigation effect - Current state:', {
+      user: !!user,
+      isLoading,
+      isInitialized,
+      pathname: location.pathname
+    })
+    
+    // Only redirect to login for protected routes
+    const publicRoutes = ['/', '/login', '/auth/callback', '/register']
+    const isPublicRoute = publicRoutes.includes(location.pathname)
+    
+    if (!user && !isLoading && isInitialized && !isPublicRoute) {
+      console.log('[Debug] Redirecting to login')
+      navigate('/login', { replace: true })
+    }
+  }, [user, isLoading, isInitialized, location.pathname, navigate])
+
+  return <>{children}</>
+}
+
+// Export the main AuthProvider component
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <AuthProviderWrapper>
+      <AuthNavigationWrapper>
+        {children}
+      </AuthNavigationWrapper>
+    </AuthProviderWrapper>
+  )
+}
 
 // Helper function to convert form genres to DB format
 const convertGenresToDb = (genres: string[] | undefined): string | null => {

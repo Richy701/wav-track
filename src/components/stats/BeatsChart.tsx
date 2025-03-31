@@ -18,6 +18,7 @@ import { getBeatsDataForChart, getBeatsCreatedByProject } from '@/lib/data'
 import { cn } from '@/lib/utils'
 import { Project } from '@/lib/types'
 import { BarChart3, LineChart as LineChartIcon } from 'lucide-react'
+import React from 'react'
 
 type ChartView = 'bar' | 'line'
 
