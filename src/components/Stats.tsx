@@ -456,7 +456,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
                 {totalBeatsInPeriod}
               </motion.span>
               <span className="text-sm font-medium text-muted-foreground/90">
-                {timeRange === 'week' ? 'Beats This Week' : timeRange === 'month' ? 'Beats This Month' : 'Beats This Year'}
+                {timeRange === 'day' ? `${totalBeatsInPeriod === 1 ? 'Beat' : 'Beats'} Today` : timeRange === 'week' ? `${totalBeatsInPeriod === 1 ? 'Beat' : 'Beats'} This Week` : `${totalBeatsInPeriod === 1 ? 'Beat' : 'Beats'} This Year`}
               </span>
             </motion.div>
             <h3 className="font-medium text-foreground text-sm sm:text-base">
