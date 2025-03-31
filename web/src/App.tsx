@@ -83,8 +83,8 @@ function App() {
     >
       <QueryClientProvider client={queryClient}>
         <Router>
-          <ThemeProvider>
-            <AuthProvider>
+          <AuthProvider>
+            <ThemeProvider>
               <NavigationWrapper>
                 <Suspense fallback={<LoadingScreen />}>
                   <Routes>
@@ -166,8 +166,8 @@ function App() {
                 </Suspense>
               </NavigationWrapper>
               <Toaster />
-            </AuthProvider>
-          </ThemeProvider>
+            </ThemeProvider>
+          </AuthProvider>
         </Router>
       </QueryClientProvider>
     </ErrorBoundary>

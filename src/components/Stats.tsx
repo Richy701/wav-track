@@ -27,6 +27,7 @@ import { Button } from './ui/button'
 import { toast } from 'sonner'
 import { Badge } from './ui/badge'
 import { useProjects } from '@/hooks/useProjects'
+import { motion } from "framer-motion";
 
 interface StatsProps {
   sessions: Session[]
@@ -61,6 +62,12 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
   const [showYearInReview, setShowYearInReview] = useState(false)
   const [isGeneratingReview, setIsGeneratingReview] = useState(false)
 
+  // Filter out soft-deleted projects
+  const activeProjects = useMemo(() => 
+    projects.filter(project => !project.is_deleted),
+    [projects]
+  )
+
   // Fetch session time when component mounts
   useEffect(() => {
     const fetchSessionTime = async () => {
@@ -74,12 +81,12 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
     fetchSessionTime()
   }, [])
 
-  // Fetch beat counts when projects or selected project changes
+  // Fetch beat counts when projects, selected project, or beat activities change
   useEffect(() => {
     const fetchBeatCounts = async () => {
       setIsLoading(true)
       try {
-        if (projects.length === 0) {
+        if (activeProjects.length === 0) {
           setTotalBeatsCreated(0)
           setTotalBeatsInPeriod(0)
           return
@@ -93,10 +100,9 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
           const beats = await getBeatsCreatedByProject(selectedProject.id)
           setTotalBeatsCreated(beats)
         } else {
-          const beatPromises = projects.map(project => getBeatsCreatedByProject(project.id))
-          const beatCounts = await Promise.all(beatPromises)
-          const total = beatCounts.reduce((sum, count) => sum + count, 0)
-          setTotalBeatsCreated(total)
+          // Calculate total beats from beat activities instead of fetching per project
+          const totalBeats = beatActivities.reduce((sum, activity) => sum + activity.count, 0)
+          setTotalBeatsCreated(totalBeats)
         }
       } catch (error) {
         console.error('Error fetching beat counts:', error)
@@ -108,34 +114,24 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
     }
 
     fetchBeatCounts()
-  }, [projects, selectedProject, timeRange, refreshKey])
+  }, [activeProjects, selectedProject, timeRange, beatActivities])
 
-  // Update when new beats are added or project is selected
+  // Update refreshKey only when necessary
   useEffect(() => {
-    const checkForNewBeats = () => {
-      if (!beatActivities || beatActivities.length === 0) return
-      
-      const latestBeat = beatActivities[beatActivities.length - 1]
-      if (latestBeat && new Date(latestBeat.date).getTime() > lastBeatUpdate) {
-        setLastBeatUpdate(Date.now())
-        setRefreshKey(prev => prev + 1)
-      }
+    const now = Date.now()
+    // Only update refreshKey if more than 5 seconds have passed since last update
+    if (now - lastBeatUpdate > 5000) {
+      setRefreshKey(prev => prev + 1)
+      setLastBeatUpdate(now)
     }
-
-    // Check for new beats immediately
-    checkForNewBeats()
-
-    // Only check every 5 seconds if there are recent beats
-    const interval = setInterval(checkForNewBeats, 5000)
-    return () => clearInterval(interval)
-  }, [lastBeatUpdate, beatActivities])
+  }, [activeProjects, selectedProject, timeRange, beatActivities, lastBeatUpdate])
 
   // Count completed projects
-  const completedProjects = projects.filter(project => project.status === 'completed').length
+  const completedProjects = activeProjects.filter(project => project.status === 'completed').length
 
   // Calculate productivity score
   const productivityScore = useMemo(() => {
-    if (projects.length === 0) return 0
+    if (activeProjects.length === 0) return 0
 
     // Base score from total beats (max 50 points)
     const beatsScore = Math.min(50, Math.round((totalBeatsCreated / 20) * 50))
@@ -148,10 +144,10 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
 
     // Total score (max 100)
     return beatsScore + completionScore + sessionScore
-  }, [projects.length, totalSessionTime, totalBeatsCreated, completedProjects])
+  }, [activeProjects.length, totalSessionTime, totalBeatsCreated, completedProjects])
 
   // Get recent projects sorted by last modified
-  const recentProjects = [...projects]
+  const recentProjects = [...activeProjects]
     .sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime())
     .slice(0, 3)
 
@@ -162,10 +158,10 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
       title: 'First Beat',
       description: 'Created your first project',
       icon: <Star className="h-4 w-4" weight="fill" />,
-      unlocked: projects.length > 0,
+      unlocked: activeProjects.length > 0,
       date:
-        projects.length > 0
-          ? format(new Date(projects[projects.length - 1].dateCreated), 'MMM yyyy')
+        activeProjects.length > 0
+          ? format(new Date(activeProjects[activeProjects.length - 1].dateCreated), 'MMM yyyy')
           : null,
       color: 'from-amber-500 to-orange-500',
       borderColor: 'border-amber-500/20',
@@ -265,7 +261,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
     const yearStart = new Date(currentYear, 0, 1)
 
     // Filter projects and sessions for current year
-    const yearProjects = projects.filter(p => new Date(p.dateCreated) >= yearStart)
+    const yearProjects = activeProjects.filter(p => new Date(p.dateCreated) >= yearStart)
     const yearSessions = sessions.filter(s => new Date(s.created_at) >= yearStart)
 
     // Calculate year-specific stats
@@ -386,25 +382,95 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 space-y-3 md:space-y-0">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-primary/10">
-                <Trophy className="h-4 w-4 text-primary" weight="fill" />
-              </div>
+              <motion.div 
+                className="relative group"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.05 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20
+                }}
+                title="Keep the streak alive!"
+              >
+                {/* Animated outer glow */}
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-violet-600/30 blur-[20px] rounded-full"
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.3, 0.5, 0.3]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+                {/* Static inner glow */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-violet-500/20 blur-md rounded-full" />
+                {/* Icon container with hover effect */}
+                <motion.div 
+                  className="relative p-2.5 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 shadow-lg ring-1 ring-white/10"
+                  whileHover={{
+                    boxShadow: "0 0 20px 2px rgba(168, 85, 247, 0.3)",
+                  }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Trophy 
+                    className="h-5 w-5 text-white" 
+                    weight="fill"
+                  />
+                </motion.div>
+                {/* Achievement indicator (optional, shows when beats > 100) */}
+                {totalBeatsInPeriod > 100 && (
+                  <motion.div
+                    className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 10
+                    }}
+                  />
+                )}
+              </motion.div>
               {selectedProject && (
                 <Badge variant="outline" className="text-xs">
                   {selectedProject.title}
                 </Badge>
               )}
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl lg:text-4xl font-bold">
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ 
+                type: "spring",
+                stiffness: 200,
+                damping: 25
+              }}
+              className="flex flex-col space-y-1.5 mt-2"
+            >
+              <motion.span
+                key={totalBeatsInPeriod}
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 250,
+                  damping: 20
+                }}
+                className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground"
+              >
                 {totalBeatsInPeriod}
+              </motion.span>
+              <span className="text-sm font-medium text-muted-foreground/90">
+                {timeRange === 'day' ? `${totalBeatsInPeriod === 1 ? 'Beat' : 'Beats'} Today` : timeRange === 'week' ? `${totalBeatsInPeriod === 1 ? 'Beat' : 'Beats'} This Week` : `${totalBeatsInPeriod === 1 ? 'Beat' : 'Beats'} This Year`}
               </span>
-              <span className="text-xs sm:text-sm text-muted-foreground">
-                {totalBeatsInPeriod === 1 ? 'beat' : 'beats'} this {timeRange}
-              </span>
-            </div>
+            </motion.div>
             <h3 className="font-medium text-foreground text-sm sm:text-base">
-              {selectedProject ? 'Project Beats' : 'Total Beats'}
+              {selectedProject ? `${totalBeatsCreated === 1 ? 'Project Beat' : 'Project Beats'}` : `${totalBeatsCreated === 1 ? 'Total Beat' : 'Total Beats'}`}
             </h3>
           </div>
 
@@ -419,7 +485,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
           <BeatsChart
             key={refreshKey}
             timeRange={timeRange}
-            projects={projects}
+            projects={activeProjects}
             selectedProject={selectedProject}
           />
         </div>
@@ -593,7 +659,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
 
         <StatCard
           title="Completion Rate"
-          value={`${projects.length > 0 ? Math.round((completedProjects / projects.length) * 100) : 0}%`}
+          value={`${activeProjects.length > 0 ? Math.round((completedProjects / activeProjects.length) * 100) : 0}%`}
           icon={<Target className="w-3 h-3" weight="fill" />}
           description="Projects completed"
           trend={0}
