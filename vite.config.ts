@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import reactSWC from '@vitejs/plugin-react-swc'
 import { resolve } from 'path'
 import compression from 'vite-plugin-compression'
 import { visualizer } from 'rollup-plugin-visualizer'
@@ -161,7 +161,10 @@ const pwaConfiguration: VitePWAOptions = {
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
+    reactSWC({
+      jsxImportSource: '@emotion/react',
+      plugins: [['@swc/plugin-emotion', {}]],
+    }),
     splitVendorChunkPlugin(),
     compression({
       algorithm: 'gzip',

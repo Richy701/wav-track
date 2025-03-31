@@ -197,23 +197,36 @@ export function useProjects(projectsPerPage: number = 9) {
         queryClient.cancelQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] }),
         queryClient.cancelQueries({ queryKey: QUERY_KEYS.stats }),
         queryClient.cancelQueries({ queryKey: QUERY_KEYS.beatActivities }),
+        queryClient.cancelQueries({ queryKey: ['achievements'] }),
+        queryClient.cancelQueries({ queryKey: ['profile'] }),
       ])
 
       const previousProjects = queryClient.getQueryData([...QUERY_KEYS.projects, user?.id])
       const previousStats = queryClient.getQueryData(QUERY_KEYS.stats)
       const previousActivities = queryClient.getQueryData(QUERY_KEYS.beatActivities)
+      const previousAchievements = queryClient.getQueryData(['achievements'])
+      const previousProfile = queryClient.getQueryData(['profile'])
 
+      // Optimistically update projects
       queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], (old: Project[] = []) => {
         return old.filter(project => project.id !== projectId)
       })
 
-      return { previousProjects, previousStats, previousActivities }
+      return { 
+        previousProjects, 
+        previousStats, 
+        previousActivities,
+        previousAchievements,
+        previousProfile
+      }
     },
     onError: (err, projectId, context) => {
       if (context) {
         queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], context.previousProjects)
         queryClient.setQueryData(QUERY_KEYS.stats, context.previousStats)
         queryClient.setQueryData(QUERY_KEYS.beatActivities, context.previousActivities)
+        queryClient.setQueryData(['achievements'], context.previousAchievements)
+        queryClient.setQueryData(['profile'], context.previousProfile)
       }
       console.error('Failed to delete project:', err)
     },
@@ -222,6 +235,8 @@ export function useProjects(projectsPerPage: number = 9) {
         queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] }),
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.stats }),
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.beatActivities }),
+        queryClient.invalidateQueries({ queryKey: ['achievements'] }),
+        queryClient.invalidateQueries({ queryKey: ['profile'] }),
         refreshProfile(),
       ])
     },

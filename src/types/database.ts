@@ -88,6 +88,8 @@ export interface Database {
           completion_percentage: number
           audio_file: any | null
           created_at: string
+          is_deleted: boolean
+          deleted_at: string | null
         }
         Insert: {
           id?: string
@@ -104,6 +106,8 @@ export interface Database {
           completion_percentage?: number
           audio_file?: any | null
           created_at?: string
+          is_deleted?: boolean
+          deleted_at?: string | null
         }
         Update: {
           id?: string
@@ -120,6 +124,8 @@ export interface Database {
           completion_percentage?: number
           audio_file?: any | null
           created_at?: string
+          is_deleted?: boolean
+          deleted_at?: string | null
         }
         Relationships: []
       }

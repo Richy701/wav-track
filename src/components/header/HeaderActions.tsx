@@ -66,6 +66,7 @@ export default function HeaderActions({
   const items = [
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Sessions', href: '/sessions' },
+    { label: 'Achievements', href: '/achievements' },
     { label: 'Profile', href: '/profile' },
     { label: 'Settings', href: '/profile/settings' },
   ]
@@ -184,7 +185,7 @@ export default function HeaderActions({
 
       {user ? (
         <>
-          {isMainPage && (
+          {(isMainPage || location.pathname === '/dashboard') && (
             <Button
               variant="default"
               className={cn(
@@ -223,7 +224,7 @@ export default function HeaderActions({
         </>
       )}
 
-      {isMainPage && (
+      {(isMainPage || location.pathname === '/dashboard') && (
         <CreateProjectDialog
           isOpen={isCreateProjectOpen}
           onOpenChange={setIsCreateProjectOpen}

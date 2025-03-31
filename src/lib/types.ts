@@ -3,18 +3,20 @@ export interface Project {
   title: string
   description: string
   status: 'idea' | 'in-progress' | 'mixing' | 'mastering' | 'completed'
-  user_id?: string
-  created_at?: string
-  last_modified?: string
+  user_id: string
+  created_at: string
+  last_modified: string
+  is_deleted: boolean
+  deleted_at: string | null
   // Client-side fields
   dateCreated: string
   lastModified: string
-  bpm?: number
-  key?: string
-  genre?: string
-  tags?: string[]
-  completionPercentage?: number
-  audio_url?: string | null
+  bpm: number
+  key: string
+  genre: string
+  tags: string[]
+  completionPercentage: number
+  audio_url: string | null
   audioFile?: {
     name: string
     size: number
@@ -26,27 +28,21 @@ export interface Project {
 export interface Sample {
   id: string
   name: string
-  type: 'drum' | 'bass' | 'melody' | 'vocal' | 'fx' | 'other'
-  dateAdded: string
-  favorite: boolean
-  source: string
+  url: string
+  category: string
+  created_at: string
 }
 
 export interface Session {
   id: string
   user_id: string
-  project_id?: string | null
+  project_id: string
   duration: number
   created_at: string
-  ended_at?: string | null
   notes?: string
-  productivity_score: number
-  tags: string[]
-  status: 'active' | 'completed' | 'cancelled'
-  goal?: string
-  goal_completed?: boolean
-  feedback?: '😞' | '😐' | '🙂' | '😄'
-  streak_count?: number
+  productivity_score?: number
+  tags?: string[]
+  status?: string
 }
 
 export interface SessionStats {
@@ -62,11 +58,10 @@ export interface SessionStats {
 
 export interface Note {
   id: string
-  projectId?: string
-  title: string
+  projectId: string
   content: string
-  dateCreated: string
-  pinned: boolean
+  created_at: string
+  updated_at: string
 }
 
 export interface BeatActivity {
@@ -74,7 +69,18 @@ export interface BeatActivity {
   projectId: string
   date: string
   count: number
-  timestamp?: number
+  timestamp: number
+}
+
+export interface BeatActivityWithProject {
+  id: string
+  user_id: string
+  project_id: string
+  count: number
+  timestamp: number
+  projects: {
+    is_deleted: boolean
+  }
 }
 
 export interface AudioProcessingState {
@@ -147,4 +153,34 @@ export interface WeeklyGoal {
   status: 'active' | 'completed' | 'skipped'
   createdAt: string
   updatedAt: string
+}
+
+export type AchievementTier = 'bronze' | 'silver' | 'gold' | 'platinum'
+
+export interface Achievement {
+  id: string
+  name: string
+  description: string
+  icon: string
+  tier: AchievementTier
+  category: 'production' | 'streak' | 'time' | 'goals' | 'social'
+  requirement: number
+  unlockedAt?: string
+  progress?: number
+  total?: number
+}
+
+export interface UserAchievement {
+  id: string
+  user_id: string
+  achievement_id: string
+  unlocked_at: string
+  progress: number
+  total: number
+}
+
+export interface ChartData {
+  label: string
+  value: number
+  date?: string
 }

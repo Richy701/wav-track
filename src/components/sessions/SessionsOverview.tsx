@@ -255,7 +255,8 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
         "relative overflow-hidden rounded-lg p-3",
         "bg-gradient-to-b from-muted/5 to-muted/10 dark:from-muted/10 dark:to-muted/20",
         "border border-border/50 shadow-lg",
-        "h-[366px]",
+        "h-[471px]",
+        "hover:scale-[1.002] hover:shadow-xl transition-all duration-300 ease-in-out",
         activeSession && "border-l-4 border-l-primary/40"
       )}
     >

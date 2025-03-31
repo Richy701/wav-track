@@ -450,7 +450,7 @@ export default function Timer() {
   }, [mode]) // Reset interval when mode changes
 
   return (
-    <div className="bg-card rounded-xl p-3 animate-fade-in theme-transition h-[529px] flex flex-col overflow-hidden">
+    <div className="bg-card rounded-xl p-3 animate-fade-in theme-transition h-[480px] flex flex-col relative z-10 -mt-1 shadow-sm">
       {/* Show audio error if exists */}
       {audioError && (
         <div className="mb-2 p-2 bg-destructive/10 text-destructive text-sm rounded-md">
@@ -458,7 +458,7 @@ export default function Timer() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex items-center justify-between mb-2">
           <h3 className={cn(
             "font-medium flex items-center gap-2 theme-transition",

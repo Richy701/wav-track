@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import {
   BarChart,
   Bar,
@@ -40,6 +40,13 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
   const [chartView, setChartView] = useState<ChartView>('bar')
   const [refreshKey, setRefreshKey] = useState(0)
   const [mounted, setMounted] = useState(false)
+  const [forceRefresh, setForceRefresh] = useState(0)
+
+  // Filter out soft-deleted projects
+  const activeProjects = useMemo(() => 
+    projects.filter(project => !project.is_deleted),
+    [projects]
+  )
 
   // Calculate max value for YAxis domain
   const maxValue = Math.max(...beatsData.map(d => d.value))
@@ -64,25 +71,56 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
   // Update refreshKey when projects change or when selectedProject changes
   useEffect(() => {
     setRefreshKey(prev => prev + 1)
-  }, [projects, selectedProject])
+    setForceRefresh(prev => prev + 1)
+  }, [activeProjects, selectedProject, activeProjects.length])
 
   // Fetch data when timeRange, project selection, or refreshKey changes
   useEffect(() => {
+    let isMounted = true
+
     const fetchData = async () => {
       setIsLoading(true)
       try {
         const data = await getBeatsDataForChart(timeRange, selectedProject?.id)
-        setBeatsData(data)
+        if (isMounted) {
+          setBeatsData(data)
+        }
       } catch (error) {
         console.error('Error fetching beats data:', error)
-        setBeatsData([])
+        if (isMounted) {
+          setBeatsData([])
+        }
       } finally {
-        setIsLoading(false)
+        if (isMounted) {
+          setIsLoading(false)
+        }
       }
     }
 
     fetchData()
-  }, [timeRange, selectedProject, refreshKey])
+
+    // Set up an interval to refresh data every 5 seconds
+    const intervalId = setInterval(() => {
+      if (isMounted) {
+        setForceRefresh(prev => prev + 1)
+      }
+    }, 5000)
+
+    return () => {
+      isMounted = false
+      clearInterval(intervalId)
+    }
+  }, [timeRange, selectedProject, refreshKey, forceRefresh])
+
+  // Force a refresh after a short delay when mounted
+  useEffect(() => {
+    if (mounted) {
+      const timer = setTimeout(() => {
+        setForceRefresh(prev => prev + 1)
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [mounted])
 
   const CustomTooltip = ({
     active,

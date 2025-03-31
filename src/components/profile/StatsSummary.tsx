@@ -1,14 +1,45 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { MusicNote, CheckCircle, ChartLine, Lightning } from '@phosphor-icons/react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useProjects } from '@/hooks/useProjects'
 
 export function StatsSummary() {
   const { profile } = useAuth()
+  const { allProjects } = useProjects()
+
+  // Filter out soft-deleted projects and calculate stats
+  const activeProjects = useMemo(() => 
+    allProjects.filter(project => !project.is_deleted),
+    [allProjects]
+  )
+
+  const totalBeats = activeProjects.length
+  const completedProjects = activeProjects.filter(p => p.status === 'completed').length
+  const completionRate = activeProjects.length > 0 
+    ? Math.round((completedProjects / activeProjects.length) * 100) 
+    : 0
+
+  // Calculate productivity score
+  const productivityScore = useMemo(() => {
+    if (activeProjects.length === 0) return 0
+
+    // Base score from total beats (max 50 points)
+    const beatsScore = Math.min(50, Math.round((totalBeats / 20) * 50))
+
+    // Score from completed projects (max 30 points)
+    const completionScore = Math.min(30, completedProjects * 5)
+
+    // Score from active sessions (max 20 points)
+    const sessionScore = Math.min(20, Math.round((profile?.total_session_time || 0) / 60 / 10) * 20)
+
+    // Total score (max 100)
+    return beatsScore + completionScore + sessionScore
+  }, [activeProjects.length, totalBeats, completedProjects, profile?.total_session_time])
 
   const stats = [
     {
       title: 'Total Beats',
-      value: profile?.total_beats || 0,
+      value: totalBeats,
       icon: <MusicNote weight="fill" className="w-5 h-5" />,
       description: 'Across all projects',
       color: {
@@ -22,7 +53,7 @@ export function StatsSummary() {
     },
     {
       title: 'Completed Projects',
-      value: profile?.completed_projects || 0,
+      value: completedProjects,
       icon: <CheckCircle weight="fill" className="w-5 h-5" />,
       description: 'Successfully finished',
       color: {
@@ -36,7 +67,7 @@ export function StatsSummary() {
     },
     {
       title: 'Productivity Score',
-      value: `${profile?.productivity_score || 0}%`,
+      value: `${productivityScore}%`,
       icon: <ChartLine weight="fill" className="w-5 h-5" />,
       description: 'Based on beats and completed projects',
       color: {
@@ -50,7 +81,7 @@ export function StatsSummary() {
     },
     {
       title: 'Success Rate',
-      value: `${profile?.completion_rate || 0}%`,
+      value: `${completionRate}%`,
       icon: <Lightning weight="fill" className="w-5 h-5" />,
       description: 'Projects completed',
       color: {

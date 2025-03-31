@@ -97,6 +97,78 @@ const Index = () => {
     }
 
     fetchData()
+
+    // Set up real-time subscription for beat activities
+    const beatActivitiesSubscription = supabase
+      .channel('beat_activities_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'beat_activities',
+          filter: `user_id=eq.${user.id}`,
+        },
+        async (payload) => {
+          console.log('Beat activity change detected:', payload)
+          
+          try {
+            // For INSERT events, add the new activity to the existing list
+            if (payload.eventType === 'INSERT') {
+              const newActivity = {
+                id: payload.new.id,
+                projectId: payload.new.project_id,
+                date: payload.new.date,
+                count: payload.new.count,
+                timestamp: payload.new.timestamp,
+              }
+              setBeatActivities(prev => [newActivity, ...prev])
+            }
+            // For DELETE events, remove the activity
+            else if (payload.eventType === 'DELETE') {
+              setBeatActivities(prev => prev.filter(activity => activity.id !== payload.old.id))
+            }
+            // For UPDATE events, update the existing activity
+            else if (payload.eventType === 'UPDATE') {
+              setBeatActivities(prev => 
+                prev.map(activity => 
+                  activity.id === payload.new.id
+                    ? {
+                        ...activity,
+                        count: payload.new.count,
+                        timestamp: payload.new.timestamp,
+                      }
+                    : activity
+                )
+              )
+            }
+          } catch (error) {
+            console.error('Error handling beat activity change:', error)
+            // Fallback to refetch if there's an error
+            const { data: newBeatActivities, error: fetchError } = await supabase
+              .from('beat_activities')
+              .select('*')
+              .eq('user_id', user.id)
+              .order('timestamp', { ascending: false })
+
+            if (!fetchError && newBeatActivities) {
+              const transformed = newBeatActivities.map(activity => ({
+                id: activity.id,
+                projectId: activity.project_id,
+                date: activity.date,
+                count: activity.count,
+                timestamp: activity.timestamp,
+              }))
+              setBeatActivities(transformed)
+            }
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      beatActivitiesSubscription.unsubscribe()
+    }
   }, [user, authLoading, queryClient])
 
   const handleDragEnd = (activeId: string, overId: string) => {
@@ -137,16 +209,16 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
       <Header />
 
-      <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-10 flex-1 overflow-x-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10 md:mb-12 lg:items-end">
-          <div className="lg:col-span-2 overflow-x-hidden">
+      <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-10 flex-1">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10 md:mb-12 lg:items-start">
+          <div className="lg:col-span-2">
             <Stats
               sessions={sessions}
               selectedProject={selectedProject}
               beatActivities={beatActivities}
             />
           </div>
-          <div className="grid grid-cols-1 gap-6 overflow-x-hidden">
+          <div className="grid grid-cols-1 gap-6">
             <Timer />
             <SessionsOverview />
           </div>

@@ -29,6 +29,8 @@ export interface Profile {
   total_beats: number
   completed_projects: number
   completion_rate: number
+  current_streak: number
+  best_streak: number
   join_date: string | null
   updated_at: string | null
   social_links: {
@@ -489,11 +491,22 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
+      // Ensure social_links is properly formatted
+      const socialLinks = userData.social_links || profile.social_links
+      const formattedSocialLinks = {
+        instagram: socialLinks.instagram || null,
+        instagram_username: socialLinks.instagram_username || null,
+        twitter: socialLinks.twitter || null,
+        twitter_username: socialLinks.twitter_username || null,
+        youtube: socialLinks.youtube || null,
+        youtube_username: socialLinks.youtube_username || null,
+      }
+
       const updateData = {
         name: userData.name ?? profile.name,
         email: userData.email ?? profile.email,
         artist_name: userData.artist_name ?? profile.artist_name,
-        genres: userData.genres ? JSON.stringify(userData.genres) : null,
+        genres: userData.genres ? JSON.stringify(userData.genres) : profile.genres,
         daw: userData.daw ?? profile.daw,
         bio: userData.bio ?? profile.bio,
         location: userData.location ?? profile.location,
@@ -501,7 +514,7 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
         website: userData.website ?? profile.website,
         birthday: userData.birthday ?? profile.birthday,
         timezone: userData.timezone ?? profile.timezone,
-        social_links: userData.social_links ?? profile.social_links,
+        social_links: formattedSocialLinks,
         notification_preferences:
           userData.notification_preferences ?? profile.notification_preferences,
         updated_at: new Date().toISOString(),
@@ -524,33 +537,12 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
         throw error
       }
 
-      if (!data) {
-        const msg = 'No data returned from update'
-        console.error('[Auth] Profile update error:', msg)
-        toast({
-          variant: 'destructive',
-          title: 'Update Failed',
-          description: msg,
-        })
-        throw new Error(msg)
-      }
-
-      const updatedProfile = convertProfileFromDb(data as DbProfile)
+      // Update local profile state with properly converted data
+      const updatedProfile = convertProfileFromDb(data)
       setProfile(updatedProfile)
-
-      toast({
-        title: 'Profile Updated',
-        description: 'Your profile has been successfully updated',
-      })
-
       return updatedProfile
     } catch (error) {
       console.error('[Auth] Profile update error:', error)
-      toast({
-        variant: 'destructive',
-        title: 'Update Failed',
-        description: error instanceof Error ? error.message : 'An error occurred',
-      })
       throw error
     }
   }
@@ -707,6 +699,8 @@ const createDefaultProfile = (userId: string, email: string, name: string | null
   total_beats: 0,
   completed_projects: 0,
   completion_rate: 0,
+  current_streak: 0,
+  best_streak: 0,
   join_date: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   social_links: {
@@ -775,9 +769,18 @@ const convertProfileFromDb = (data: Database['public']['Tables']['profiles']['Ro
       ? JSON.parse(data.social_links) 
       : data.social_links
 
-    socialLinks = isValidSocialLinks(parsedLinks) 
-      ? parsedLinks 
-      : defaultSocialLinks
+    if (isValidSocialLinks(parsedLinks)) {
+      socialLinks = {
+        instagram: parsedLinks.instagram || null,
+        instagram_username: parsedLinks.instagram_username || null,
+        twitter: parsedLinks.twitter || null,
+        twitter_username: parsedLinks.twitter_username || null,
+        youtube: parsedLinks.youtube || null,
+        youtube_username: parsedLinks.youtube_username || null,
+      }
+    } else {
+      socialLinks = defaultSocialLinks
+    }
   } catch (error) {
     console.error('Error parsing social links:', error)
     socialLinks = defaultSocialLinks
@@ -798,12 +801,29 @@ const convertProfileFromDb = (data: Database['public']['Tables']['profiles']['Ro
     notificationPreferences = defaultNotificationPreferences
   }
 
+  // Parse and validate genres
+  let genres: string[] = []
+  try {
+    if (data.genres) {
+      if (typeof data.genres === 'string') {
+        genres = JSON.parse(data.genres)
+      } else if (Array.isArray(data.genres)) {
+        genres = data.genres
+      }
+      // Ensure genres is an array
+      genres = Array.isArray(genres) ? genres : []
+    }
+  } catch (error) {
+    console.error('Error parsing genres:', error)
+    genres = []
+  }
+
   return {
     id: data.id,
     email: data.email,
     name: data.name,
     artist_name: data.artist_name,
-    genres: data.genres || [],
+    genres: genres,
     daw: data.daw,
     bio: data.bio,
     location: data.location,
@@ -815,6 +835,8 @@ const convertProfileFromDb = (data: Database['public']['Tables']['profiles']['Ro
     total_beats: data.total_beats,
     completed_projects: data.completed_projects,
     completion_rate: data.completion_rate,
+    current_streak: data.current_streak,
+    best_streak: data.best_streak,
     join_date: data.join_date,
     updated_at: data.updated_at,
     social_links: socialLinks,

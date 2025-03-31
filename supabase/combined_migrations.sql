@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     full_name TEXT,
     avatar_url TEXT,
     artist_name TEXT,
-    genres TEXT,
+    genres JSONB DEFAULT '[]'::jsonb,
     daw TEXT,
     bio TEXT,
     location TEXT,

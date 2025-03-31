@@ -62,6 +62,12 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
   const [showYearInReview, setShowYearInReview] = useState(false)
   const [isGeneratingReview, setIsGeneratingReview] = useState(false)
 
+  // Filter out soft-deleted projects
+  const activeProjects = useMemo(() => 
+    projects.filter(project => !project.is_deleted),
+    [projects]
+  )
+
   // Fetch session time when component mounts
   useEffect(() => {
     const fetchSessionTime = async () => {
@@ -75,12 +81,12 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
     fetchSessionTime()
   }, [])
 
-  // Fetch beat counts when projects or selected project changes
+  // Fetch beat counts when projects, selected project, or beat activities change
   useEffect(() => {
     const fetchBeatCounts = async () => {
       setIsLoading(true)
       try {
-        if (projects.length === 0) {
+        if (activeProjects.length === 0) {
           setTotalBeatsCreated(0)
           setTotalBeatsInPeriod(0)
           return
@@ -94,10 +100,9 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
           const beats = await getBeatsCreatedByProject(selectedProject.id)
           setTotalBeatsCreated(beats)
         } else {
-          const beatPromises = projects.map(project => getBeatsCreatedByProject(project.id))
-          const beatCounts = await Promise.all(beatPromises)
-          const total = beatCounts.reduce((sum, count) => sum + count, 0)
-          setTotalBeatsCreated(total)
+          // Calculate total beats from beat activities instead of fetching per project
+          const totalBeats = beatActivities.reduce((sum, activity) => sum + activity.count, 0)
+          setTotalBeatsCreated(totalBeats)
         }
       } catch (error) {
         console.error('Error fetching beat counts:', error)
@@ -109,34 +114,14 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
     }
 
     fetchBeatCounts()
-  }, [projects, selectedProject, timeRange, refreshKey])
-
-  // Update when new beats are added or project is selected
-  useEffect(() => {
-    const checkForNewBeats = () => {
-      if (!beatActivities || beatActivities.length === 0) return
-      
-      const latestBeat = beatActivities[beatActivities.length - 1]
-      if (latestBeat && new Date(latestBeat.date).getTime() > lastBeatUpdate) {
-        setLastBeatUpdate(Date.now())
-        setRefreshKey(prev => prev + 1)
-      }
-    }
-
-    // Check for new beats immediately
-    checkForNewBeats()
-
-    // Only check every 5 seconds if there are recent beats
-    const interval = setInterval(checkForNewBeats, 5000)
-    return () => clearInterval(interval)
-  }, [lastBeatUpdate, beatActivities])
+  }, [activeProjects, selectedProject, timeRange, beatActivities])
 
   // Count completed projects
-  const completedProjects = projects.filter(project => project.status === 'completed').length
+  const completedProjects = activeProjects.filter(project => project.status === 'completed').length
 
   // Calculate productivity score
   const productivityScore = useMemo(() => {
-    if (projects.length === 0) return 0
+    if (activeProjects.length === 0) return 0
 
     // Base score from total beats (max 50 points)
     const beatsScore = Math.min(50, Math.round((totalBeatsCreated / 20) * 50))
@@ -149,10 +134,10 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
 
     // Total score (max 100)
     return beatsScore + completionScore + sessionScore
-  }, [projects.length, totalSessionTime, totalBeatsCreated, completedProjects])
+  }, [activeProjects.length, totalSessionTime, totalBeatsCreated, completedProjects])
 
   // Get recent projects sorted by last modified
-  const recentProjects = [...projects]
+  const recentProjects = [...activeProjects]
     .sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime())
     .slice(0, 3)
 
@@ -163,10 +148,10 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
       title: 'First Beat',
       description: 'Created your first project',
       icon: <Star className="h-4 w-4" weight="fill" />,
-      unlocked: projects.length > 0,
+      unlocked: activeProjects.length > 0,
       date:
-        projects.length > 0
-          ? format(new Date(projects[projects.length - 1].dateCreated), 'MMM yyyy')
+        activeProjects.length > 0
+          ? format(new Date(activeProjects[activeProjects.length - 1].dateCreated), 'MMM yyyy')
           : null,
       color: 'from-amber-500 to-orange-500',
       borderColor: 'border-amber-500/20',
@@ -266,7 +251,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
     const yearStart = new Date(currentYear, 0, 1)
 
     // Filter projects and sessions for current year
-    const yearProjects = projects.filter(p => new Date(p.dateCreated) >= yearStart)
+    const yearProjects = activeProjects.filter(p => new Date(p.dateCreated) >= yearStart)
     const yearSessions = sessions.filter(s => new Date(s.created_at) >= yearStart)
 
     // Calculate year-specific stats
@@ -490,7 +475,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
           <BeatsChart
             key={refreshKey}
             timeRange={timeRange}
-            projects={projects}
+            projects={activeProjects}
             selectedProject={selectedProject}
           />
         </div>
@@ -664,7 +649,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
 
         <StatCard
           title="Completion Rate"
-          value={`${projects.length > 0 ? Math.round((completedProjects / projects.length) * 100) : 0}%`}
+          value={`${activeProjects.length > 0 ? Math.round((completedProjects / activeProjects.length) * 100) : 0}%`}
           icon={<Target className="w-3 h-3" weight="fill" />}
           description="Projects completed"
           trend={0}

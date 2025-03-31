@@ -51,6 +51,7 @@ const Index = lazyWithPreload(() => import('./pages/Index'))
 const Callback = lazyWithPreload(() => import('./pages/auth/Callback'))
 const ProjectDetail = lazyWithPreload(() => import('./pages/ProjectDetail'))
 const LandingPage = lazyWithPreload(() => import('./pages/LandingPage'))
+const Achievements = lazyWithPreload(() => import('./pages/Achievements'))
 
 // Preload components on hover
 const preloadComponent = (component: React.LazyExoticComponent<any> & { preload: () => Promise<any> }) => {
@@ -158,6 +159,16 @@ function App() {
                         <ProtectedRoute>
                           <Suspense fallback={<LoadingScreen message="Loading project..." />}>
                             <ProjectDetail />
+                          </Suspense>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/achievements"
+                      element={
+                        <ProtectedRoute>
+                          <Suspense fallback={<LoadingScreen message="Loading achievements..." />}>
+                            <Achievements />
                           </Suspense>
                         </ProtectedRoute>
                       }

@@ -271,8 +271,11 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
       onOpenChange(false)
       resetForm()
 
-      // Notify parent component
+      // Notify parent component and trigger a refresh
       onProjectCreated?.()
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      queryClient.invalidateQueries({ queryKey: ['beatActivities'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
     } catch (error) {
       console.error('Error creating project:', error)
       

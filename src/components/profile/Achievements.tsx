@@ -1,107 +1,144 @@
 import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Star, Trophy, Target } from '@phosphor-icons/react'
+import { Star, Trophy, Target, Clock, Fire, Users } from '@phosphor-icons/react'
 import { useAuth } from '@/contexts/AuthContext'
+import { motion } from 'framer-motion'
+import { cn } from '@/lib/utils'
+import { Progress } from '@/components/ui/progress'
+import { useAchievements } from '@/hooks/useAchievements'
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.3
+    }
+  }
+}
 
 export function Achievements() {
   const { profile } = useAuth()
+  const { achievements, loading } = useAchievements()
 
-  const achievements = [
-    {
-      id: 'first_beat',
-      title: 'First Beat',
-      description: 'Created your first project',
-      icon: <Star className="h-4 w-4" weight="fill" />,
-      unlocked: (profile?.total_beats || 0) > 0,
-      date: profile?.join_date ? new Date(profile.join_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : null,
-      color: 'from-amber-500 to-orange-500',
-      borderColor: 'border-amber-500/20',
-    },
-    {
-      id: 'ten_beats',
-      title: 'Beat Master',
-      description: 'Created 10+ beats',
-      icon: <Trophy className="h-4 w-4" weight="fill" />,
-      unlocked: (profile?.total_beats || 0) >= 10,
-      count: profile?.total_beats || 0,
-      color: 'from-indigo-500 to-violet-500',
-      borderColor: 'border-indigo-500/20',
-    },
-    {
-      id: 'five_completed',
-      title: 'Finisher',
-      description: 'Completed 5+ projects',
-      icon: <Target className="h-4 w-4" weight="fill" />,
-      unlocked: (profile?.completed_projects || 0) >= 5,
-      count: profile?.completed_projects || 0,
-      color: 'from-emerald-500 to-teal-500',
-      borderColor: 'border-emerald-500/20',
-    },
-  ]
+  // Get the first 3 achievements to display
+  const displayAchievements = achievements.slice(0, 3)
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-1">
-        <h2 className="text-xl font-semibold tracking-tight">Achievements</h2>
-        <p className="text-sm text-muted-foreground">
-          Track your milestones and unlock new badges as you progress.
-        </p>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+    >
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-foreground">Achievements</h3>
+        <Badge variant="secondary" className="text-xs">
+          {achievements.filter(a => a.unlocked_at).length}/{achievements.length}
+        </Badge>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {achievements.map(achievement => (
-          <Card
+
+      <motion.div
+        variants={containerVariants}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+      >
+        {displayAchievements.map(achievement => (
+          <motion.div
             key={achievement.id}
-            className={`group relative overflow-hidden hover:shadow-md transition-all duration-200 hover:scale-[1.01] border ${achievement.unlocked ? achievement.borderColor : 'border-muted'}`}
+            variants={itemVariants}
+            className="group relative"
           >
-            <CardContent className="p-5">
-              {/* Gradient overlay on hover */}
-              <span
-                className={`absolute inset-0 bg-gradient-to-tr opacity-0 group-hover:opacity-50 
-                           transition-opacity duration-200 pointer-events-none ${achievement.color}/5`}
-              />
-
-              {/* Header with Icon */}
-              <div className="flex items-center gap-4 mb-4">
+            <Card className={cn(
+              "relative overflow-hidden transition-all duration-300",
+              "hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20",
+              "border border-border/50",
+              achievement.unlocked_at ? "bg-gradient-to-br from-primary/5 via-transparent to-transparent" : "bg-muted/30"
+            )}>
+              <CardContent className="p-6">
+                {/* Gradient overlay */}
                 <div
-                  className={`p-2.5 rounded-full bg-gradient-to-br ${achievement.unlocked ? achievement.color : 'from-muted to-muted'} text-white 
-                            shadow-sm transition-transform duration-200 group-hover:scale-105`}
-                >
-                  {achievement.icon}
-                </div>
-                <div>
-                  <h3 className="font-medium text-foreground">{achievement.title}</h3>
-                  <p className="text-sm text-muted-foreground">{achievement.description}</p>
-                </div>
-              </div>
+                  className={cn(
+                    "absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300",
+                    "bg-gradient-to-tr",
+                    achievement.unlocked_at ? "from-primary to-primary/50" : "from-muted to-muted/50"
+                  )}
+                />
 
-              {/* Progress Section */}
-              <div className="space-y-2">
-                {achievement.unlocked ? (
-                  <div className="flex justify-between items-center">
-                    <Badge
-                      variant="outline"
-                      className={`bg-gradient-to-r ${achievement.color} border-0 text-white text-xs`}
-                    >
-                      Unlocked
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">
-                      {achievement.date || `${achievement.count} total`}
-                    </span>
+                {/* Header with Icon */}
+                <div className="flex items-center gap-4 mb-4">
+                  <div
+                    className={cn(
+                      "p-3 rounded-xl",
+                      "bg-gradient-to-br",
+                      achievement.unlocked_at ? "from-primary to-primary/80" : "from-muted to-muted",
+                      "text-white shadow-sm",
+                      "transition-transform duration-300",
+                      "group-hover:scale-110"
+                    )}
+                  >
+                    {achievement.icon}
                   </div>
-                ) : (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Progress</span>
-                    <span className="font-medium tabular-nums">
-                      {achievement.count || 0}/{achievement.id === 'ten_beats' ? '10' : '5'}
-                    </span>
+                  <div>
+                    <h3 className="font-medium text-foreground">{achievement.name}</h3>
+                    <p className="text-sm text-muted-foreground">{achievement.description}</p>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+
+                {/* Progress Section */}
+                <div className="space-y-3">
+                  {achievement.unlocked_at ? (
+                    <div className="flex justify-between items-center">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "bg-gradient-to-r",
+                          "from-primary to-primary/80",
+                          "border-0 text-white text-xs"
+                        )}
+                      >
+                        Unlocked
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {new Date(achievement.unlocked_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Progress</span>
+                        <span className="font-medium tabular-nums">
+                          {achievement.progress || 0}/{achievement.requirement}
+                        </span>
+                      </div>
+                      <Progress 
+                        value={((achievement.progress || 0) / achievement.requirement) * 100} 
+                        className={cn(
+                          "h-2",
+                          "bg-muted",
+                          "group-hover:bg-muted/80",
+                          "transition-colors duration-300"
+                        )}
+                      />
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 } 

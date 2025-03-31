@@ -49,26 +49,30 @@ export function AboutMe() {
     {
       name: 'Instagram',
       icon: <InstagramLogo weight="fill" className="h-4 w-4" />,
-      href: profile?.instagram || '#',
-      username: profile?.instagram_username || 'Add Instagram',
+      href: profile?.social_links?.instagram || '#',
+      username: profile?.social_links?.instagram_username || 'Add Instagram',
+      className: 'text-[#E4405F] dark:text-[#E4405F] bg-[#E4405F]/5 dark:bg-[#E4405F]/10',
     },
     {
       name: 'Twitter',
       icon: <TwitterLogo weight="fill" className="h-4 w-4" />,
-      href: profile?.social?.twitter || '#',
-      username: profile?.social?.twitter_username || 'Add Twitter',
+      href: profile?.social_links?.twitter || '#',
+      username: profile?.social_links?.twitter_username || 'Add Twitter',
+      className: 'text-[#1DA1F2] dark:text-[#1DA1F2] bg-[#1DA1F2]/5 dark:bg-[#1DA1F2]/10',
     },
     {
       name: 'YouTube',
       icon: <YoutubeLogo weight="fill" className="h-4 w-4" />,
-      href: profile?.social?.youtube || '#',
-      username: profile?.social?.youtube_username || 'Add YouTube',
+      href: profile?.social_links?.youtube || '#',
+      username: profile?.social_links?.youtube_username || 'Add YouTube',
+      className: 'text-[#FF0000] dark:text-[#FF0000] bg-[#FF0000]/5 dark:bg-[#FF0000]/10',
     },
     {
       name: 'Email',
       icon: <Envelope weight="fill" className="h-4 w-4" />,
       href: `mailto:${profile?.email || ''}`,
       username: profile?.email || 'Add Email',
+      className: 'text-[#EA4335] dark:text-[#EA4335] bg-[#EA4335]/5 dark:bg-[#EA4335]/10',
     },
   ]
 
@@ -140,9 +144,9 @@ export function AboutMe() {
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
               >
-                <div className="rounded-full p-2 bg-muted shrink-0">{link.icon}</div>
+                <div className={`rounded-full p-2 ${link.className} shrink-0`}>{link.icon}</div>
                 <div className="min-w-0 flex-1">
                   <div className="font-medium truncate">{link.name}</div>
                   <div className="text-sm text-muted-foreground truncate break-all">

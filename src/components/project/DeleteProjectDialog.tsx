@@ -17,7 +17,7 @@ interface DeleteProjectDialogProps {
   project: Project
   isOpen: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: () => void
+  onConfirm?: () => void
 }
 
 export default function DeleteProjectDialog({
@@ -32,7 +32,9 @@ export default function DeleteProjectDialog({
     try {
       await deleteProject(project.id)
       onOpenChange(false)
-      onConfirm()
+      if (typeof onConfirm === 'function') {
+        onConfirm()
+      }
       toast.success('Project deleted', {
         description: `"${project.title}" has been removed.`,
       })

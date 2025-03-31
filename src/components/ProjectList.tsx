@@ -97,8 +97,8 @@ const ProjectList: React.FC<ProjectListProps> = ({
       await clearAllProjects()
       queryClient.invalidateQueries({ queryKey: ['projects'] })
       setIsClearDialogOpen(false)
-      toast.success('All projects deleted', {
-        description: 'Your project list has been cleared.',
+      toast.success('All data cleared', {
+        description: "You're starting fresh.",
       })
     } catch (error) {
       console.error('Error clearing projects:', error)
@@ -368,15 +368,18 @@ const ProjectList: React.FC<ProjectListProps> = ({
       <AlertDialog open={isClearDialogOpen} onOpenChange={setIsClearDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Clear All Projects</AlertDialogTitle>
+            <AlertDialogTitle className="text-destructive">⚠️ Clear All Projects and Data</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete all projects? This action cannot be undone.
+              Are you sure you want to delete everything? This will permanently erase all your projects, beats, sessions, and achievement progress. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleClearAllProjects}>
-              Clear All
+            <AlertDialogAction 
+              onClick={handleClearAllProjects}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Yes, Delete Everything
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,216 +1,392 @@
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          operationName?: string
+          query?: string
+          variables?: Json
+          extensions?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
-      waitlist: {
+      achievements: {
         Row: {
-          id: string
-          email: string
+          category: string
           created_at: string
+          description: string
+          icon: string
+          id: string
+          name: string
+          requirement: number
+          tier: string
+          updated_at: string
         }
         Insert: {
-          id?: string
-          email: string
+          category: string
           created_at?: string
+          description: string
+          icon: string
+          id: string
+          name: string
+          requirement: number
+          tier: string
+          updated_at?: string
         }
         Update: {
-          id?: string
-          email?: string
+          category?: string
           created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          requirement?: number
+          tier?: string
+          updated_at?: string
         }
         Relationships: []
+      }
+      beat_activities: {
+        Row: {
+          count: number
+          created_at: string | null
+          date: string
+          id: string
+          project_id: string | null
+          timestamp: number
+          user_id: string | null
+        }
+        Insert: {
+          count?: number
+          created_at?: string | null
+          date: string
+          id?: string
+          project_id?: string | null
+          timestamp: number
+          user_id?: string | null
+        }
+        Update: {
+          count?: number
+          created_at?: string | null
+          date?: string
+          id?: string
+          project_id?: string | null
+          timestamp?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beat_activities_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
-          id: string
-          email: string
-          name: string | null
           artist_name: string | null
-          genres: string[] | null
-          daw: string | null
+          avatar_url: string | null
+          beats_created: number | null
           bio: string | null
-          location: string | null
-          phone: string | null
-          website: string | null
           birthday: string | null
-          timezone: string
-          productivity_score: number
-          total_beats: number
-          completed_projects: number
-          completion_rate: number
-          social_links: Json | null
-          notification_preferences: Json | null
+          completed_projects: number | null
+          completion_rate: number | null
+          daw: string | null
+          email: string
+          genres: string | null
+          id: string
           join_date: string | null
+          location: string | null
+          name: string | null
+          notification_preferences: Json | null
+          phone: string | null
+          productivity_score: number | null
+          social_links: Json | null
+          timezone: string | null
+          total_beats: number | null
           updated_at: string | null
+          website: string | null
         }
         Insert: {
-          id: string
-          email: string
-          name?: string | null
           artist_name?: string | null
-          genres?: string[] | null
-          daw?: string | null
+          avatar_url?: string | null
+          beats_created?: number | null
           bio?: string | null
-          location?: string | null
-          phone?: string | null
-          website?: string | null
           birthday?: string | null
-          timezone?: string
-          productivity_score?: number
-          total_beats?: number
-          completed_projects?: number
-          completion_rate?: number
-          social_links?: Json | null
-          notification_preferences?: Json | null
+          completed_projects?: number | null
+          completion_rate?: number | null
+          daw?: string | null
+          email: string
+          genres?: string | null
+          id: string
           join_date?: string | null
+          location?: string | null
+          name?: string | null
+          notification_preferences?: Json | null
+          phone?: string | null
+          productivity_score?: number | null
+          social_links?: Json | null
+          timezone?: string | null
+          total_beats?: number | null
           updated_at?: string | null
+          website?: string | null
         }
         Update: {
-          id?: string
-          email?: string
-          name?: string | null
           artist_name?: string | null
-          genres?: string[] | null
-          daw?: string | null
+          avatar_url?: string | null
+          beats_created?: number | null
           bio?: string | null
-          location?: string | null
-          phone?: string | null
-          website?: string | null
           birthday?: string | null
-          timezone?: string
-          productivity_score?: number
-          total_beats?: number
-          completed_projects?: number
-          completion_rate?: number
-          social_links?: Json | null
-          notification_preferences?: Json | null
+          completed_projects?: number | null
+          completion_rate?: number | null
+          daw?: string | null
+          email?: string
+          genres?: string | null
+          id?: string
           join_date?: string | null
+          location?: string | null
+          name?: string | null
+          notification_preferences?: Json | null
+          phone?: string | null
+          productivity_score?: number | null
+          social_links?: Json | null
+          timezone?: string | null
+          total_beats?: number | null
           updated_at?: string | null
+          website?: string | null
         }
         Relationships: []
       }
-      sessions: {
+      projects: {
         Row: {
+          audio_file: Json | null
+          bpm: number | null
+          completion_percentage: number | null
+          created_at: string | null
+          date_created: string | null
+          deleted_at: string | null
+          description: string | null
+          genre: string | null
           id: string
-          user_id: string
-          project_id: string | null
-          duration: number
-          created_at: string
-          ended_at: string | null
-          notes: string | null
-          productivity_score: number | null
-          tags: string[]
-          status: 'active' | 'completed' | 'paused'
+          is_deleted: boolean | null
+          key: string | null
+          last_modified: string | null
+          status: string | null
+          tags: string[] | null
+          title: string
+          user_id: string | null
         }
         Insert: {
+          audio_file?: Json | null
+          bpm?: number | null
+          completion_percentage?: number | null
+          created_at?: string | null
+          date_created?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          genre?: string | null
           id?: string
-          user_id: string
-          project_id?: string | null
-          duration?: number
-          created_at?: string
-          ended_at?: string | null
-          notes?: string | null
-          productivity_score?: number | null
-          tags?: string[]
-          status?: 'active' | 'completed' | 'paused'
+          is_deleted?: boolean | null
+          key?: string | null
+          last_modified?: string | null
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          user_id?: string | null
         }
         Update: {
+          audio_file?: Json | null
+          bpm?: number | null
+          completion_percentage?: number | null
+          created_at?: string | null
+          date_created?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          genre?: string | null
           id?: string
-          user_id?: string
-          project_id?: string | null
-          duration?: number
+          is_deleted?: boolean | null
+          key?: string | null
+          last_modified?: string | null
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      session_goals: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          expected_duration_minutes: number | null
+          goal_text: string
+          id: string
+          project_id: string | null
+          status: Database["public"]["Enums"]["goal_status"]
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
           created_at?: string
+          expected_duration_minutes?: number | null
+          goal_text: string
+          id?: string
+          project_id?: string | null
+          status?: Database["public"]["Enums"]["goal_status"]
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          expected_duration_minutes?: number | null
+          goal_text?: string
+          id?: string
+          project_id?: string | null
+          status?: Database["public"]["Enums"]["goal_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_project"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_goals_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          created_at: string | null
+          duration: number
+          ended_at: string | null
+          feedback: string | null
+          goal: string | null
+          goal_completed: boolean | null
+          id: string
+          notes: string | null
+          productivity_score: number | null
+          project_id: string | null
+          status: string | null
+          streak_count: number | null
+          tags: string[] | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration: number
           ended_at?: string | null
+          feedback?: string | null
+          goal?: string | null
+          goal_completed?: boolean | null
+          id?: string
           notes?: string | null
           productivity_score?: number | null
-          tags?: string[]
-          status?: 'active' | 'completed' | 'paused'
+          project_id?: string | null
+          status?: string | null
+          streak_count?: number | null
+          tags?: string[] | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          duration?: number
+          ended_at?: string | null
+          feedback?: string | null
+          goal?: string | null
+          goal_completed?: boolean | null
+          id?: string
+          notes?: string | null
+          productivity_score?: number | null
+          project_id?: string | null
+          status?: string | null
+          streak_count?: number | null
+          tags?: string[] | null
+          user_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "sessions_project_id_fkey"
             columns: ["project_id"]
+            isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "sessions_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
         ]
       }
-      session_goals: {
+      user_achievements: {
         Row: {
-          id: string
-          user_id: string
-          goal_text: string
-          description: string | null
-          expected_duration_minutes: number
-          status: 'pending' | 'completed'
+          achievement_id: string
           created_at: string
-          updated_at: string | null
+          id: string
+          progress: number
+          total: number
+          unlocked_at: string | null
+          updated_at: string
+          user_id: string
         }
         Insert: {
-          id?: string
-          user_id: string
-          goal_text: string
-          description?: string | null
-          expected_duration_minutes: number
-          status?: 'pending' | 'completed'
+          achievement_id: string
           created_at?: string
-          updated_at?: string | null
+          id?: string
+          progress?: number
+          total: number
+          unlocked_at?: string | null
+          updated_at?: string
+          user_id: string
         }
         Update: {
-          id?: string
-          user_id?: string
-          goal_text?: string
-          description?: string | null
-          expected_duration_minutes?: number
-          status?: 'pending' | 'completed'
+          achievement_id?: string
           created_at?: string
-          updated_at?: string | null
+          id?: string
+          progress?: number
+          total?: number
+          unlocked_at?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "session_goals_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "profiles"
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
             referencedColumns: ["id"]
-          }
+          },
         ]
-      }
-      beat_activities: {
-        Row: {
-          id: string
-          user_id: string
-          project_id: string
-          date: string
-          count: number
-          timestamp: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          project_id: string
-          date: string
-          count?: number
-          timestamp: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          project_id?: string
-          date?: string
-          count?: number
-          timestamp?: number
-          created_at?: string
-        }
-        Relationships: []
       }
     }
     Views: {
@@ -220,7 +396,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      goal_status: "pending" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -228,25 +404,27 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, 'public'>]
+type PublicSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
   PublicTableNameOrOptions extends
-    | keyof (PublicSchema['Tables'] & PublicSchema['Views'])
+    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
     | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions['schema']]['Tables'] &
-        Database[PublicTableNameOrOptions['schema']]['Views'])
+    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions['schema']]['Tables'] &
-      Database[PublicTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema['Tables'] & PublicSchema['Views'])
-    ? (PublicSchema['Tables'] & PublicSchema['Views'])[PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
+        PublicSchema["Views"])
+    ? (PublicSchema["Tables"] &
+        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -254,18 +432,20 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends keyof PublicSchema['Tables'] | { schema: keyof Database },
+  PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
-    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -273,18 +453,20 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends keyof PublicSchema['Tables'] | { schema: keyof Database },
+  PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
-    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -292,27 +474,29 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends keyof PublicSchema['Enums'] | { schema: keyof Database },
+  PublicEnumNameOrOptions extends
+    | keyof PublicSchema["Enums"]
+    | { schema: keyof Database },
   EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions['schema']]['Enums']
+    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
-    ? PublicSchema['Enums'][PublicEnumNameOrOptions]
+  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
+    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema['CompositeTypes']
+    | keyof PublicSchema["CompositeTypes"]
     | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
-    ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

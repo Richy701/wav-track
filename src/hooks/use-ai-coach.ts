@@ -91,7 +91,10 @@ export function useAICoach() {
         // Fetch recent sessions with more detailed data
         const { data: sessions, error: sessionsError } = await supabase
           .from('sessions')
-          .select('*, goals(*)')
+          .select(`
+            *,
+            active_goal:session_goals(*)
+          `)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(20)
@@ -195,7 +198,7 @@ export function useAICoach() {
 
       // Calculate common categories
       const categoryCount = sessions?.reduce((acc, session) => {
-        const category = session.goals?.category || 'general'
+        const category = session.active_goal?.category || 'general'
         acc[category] = (acc[category] || 0) + 1
         return acc
       }, {} as Record<string, number>) || {}
@@ -213,9 +216,9 @@ export function useAICoach() {
 
       // Update user context with enhanced data
       const updatedContext = {
-        recentGoals: sessions?.map(s => s.goals?.goal_text).filter(Boolean) || [],
+        recentGoals: sessions?.map(s => s.active_goal?.goal_text).filter(Boolean) || [],
         preferredDuration: preferences?.preferred_duration || 25,
-        lastCompletedGoal: sessions?.[0]?.goals?.goal_text,
+        lastCompletedGoal: sessions?.[0]?.active_goal?.goal_text,
         preferredCategories: preferences?.preferred_categories || [],
         skillLevel: preferences?.skill_level || 'intermediate',
         preferredGenres: preferences?.preferred_genres || [],
