@@ -39,8 +39,6 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
   const [highlightedBar, setHighlightedBar] = useState<string | null>(null)
   const [chartView, setChartView] = useState<ChartView>('bar')
   const [refreshKey, setRefreshKey] = useState(0)
-  const [mounted, setMounted] = useState(false)
-  const [forceRefresh, setForceRefresh] = useState(0)
 
   // Filter out soft-deleted projects
   const activeProjects = useMemo(() => 
@@ -62,17 +60,10 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
     return acc
   }, [] as ChartData[])
 
-  // Handle mount animation
-  useEffect(() => {
-    setMounted(true)
-    return () => setMounted(false)
-  }, [])
-
   // Update refreshKey when projects change or when selectedProject changes
   useEffect(() => {
     setRefreshKey(prev => prev + 1)
-    setForceRefresh(prev => prev + 1)
-  }, [activeProjects, selectedProject, activeProjects.length])
+  }, [activeProjects, selectedProject])
 
   // Fetch data when timeRange, project selection, or refreshKey changes
   useEffect(() => {
@@ -99,28 +90,11 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
 
     fetchData()
 
-    // Set up an interval to refresh data every 5 seconds
-    const intervalId = setInterval(() => {
-      if (isMounted) {
-        setForceRefresh(prev => prev + 1)
-      }
-    }, 5000)
-
+    // Remove the interval refresh since we're handling updates from the parent component
     return () => {
       isMounted = false
-      clearInterval(intervalId)
     }
-  }, [timeRange, selectedProject, refreshKey, forceRefresh])
-
-  // Force a refresh after a short delay when mounted
-  useEffect(() => {
-    if (mounted) {
-      const timer = setTimeout(() => {
-        setForceRefresh(prev => prev + 1)
-      }, 100)
-      return () => clearTimeout(timer)
-    }
-  }, [mounted])
+  }, [timeRange, selectedProject, refreshKey])
 
   const CustomTooltip = ({
     active,
@@ -169,7 +143,6 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
   return (
     <div className={cn(
       "space-y-4 w-full relative z-0 transition-opacity duration-500",
-      mounted ? "opacity-100" : "opacity-0"
     )}>
       <div className="flex justify-end px-2 sm:px-4">
         <div className="inline-flex p-1 bg-zinc-100 dark:bg-zinc-800/50 rounded-full">
@@ -266,7 +239,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                 animationDuration={500}
                 animationEasing="ease"
                 className="transition-all duration-300"
-                isAnimationActive={mounted}
+                isAnimationActive={true}
                 onMouseOver={(data) => setHighlightedBar(data.label)}
                 onMouseLeave={() => setHighlightedBar(null)}
               >
@@ -349,7 +322,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
                 dot={false}
                 animationDuration={500}
                 animationEasing="ease"
-                isAnimationActive={mounted}
+                isAnimationActive={true}
                 activeDot={{
                   r: 5,
                   fill: '#8b5cf6',

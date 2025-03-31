@@ -116,6 +116,16 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
     fetchBeatCounts()
   }, [activeProjects, selectedProject, timeRange, beatActivities])
 
+  // Update refreshKey only when necessary
+  useEffect(() => {
+    const now = Date.now()
+    // Only update refreshKey if more than 5 seconds have passed since last update
+    if (now - lastBeatUpdate > 5000) {
+      setRefreshKey(prev => prev + 1)
+      setLastBeatUpdate(now)
+    }
+  }, [activeProjects, selectedProject, timeRange, beatActivities, lastBeatUpdate])
+
   // Count completed projects
   const completedProjects = activeProjects.filter(project => project.status === 'completed').length
 
@@ -460,7 +470,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
               </span>
             </motion.div>
             <h3 className="font-medium text-foreground text-sm sm:text-base">
-              {selectedProject ? 'Project Beats' : 'Total Beats'}
+              {selectedProject ? `${totalBeatsCreated === 1 ? 'Project Beat' : 'Project Beats'}` : `${totalBeatsCreated === 1 ? 'Total Beat' : 'Total Beats'}`}
             </h3>
           </div>
 
