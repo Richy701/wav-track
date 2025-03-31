@@ -27,6 +27,7 @@ import { Button } from './ui/button'
 import { toast } from 'sonner'
 import { Badge } from './ui/badge'
 import { useProjects } from '@/hooks/useProjects'
+import { motion } from 'framer-motion'
 
 interface StatsProps {
   sessions: Session[]
@@ -395,14 +396,21 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
                 </Badge>
               )}
             </div>
-            <div className="flex items-baseline gap-2">
+            <motion.div
+              className="flex items-baseline gap-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
               <span className="text-2xl sm:text-3xl lg:text-4xl font-bold">
                 {totalBeatsInPeriod}
               </span>
-              <span className="text-xs sm:text-sm text-muted-foreground">this {timeRange}</span>
-            </div>
+              <span className="text-sm font-medium text-muted-foreground/90">
+                {timeRange === 'day' ? `${totalBeatsInPeriod === 1 ? 'Beat' : 'Beats'} Today` : timeRange === 'week' ? `${totalBeatsInPeriod === 1 ? 'Beat' : 'Beats'} This Week` : `${totalBeatsInPeriod === 1 ? 'Beat' : 'Beats'} This Year`}
+              </span>
+            </motion.div>
             <h3 className="font-medium text-foreground text-sm sm:text-base">
-              {selectedProject ? 'Project Beats' : 'Total Beats'}
+              {selectedProject ? `${totalBeatsCreated === 1 ? 'Project Beat' : 'Project Beats'}` : `${totalBeatsCreated === 1 ? 'Total Beat' : 'Total Beats'}`}
             </h3>
           </div>
 
