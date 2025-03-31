@@ -1165,7 +1165,7 @@ export const getBeatsDataForChart = async (
         console.log('Weekly activities fetched:', {
           count: activities?.length || 0,
           activities: activities?.map(a => ({
-            date: a.date,
+            date: new Date(a.timestamp).toISOString().split('T')[0],
             count: a.count,
             timestamp: a.timestamp
           })),
@@ -1190,6 +1190,7 @@ export const getBeatsDataForChart = async (
           data.push({
             label: formatDate(date, 'EEE'),
             value: value,
+            date: date.toISOString().split('T')[0]
           })
         }
         break
