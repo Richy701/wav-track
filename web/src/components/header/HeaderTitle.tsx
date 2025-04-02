@@ -19,10 +19,6 @@ export default function HeaderTitle() {
     }
   }
 
-  const handleBack = () => {
-    navigate(-1) // Go back one step in browser history
-  }
-
   return (
     <div className="flex items-center gap-4">
       {showBackButton && (
