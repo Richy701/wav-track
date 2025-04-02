@@ -192,9 +192,7 @@ export const getProjects = async (): Promise<Project[]> => {
         genre: project.genre ?? '',
         tags: project.tags ?? [],
         completionPercentage: statusToCompletion[project.status as Project['status']] || 0,
-        audio_url: project.audio_file && typeof project.audio_file === 'object' && 'url' in project.audio_file 
-          ? (project.audio_file as { url: string }).url 
-          : null
+        audio_url: project.audio_url || null
       }
       return transformedProject
     })
@@ -257,6 +255,7 @@ export const addProject = async (project: Project): Promise<Project> => {
       user_id: user.id,
       created_at: now,
       last_modified: now,
+      audio_url: project.audio_url
     }
 
     // Insert into Supabase
@@ -337,10 +336,14 @@ export const addProject = async (project: Project): Promise<Project> => {
       genre: '',
       tags: [],
       completionPercentage: statusToCompletion[data.status as Project['status']] || 0,
-      audio_url: data.audio_file && typeof data.audio_file === 'object' && 'url' in data.audio_file 
-        ? (data.audio_file as { url: string }).url 
-        : null
+      audio_url: data.audio_url || project.audio_url || null // Use both database and input audio_url
     }
+
+    console.log('Transformed project data:', {
+      id: newProject.id,
+      title: newProject.title,
+      audio_url: newProject.audio_url
+    })
 
     return newProject
   } catch (error) {
@@ -366,6 +369,7 @@ export const updateProject = async (updatedProject: Project): Promise<Project> =
       description: updatedProject.description,
       status: updatedProject.status,
       last_modified: now,
+      audio_url: updatedProject.audio_url
     }
 
     // Update in Supabase
@@ -448,9 +452,7 @@ export const updateProject = async (updatedProject: Project): Promise<Project> =
       genre: updatedProject.genre ?? '',
       tags: updatedProject.tags ?? [],
       completionPercentage: statusToCompletion[data.status as Project['status']] || 0,
-      audio_url: data.audio_file && typeof data.audio_file === 'object' && 'url' in data.audio_file 
-        ? (data.audio_file as { url: string }).url 
-        : null
+      audio_url: data.audio_url || null
     }
 
     return updatedData
@@ -772,9 +774,7 @@ export const getProjectsByStatus = async (status: Project['status']): Promise<Pr
         genre: project.genre ?? '',
         tags: project.tags ?? [],
         completionPercentage: statusToCompletion[project.status as Project['status']] || 0,
-        audio_url: project.audio_file && typeof project.audio_file === 'object' && 'url' in project.audio_file 
-          ? (project.audio_file as { url: string }).url 
-          : null
+        audio_url: project.audio_url || null
       }
     })
   } catch (error) {
@@ -812,6 +812,23 @@ export const recordBeatCreation = async (projectId: string, count: number = 1): 
       console.error('Error recording beat creation:', error)
       throw error
     }
+
+    // Get total beats for the user
+    const { data: totalBeatsData, error: totalBeatsError } = await supabase
+      .from('beat_activities')
+      .select('count')
+      .eq('user_id', user.id)
+
+    if (totalBeatsError) {
+      console.error('Error getting total beats:', totalBeatsError)
+      throw totalBeatsError
+    }
+
+    // Calculate total beats
+    const totalBeats = totalBeatsData.reduce((sum, activity) => sum + (activity.count || 0), 0)
+
+    // Update user achievements
+    await updateUserAchievements(user.id, totalBeats)
   } catch (error) {
     console.error('Error in recordBeatCreation:', error)
     throw error

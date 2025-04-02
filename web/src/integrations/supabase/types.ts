@@ -185,7 +185,7 @@ export type Database = {
       }
       projects: {
         Row: {
-          audio_file: Json | null
+          audio_url: string | null
           bpm: number | null
           completion_percentage: number | null
           created_at: string | null
@@ -203,7 +203,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          audio_file?: Json | null
+          audio_url?: string | null
           bpm?: number | null
           completion_percentage?: number | null
           created_at?: string | null
@@ -221,7 +221,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          audio_file?: Json | null
+          audio_url?: string | null
           bpm?: number | null
           completion_percentage?: number | null
           created_at?: string | null

@@ -191,20 +191,61 @@ export default function ProjectCard({
     })
   }, [project.audio_url, project.title])
 
+  // Initialize audio element when component mounts
+  useEffect(() => {
+    if (project.audio_url?.trim()) {
+      const audio = new Audio(project.audio_url)
+      audioRef.current = audio
+
+      // Add event listeners
+      audio.addEventListener('ended', () => setIsPlaying(false))
+      audio.addEventListener('pause', () => setIsPlaying(false))
+      audio.addEventListener('play', () => setIsPlaying(true))
+      audio.addEventListener('error', (e) => {
+        console.error('Audio loading error:', e)
+        setAudioError('Failed to load audio file')
+        toast.error('Audio Error', {
+          description: 'Failed to load the audio file.',
+        })
+      })
+
+      // Cleanup
+      return () => {
+        audio.pause()
+        audio.removeEventListener('ended', () => setIsPlaying(false))
+        audio.removeEventListener('pause', () => setIsPlaying(false))
+        audio.removeEventListener('play', () => setIsPlaying(true))
+        audio.removeEventListener('error', () => {})
+      }
+    }
+  }, [project.audio_url])
+
   // Handle audio playback
   const handlePlayPause = (e: React.MouseEvent) => {
     e.preventDefault() // Prevent navigation
     e.stopPropagation() // Prevent card click
 
-    // Enhanced audio URL validation
-    const hasAudio = Boolean(project.audio_url?.trim())
+    // Get the audio URL from the project
+    const audioUrl = project.audio_url
+    
+    // Enhanced audio URL validation with detailed logging
     console.log('Play button clicked:', {
       projectTitle: project.title,
-      hasAudio,
-      audioUrl: project.audio_url
+      audioUrl,
+      audioUrlType: typeof audioUrl,
+      audioUrlLength: audioUrl?.length,
+      hasAudio: Boolean(audioUrl?.trim()),
+      project: {
+        id: project.id,
+        title: project.title,
+        audio_url: project.audio_url,
+        status: project.status
+      }
     })
 
-    if (!hasAudio) {
+    // Check if audio URL exists and is not empty
+    if (!audioUrl?.trim()) {
+      console.warn('No audio URL found for project:', project.title)
       toast.error('No audio available', {
         description: 'This project does not have any audio attached.',
       })
@@ -238,27 +279,6 @@ export default function ProjectCard({
       setIsPlaying(true)
     }
   }
-
-  // Handle audio events
-  useEffect(() => {
-    if (!audioRef.current) return
-
-    const audio = audioRef.current
-    const handleEnded = () => setIsPlaying(false)
-    const handlePause = () => setIsPlaying(false)
-    const handlePlay = () => setIsPlaying(true)
-
-    audio.addEventListener('ended', handleEnded)
-    audio.addEventListener('pause', handlePause)
-    audio.addEventListener('play', handlePlay)
-
-    return () => {
-      audio.removeEventListener('ended', handleEnded)
-      audio.removeEventListener('pause', handlePause)
-      audio.removeEventListener('play', handlePlay)
-      audio.pause()
-    }
-  }, [])
 
   return (
     <div className="project-card-container">
@@ -307,33 +327,6 @@ export default function ProjectCard({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-
-            {/* Hidden audio element */}
-            {project.audio_url?.trim() && (
-              <audio
-                ref={audioRef}
-                src={project.audio_url}
-                preload="auto"
-                onError={(e) => {
-                  console.error('Audio loading error:', e)
-                  setAudioError('Failed to load audio file')
-                  toast.error('Audio Error', {
-                    description: 'Failed to load the audio file.',
-                  })
-                }}
-                onEnded={() => setIsPlaying(false)}
-                onPause={() => setIsPlaying(false)}
-                onPlay={() => {
-                  // Pause all other audio elements first
-                  document.querySelectorAll('audio').forEach(audio => {
-                    if (audio !== audioRef.current) {
-                      audio.pause()
-                    }
-                  })
-                  setIsPlaying(true)
-                }}
-              />
-            )}
           </div>
 
           {/* Main content */}

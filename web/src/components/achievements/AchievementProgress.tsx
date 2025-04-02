@@ -122,35 +122,75 @@ export function AchievementProgress() {
 
   // Calculate progress statistics
   const stats: ProgressStats = React.useMemo(() => {
-    const categoryStats = Object.keys(categoryStyles).reduce((acc, category) => {
-      const categoryAchievements = achievements.filter(a => a.category === category)
-      const unlocked = categoryAchievements.filter(a => a.unlocked_at).length
-      const total = categoryAchievements.length
-      
+    if (loading || !achievements.length) {
       return {
-        ...acc,
-        [category]: {
-          unlocked,
-          total,
-          percentage: total > 0 ? Math.round((unlocked / total) * 100) : 0
+        category: {
+          production: { unlocked: 0, total: 0, percentage: 0 },
+          streak: { unlocked: 0, total: 0, percentage: 0 },
+          time: { unlocked: 0, total: 0, percentage: 0 },
+          goals: { unlocked: 0, total: 0, percentage: 0 }
+        },
+        tier: {
+          bronze: { unlocked: 0, total: 0, percentage: 0 },
+          silver: { unlocked: 0, total: 0, percentage: 0 },
+          gold: { unlocked: 0, total: 0, percentage: 0 },
+          platinum: { unlocked: 0, total: 0, percentage: 0 }
+        },
+        total: {
+          unlocked: 0,
+          total: 0,
+          percentage: 0
         }
       }
-    }, {} as ProgressStats['category'])
+    }
 
-    const tierStats = Object.keys(tierStyles).reduce((acc, tier) => {
-      const tierAchievements = achievements.filter(a => a.tier === tier)
-      const unlocked = tierAchievements.filter(a => a.unlocked_at).length
-      const total = tierAchievements.length
-      
-      return {
-        ...acc,
-        [tier]: {
-          unlocked,
-          total,
-          percentage: total > 0 ? Math.round((unlocked / total) * 100) : 0
+    // Initialize all categories and tiers with 0s
+    const categoryStats = {
+      production: { unlocked: 0, total: 0, percentage: 0 },
+      streak: { unlocked: 0, total: 0, percentage: 0 },
+      time: { unlocked: 0, total: 0, percentage: 0 },
+      goals: { unlocked: 0, total: 0, percentage: 0 }
+    }
+
+    const tierStats = {
+      bronze: { unlocked: 0, total: 0, percentage: 0 },
+      silver: { unlocked: 0, total: 0, percentage: 0 },
+      gold: { unlocked: 0, total: 0, percentage: 0 },
+      platinum: { unlocked: 0, total: 0, percentage: 0 }
+    }
+
+    // Count achievements by category
+    achievements.forEach(achievement => {
+      const category = achievement.category as Category
+      const tier = achievement.tier as Tier
+
+      // Update category stats
+      if (categoryStats[category]) {
+        categoryStats[category].total++
+        if (achievement.unlocked_at) {
+          categoryStats[category].unlocked++
         }
       }
-    }, {} as ProgressStats['tier'])
+
+      // Update tier stats
+      if (tierStats[tier]) {
+        tierStats[tier].total++
+        if (achievement.unlocked_at) {
+          tierStats[tier].unlocked++
+        }
+      }
+    })
+
+    // Calculate percentages
+    Object.keys(categoryStats).forEach(category => {
+      const stats = categoryStats[category as Category]
+      stats.percentage = stats.total > 0 ? Math.round((stats.unlocked / stats.total) * 100) : 0
+    })
+
+    Object.keys(tierStats).forEach(tier => {
+      const stats = tierStats[tier as Tier]
+      stats.percentage = stats.total > 0 ? Math.round((stats.unlocked / stats.total) * 100) : 0
+    })
 
     const totalUnlocked = achievements.filter(a => a.unlocked_at).length
     const totalAchievements = achievements.length
@@ -164,7 +204,7 @@ export function AchievementProgress() {
         percentage: totalAchievements > 0 ? Math.round((totalUnlocked / totalAchievements) * 100) : 0
       }
     }
-  }, [achievements])
+  }, [achievements, loading])
 
   return (
     <motion.div 
@@ -182,8 +222,10 @@ export function AchievementProgress() {
             {loading ? (
               <span className="inline-flex items-center gap-2">
                 <Spinner className="h-4 w-4" />
-                Updating...
+                Loading achievements...
               </span>
+            ) : achievements.length === 0 ? (
+              <span>Initializing achievements...</span>
             ) : (
               <>
                 <span className="font-medium tabular-nums">{stats.total.unlocked}</span> of{" "}
@@ -200,8 +242,10 @@ export function AchievementProgress() {
           {loading ? (
             <span className="inline-flex items-center gap-2">
               <Spinner className="h-4 w-4" />
-              Updating...
+              Loading...
             </span>
+          ) : achievements.length === 0 ? (
+            "Initializing..."
           ) : (
             `${stats.total.percentage}% Complete`
           )}

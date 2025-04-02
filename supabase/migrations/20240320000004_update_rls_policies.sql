@@ -23,6 +23,7 @@ CREATE POLICY "Users can update their own projects"
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
+-- Create soft delete policy
 CREATE POLICY "Users can soft delete their own projects"
   ON projects FOR UPDATE
   USING (auth.uid() = user_id)
@@ -30,11 +31,11 @@ CREATE POLICY "Users can soft delete their own projects"
     auth.uid() = user_id AND
     (
       -- Allow setting is_deleted to true
-      (NEW.is_deleted = TRUE) OR
+      (is_deleted = TRUE) OR
       -- Allow keeping is_deleted as is
-      (OLD.is_deleted = NEW.is_deleted) OR
+      (is_deleted = is_deleted) OR
       -- Allow updating other fields while keeping is_deleted as is
-      (OLD.is_deleted = NEW.is_deleted AND NEW.is_deleted = OLD.is_deleted)
+      (is_deleted = is_deleted)
     )
   );
 
@@ -44,6 +45,6 @@ CREATE POLICY "Users can batch soft delete their own projects"
   USING (auth.uid() = user_id)
   WITH CHECK (
     auth.uid() = user_id AND
-    NEW.is_deleted = TRUE AND
-    NEW.deleted_at IS NOT NULL
+    is_deleted = TRUE AND
+    deleted_at IS NOT NULL
   ); 

@@ -17,4 +17,5 @@ export type Project = {
   genre: string
   completionPercentage: number
   audio_url?: string | null
+  audio_filename?: string | null
 }

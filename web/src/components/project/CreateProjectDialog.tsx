@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   Plus,
   Calendar as PhCalendar,
@@ -10,6 +10,8 @@ import {
   Tag as PhTag,
   X as PhX,
   CircleNotch,
+  Play,
+  Pause,
 } from '@phosphor-icons/react'
 import { v4 as uuidv4 } from 'uuid'
 import { toast } from 'sonner'
@@ -46,6 +48,7 @@ import { Badge } from '@/components/ui/badge'
 import { X } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { analyzeAudioWithSpotify, updateProjectWithAnalysis } from '@/lib/services/spotifyAnalysis'
+import { supabase } from '@/lib/supabase'
 
 interface CreateProjectDialogProps {
   isOpen: boolean
@@ -64,11 +67,14 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   const { addProject, isAddingProject } = useProjects()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
+  const [audioFileName, setAudioFileName] = useState<string | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
   const [formData, setFormData] = useState<Omit<Project, 'id' | 'genre'> & { genres: string[] }>({
     title: '',
     description: '',
-    status: 'idea',
+    status: 'idea' as const,
     bpm: 120,
     key: 'C',
     genres: [],
@@ -76,11 +82,66 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
     completionPercentage: 0,
     dateCreated: new Date().toISOString(),
     lastModified: new Date().toISOString(),
-    user_id: undefined,
     created_at: new Date().toISOString(),
     last_modified: new Date().toISOString(),
+    is_deleted: false,
+    deleted_at: null,
+    user_id: '',
     audio_url: null
   })
+
+  // Initialize audio element when audio URL changes
+  useEffect(() => {
+    if (audioUrl?.trim()) {
+      const audio = new Audio(audioUrl)
+      audioRef.current = audio
+
+      // Add event listeners
+      audio.addEventListener('ended', () => setIsPlaying(false))
+      audio.addEventListener('pause', () => setIsPlaying(false))
+      audio.addEventListener('play', () => setIsPlaying(true))
+      audio.addEventListener('error', (e) => {
+        console.error('Audio loading error:', e)
+        toast.error('Audio Error', {
+          description: 'Failed to load the audio file.',
+        })
+      })
+
+      // Cleanup
+      return () => {
+        audio.pause()
+        audio.removeEventListener('ended', () => setIsPlaying(false))
+        audio.removeEventListener('pause', () => setIsPlaying(false))
+        audio.removeEventListener('play', () => setIsPlaying(true))
+        audio.removeEventListener('error', () => {})
+      }
+    }
+  }, [audioUrl])
+
+  // Handle audio playback
+  const handlePlayPause = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!audioRef.current) {
+      console.warn('Audio element not initialized')
+      return
+    }
+
+    if (isPlaying) {
+      audioRef.current.pause()
+      setIsPlaying(false)
+    } else {
+      audioRef.current.play().catch(error => {
+        console.error('Error playing audio:', error)
+        toast.error('Failed to play audio', {
+          description: 'There was an error playing the audio file.',
+        })
+        setIsPlaying(false)
+      })
+      setIsPlaying(true)
+    }
+  }
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -174,28 +235,33 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   }
 
   const resetForm = () => {
+    const now = new Date().toISOString()
     setFormData({
       title: '',
       description: '',
-      status: 'idea',
+      status: 'idea' as const,
       bpm: 120,
       key: 'C',
       genres: [],
       tags: [],
       completionPercentage: 0,
-      dateCreated: new Date().toISOString(),
-      lastModified: new Date().toISOString(),
-      user_id: undefined,
-      created_at: new Date().toISOString(),
-      last_modified: new Date().toISOString(),
+      dateCreated: now,
+      lastModified: now,
+      created_at: now,
+      last_modified: now,
+      is_deleted: false,
+      deleted_at: null,
+      user_id: '',
       audio_url: null
     })
     setErrors({})
     setAudioUrl(null)
+    setAudioFileName(null)
   }
 
-  const handleAudioUpload = async (url: string) => {
+  const handleAudioUpload = async (url: string, fileName: string) => {
     setAudioUrl(url)
+    setAudioFileName(fileName)
     setFormData(prev => ({ ...prev, audio_url: url }))
     
     // Start analysis immediately after upload
@@ -241,18 +307,42 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
     }
 
     try {
-      // Create the project object with a temporary ID
-      const newProject: Project = {
-        ...formData,
-        id: crypto.randomUUID(), // Generate a temporary ID
-        genre: formData.genres.join(', '), // Join multiple genres for storage
-        lastModified: new Date().toISOString(),
-        last_modified: new Date().toISOString(), // Update both timestamp formats
-        created_at: formData.created_at || new Date().toISOString(),
-        audio_url: audioUrl // Add the audio URL to the project
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error('No user found')
       }
 
-      // Create the project and get back the database-generated ID
+      // Create the project object with a temporary ID
+      const now = new Date().toISOString()
+      const newProject: Project = {
+        id: crypto.randomUUID(),
+        title: formData.title || 'Untitled Project',
+        description: formData.description || '',
+        status: 'idea' as const,
+        user_id: user.id,
+        created_at: now,
+        last_modified: now,
+        is_deleted: false,
+        deleted_at: null,
+        // Client-side fields
+        dateCreated: now,
+        lastModified: now,
+        bpm: formData.bpm,
+        key: formData.key,
+        genre: formData.genres.join(', '),
+        tags: formData.tags,
+        completionPercentage: formData.completionPercentage,
+        audio_url: audioUrl // Now this is properly typed as string | null
+      }
+
+      console.log('Creating project with audio URL:', {
+        audio_url: newProject.audio_url,
+        audioUrl: audioUrl,
+        formData_audio_url: formData.audio_url
+      })
+
+      // Create the project with the audio URL included
       const createdProject = await addProject(newProject)
 
       if (!createdProject) {
@@ -307,13 +397,14 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
-        <DialogHeader className="pb-3">
-          <DialogTitle className="text-xl">Create New Beat</DialogTitle>
-          <DialogDescription className="text-sm">
-            Add a new beat to your collection. Fill in the details below.
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Create New Project</DialogTitle>
+          <DialogDescription>
+            Add a new project to your collection. You can add audio files, set BPM, key, and more.
           </DialogDescription>
         </DialogHeader>
+
         <form onSubmit={handleCreateBeat} className="space-y-6">
           <div className="grid gap-6 py-3">
             {/* Title and Description Section */}
@@ -595,11 +686,61 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
               <Label htmlFor="audio" className="text-right text-sm font-medium">
                 Audio File
               </Label>
-              <div className="col-span-3">
+              <div className="col-span-3 space-y-3">
                 <AudioUploader
                   onUploadComplete={handleAudioUpload}
                   className="w-full"
                 />
+                
+                {/* Audio Preview */}
+                {audioUrl && (
+                  <div className="relative mt-4 p-4 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/30 dark:from-muted/30 dark:to-muted/10 border border-border/50 dark:border-border/30 shadow-sm hover:shadow-lg transition-all duration-300 group">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-4 overflow-hidden">
+                        <div className="p-2 rounded-lg bg-background border border-border/50 dark:border-border/30 text-foreground group-hover:border-primary/50 dark:group-hover:border-primary/30 transition-colors">
+                          <MusicNote className="h-5 w-5 animate-pulse-subtle" />
+                        </div>
+                        <div className="flex flex-col overflow-hidden">
+                          <span className="font-semibold text-foreground truncate max-w-[220px]" title={audioFileName || 'Audio file'}>
+                            {audioFileName || 'Audio file'}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            Uploaded successfully
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handlePlayPause}
+                        className={cn(
+                          'w-12 h-12 rounded-full transition-all duration-300',
+                          'flex items-center justify-center',
+                          'focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2 focus:ring-offset-background',
+                          'transform hover:scale-105 active:scale-95',
+                          'hover:shadow-lg hover:shadow-emerald-500/25 dark:hover:shadow-purple-900/35',
+                          isPlaying
+                            ? 'bg-gradient-to-br from-emerald-400 to-emerald-500 dark:from-violet-500 dark:via-fuchsia-600 dark:to-purple-700 shadow-lg shadow-emerald-500/30 dark:shadow-purple-900/40'
+                            : 'bg-gradient-to-br from-emerald-300 to-emerald-400 hover:from-emerald-400 hover:to-emerald-500 dark:from-violet-400 dark:via-fuchsia-500 dark:to-purple-600 shadow-md shadow-emerald-500/20 dark:shadow-purple-900/30'
+                        )}
+                        aria-label={isPlaying ? 'Pause Preview' : 'Play Preview'}
+                      >
+                        {isPlaying ? (
+                          <Pause className="h-6 w-6 text-white drop-shadow-sm" weight="fill" />
+                        ) : (
+                          <Play className="h-6 w-6 ml-0.5 text-white drop-shadow-sm" weight="fill" />
+                        )}
+                      </button>
+                    </div>
+                    {isAnalyzing && (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground animate-pulse">
+                        <CircleNotch className="h-3.5 w-3.5 animate-spin" />
+                        Analyzing audio file...
+                      </div>
+                    )}
+                    {isPlaying && (
+                      <div className="absolute bottom-0 left-0 h-[3px] bg-gradient-to-r from-emerald-400 to-emerald-500 dark:from-violet-500 dark:to-purple-600 animate-progress" />
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

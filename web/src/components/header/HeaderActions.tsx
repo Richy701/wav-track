@@ -185,7 +185,7 @@ export default function HeaderActions({
 
       {user ? (
         <>
-          {(isMainPage || location.pathname === '/dashboard') && (
+          {location.pathname === '/dashboard' && (
             <Button
               variant="default"
               className={cn(
@@ -224,7 +224,7 @@ export default function HeaderActions({
         </>
       )}
 
-      {(isMainPage || location.pathname === '/dashboard') && (
+      {(location.pathname === '/dashboard') && (
         <CreateProjectDialog
           isOpen={isCreateProjectOpen}
           onOpenChange={setIsCreateProjectOpen}

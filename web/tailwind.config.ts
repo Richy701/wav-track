@@ -138,7 +138,11 @@ export default {
 				'pulse-subtle': {
 					'0%, 100%': { opacity: '1' },
 					'50%': { opacity: '0.85' }
-				}
+				},
+				progress: {
+					'0%': { width: '0%' },
+					'100%': { width: '100%' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -147,7 +151,8 @@ export default {
 				'fade-out': 'fade-out 0.3s ease-out',
 				'scale-in': 'scale-in 0.2s ease-out',
 				'slide-in': 'slide-in 0.3s ease-out',
-				'pulse-subtle': 'pulse-subtle 3s infinite ease-in-out'
+				'pulse-subtle': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+				'progress': 'progress 2s linear infinite',
 			}
 		}
 	},

@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 import { analyzeAudioWithSpotify, updateProjectWithAnalysis } from '@/lib/services/spotifyAnalysis'
 
 interface AudioUploaderProps {
-  onUploadComplete: (url: string) => void
+  onUploadComplete: (url: string, fileName: string) => void
   projectId?: string
   className?: string
 }
@@ -73,11 +73,7 @@ export function AudioUploader({ onUploadComplete, projectId, className }: AudioU
         .upload(fileName, file, {
           contentType: 'audio/mpeg',
           cacheControl: '3600',
-          upsert: false,
-          onUploadProgress: (progress) => {
-            const percentage = (progress.loaded / progress.total) * 100
-            setProgress(percentage)
-          }
+          upsert: false
         })
 
       if (uploadError) {
@@ -99,7 +95,7 @@ export function AudioUploader({ onUploadComplete, projectId, className }: AudioU
       }
 
       setUploadedFile(file.name)
-      onUploadComplete(publicUrl)
+      onUploadComplete(publicUrl, file.name)
 
       // If we have a project ID, trigger audio analysis
       if (projectId) {
@@ -109,7 +105,25 @@ export function AudioUploader({ onUploadComplete, projectId, className }: AudioU
           const analysis = await analyzeAudioWithSpotify(publicUrl)
           console.log('Analysis complete:', analysis)
           
-          await updateProjectWithAnalysis(projectId, analysis)
+          // Update the project with both the audio URL and analysis results
+          const { error: updateError } = await supabase
+            .from('projects')
+            .update({
+              audio_url: publicUrl,
+              audio_filename: file.name,
+              bpm: analysis.bpm,
+              key: `${analysis.key} ${analysis.mode}`,
+              audio_analyzed: analysis.analyzed,
+              audio_duration: analysis.duration,
+              audio_loudness: analysis.loudness,
+              last_modified: new Date().toISOString(),
+            })
+            .eq('id', projectId)
+
+          if (updateError) {
+            console.error('Failed to update project with audio URL:', updateError)
+            throw updateError
+          }
           
           if (analysis.analyzed) {
             toast.success('Audio analysis complete', {
@@ -199,17 +213,6 @@ export function AudioUploader({ onUploadComplete, projectId, className }: AudioU
               className="bg-primary h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
-          </div>
-        )}
-
-        {/* Success Indicator */}
-        {uploadedFile && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground animate-fade-in animate-scale-in">
-            <div className="flex items-center gap-1.5 px-3 py-2 rounded-md bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/30 transition-colors group">
-              <CheckCircle2 className="h-4 w-4 animate-pulse-subtle" />
-              <Music2 className="h-4 w-4" />
-              <span className="truncate max-w-[200px] group-hover:max-w-none transition-all duration-300" title={uploadedFile}>{uploadedFile}</span>
-            </div>
           </div>
         )}
       </div>

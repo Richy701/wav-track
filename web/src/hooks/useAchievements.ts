@@ -85,7 +85,23 @@ export function useAchievements() {
       console.log('Fetching achievements for user:', user.id)
 
       try {
-        // First fetch active projects to get accurate counts
+        // First fetch total beats from beat_activities
+        const { data: beatActivities, error: beatActivitiesError } = await supabase
+          .from('beat_activities')
+          .select('count')
+          .eq('user_id', user.id)
+
+        if (beatActivitiesError) {
+          console.error('Error fetching beat activities:', beatActivitiesError)
+          throw beatActivitiesError
+        }
+
+        // Calculate total beats
+        const totalBeats = beatActivities?.reduce((sum, activity) => sum + (activity.count || 0), 0) || 0
+
+        console.log('Total beats from activities:', totalBeats)
+
+        // Fetch active projects for completion stats
         const { data: activeProjects, error: projectsError } = await supabase
           .from('projects')
           .select('*')
@@ -99,8 +115,7 @@ export function useAchievements() {
 
         console.log('Active projects:', activeProjects?.length || 0)
 
-        // Calculate achievement progress based on active projects
-        const totalBeats = activeProjects?.length || 0
+        // Calculate completion stats
         const completedProjects = activeProjects?.filter(p => p.status === 'completed').length || 0
 
         console.log('Total beats:', totalBeats)
@@ -117,7 +132,67 @@ export function useAchievements() {
           throw achievementsError
         }
 
+        // If no achievements exist, initialize them
+        if (!allAchievements || allAchievements.length === 0) {
+          console.log('No achievements found, initializing...')
+          
+          // Define default achievements
+          const defaultAchievements = [
+            {
+              id: 'first_beat',
+              name: 'First Beat',
+              description: 'Create your first beat',
+              icon: '🎵',
+              tier: 'bronze',
+              category: 'production',
+              requirement: 1
+            },
+            {
+              id: 'beat_builder',
+              name: 'Beat Builder',
+              description: 'Create 10 beats',
+              icon: '🎼',
+              tier: 'gold',
+              category: 'production',
+              requirement: 10
+            },
+            {
+              id: 'beat_machine',
+              name: 'Beat Machine',
+              description: 'Create 50 beats',
+              icon: '🎹',
+              tier: 'gold',
+              category: 'production',
+              requirement: 50
+            },
+            {
+              id: 'legendary_producer',
+              name: 'Legendary Producer',
+              description: 'Create 100+ beats',
+              icon: '👑',
+              tier: 'platinum',
+              category: 'production',
+              requirement: 100
+            }
+          ]
+
+          // Insert default achievements
+          const { data: insertedAchievements, error: insertError } = await supabase
+            .from('achievements')
+            .insert(defaultAchievements)
+            .select()
+
+          if (insertError) {
+            console.error('Error inserting default achievements:', insertError)
+            throw insertError
+          }
+
+          console.log('Default achievements initialized:', insertedAchievements?.length || 0)
+          allAchievements = insertedAchievements
+        }
+
         console.log('All achievements:', allAchievements?.length || 0)
+        console.log('Achievement data:', allAchievements)
 
         // Fetch user's achievements from the database
         const { data: userAchievements, error: fetchError } = await supabase
@@ -131,6 +206,7 @@ export function useAchievements() {
         }
 
         console.log('User achievements:', userAchievements?.length || 0)
+        console.log('User achievement data:', userAchievements)
 
         // Map the achievements data with user progress
         const mappedAchievements = allAchievements.map(achievement => {
@@ -141,7 +217,8 @@ export function useAchievements() {
           // Calculate progress based on achievement category
           let progress = userAchievement?.progress || 0
           if (achievement.category === 'production') {
-            progress = totalBeats
+            // For production achievements, calculate progress based on total beats
+            progress = Math.min(totalBeats, parseInt(achievement.requirement))
           } else if (achievement.id === 'finish_what_you_start') {
             progress = completedProjects
           }
@@ -149,16 +226,50 @@ export function useAchievements() {
           // Ensure progress is never negative
           progress = Math.max(0, progress)
 
-          return {
+          // Check if achievement should be unlocked
+          const isUnlocked = progress >= parseInt(achievement.requirement)
+          const unlocked_at = isUnlocked ? userAchievement?.unlocked_at || new Date().toISOString() : null
+
+          const mappedAchievement = {
             ...achievement,
             progress,
             total: achievement.requirement,
-            unlocked_at: userAchievement?.unlocked_at || null
+            unlocked_at
           }
+
+          console.log('Mapped achievement:', {
+            id: mappedAchievement.id,
+            progress,
+            requirement: achievement.requirement,
+            isUnlocked,
+            unlocked_at
+          })
+
+          // If achievement should be unlocked but isn't recorded as such, update it
+          if (isUnlocked && !userAchievement?.unlocked_at) {
+            console.log('Updating achievement unlock status:', achievement.id)
+            supabase
+              .from('user_achievements')
+              .upsert({
+                user_id: user.id,
+                achievement_id: achievement.id,
+                progress,
+                total: achievement.requirement,
+                unlocked_at: new Date().toISOString()
+              })
+              .then(() => {
+                console.log('Achievement unlock status updated:', achievement.id)
+                queryClient.invalidateQueries({ queryKey: ['achievements', user.id] })
+              })
+              .catch(error => {
+                console.error('Error updating achievement unlock status:', error)
+              })
+          }
+
+          return mappedAchievement
         })
 
-        console.log('Mapped achievements:', mappedAchievements.length)
-
+        console.log('Final mapped achievements:', mappedAchievements)
         return mappedAchievements
       } catch (error) {
         console.error('Error in useAchievements:', error)
@@ -176,8 +287,9 @@ export function useAchievements() {
   React.useEffect(() => {
     if (!user) return
 
+    // Create a channel for projects, user_achievements, and beat_activities changes
     const channel = supabase
-      .channel('projects_changes')
+      .channel('achievement_updates')
       .on(
         'postgres_changes',
         {
@@ -186,8 +298,34 @@ export function useAchievements() {
           table: 'projects',
           filter: `user_id=eq.${user.id}`
         },
-        () => {
-          console.log('Project changes detected, invalidating achievements query')
+        async (payload) => {
+          console.log('Project changes detected, updating achievements')
+          queryClient.invalidateQueries({ queryKey: ['achievements', user.id] })
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_achievements',
+          filter: `user_id=eq.${user.id}`
+        },
+        async (payload) => {
+          console.log('User achievement changes detected, updating achievements')
+          queryClient.invalidateQueries({ queryKey: ['achievements', user.id] })
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'beat_activities',
+          filter: `user_id=eq.${user.id}`
+        },
+        async (payload) => {
+          console.log('Beat activity changes detected, updating achievements')
           queryClient.invalidateQueries({ queryKey: ['achievements', user.id] })
         }
       )

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Project } from '@/lib/types'
 import { updateProject as updateProjectInStorage } from '@/lib/data'
 import { toast } from 'sonner'
@@ -38,9 +38,15 @@ import {
   Key,
   FileText,
   Percent,
+  Play,
+  Pause,
+  Loader2,
 } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import { AudioUploader } from '@/components/audio/AudioUploader'
+import { analyzeAudioWithSpotify } from '@/lib/services/spotifyAnalysis'
+import { cn } from '@/lib/utils'
 
 interface EditProjectDialogProps {
   project: Project
@@ -63,8 +69,13 @@ export default function EditProjectDialog({
     key: project.key || '',
     status: project.status,
     completionPercentage: project.completionPercentage,
-    audioFile: project.audioFile,
+    audio_url: project.audio_url,
   })
+  const [audioUrl, setAudioUrl] = useState<string | null>(project.audio_url)
+  const [audioFileName, setAudioFileName] = useState<string | null>(project.audio_filename || null)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   // Map status to completion percentage
   const statusToCompletion = {
@@ -106,6 +117,99 @@ export default function EditProjectDialog({
     'Reggaeton',
     'Afrobeat',
   ]
+
+  // Initialize audio element when audio URL changes
+  useEffect(() => {
+    if (audioUrl?.trim()) {
+      const audio = new Audio(audioUrl)
+      audioRef.current = audio
+
+      // Add event listeners
+      audio.addEventListener('ended', () => setIsPlaying(false))
+      audio.addEventListener('pause', () => setIsPlaying(false))
+      audio.addEventListener('play', () => setIsPlaying(true))
+      audio.addEventListener('error', (e) => {
+        console.error('Audio loading error:', e)
+        toast.error('Audio Error', {
+          description: 'Failed to load the audio file.',
+        })
+      })
+
+      // Cleanup
+      return () => {
+        audio.pause()
+        audio.removeEventListener('ended', () => setIsPlaying(false))
+        audio.removeEventListener('pause', () => setIsPlaying(false))
+        audio.removeEventListener('play', () => setIsPlaying(true))
+        audio.removeEventListener('error', () => {})
+      }
+    }
+  }, [audioUrl])
+
+  // Handle audio playback
+  const handlePlayPause = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!audioRef.current) {
+      console.warn('Audio element not initialized')
+      return
+    }
+
+    if (isPlaying) {
+      audioRef.current.pause()
+      setIsPlaying(false)
+    } else {
+      audioRef.current.play().catch(error => {
+        console.error('Error playing audio:', error)
+        toast.error('Failed to play audio', {
+          description: 'There was an error playing the audio file.',
+        })
+        setIsPlaying(false)
+      })
+      setIsPlaying(true)
+    }
+  }
+
+  const handleAudioUpload = async (url: string, fileName: string) => {
+    setAudioUrl(url)
+    setAudioFileName(fileName)
+    setFormData(prev => ({ ...prev, audio_url: url }))
+    
+    // Start analysis immediately after upload
+    setIsAnalyzing(true)
+    try {
+      console.log('Starting audio analysis...')
+      const analysis = await analyzeAudioWithSpotify(url)
+      console.log('Analysis complete:', analysis)
+      
+      // Pre-fill form with analysis results
+      setFormData(prev => ({
+        ...prev,
+        bpm: analysis.bpm,
+        key: `${analysis.key} ${analysis.mode}`,
+        timeSignature: analysis.timeSignature,
+      }))
+      
+      if (analysis.analyzed) {
+        toast.success('Audio analysis complete', {
+          description: `BPM: ${analysis.bpm} • Key: ${analysis.key} ${analysis.mode} • Time: ${analysis.timeSignature}/4`,
+        })
+      } else {
+        toast.warning('Audio analysis not available', {
+          description: 'The audio file could not be analyzed at this time.',
+        })
+      }
+    } catch (error) {
+      console.error('Analysis error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      toast.error('Audio analysis failed', {
+        description: `Error: ${errorMessage}`,
+      })
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -170,16 +274,16 @@ export default function EditProjectDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[600px] h-[90vh]">
+        <DialogHeader className="pb-4">
           <DialogTitle>Edit Project</DialogTitle>
           <DialogDescription>
             Make changes to your project here. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSave} className="space-y-6">
-          <div className="grid gap-6 py-3">
+        <form onSubmit={handleSave} className="space-y-4">
+          <div className="grid gap-4">
             {/* Title and Description */}
             <div className="space-y-4">
               <div className="grid grid-cols-4 items-center gap-3">
@@ -368,10 +472,83 @@ export default function EditProjectDialog({
                 </div>
               </div>
             </div>
+
+            {/* Audio Upload Section */}
+            <div className="grid grid-cols-4 items-start gap-3">
+              <Label htmlFor="audio" className="text-right text-sm font-medium">
+                Audio File
+              </Label>
+              <div className="col-span-3 space-y-2">
+                <AudioUploader
+                  onUploadComplete={handleAudioUpload}
+                  projectId={project.id}
+                  className="w-full"
+                />
+                
+                {/* Audio Preview */}
+                {audioUrl && (
+                  <div className="relative p-3 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/30 dark:from-muted/30 dark:to-muted/10 border border-border/50 dark:border-border/30 shadow-sm hover:shadow-lg transition-all duration-300 group">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-4 overflow-hidden flex-1">
+                        <div className="p-2 rounded-lg bg-background border border-border/50 dark:border-border/30 text-foreground group-hover:border-primary/50 dark:group-hover:border-primary/30 transition-colors shrink-0">
+                          <Music className="h-5 w-5 animate-pulse-subtle" />
+                        </div>
+                        <div className="flex flex-col overflow-hidden min-w-0">
+                          <span className="font-semibold text-foreground truncate" title={audioFileName || 'Audio file'}>
+                            {audioFileName || 'Audio file'}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            Uploaded successfully
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handlePlayPause}
+                        className={cn(
+                          'w-12 h-12 rounded-full transition-all duration-300 shrink-0',
+                          'flex items-center justify-center',
+                          'focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2 focus:ring-offset-background',
+                          'transform hover:scale-105 active:scale-95',
+                          'hover:shadow-lg hover:shadow-emerald-500/25 dark:hover:shadow-purple-900/35',
+                          isPlaying
+                            ? 'bg-gradient-to-br from-emerald-400 to-emerald-500 dark:from-violet-500 dark:via-fuchsia-600 dark:to-purple-700 shadow-lg shadow-emerald-500/30 dark:shadow-purple-900/40'
+                            : 'bg-gradient-to-br from-emerald-300 to-emerald-400 hover:from-emerald-400 hover:to-emerald-500 dark:from-violet-400 dark:via-fuchsia-500 dark:to-purple-600 shadow-md shadow-emerald-500/20 dark:shadow-purple-900/30'
+                        )}
+                        aria-label={isPlaying ? 'Pause Preview' : 'Play Preview'}
+                      >
+                        {isPlaying ? (
+                          <Pause className="h-6 w-6 text-white drop-shadow-sm" />
+                        ) : (
+                          <Play className="h-6 w-6 ml-0.5 text-white drop-shadow-sm" />
+                        )}
+                      </button>
+                    </div>
+                    {isAnalyzing && (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground animate-pulse">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        Analyzing audio file...
+                      </div>
+                    )}
+                    {isPlaying && (
+                      <div className="absolute bottom-0 left-0 h-[3px] bg-gradient-to-r from-emerald-400 to-emerald-500 dark:from-violet-500 dark:to-purple-600 animate-progress" />
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          <DialogFooter>
-            <Button type="submit">Save changes</Button>
+          <DialogFooter className="pt-4">
+            <Button type="submit" disabled={isAnalyzing}>
+              {isAnalyzing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                'Save changes'
+              )}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
