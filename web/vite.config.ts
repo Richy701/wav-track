@@ -160,6 +160,13 @@ const pwaConfiguration: VitePWAOptions = {
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  root: '.',
+  base: '/',
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+    },
+  },
   plugins: [
     reactSWC({
       jsxImportSource: '@emotion/react',
@@ -221,11 +228,6 @@ export default defineConfig({
       brotliSize: true,
     }),
   ],
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, './src'),
-    },
-  },
   optimizeDeps: {
     include: ['essentia.js', 'react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
     exclude: ['@phosphor-icons/react'],
@@ -322,8 +324,8 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: false,
     assetsDir: 'assets',
+    sourcemap: true,
     modulePreload: {
       polyfill: true
     },
@@ -339,6 +341,9 @@ export default defineConfig({
       },
     },
     rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+      },
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],

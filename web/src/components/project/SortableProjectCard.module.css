@@ -1,0 +1,15 @@
+.sortableCard {
+  cursor: grab;
+  transition:
+    transform 250ms ease,
+    opacity 250ms ease;
+  transform: var(--dnd-transform, none);
+}
+
+.dragging {
+  opacity: 0.5;
+}
+
+.notDragging {
+  opacity: 1;
+}
