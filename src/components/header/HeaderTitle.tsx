@@ -8,6 +8,10 @@ export default function HeaderTitle() {
   const isLandingPage = location.pathname === '/wav-track'
   const showBackButton = location.pathname !== '/' && !isLandingPage
 
+  const handleBack = () => {
+    navigate(-1) // Go back one step in browser history
+  }
+
   return (
     <div className="flex items-center gap-4">
       {showBackButton && (
@@ -15,7 +19,7 @@ export default function HeaderTitle() {
           variant="ghost"
           size="icon"
           className="group relative overflow-hidden bg-black/80 hover:bg-black/60 text-white rounded-full w-8 h-8 p-0 transition-all duration-300 ease-out hover:scale-110 hover:shadow-lg hover:shadow-black/25"
-          onClick={() => navigate('/')}
+          onClick={handleBack}
         >
           <PhArrowLeft className="h-4 w-4 transition-transform duration-300 ease-out group-hover:translate-x-[-2px]" />
           <span className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
