@@ -13,40 +13,49 @@
   :root {
     /* Light mode - Base colors */
     --bg: hsl(0 0% 100%);
-    --text: hsl(240 10% 3.9%);
+    --text: hsl(222.2 84% 4.9%);
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 222.2 84% 4.9%;
 
     /* Card and UI elements */
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    /* Primary colors - Using a blue palette for light mode */
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
+    /* Primary colors - Using a more vibrant blue palette for light mode */
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --primary-hover: 221.2 83.2% 45.3%;
+    --primary-active: 221.2 83.2% 40.3%;
 
     /* Secondary colors - Softer blue tones */
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary-hover: 210 40% 90.1%;
+    --secondary-active: 210 40% 85.1%;
 
     /* Muted elements */
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted-hover: 210 40% 90.1%;
 
     /* Accent colors */
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent-hover: 210 40% 90.1%;
+    --accent-active: 210 40% 85.1%;
 
     /* Destructive actions */
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
+    --destructive-hover: 0 84.2% 55.2%;
+    --destructive-active: 0 84.2% 50.2%;
 
     /* Borders and inputs */
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
 
     /* Sidebar specific colors */
     --sidebar-background: 210 40% 98%;
@@ -57,6 +66,7 @@
     --sidebar-accent-foreground: 222.2 47.4% 11.2%;
     --sidebar-border: 214.3 31.8% 91.4%;
     --sidebar-ring: 222.2 47.4% 11.2%;
+    --sidebar-hover: 210 40% 90.1%;
 
     /* Border radius */
     --radius: 0.5rem;
