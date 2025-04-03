@@ -49,72 +49,69 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
       error: error,
     })
   }
-  return false
+  return false // Let the error propagate
 }
 
-const rootElement = document.getElementById('root')
-if (!rootElement) {
-  throw new Error('Failed to find the root element')
-}
-
-// Optimized loading state with minimal DOM manipulation
 const showLoading = () => {
-  initSteps.loadingShown = true
-  const loadingHtml = `
-    <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-center; background: #000;">
-      <h1 style="font-size: 2.5rem; font-weight: bold; background: linear-gradient(to right, #8B5CF6, #6366F1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 2rem;">
-        WavTrack
-      </h1>
-      <div style="position: relative;">
-        <div style="height: 3rem; width: 3rem; border-radius: 9999px; border: 2px solid #8B5CF6; border-top-color: transparent; animation: spin 1s linear infinite;"></div>
+  if (!initSteps.loadingShown) {
+    const loadingDiv = document.createElement('div')
+    loadingDiv.id = 'loading-screen'
+    loadingDiv.innerHTML = `
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading...</div>
       </div>
-      <p style="margin-top: 1rem; color: #6B7280;">Tracking your progress...</p>
-      <style>
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      </style>
-    </div>
-  `
-
-  // Use a single innerHTML operation
-  rootElement.innerHTML = loadingHtml
-}
-
-// Show loading state immediately
-showLoading()
-
-// Initialize app with error boundary
-const initializeApp = () => {
-  initSteps.appInitStarted = true
-
-  try {
-    const root = createRoot(rootElement)
-    initSteps.rootCreated = true
-
-    initSteps.renderStarted = true
-
-    // Add error retry mechanism for module loading failures
-    const renderWithRetry = (attempt = 0) => {
-      try {
-        root.render(<App />)
-        initSteps.renderCompleted = true
-      } catch (error) {
-        // For module loading errors, retry up to 2 times
-        if (attempt < 2) {
-          setTimeout(() => renderWithRetry(attempt + 1), 1000)
-        } else {
-          throw error
-        }
-      }
-    }
-
-    renderWithRetry()
-  } catch (error) {
-    console.error('Failed to initialize app:', error)
-    throw error
+    `
+    document.body.appendChild(loadingDiv)
+    initSteps.loadingShown = true
   }
 }
 
-// Start initialization
-initializeApp()
+const initializeApp = () => {
+  try {
+    if (!initSteps.appInitStarted) {
+      initSteps.appInitStarted = true
+      console.log('[Init] App initialization started')
+
+      const container = document.getElementById('root')
+      if (!container) {
+        throw new Error('Root element not found')
+      }
+
+      const root = createRoot(container)
+      initSteps.rootCreated = true
+      console.log('[Init] Root created')
+
+      initSteps.renderStarted = true
+      console.log('[Init] Starting render')
+
+      root.render(<App />)
+
+      initSteps.renderCompleted = true
+      console.log('[Init] Render completed')
+
+      // Remove loading screen after successful render
+      const loadingScreen = document.getElementById('loading-screen')
+      if (loadingScreen) {
+        loadingScreen.remove()
+      }
+    }
+  } catch (error) {
+    console.error('[Init] Error during initialization:', error)
+    const loadingScreen = document.getElementById('loading-screen')
+    if (loadingScreen) {
+      loadingScreen.innerHTML = `
+        <div class="error-container">
+          <div class="error-text">Failed to load application</div>
+          <button onclick="window.location.reload()">Retry</button>
+        </div>
+      `
+    }
+  }
+}
+
+// Show loading screen immediately
+showLoading()
+
+// Initialize the app with a small delay to ensure DOM is ready
+setTimeout(initializeApp, 100)
