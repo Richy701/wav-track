@@ -36,11 +36,21 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-slot'],
+        }
+      }
+    }
+  },
   server: {
-    port: 5173,
+    port: 3000,
     host: true,
     cors: {
-      origin: process.env.VITE_ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173'],
+      origin: process.env.VITE_ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       credentials: true,
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Client-Info', 'apikey']
