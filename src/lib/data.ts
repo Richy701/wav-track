@@ -19,6 +19,7 @@ interface ChartData {
   value: number
   cumulative?: number
   date?: string
+  period?: string
 }
 
 interface ChartDataPoint {
@@ -1137,12 +1138,19 @@ export const getBeatsDataForChart = async (
           dailyData.set(date, (dailyData.get(date) || 0) + activity.count)
         })
 
-        // Convert to array format
-        const chartData: ChartData[] = Array.from(dailyData.entries()).map(([date, count]) => ({
-          label: date,
-          value: count,
-          date: date
-        }))
+        // Convert to array format and add week-based periods
+        const chartData: ChartData[] = Array.from(dailyData.entries()).map(([date, count]) => {
+          const dayDate = new Date(date)
+          const dayOfWeek = dayDate.getDay()
+          const period = dayOfWeek === 0 || dayOfWeek === 6 ? 'weekend' : 'workweek'
+          
+          return {
+            label: formatDate(dayDate, 'd'),
+            value: count,
+            date: date,
+            period: period
+          }
+        })
 
         data.push(...chartData)
         break
@@ -1150,18 +1158,14 @@ export const getBeatsDataForChart = async (
 
       case 'week': {
         const weekStart = new Date(now)
-        weekStart.setDate(weekStart.getDate() - 6)
+        // Calculate the start of the week (Monday)
+        const day = weekStart.getDay()
+        const diff = day === 0 ? 6 : day - 1 // If Sunday (0), go back 6 days, otherwise go back (day-1) days
+        weekStart.setDate(weekStart.getDate() - diff)
         weekStart.setHours(0, 0, 0, 0)
 
         const weekEnd = new Date(now)
         weekEnd.setHours(23, 59, 59, 999)
-
-        console.log('Fetching weekly data:', {
-          weekStart: weekStart.toISOString(),
-          weekEnd: weekEnd.toISOString(),
-          startTimestamp: weekStart.getTime(),
-          endTimestamp: weekEnd.getTime(),
-        })
 
         // Fetch all beat activities for the week
         const { data: activities, error } = await query
@@ -1170,28 +1174,17 @@ export const getBeatsDataForChart = async (
           .order('timestamp', { ascending: true })
 
         if (error) {
-          console.error('Error fetching weekly beat activities:', {
-            code: error.code,
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-          })
+          console.error('Error fetching weekly beat activities:', error)
           return []
         }
 
-        console.log('Weekly activities fetched:', {
-          count: activities?.length || 0,
-          activities: activities?.map(a => ({
-            date: new Date(a.timestamp).toISOString().split('T')[0],
-            count: a.count,
-            timestamp: a.timestamp
-          })),
-        })
+        // Get dates for the week starting from Monday
+        const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        const periods = ['workweek', 'workweek', 'workweek', 'workweek', 'workweek', 'weekend', 'weekend']
 
-        // Get dates for the last 7 days
-        for (let i = 6; i >= 0; i--) {
-          const date = new Date(now)
-          date.setDate(date.getDate() - i)
+        for (let i = 0; i < 7; i++) {
+          const date = new Date(weekStart)
+          date.setDate(date.getDate() + i)
           const dayStart = new Date(date)
           dayStart.setHours(0, 0, 0, 0)
           const dayEnd = new Date(date)
@@ -1207,25 +1200,20 @@ export const getBeatsDataForChart = async (
           data.push({
             label: formatDate(date, 'EEE'),
             value: value,
-            date: date.toISOString().split('T')[0]
+            date: date.toISOString().split('T')[0],
+            period: periods[i]
           })
         }
         break
       }
 
       case 'year': {
+        // Get the start of the current year (January 1st)
         const yearStart = new Date(now.getFullYear(), 0, 1)
         yearStart.setHours(0, 0, 0, 0)
 
         const yearEnd = new Date(now)
         yearEnd.setHours(23, 59, 59, 999)
-
-        console.log('Fetching yearly data:', {
-          yearStart: yearStart.toISOString(),
-          yearEnd: yearEnd.toISOString(),
-          startTimestamp: yearStart.getTime(),
-          endTimestamp: yearEnd.getTime(),
-        })
 
         // Fetch all beat activities for the year
         const { data: activities, error } = await query
@@ -1234,28 +1222,16 @@ export const getBeatsDataForChart = async (
           .order('timestamp', { ascending: true })
 
         if (error) {
-          console.error('Error fetching yearly beat activities:', {
-            code: error.code,
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-          })
+          console.error('Error fetching yearly beat activities:', error)
           return []
         }
 
-        console.log('Yearly activities fetched:', {
-          count: activities?.length || 0,
-          activities: activities?.map(a => ({
-            date: a.date,
-            count: a.count,
-            timestamp: a.timestamp
-          })),
-        })
+        // Get data for each month of the year starting from January
+        const seasons = ['winter', 'winter', 'spring', 'spring', 'spring', 'summer', 'summer', 'summer', 'fall', 'fall', 'fall', 'winter']
 
-        // Get data for each month of the year
-        for (let i = 11; i >= 0; i--) {
-          const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1)
-          const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
+        for (let i = 0; i < 12; i++) {
+          const monthStart = new Date(now.getFullYear(), i, 1)
+          const monthEnd = new Date(now.getFullYear(), i + 1, 0)
           monthStart.setHours(0, 0, 0, 0)
           monthEnd.setHours(23, 59, 59, 999)
 
@@ -1269,6 +1245,7 @@ export const getBeatsDataForChart = async (
           data.push({
             label: formatDate(monthStart, 'MMM'),
             value: value,
+            period: seasons[i]
           })
         }
         break
@@ -1314,26 +1291,38 @@ export const getBeatsDataForChart = async (
           })),
         })
 
-        // Create 8 intervals (24 hours / 3 hours per interval)
-        for (let i = 0; i < 8; i++) {
+        // Create 6 intervals (4 hours each)
+        const intervals = [
+          '8 PM - 12 AM',
+          '4 PM - 8 PM',
+          '12 PM - 4 PM',
+          '8 AM - 12 PM',
+          '4 AM - 8 AM',
+          '12 AM - 4 AM'
+        ]
+
+        // Always create data points for all intervals
+        intervals.forEach((label, index) => {
           const intervalStart = new Date(dayStart)
-          intervalStart.setHours(i * 3, 0, 0, 0)
+          intervalStart.setHours(20 - (index * 4), 0, 0, 0)
 
           const intervalEnd = new Date(dayStart)
-          intervalEnd.setHours(i * 3 + 2, 59, 59, 999)
+          intervalEnd.setHours(23 - (index * 4), 59, 59, 999)
 
-          const intervalActivities = activities.filter(activity => {
+          // If we have activities, filter them for this interval
+          const intervalActivities = activities?.filter(activity => {
             const activityTime = activity.timestamp
             return activityTime >= intervalStart.getTime() && activityTime <= intervalEnd.getTime()
-          })
+          }) || []
 
           const value = intervalActivities.reduce((sum, activity) => sum + (activity.count || 0), 0)
 
           data.push({
-            label: formatDate(intervalStart, 'HH:mm'),
+            label: label,
             value: value,
+            period: ['night', 'evening', 'afternoon', 'morning', 'early-morning', 'late-night'][index]
           })
-        }
+        })
         break
       }
     }

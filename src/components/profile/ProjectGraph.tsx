@@ -59,11 +59,15 @@ export function ProjectGraph() {
         setIsLoading(true)
         setError(null)
         const today = new Date()
-        const sevenDaysAgo = subDays(today, 6)
+        
+        // Calculate the start of the week (Monday)
+        const day = today.getDay()
+        const diff = day === 0 ? 6 : day - 1 // If Sunday (0), go back 6 days, otherwise go back (day-1) days
+        const weekStart = subDays(today, diff)
         
         // Get beats created in the last 7 days
         const [beatActivities, completedProjects] = await Promise.all([
-          getBeatsCreatedInRange(sevenDaysAgo, today),
+          getBeatsCreatedInRange(weekStart, today),
           getProjectsByStatus('completed')
         ])
         
@@ -71,7 +75,7 @@ export function ProjectGraph() {
           beatActivities,
           completedProjects,
           dateRange: {
-            from: sevenDaysAgo.toISOString(),
+            from: weekStart.toISOString(),
             to: today.toISOString()
           }
         })
@@ -79,13 +83,13 @@ export function ProjectGraph() {
         // Create a map to store daily totals
         const dailyData = new Map<string, ChartData>()
         
-        // Initialize data for all 7 days
+        // Initialize data for all 7 days starting from Monday
         for (let i = 0; i < 7; i++) {
-          const date = subDays(today, 6 - i)
+          const date = subDays(today, diff - i)
           const dateStr = format(date, 'yyyy-MM-dd')
           dailyData.set(dateStr, {
             date,
-            label: format(date, 'MMM d'),
+            label: format(date, 'EEE'),
             beats: 0,
             completed: 0
           })

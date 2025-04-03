@@ -1,37 +1,30 @@
-import { Project } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { Project } from '@/lib/types'
 
 interface ProjectStatusBadgeProps {
   status: Project['status']
 }
 
 export default function ProjectStatusBadge({ status }: ProjectStatusBadgeProps) {
-  // Get the status color
-  const getStatusColor = (status: Project['status']) => {
-    switch (status) {
-      case 'idea':
-        return 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-      case 'in-progress':
-        return 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
-      case 'mixing':
-        return 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
-      case 'mastering':
-        return 'bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400'
-      case 'completed':
-        return 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-      default:
-        return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+  const getStatusStyles = (status: Project['status']) => {
+    const styles = {
+      'idea': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+      'in-progress': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+      'mixing': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+      'mastering': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+      'completed': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     }
+    return styles[status] || 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
   }
 
   return (
-    <div
+    <span
       className={cn(
-        'text-xs font-medium px-2.5 py-0.5 rounded-full uppercase tracking-wider text-minimal',
-        getStatusColor(status)
+        'px-2.5 py-1 rounded-full text-xs font-medium',
+        getStatusStyles(status)
       )}
     >
-      {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
-    </div>
+      {status.replace('-', ' ')}
+    </span>
   )
-}
+} 

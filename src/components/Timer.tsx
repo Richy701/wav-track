@@ -339,16 +339,26 @@ export default function Timer() {
       }
 
       const audioFile = soundFiles[notificationSound]
-      const response = await fetch(`/wav-track/assets/audio/${audioFile}`)
+      const baseUrl = import.meta.env.BASE_URL || ''
+      const response = await fetch(`${baseUrl}assets/audio/${audioFile}`)
       
       if (!response.ok) {
         throw new Error(`Failed to load audio file: ${response.statusText}`)
       }
 
       const arrayBuffer = await response.arrayBuffer()
-      audioBufferRef.current = await audioContextRef.current.decodeAudioData(arrayBuffer)
-      setIsAudioLoaded(true)
-      setAudioError(null)
+      if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+        throw new Error('Received empty audio file')
+      }
+
+      try {
+        audioBufferRef.current = await audioContextRef.current.decodeAudioData(arrayBuffer)
+        setIsAudioLoaded(true)
+        setAudioError(null)
+      } catch (decodeError) {
+        console.error('Audio decoding error:', decodeError)
+        throw new Error('Failed to decode audio file')
+      }
     } catch (error) {
       console.error('Error preloading audio:', error)
       setAudioError('Failed to load notification sound. Please check your audio settings.')

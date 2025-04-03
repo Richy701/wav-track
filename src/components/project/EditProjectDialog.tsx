@@ -42,6 +42,7 @@ import {
   Pause,
   Loader2,
 } from 'lucide-react'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { AudioUploader } from '@/components/audio/AudioUploader'
 import { analyzeAudioWithSpotify } from '@/lib/services/spotifyAnalysis'

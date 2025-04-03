@@ -203,6 +203,7 @@ go run . help
 ## Getting Started
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
@@ -215,13 +216,17 @@ go run . help
 ## Development
 
 ### Web App
+
 The web app is built with Vite + React and is located in the `/web` directory.
 
 ### Mobile App
+
 The mobile app is built with Expo and is located in the `/mobile` directory.
 
 ### Shared Code
+
 The `/shared` directory contains code that can be used by both the web and mobile apps:
+
 - Types: Shared TypeScript types
 - Utils: Common utility functions
 - Config: Shared configuration (e.g., Supabase client)

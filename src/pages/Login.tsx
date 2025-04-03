@@ -46,9 +46,15 @@ const Login = () => {
       const success = await login(email, password)
       if (!success) {
         setError('Invalid email or password')
+      } else {
+        // Prefetch dashboard data after successful login
+        try {
+          await prefetchDashboardData(queryClient)
+        } catch (prefetchError) {
+          console.error('Error prefetching dashboard data:', prefetchError)
+          // Don't show error to user - prefetch failure shouldn't block login
+        }
       }
-      // Prefetch dashboard data after successful login
-      await prefetchDashboardData(queryClient)
       // Navigation will be handled by handleLoginSuccess in AuthContext
     } catch (err) {
       console.error('Login error:', err)

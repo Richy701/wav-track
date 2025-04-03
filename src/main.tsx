@@ -1,26 +1,10 @@
 import { createRoot } from 'react-dom/client'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App.tsx'
 import './index.css'
 import { setupGlobalErrorHandlers } from './lib/errorLogger'
 
 // Initialize error logging
 setupGlobalErrorHandlers()
-
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      cacheTime: 1000 * 60 * 30, // 30 minutes
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-})
-
-// Track query state
-let lastActiveQueries = new Map()
 
 // Track initialization steps
 let initSteps = {
@@ -113,12 +97,7 @@ const initializeApp = () => {
     // Add error retry mechanism for module loading failures
     const renderWithRetry = (attempt = 0) => {
       try {
-        // Wrap in ErrorBoundary for better error handling
-        root.render(
-          <QueryClientProvider client={queryClient}>
-            <App />
-          </QueryClientProvider>
-        )
+        root.render(<App />)
         initSteps.renderCompleted = true
       } catch (error) {
         // For module loading errors, retry up to 2 times

@@ -21,7 +21,7 @@ const getBaseUrl = () => {
   // Check if we're in development or production
   const isDev = import.meta.env.DEV
   // For GitHub Pages deployment
-  const basePath = ''
+  const basePath = import.meta.env.BASE_URL || ''
   return `${window.location.origin}${basePath}`
 }
 

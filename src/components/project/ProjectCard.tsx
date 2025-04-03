@@ -39,8 +39,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { Sparkles } from 'lucide-react'
-import React from 'react'
-import { motion } from 'framer-motion'
 
 interface ProjectCardProps {
   project: Project
@@ -282,126 +280,194 @@ export default function ProjectCard({
     }
   }
 
-  const getStatusColor = (status: Project['status']) => {
-    const colors = {
-      'idea': 'text-blue-500 dark:text-blue-400',
-      'in-progress': 'text-yellow-500 dark:text-yellow-400',
-      'mixing': 'text-purple-500 dark:text-purple-400',
-      'mastering': 'text-orange-500 dark:text-orange-400',
-      'completed': 'text-green-500 dark:text-green-400',
-    }
-    return colors[status] || 'text-gray-500 dark:text-gray-400'
-  }
-
-  const getStatusIcon = (status: Project['status']) => {
-    switch (status) {
-      case 'idea':
-        return <Sparkles className={cn('w-5 h-5', getStatusColor(status))} />
-      case 'in-progress':
-        return <Waveform className={cn('w-5 h-5', getStatusColor(status))} />
-      case 'mixing':
-        return <MusicNote className={cn('w-5 h-5', getStatusColor(status))} />
-      case 'mastering':
-        return <Lightning className={cn('w-5 h-5', getStatusColor(status))} />
-      case 'completed':
-        return <CheckCircle className={cn('w-5 h-5', getStatusColor(status))} />
-      default:
-        return <MusicNote className={cn('w-5 h-5', getStatusColor(status))} />
-    }
-  }
-
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.2 }}
-      className={cn(
-        'group relative rounded-2xl border bg-card text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:scale-[1.01]',
-        'dark:border-gray-800 dark:bg-gray-900/50 dark:hover:bg-gray-900',
-        isSelected && 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-900'
-      )}
-      onClick={handleCardClick}
-    >
-      <div className="p-6 space-y-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              {getStatusIcon(localProject.status)}
-              <h3 className="font-semibold text-lg leading-none tracking-tight">
-                {localProject.title}
-              </h3>
-            </div>
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {localProject.description || 'No description'}
-            </p>
+    <div className="project-card-container">
+      <div
+        className={cn(
+          'group relative bg-card rounded-xl overflow-hidden transition-all duration-300 w-full',
+          isHovered ? 'shadow-lg transform -translate-y-1' : 'shadow hover:shadow-md',
+          'border border-border/50 hover:border-primary/20',
+          isSelected && 'ring-2 ring-primary'
+        )}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        role="article"
+      >
+        <div className="flex">
+          {/* Left side play button container */}
+          <div className="p-4 sm:p-5">
+            {/* Audio Play/Pause Button */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handlePlayPause}
+                    className={cn(
+                      'play-button w-14 h-14 rounded-full transition-all duration-300',
+                      'flex items-center justify-center',
+                      'focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2 focus:ring-offset-background',
+                      'transform hover:scale-105',
+                      !project.audio_url?.trim()
+                        ? 'bg-gradient-to-br from-emerald-200 to-emerald-300 dark:from-violet-400/40 dark:via-fuchsia-500/40 dark:to-purple-600/40 opacity-60 cursor-not-allowed'
+                        : isPlaying
+                          ? 'bg-gradient-to-br from-emerald-400 to-emerald-500 dark:from-violet-500 dark:via-fuchsia-600 dark:to-purple-700 shadow-lg shadow-emerald-500/30 dark:shadow-purple-900/40'
+                          : 'bg-gradient-to-br from-emerald-300 to-emerald-400 hover:from-emerald-400 hover:to-emerald-500 dark:from-violet-400 dark:via-fuchsia-500 dark:to-purple-600 shadow-md shadow-emerald-500/20 dark:shadow-purple-900/30 hover:shadow-lg hover:shadow-emerald-500/25 dark:hover:shadow-purple-900/35'
+                    )}
+                    aria-label={isPlaying ? 'Pause Preview' : 'Play Preview'}
+                  >
+                    {isPlaying ? (
+                      <Pause className="h-7 w-7 text-white drop-shadow-md" weight="fill" />
+                    ) : (
+                      <Play className="h-7 w-7 ml-0.5 text-white drop-shadow-md" weight="fill" />
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{isPlaying ? 'Pause Preview' : 'Play Preview'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
-          <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 hover:bg-accent"
+
+          {/* Main content */}
+          <div className="flex-1 py-4 pr-4 pl-2 sm:py-5 sm:pr-5 sm:pl-3 flex flex-col justify-between">
+            {/* Top section with status and menu */}
+            <div className="flex justify-between items-start gap-2 min-w-0 mb-3">
+              <div className="flex items-center gap-2 flex-wrap min-w-0">
+                <div
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                    localProject.status === 'completed'
+                      ? 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400'
+                      : localProject.status === 'mastering'
+                        ? 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400'
+                        : localProject.status === 'mixing'
+                          ? 'bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400'
+                          : localProject.status === 'in-progress'
+                            ? 'bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400'
+                            : 'bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400'
+                  }`}
+                >
+                  {localProject.status.replace('-', ' ')}
+                </div>
+                <div className="text-xs font-medium tabular-nums text-muted-foreground">
+                  {localProject.completionPercentage}%
+                </div>
+              </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <DotsThreeVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={handleEditClick} className="gap-2">
+                    <PencilSimple className="h-4 w-4" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDeleteClick} className="gap-2 text-destructive">
+                    <Trash className="h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Middle section with title and metadata */}
+            <div className="space-y-2 min-w-0 mb-3">
+              <Link
+                to={`/project/${project.id}`}
+                className="block hover:underline"
                 onClick={(e) => e.stopPropagation()}
               >
-                <DotsThreeVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem onClick={handleEditClick}>
-                <PencilSimple className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleMoveToNextStage}>
-                <ArrowClockwise className="mr-2 h-4 w-4" />
-                Next Stage
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleDeleteClick}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+                <h3 className="text-base font-medium tracking-tight line-clamp-1 break-words">
+                  {localProject.title}
+                </h3>
+              </Link>
+              
+              {/* Project metadata with improved layout */}
+              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
+                  <Calendar className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{formatDate(localProject.dateCreated)}</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
+                  <MusicNote className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{localProject.bpm} BPM</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
+                  <MusicNote className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{localProject.key}</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
+                  <ArrowClockwise className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">Updated {formatTimeAgo(localProject.lastModified)}</span>
+                </div>
+              </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Progress</span>
-            <span className="font-medium">{localProject.completionPercentage}%</span>
-          </div>
-          <Progress
-            value={localProject.completionPercentage}
-            className="h-2"
-          />
-        </div>
+              {/* Project tags with improved styling */}
+              {project.tags && project.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {project.tags.map((tag, index) => (
+                    <div
+                      key={index}
+                      className="px-2 py-0.5 rounded-full text-xs bg-primary/5 text-primary border border-primary/10"
+                    >
+                      {tag}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Calendar className="h-4 w-4" />
-            <span>{formatTimeAgo(localProject.lastModified)}</span>
+            {/* Bottom section with status bar */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Progress</span>
+                <span className="font-medium tabular-nums">
+                  {localProject.completionPercentage}%
+                </span>
+              </div>
+              <div className="h-1.5 rounded-full bg-muted/50 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    (localProject.completionPercentage ?? 0) === 100
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                      : (localProject.completionPercentage ?? 0) >= 75
+                        ? 'bg-gradient-to-r from-blue-500 to-indigo-500'
+                        : (localProject.completionPercentage ?? 0) >= 50
+                          ? 'bg-gradient-to-r from-yellow-500 to-amber-500'
+                          : (localProject.completionPercentage ?? 0) >= 25
+                            ? 'bg-gradient-to-r from-orange-500 to-red-500'
+                            : 'bg-gradient-to-r from-red-500 to-pink-500'
+                  }`}
+                  style={{ width: `${localProject.completionPercentage}%` }}
+                />
+              </div>
+            </div>
           </div>
-          <ProjectStatusBadge status={localProject.status} />
         </div>
       </div>
 
+      {/* Dialogs */}
       <EditProjectDialog
         project={localProject}
-        open={isEditDialogOpen}
+        isOpen={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         onProjectUpdated={handleProjectUpdated}
       />
-
       <DeleteProjectDialog
-        project={localProject}
-        open={isDeleteDialogOpen}
+        project={project}
+        isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-        onProjectDeleted={handleDelete}
+        onConfirm={onProjectDeleted}
       />
-    </motion.div>
+    </div>
   )
 }
 
