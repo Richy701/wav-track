@@ -203,11 +203,11 @@ const Profile = () => {
               >
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h1 className="text-2xl font-semibold truncate">
+                    <div className="inline-flex items-baseline space-x-2">
+                      <h2 className="text-foreground text-xl font-bold leading-none">
                         {profile?.name || 'Producer Name'}
-                      </h1>
-                      <span className="text-muted-foreground">
+                      </h2>
+                      <span className="text-muted-foreground text-base leading-none">
                         @{profile?.artist_name || 'artist'}
                       </span>
                     </div>

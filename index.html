@@ -42,6 +42,45 @@
     <meta name="author" content="WavTrack">
     <meta name="robots" content="index, follow">
     
+    <!-- Preload critical images -->
+    <!-- Hero image -->
+    <!-- AVIF format (best compression) -->
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&h=270&fit=crop&q=80&fm=avif" media="(max-width: 480px)" type="image/avif" fetchpriority="high" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&h=432&fit=crop&q=80&fm=avif" media="(max-width: 768px)" type="image/avif" fetchpriority="high" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&h=576&fit=crop&q=80&fm=avif" media="(max-width: 1024px)" type="image/avif" fetchpriority="high" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&h=1080&fit=crop&q=80&fm=avif" media="(min-width: 1025px)" type="image/avif" fetchpriority="high" />
+    
+    <!-- WebP format (good compression, wide support) -->
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&h=270&fit=crop&q=80&fm=webp" media="(max-width: 480px)" type="image/webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&h=432&fit=crop&q=80&fm=webp" media="(max-width: 768px)" type="image/webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&h=576&fit=crop&q=80&fm=webp" media="(max-width: 1024px)" type="image/webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&h=1080&fit=crop&q=80&fm=webp" media="(min-width: 1025px)" type="image/webp" fetchpriority="high" />
+    
+    <!-- Fallback JPG format -->
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&h=270&fit=crop&q=80" media="(max-width: 480px)" fetchpriority="high" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&h=432&fit=crop&q=80" media="(max-width: 768px)" fetchpriority="high" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&h=576&fit=crop&q=80" media="(max-width: 1024px)" fetchpriority="high" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&h=1080&fit=crop&q=80" media="(min-width: 1025px)" fetchpriority="high" />
+    
+    <!-- Product preview image -->
+    <!-- AVIF format (best compression) -->
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598653222000-6b7b7a552625?w=480&h=270&fit=crop&q=80&fm=avif" media="(max-width: 480px)" type="image/avif" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598653222000-6b7b7a552625?w=768&h=432&fit=crop&q=80&fm=avif" media="(max-width: 768px)" type="image/avif" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598653222000-6b7b7a552625?w=1024&h=576&fit=crop&q=80&fm=avif" media="(max-width: 1024px)" type="image/avif" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598653222000-6b7b7a552625?w=1920&h=1080&fit=crop&q=80&fm=avif" media="(min-width: 1025px)" type="image/avif" />
+    
+    <!-- WebP format (good compression, wide support) -->
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598653222000-6b7b7a552625?w=480&h=270&fit=crop&q=80&fm=webp" media="(max-width: 480px)" type="image/webp" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598653222000-6b7b7a552625?w=768&h=432&fit=crop&q=80&fm=webp" media="(max-width: 768px)" type="image/webp" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598653222000-6b7b7a552625?w=1024&h=576&fit=crop&q=80&fm=webp" media="(max-width: 1024px)" type="image/webp" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598653222000-6b7b7a552625?w=1920&h=1080&fit=crop&q=80&fm=webp" media="(min-width: 1025px)" type="image/webp" />
+    
+    <!-- Fallback JPG format -->
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598653222000-6b7b7a552625?w=480&h=270&fit=crop&q=80" media="(max-width: 480px)" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598653222000-6b7b7a552625?w=768&h=432&fit=crop&q=80" media="(max-width: 768px)" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598653222000-6b7b7a552625?w=1024&h=576&fit=crop&q=80" media="(max-width: 1024px)" />
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1598653222000-6b7b7a552625?w=1920&h=1080&fit=crop&q=80" media="(min-width: 1025px)" />
+    
     <link rel="manifest" href="/manifest.json" />
     <meta name="mobile-web-app-capable" content="yes" />
     <link rel="modulepreload" href="/src/pages/Login.tsx" as="script" />

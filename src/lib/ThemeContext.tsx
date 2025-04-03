@@ -30,14 +30,35 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const root = window.document.documentElement
     const applyTheme = (newTheme: Theme) => {
+      // Disable transitions temporarily
+      root.style.setProperty('transition', 'none')
+      
+      // Remove classes first
       root.classList.remove('light', 'dark')
+      
+      // Determine the effective theme
       const effectiveTheme = newTheme === 'system'
         ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
         : newTheme
+      
+      // Force a reflow to ensure transitions are disabled
+      void root.offsetHeight // Trigger reflow without lint error
+
+      // Add the new class immediately
       root.classList.add(effectiveTheme)
+      
+      // Save to localStorage after the theme is applied
       localStorage.setItem('theme', newTheme)
+
+      // Re-enable transitions after a small delay
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          root.style.removeProperty('transition')
+        })
+      })
     }
 
+    // Apply the theme immediately
     applyTheme(theme)
 
     // Listen for system theme changes if using system theme

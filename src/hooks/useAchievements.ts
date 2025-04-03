@@ -122,7 +122,7 @@ export function useAchievements() {
         console.log('Completed projects:', completedProjects)
 
         // Fetch all achievements from the database
-        const { data: allAchievements, error: achievementsError } = await supabase
+        let { data: allAchievements, error: achievementsError } = await supabase
           .from('achievements')
           .select('*')
           .order('tier', { ascending: true })

@@ -590,7 +590,7 @@ export function RecentProjects() {
           ].map((achievement, index) => (
             <Card
               key={index}
-              className={`group relative overflow-hidden hover:shadow-md transition-all duration-200 hover:scale-[1.01] ${achievement.borderColor}`}
+              className={`group relative overflow-hidden hover:shadow-md hover:scale-[1.01] ${achievement.borderColor}`}
             >
               <CardContent className="p-5">
                 {/* Gradient overlay on hover */}
@@ -603,7 +603,7 @@ export function RecentProjects() {
                 <div className="flex items-center gap-4 mb-4">
                   <div
                     className={`p-2.5 rounded-full bg-gradient-to-br ${achievement.color} text-white 
-                                shadow-sm transition-transform duration-200 group-hover:scale-105`}
+                                shadow-sm group-hover:scale-105`}
                   >
                     {React.cloneElement(achievement.icon, { className: 'w-5 h-5' })}
                   </div>

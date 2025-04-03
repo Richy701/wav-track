@@ -10,6 +10,44 @@
 @tailwind utilities;
 
 @layer base {
+  /* Disable all transitions by default */
+  * {
+    transition: none !important;
+  }
+
+  /* Only allow specific hover transitions */
+  *:hover {
+    transition-property: transform, box-shadow !important;
+    transition-duration: 0.2s !important;
+    transition-timing-function: ease-out !important;
+  }
+
+  /* Remove all transitions from theme-sensitive elements */
+  .bg-card,
+  .text-foreground,
+  .text-muted-foreground,
+  .border-border,
+  .bg-background,
+  .bg-muted,
+  [class*="dark:"],
+  [class*="hover:"],
+  [class*="group-hover:"] {
+    transition: none !important;
+  }
+
+  /* Explicitly allow hover transitions only */
+  .hover\:scale-\[1\.02\]:hover {
+    transition: transform 0.2s ease-out !important;
+  }
+
+  .hover\:shadow-lg:hover {
+    transition: box-shadow 0.2s ease-out !important;
+  }
+
+  .group-hover\:scale-110:hover {
+    transition: transform 0.2s ease-out !important;
+  }
+
   :root {
     /* Light mode - Base colors */
     --bg: hsl(0 0% 100%);
@@ -151,7 +189,7 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-secondary rounded-lg border-2 border-background transition-colors;
+    @apply bg-secondary rounded-lg border-2 border-background;
     background-clip: padding-box;
   }
 
@@ -171,7 +209,7 @@
       @apply bg-secondary/30 rounded-lg;
     }
     &::-webkit-scrollbar-thumb {
-      @apply bg-secondary rounded-lg border-2 border-background transition-colors;
+      @apply bg-secondary rounded-lg border-2 border-background;
       background-clip: padding-box;
     }
     &::-webkit-scrollbar-thumb:hover {
@@ -186,7 +224,7 @@
       @apply bg-secondary/30 rounded-lg;
     }
     &::-webkit-scrollbar-thumb {
-      @apply bg-secondary rounded-lg border-2 border-background transition-colors;
+      @apply bg-secondary rounded-lg border-2 border-background;
       background-clip: padding-box;
     }
     &::-webkit-scrollbar-thumb:hover {
@@ -376,7 +414,6 @@
 
   html {
     @apply bg-background text-foreground;
-    transition: background-color 0.3s ease, color 0.3s ease;
     background-color: var(--bg);
     color: var(--text);
   }
@@ -395,7 +432,6 @@
     width: 100%;
     max-width: 100vw;
     overflow-x: hidden;
-    transition: background-color 0.3s ease, color 0.3s ease;
     background-color: var(--bg);
     color: var(--text);
   }
@@ -461,7 +497,7 @@
 
   /* Links */
   a {
-    @apply text-primary hover:text-primary/80 transition-colors;
+    @apply text-primary hover:text-primary/80;
   }
 
   /* Lists */
@@ -481,16 +517,30 @@
 
   /* Add a subtle gradient to cards */
   .bg-card {
-    @apply bg-gradient-to-br from-card to-card/95 shadow-sm;
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    @apply rounded-lg border bg-card/50 text-card-foreground shadow-sm overflow-hidden;
+    border: 1px solid hsl(var(--border) / 0.1);
+    background: linear-gradient(
+      to bottom right,
+      hsl(var(--primary) / 0.02),
+      hsl(var(--primary) / 0.01),
+      hsl(var(--primary) / 0.005)
+    );
+  }
+
+  .card:hover {
+    background: linear-gradient(
+      to bottom right,
+      hsl(var(--primary) / 0.04),
+      hsl(var(--primary) / 0.02),
+      hsl(var(--primary) / 0.01)
+    );
+    box-shadow: 0 4px 6px -1px hsl(var(--primary) / 0.05);
   }
 
   /* Add hover effects to buttons */
   .btn,
   button {
-    @apply transition-all duration-200;
+    @apply duration-200;
   }
 
   .btn:hover,
@@ -546,7 +596,7 @@
 
 @layer utilities {
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-md hover:-translate-y-1;
+    @apply duration-300 hover:shadow-md hover:-translate-y-1;
   }
 
   .text-shadow {
@@ -632,20 +682,16 @@
     @apply py-6 sm:py-8 lg:py-12;
   }
 
-  .card {
-    @apply rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden;
-  }
-
   .input {
     @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .badge {
-    @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+    @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
   }
 
   .button {
-    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
   }
 
   .button-primary {
@@ -711,11 +757,6 @@
 
 html {
   font-family: 'Outfit', sans-serif;
-  transition: var(--theme-transition);
-}
-
-html.theme-transition-ready * {
-  transition: var(--theme-transition) !important;
 }
 
 /* Custom styles */
@@ -744,7 +785,13 @@ html.theme-transition-ready * {
 }
 
 .dark .card:hover {
-  background-color: var(--hover-bg);
+  background: linear-gradient(
+    to bottom right,
+    hsl(var(--primary) / 0.08),
+    hsl(var(--primary) / 0.04),
+    hsl(var(--primary) / 0.02)
+  );
+  box-shadow: 0 4px 6px -1px hsl(var(--primary) / 0.05);
 }
 
 /* Button styles */
@@ -955,4 +1002,27 @@ html.theme-transition-ready * {
     hsl(var(--primary) / 0.01)
   );
   box-shadow: 0 4px 6px -1px hsl(var(--primary) / 0.05);
+}
+
+/* Remove transitions from theme-sensitive elements */
+.bg-card,
+.text-foreground,
+.text-muted-foreground,
+.border-border,
+.bg-background,
+.bg-muted {
+  transition: none !important;
+}
+
+/* Keep hover transitions */
+.hover\:scale-\[1\.02\]:hover {
+  transition: transform 0.2s ease-out !important;
+}
+
+.hover\:shadow-lg:hover {
+  transition: box-shadow 0.2s ease-out !important;
+}
+
+.group-hover\:scale-110:hover {
+  transition: transform 0.2s ease-out !important;
 }

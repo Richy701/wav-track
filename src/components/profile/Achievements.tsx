@@ -52,37 +52,42 @@ export function Achievements() {
 
       <motion.div
         variants={containerVariants}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch"
       >
         {displayAchievements.map(achievement => (
           <motion.div
             key={achievement.id}
             variants={itemVariants}
-            className="group relative"
+            className="group relative h-full"
           >
             <Card className={cn(
-              "relative overflow-hidden transition-all duration-300",
+              "relative overflow-hidden transition-all duration-300 h-full",
               "hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20",
               "border border-border/50",
-              achievement.unlocked_at ? "bg-gradient-to-br from-primary/5 via-transparent to-transparent" : "bg-muted/30"
+              achievement.unlocked_at 
+                ? "bg-gradient-to-br from-primary/10 via-primary/5 to-transparent shadow-md" 
+                : "bg-muted/30",
+              "flex flex-col justify-between"
             )}>
-              <CardContent className="p-6">
+              <CardContent className="p-5 flex flex-col h-full">
                 {/* Gradient overlay */}
                 <div
                   className={cn(
-                    "absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300",
+                    "absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300",
                     "bg-gradient-to-tr",
                     achievement.unlocked_at ? "from-primary to-primary/50" : "from-muted to-muted/50"
                   )}
                 />
 
                 {/* Header with Icon */}
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-start gap-4">
                   <div
                     className={cn(
-                      "p-3 rounded-xl",
+                      "w-12 h-12 rounded-xl flex items-center justify-center",
                       "bg-gradient-to-br",
-                      achievement.unlocked_at ? "from-primary to-primary/80" : "from-muted to-muted",
+                      achievement.unlocked_at 
+                        ? "from-primary to-primary/80 shadow-inner shadow-primary/30" 
+                        : "from-muted to-muted",
                       "text-white shadow-sm",
                       "transition-transform duration-300",
                       "group-hover:scale-110"
@@ -91,21 +96,20 @@ export function Achievements() {
                     {achievement.icon}
                   </div>
                   <div>
-                    <h3 className="font-medium text-foreground">{achievement.name}</h3>
-                    <p className="text-sm text-muted-foreground">{achievement.description}</p>
+                    <h3 className="font-semibold text-lg text-foreground">{achievement.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{achievement.description}</p>
                   </div>
                 </div>
 
                 {/* Progress Section */}
-                <div className="space-y-3">
+                <div className="mt-6">
                   {achievement.unlocked_at ? (
-                    <div className="flex justify-between items-center">
+                    <div className="flex items-center justify-between">
                       <Badge
                         variant="outline"
                         className={cn(
-                          "bg-gradient-to-r",
-                          "from-primary to-primary/80",
-                          "border-0 text-white text-xs"
+                          "bg-white text-black text-xs font-semibold px-3 py-1 rounded-full shadow-sm",
+                          "animate-pulse"
                         )}
                       >
                         Unlocked
@@ -116,8 +120,8 @@ export function Achievements() {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Progress</span>
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span>Progress</span>
                         <span className="font-medium tabular-nums">
                           {achievement.progress || 0}/{achievement.requirement}
                         </span>

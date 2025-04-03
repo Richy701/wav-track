@@ -3,7 +3,6 @@ import { Moon, Sun } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/lib/ThemeContext'
 import { Button } from '@/components/ui/button'
-import { motion } from 'framer-motion'
 
 export default function ThemeSwitcher() {
   const { theme, setTheme } = useTheme()
@@ -13,12 +12,8 @@ export default function ThemeSwitcher() {
   useEffect(() => setMounted(true), [])
 
   const handleThemeChange = () => {
-    console.log('Current theme:', theme)
     const newTheme = theme === 'light' ? 'dark' : 'light'
-    console.log('Switching to theme:', newTheme)
     setTheme(newTheme)
-    console.log('HTML classes:', document.documentElement.classList)
-    console.log('Body classes:', document.body.classList)
   }
 
   if (!mounted) {
@@ -34,8 +29,7 @@ export default function ThemeSwitcher() {
         'relative h-10 w-10 rounded-full',
         'bg-background/80 hover:bg-background',
         'flex items-center justify-center',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-        'transition-all duration-200'
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
       )}
     >
       {theme === 'light' ? (

@@ -97,8 +97,8 @@ export const PaginatedGoals: React.FC<PaginatedGoalsProps> = ({
 
       if (error) throw error
 
-      queryClient.invalidateQueries(['goals'])
-      queryClient.invalidateQueries(['session-stats'])
+      queryClient.invalidateQueries({ queryKey: ['goals'] })
+      queryClient.invalidateQueries({ queryKey: ['session-stats'] })
       
       toast({
         title: "Recent Goals Cleared",

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, Trophy, Star, Clock, Target, Fire, MusicNote } from '@phosphor-icons/react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Spinner } from '@/components/ui/spinner'
+import { Badge } from '@/components/ui/badge'
 
 interface AchievementCardProps {
   achievement: Achievement
@@ -133,146 +134,132 @@ export function AchievementCard({ achievement, className, isLoading }: Achieveme
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
+        className={cn('group h-full', className)}
       >
-        <Card 
-          className={cn(
-            'p-4 relative overflow-hidden group',
-            'transition-all duration-300',
-            'hover:shadow-lg hover:scale-[1.02]',
-            isUnlocked ? tierColor.bg : 'bg-card/50',
-            isUnlocked ? tierColor.border : 'border-muted',
-            isUnlocked ? tierColor.glow : '',
-            'backdrop-blur-sm',
-            className
-          )}
-        >
-          {/* Animated background gradient */}
-          {isUnlocked && (
-            <motion.div
-              className={cn(
-                'absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-5',
-                tierColor.gradient
-              )}
-              animate={{
-                opacity: [0, 0.1, 0],
-                scale: [1, 1.1, 1],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
-          )}
+        <Card className={cn(
+          'relative overflow-hidden h-full',
+          'hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
+          'border border-border/50',
+          isUnlocked 
+            ? 'bg-gradient-to-br from-primary/10 via-primary/5 to-transparent shadow-md' 
+            : 'bg-muted/30',
+          'flex flex-col justify-between'
+        )}>
+          {/* Gradient overlay */}
+          <div
+            className={cn(
+              'absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300',
+              'bg-gradient-to-tr',
+              isUnlocked ? 'from-primary to-primary/50' : 'from-muted to-muted/50'
+            )}
+          />
 
-          {/* Pulsing border glow */}
-          {isUnlocked && (
-            <motion.div
-              className={cn(
-                'absolute inset-0 rounded-lg',
-                tierColor.glow
-              )}
-              animate={{
-                boxShadow: [
-                  `0 0 0 0 ${tierColor.glow.replace('shadow-', 'rgba(').replace('/20', ', 0.2)')}`,
-                  `0 0 0 4px ${tierColor.glow.replace('shadow-', 'rgba(').replace('/20', ', 0.1)')}`,
-                  `0 0 0 0 ${tierColor.glow.replace('shadow-', 'rgba(').replace('/20', ', 0.2)')}`,
-                ],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
-          )}
-
-          <div className="relative flex items-start gap-4">
-            {/* Achievement Icon */}
-            <motion.div 
-              className={cn(
-                'text-2xl relative',
-                isUnlocked && 'animate-bounce'
-              )}
-              whileHover={{ scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            >
-              {achievement.icon}
-              {isUnlocked && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="absolute -top-1 -right-1"
-                >
-                  <CheckCircle className="w-4 h-4 text-green-500" weight="fill" />
-                </motion.div>
-              )}
-            </motion.div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className={cn(
-                  'font-medium truncate',
-                  isUnlocked ? tierColor.text : 'text-foreground'
-                )}>
-                  {achievement.name}
-                </h3>
-                {isUnlocked && (
-                  <motion.span
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="text-sm"
-                  >
-                    {tierIcons[achievement.tier as keyof typeof tierIcons]}
-                  </motion.span>
+          <div className="p-5 flex flex-col h-full">
+            {/* Top section with icon and title */}
+            <div className="flex items-start gap-4">
+              {/* Achievement Icon */}
+              <motion.div 
+                className={cn(
+                  'relative',
+                  isUnlocked && 'animate-bounce'
                 )}
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">{achievement.description}</p>
-
-              {/* Progress Bar */}
-              <div className="mt-2">
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                whileHover={{ scale: 1.1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <div className={cn(
+                  'w-12 h-12 rounded-xl flex items-center justify-center',
+                  isUnlocked 
+                    ? 'bg-gradient-to-br from-primary to-primary/80 shadow-inner shadow-primary/30' 
+                    : 'bg-muted/50',
+                  'text-white shadow-sm',
+                  'transition-transform duration-300',
+                  'group-hover:scale-110'
+                )}>
+                  {achievement.icon}
+                </div>
+                {isUnlocked && (
                   <motion.div
-                    className={cn(
-                      'h-full transition-all duration-500',
-                      isUnlocked ? tierColor.gradient : 'bg-muted-foreground',
-                      isLoading && "animate-pulse"
-                    )}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${percentage}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  {isLoading ? (
-                    <span className="inline-flex items-center gap-1">
-                      <Spinner className="h-3 w-3" />
-                      Updating...
-                    </span>
-                  ) : (
-                    <>
-                      <span>{progress}/{total}</span>
-                      <span>{Math.round(percentage)}%</span>
-                    </>
-                  )}
-                </div>
-              </div>
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="absolute -top-1 -right-1"
+                  >
+                    <CheckCircle className="w-4 h-4 text-green-500" weight="fill" />
+                  </motion.div>
+                )}
+              </motion.div>
 
-              {/* Unlock Date */}
-              {isUnlocked && achievement.unlockedAt && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className={cn(
-                    "mt-2 text-xs font-medium",
-                    tierColor.text
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className={cn(
+                    'font-semibold truncate text-lg',
+                    isUnlocked ? tierColor.text : 'text-foreground'
+                  )}>
+                    {achievement.name}
+                  </h3>
+                  {isUnlocked && (
+                    <motion.span
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.3 }}
+                      className="text-sm"
+                    >
+                      {tierIcons[achievement.tier as keyof typeof tierIcons]}
+                    </motion.span>
                   )}
-                >
-                  Unlocked {format(new Date(achievement.unlockedAt), 'MMM d, yyyy')}
-                </motion.div>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">{achievement.description}</p>
+              </div>
+            </div>
+
+            {/* Bottom section with progress or unlock date */}
+            <div className="mt-6">
+              {isUnlocked ? (
+                <div className="flex items-center justify-between">
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "bg-white text-black text-xs font-semibold px-3 py-1 rounded-full shadow-sm",
+                      "animate-pulse"
+                    )}
+                  >
+                    Unlocked
+                  </Badge>
+                  <span className="text-sm text-muted-foreground">
+                    {format(new Date(achievement.unlockedAt), 'MMM yyyy')}
+                  </span>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Progress</span>
+                    <span className="font-medium tabular-nums">
+                      {progress}/{total}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <motion.div
+                      className={cn(
+                        'h-full transition-all duration-500',
+                        isUnlocked ? tierColor.gradient : 'bg-muted-foreground',
+                        isLoading && "animate-pulse"
+                      )}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${percentage}%` }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    {isLoading ? (
+                      <span className="inline-flex items-center gap-1">
+                        <Spinner className="h-3 w-3" />
+                        Updating...
+                      </span>
+                    ) : (
+                      <span>{Math.round(percentage)}%</span>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           </div>

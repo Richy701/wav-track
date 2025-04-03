@@ -1881,9 +1881,9 @@ const Sessions: React.FC = () => {
   const progress = ((isWorking ? workDuration * 60 : breakDuration * 60) - timeLeft) / (isWorking ? workDuration * 60 : breakDuration * 60) * CIRCLE_CIRCUMFERENCE
 
   // Fetch session goals
-  const { data: goals = [] } = useQuery<Goal[]>(
-    ['goals', user?.id],
-    async () => {
+  const { data: goals = [] } = useQuery({
+    queryKey: ['goals', user?.id],
+    queryFn: async () => {
       if (!user?.id) throw new Error('No authenticated user')
 
       const { data, error } = await supabase
@@ -1895,10 +1895,8 @@ const Sessions: React.FC = () => {
       if (error) throw error
       return (data || []).map(mapDatabaseGoalToGoal)
     },
-    {
-      enabled: !!user?.id,
-    }
-  )
+    enabled: !!user?.id,
+  })
 
   // Fetch session stats
   const { data: sessionStats } = useQuery({
@@ -2195,8 +2193,8 @@ const Sessions: React.FC = () => {
     },
     onSuccess: () => {
       if (!user?.id) return;
-      queryClient.invalidateQueries(['goals', user.id]);
-      queryClient.invalidateQueries(['session-stats']);
+      queryClient.invalidateQueries({ queryKey: ['goals', user.id] });
+      queryClient.invalidateQueries({ queryKey: ['session-stats'] });
       toast({
         title: "Goal Created",
         description: "Your session goal has been created successfully",
@@ -2234,7 +2232,7 @@ const Sessions: React.FC = () => {
     },
     onSuccess: () => {
       if (!user?.id) return;
-      queryClient.invalidateQueries(['goals', user.id]);
+      queryClient.invalidateQueries({ queryKey: ['goals', user.id] });
       setActiveGoal(null);
       toast({
         title: "Goal Deleted",

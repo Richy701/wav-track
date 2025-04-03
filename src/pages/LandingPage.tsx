@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { ResponsiveImage } from "@/components/ui/responsive-image";
 import { 
   PhosphorLogo, 
   Headphones, 
@@ -115,10 +116,14 @@ export default function LandingPage() {
         <section className="relative flex-1 flex items-center justify-center px-4 md:px-8 py-12 md:py-20 overflow-hidden">
           {/* Background Image */}
           <div className="absolute inset-0 z-0">
-            <img
+            <ResponsiveImage
               src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&h=1080&fit=crop&q=80"
               alt="Music Production Studio"
               className="w-full h-full object-cover opacity-10 dark:opacity-20 blur-sm transform transition-transform duration-500 hover:scale-105"
+              priority={true}
+              fetchPriority="high"
+              sizes="100vw"
+              quality={85}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-background/80 to-background/40 dark:from-background/90 dark:to-background/60" />
           </div>
@@ -203,10 +208,11 @@ export default function LandingPage() {
             whileInView="animate"
             viewport={{ once: true }}
           >
-            <img
+            <ResponsiveImage
               src="https://images.unsplash.com/photo-1598653222000-6b7b7a552625?w=1920&h=1080&fit=crop&q=80"
               alt="Music Production Interface"
               className="absolute inset-0 w-full h-full object-cover opacity-20 dark:opacity-30"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 50vw"
             />
             <div className="absolute inset-0 flex items-center justify-center">
               <motion.div 

@@ -63,8 +63,12 @@ export function TrackDetails({ track }: TrackDetailsProps) {
               className="h-32 w-32 rounded-lg object-cover"
             />
             <div>
-              <h2 className="text-2xl font-bold">{trackDetails.title}</h2>
-              <p className="text-muted-foreground">{trackDetails.artist}</p>
+              <h2 className="text-2xl font-bold text-foreground">{trackDetails.title}</h2>
+              <div className="inline-flex items-baseline space-x-2 mt-1">
+                <span className="text-muted-foreground text-base leading-none">
+                  @{trackDetails.artist}
+                </span>
+              </div>
             </div>
           </div>
           <div className="space-y-4">

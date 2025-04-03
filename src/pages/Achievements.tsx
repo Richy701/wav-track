@@ -276,7 +276,7 @@ export default function Achievements() {
           </TabsList>
 
           <TabsContent value="all" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
               {achievements.map((achievement) => (
                 <AchievementCard key={achievement.id} achievement={achievement} isLoading={loading} />
               ))}
@@ -284,7 +284,7 @@ export default function Achievements() {
           </TabsContent>
 
           <TabsContent value="streaks" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
               {achievements
                 .filter((a) => a.category === 'streak')
                 .map((achievement) => (
@@ -294,7 +294,7 @@ export default function Achievements() {
           </TabsContent>
 
           <TabsContent value="production" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
               {achievements
                 .filter((a) => a.category === 'production')
                 .map((achievement) => (
@@ -304,7 +304,7 @@ export default function Achievements() {
           </TabsContent>
 
           <TabsContent value="time" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
               {achievements
                 .filter((a) => a.category === 'time')
                 .map((achievement) => (
@@ -314,7 +314,7 @@ export default function Achievements() {
           </TabsContent>
 
           <TabsContent value="goals" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
               {achievements
                 .filter((a) => a.category === 'goals')
                 .map((achievement) => (

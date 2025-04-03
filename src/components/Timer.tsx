@@ -586,8 +586,8 @@ export default function Timer() {
                       "{quote.text}"
                     </p>
                   </div>
-                  <p className="text-xs font-medium tracking-wide opacity-70 text-center">
-                    {quote.artist}
+                  <p className="text-xs font-medium tracking-wide text-muted-foreground text-center inline-flex items-baseline justify-center w-full">
+                    @{quote.artist}
                   </p>
                 </motion.div>
               </AnimatePresence>

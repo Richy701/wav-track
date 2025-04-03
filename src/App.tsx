@@ -5,7 +5,6 @@ import { Toaster } from 'sonner'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import LoadingScreen from './components/LoadingScreen'
-import ThemeTransition from './components/ThemeTransition'
 import OfflineStatus from './components/OfflineStatus'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { useQueryClient } from '@tanstack/react-query'
@@ -17,31 +16,31 @@ import { useQuery } from '@tanstack/react-query'
 import { StatCardSkeleton } from '@/components/ui/stat-card-skeleton'
 import { FadeIn } from '@/components/ui/fade-in'
 import Sessions from './pages/Sessions'
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { DirectionProvider } from './components/providers/DirectionProvider'
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      cacheTime: 1000 * 60 * 30, // 30 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes (renamed from cacheTime in v5)
       refetchOnWindowFocus: false,
       retry: 1,
       refetchOnMount: false,
       refetchOnReconnect: false,
       refetchInterval: false,
-      suspense: true,
-      useErrorBoundary: true,
+      throwOnError: true, // renamed from useErrorBoundary in v5
     },
     mutations: {
       retry: 1,
-      useErrorBoundary: true,
+      throwOnError: true, // renamed from useErrorBoundary in v5
     },
   },
 })
 
 // Custom lazy loading wrapper with preload support
-function lazyWithPreload<T extends React.ComponentType<any>>(
+function lazyWithPreload<T extends React.ComponentType<Record<string, unknown>>>(
   factory: () => Promise<{ default: T }>
 ): React.LazyExoticComponent<T> & { preload: () => Promise<{ default: T }> } {
   const Component = React.lazy(factory) as React.LazyExoticComponent<T> & { preload?: () => Promise<{ default: T }> }
@@ -75,7 +74,7 @@ const LandingPage = lazyWithPreload(() => import('./pages/LandingPage'))
 const Achievements = lazyWithPreload(() => import('./pages/Achievements'))
 
 // Preload components on hover
-const preloadComponent = (component: React.LazyExoticComponent<any> & { preload: () => Promise<any> }) => {
+const preloadComponent = (component: React.LazyExoticComponent<React.ComponentType<Record<string, unknown>>> & { preload: () => Promise<{ default: React.ComponentType<Record<string, unknown>> }> }) => {
   return () => {
     component.preload()
   }
@@ -105,101 +104,103 @@ function App() {
     >
       <QueryClientProvider client={queryClient}>
         <Router>
-          <AuthProvider>
+          <DirectionProvider>
             <ThemeProvider>
-              <NavigationWrapper>
-                <Suspense fallback={<LoadingScreen />}>
-                  <Routes>
-                    <Route
-                      path="/"
-                      element={
-                        <Suspense fallback={<LoadingScreen message="Loading landing page..." />}>
-                          <LandingPage />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="/login"
-                      element={
-                        <Suspense fallback={<LoadingScreen message="Loading login..." />}>
-                          <Login />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="/dashboard"
-                      element={
-                        <ProtectedRoute>
-                          <Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
-                            <Index />
+              <AuthProvider>
+                <NavigationWrapper>
+                  <Suspense fallback={<LoadingScreen />}>
+                    <Routes>
+                      <Route
+                        path="/"
+                        element={
+                          <Suspense fallback={<LoadingScreen message="Loading landing page..." />}>
+                            <LandingPage />
                           </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/auth/callback"
-                      element={
-                        <Suspense fallback={<LoadingScreen message="Processing authentication..." />}>
-                          <Callback />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="/profile"
-                      element={
-                        <ProtectedRoute>
-                          <Suspense fallback={<LoadingScreen message="Loading profile..." />}>
-                            <Profile />
+                        }
+                      />
+                      <Route
+                        path="/login"
+                        element={
+                          <Suspense fallback={<LoadingScreen message="Loading login..." />}>
+                            <Login />
                           </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/profile/settings"
-                      element={
-                        <ProtectedRoute>
-                          <Suspense fallback={<LoadingScreen message="Loading settings..." />}>
-                            <ProfileSettings />
+                        }
+                      />
+                      <Route
+                        path="/dashboard"
+                        element={
+                          <ProtectedRoute>
+                            <Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
+                              <Index />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/auth/callback"
+                        element={
+                          <Suspense fallback={<LoadingScreen message="Processing authentication..." />}>
+                            <Callback />
                           </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/sessions"
-                      element={
-                        <ProtectedRoute>
-                          <Suspense fallback={<LoadingScreen message="Loading sessions..." />}>
-                            <Sessions />
-                          </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/project/:id"
-                      element={
-                        <ProtectedRoute>
-                          <Suspense fallback={<LoadingScreen message="Loading project..." />}>
-                            <ProjectDetail />
-                          </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/achievements"
-                      element={
-                        <ProtectedRoute>
-                          <Suspense fallback={<LoadingScreen message="Loading achievements..." />}>
-                            <Achievements />
-                          </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                  </Routes>
-                </Suspense>
-              </NavigationWrapper>
-              <Toaster />
+                        }
+                      />
+                      <Route
+                        path="/profile"
+                        element={
+                          <ProtectedRoute>
+                            <Suspense fallback={<LoadingScreen message="Loading profile..." />}>
+                              <Profile />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/profile/settings"
+                        element={
+                          <ProtectedRoute>
+                            <Suspense fallback={<LoadingScreen message="Loading settings..." />}>
+                              <ProfileSettings />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/sessions"
+                        element={
+                          <ProtectedRoute>
+                            <Suspense fallback={<LoadingScreen message="Loading sessions..." />}>
+                              <Sessions />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/project/:id"
+                        element={
+                          <ProtectedRoute>
+                            <Suspense fallback={<LoadingScreen message="Loading project..." />}>
+                              <ProjectDetail />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/achievements"
+                        element={
+                          <ProtectedRoute>
+                            <Suspense fallback={<LoadingScreen message="Loading achievements..." />}>
+                              <Achievements />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                    </Routes>
+                  </Suspense>
+                </NavigationWrapper>
+                <Toaster />
+              </AuthProvider>
             </ThemeProvider>
-          </AuthProvider>
+          </DirectionProvider>
         </Router>
       </QueryClientProvider>
     </ErrorBoundary>

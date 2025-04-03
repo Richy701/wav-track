@@ -52,8 +52,12 @@ export function TrackList({ onTrackSelect }: TrackListProps) {
               className="h-12 w-12 rounded-full object-cover"
             />
             <div className="flex-1 text-left">
-              <h3 className="font-medium">{track.title}</h3>
-              <p className="text-sm text-muted-foreground">{track.artist}</p>
+              <h3 className="font-medium text-foreground">{track.title}</h3>
+              <div className="inline-flex items-baseline space-x-2">
+                <span className="text-muted-foreground text-sm leading-none">
+                  @{track.artist}
+                </span>
+              </div>
             </div>
           </button>
         ))}

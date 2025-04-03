@@ -284,7 +284,7 @@ export default function ProjectCard({
     <div className="project-card-container">
       <div
         className={cn(
-          'group relative bg-card rounded-xl overflow-hidden transition-all duration-300 w-full',
+          'group relative bg-card rounded-xl overflow-hidden w-full',
           isHovered ? 'shadow-lg transform -translate-y-1' : 'shadow hover:shadow-md',
           'border border-border/50 hover:border-primary/20',
           isSelected && 'ring-2 ring-primary'

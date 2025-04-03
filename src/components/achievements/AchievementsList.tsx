@@ -51,7 +51,7 @@ export function AchievementsList({ achievements }: AchievementsListProps) {
 
       {(Object.keys(categoryLabels) as Array<keyof typeof categoryLabels>).map((category) => (
         <TabsContent key={category} value={category} className="mt-4">
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
             {groupedAchievements[category]?.map((achievement) => (
               <AchievementCard key={achievement.id} achievement={achievement} />
             ))}
