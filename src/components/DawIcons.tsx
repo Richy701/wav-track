@@ -17,7 +17,7 @@ export const AbletonIcon: React.FC<DawIconProps> = ({ className }) => (
 )
 
 export const LogicProIcon: React.FC<DawIconProps> = ({ className }) => (
-  <img src="/assets/daw-logos/Logic pro.png" alt="Logic Pro" className={className} />
+  <img src="/assets/daw-logos/logic-pro.png" alt="Logic Pro" className={className} />
 )
 
 export const ProToolsIcon: React.FC<DawIconProps> = ({ className }) => (
@@ -26,7 +26,7 @@ export const ProToolsIcon: React.FC<DawIconProps> = ({ className }) => (
 
 export const StudioOneIcon: React.FC<DawIconProps> = ({ className }) => (
   <img
-    src="/assets/daw-logos/Studio one.png"
+    src="/assets/daw-logos/studio-one.png"
     alt="Studio One"
     className={`dark:invert ${className}`}
   />
