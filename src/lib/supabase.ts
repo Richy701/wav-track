@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { Database } from '../integrations/supabase/types'
+import { errorLogger } from './errorLogger'
 
 // Get environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -49,5 +50,4 @@ export const withRetry = async <T>(
 }
 
 // Initialize error monitoring
-import { monitorSupabaseErrors } from './errorLogger'
-monitorSupabaseErrors()
+errorLogger.monitorSupabaseErrors()
