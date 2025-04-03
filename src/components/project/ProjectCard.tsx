@@ -354,7 +354,7 @@ export default function ProjectCard({
                 </div>
               </div>
 
-              <DropdownMenu>
+              <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
