@@ -39,6 +39,20 @@ export function ResponsiveImage({
     ? (priority ? 'high' : 'low') 
     : fetchPriority;
 
+  // Create a safe img props object that includes fetchpriority as a data attribute
+  // This avoids the React warning while still allowing the attribute to be set
+  const imgProps: React.ImgHTMLAttributes<HTMLImageElement> = {
+    src,
+    srcSet: jpgSrcSet,
+    sizes: sizesAttr,
+    alt,
+    className,
+    loading: priority ? 'eager' : 'lazy',
+    decoding: priority ? 'sync' : 'async',
+    // Use data-fetchpriority instead of fetchpriority to avoid React warnings
+    'data-fetchpriority': effectiveFetchPriority,
+  };
+
   return (
     <picture>
       {/* AVIF format (best compression) */}
@@ -54,16 +68,7 @@ export function ResponsiveImage({
         sizes={sizesAttr}
       />
       {/* Fallback image (JPG/PNG) */}
-      <img
-        src={src}
-        srcSet={jpgSrcSet}
-        sizes={sizesAttr}
-        alt={alt}
-        className={className}
-        loading={priority ? 'eager' : 'lazy'}
-        decoding={priority ? 'sync' : 'async'}
-        fetchPriority={effectiveFetchPriority}
-      />
+      <img {...imgProps} />
     </picture>
   );
 } 

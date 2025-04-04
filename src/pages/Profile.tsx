@@ -251,17 +251,21 @@ const Profile = () => {
           initial="initial"
           animate="animate"
         >
-          {/* Top Section: About Me and Progress Overview */}
+          {/* About Me Section */}
           <motion.div 
-            className="flex flex-col lg:flex-row items-start gap-6"
+            className="w-full"
             variants={fadeInUp}
           >
-            <div className="w-full lg:w-2/3">
-              <AboutMe />
-            </div>
-            <div className="w-full lg:w-1/3">
-              <StatsSummary />
-            </div>
+            <AboutMe />
+          </motion.div>
+
+          {/* Progress Overview Section - Moved below About Me */}
+          <motion.div 
+            className="mt-8 w-full max-w-3xl mx-auto"
+            variants={fadeInUp}
+          >
+            <hr className="border-muted my-6" />
+            <StatsSummary />
           </motion.div>
 
           {/* Project Graph Section */}

@@ -5,10 +5,11 @@ import { MusicNote, CheckCircle as PhCheckCircle } from '@phosphor-icons/react'
 import { formatDistanceToNow } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
 import { getBeatsCreatedInRange, getProjectsByStatus } from '@/lib/data'
+import { Spinner } from '@/components/ui/spinner'
 
 interface Activity {
-  type: 'beat' | 'completion'
-  icon: React.ReactNode
+  type: 'beat' | 'project'
+  icon: JSX.Element
   text: string
   date: Date
   projectId: string
@@ -16,108 +17,167 @@ interface Activity {
 
 export function RecentActivity() {
   const navigate = useNavigate()
-  const [recentActivities, setRecentActivities] = useState<Activity[]>([])
-  const [isLoadingActivities, setIsLoadingActivities] = useState(true)
-
-  useEffect(() => {
-    const loadActivities = async () => {
-      try {
-        setIsLoadingActivities(true)
-        const activities = await getRecentActivities()
-        setRecentActivities(activities)
-      } catch (error) {
-        console.error('Error loading activities:', error)
-      } finally {
-        setIsLoadingActivities(false)
-      }
-    }
-    loadActivities()
-  }, [])
+  const [loading, setLoading] = useState(true)
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   const getRecentActivities = async () => {
-    const now = new Date()
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+    try {
+      setLoading(true)
+      setError(null)
 
-    // Get recent beats created
-    const recentBeats = await getBeatsCreatedInRange(thirtyDaysAgo, now)
-      .then(beats => beats.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()))
-      .then(beats => beats.slice(0, 3))
+      // Get recent beats
+      const endDate = new Date()
+      const startDate = new Date()
+      startDate.setDate(startDate.getDate() - 7) // Last 7 days
 
-    // Get recently completed projects
-    const completedProjects = await getProjectsByStatus('completed')
-      .then(projects =>
-        projects.sort(
-          (a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
-        )
-      )
-      .then(projects => projects.slice(0, 3))
+      console.log('Fetching recent activities:', {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
+      })
 
-    // Combine and sort activities
-    const activities = await Promise.all([
-      ...recentBeats.map(async beat => ({
-        type: 'beat',
-        icon: <MusicNote className="h-4 w-4 text-primary" />,
-        text: `Created ${beat.count} beat${beat.count > 1 ? 's' : ''}`,
-        date: new Date(beat.date),
-        projectId: beat.projectId,
-      })),
-      ...completedProjects.map(async project => ({
-        type: 'completion',
-        icon: <PhCheckCircle className="h-4 w-4 text-green-500" />,
-        text: `Completed project "${project.title}"`,
-        date: new Date(project.lastModified),
-        projectId: project.id,
-      })),
-    ])
-      .then(activities => activities.sort((a, b) => b.date.getTime() - a.date.getTime()))
-      .then(activities => activities.slice(0, 5))
+      const recentBeats = await getBeatsCreatedInRange(startDate, endDate)
+      console.log('Recent beats fetched:', recentBeats)
 
-    return activities
+      // Get recently completed projects
+      const completedProjects = await getProjectsByStatus('completed')
+      console.log('Completed projects fetched:', completedProjects)
+
+      // Process beats
+      const beatActivities = recentBeats
+        .filter(beat => {
+          const beatDate = new Date(beat.date)
+          
+          // Skip activities from April 3rd, 2023
+          const april3rd2023 = new Date('2023-04-03T00:00:00.000Z')
+          const isFromApril3rd = beatDate.getFullYear() === april3rd2023.getFullYear() &&
+                                 beatDate.getMonth() === april3rd2023.getMonth() &&
+                                 beatDate.getDate() === april3rd2023.getDate()
+          
+          if (isFromApril3rd) {
+            console.log('Filtering out beat activity from April 3rd:', beat)
+            return false
+          }
+          
+          return true
+        })
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 3)
+        .map(beat => ({
+          type: 'beat' as const,
+          icon: <MusicNote className="h-4 w-4 text-primary" />,
+          text: `Created ${beat.count} beat${beat.count > 1 ? 's' : ''}`,
+          date: new Date(beat.date),
+          projectId: beat.projectId,
+        }))
+
+      // Process completed projects
+      const projectActivities = completedProjects
+        .filter(project => {
+          const projectDate = new Date(project.dateCreated || '')
+          
+          // Skip projects from April 3rd, 2023
+          const april3rd2023 = new Date('2023-04-03T00:00:00.000Z')
+          const isFromApril3rd = projectDate.getFullYear() === april3rd2023.getFullYear() &&
+                                 projectDate.getMonth() === april3rd2023.getMonth() &&
+                                 projectDate.getDate() === april3rd2023.getDate()
+          
+          if (isFromApril3rd) {
+            console.log('Filtering out completed project from April 3rd:', project)
+            return false
+          }
+          
+          return true
+        })
+        .sort((a, b) => {
+          const dateA = new Date(a.dateCreated || 0).getTime()
+          const dateB = new Date(b.dateCreated || 0).getTime()
+          return dateB - dateA
+        })
+        .slice(0, 3)
+        .map(project => {
+          console.log('Processing project for activity:', {
+            id: project.id,
+            title: project.title,
+            dateCreated: project.dateCreated,
+            parsedDate: new Date(project.dateCreated || ''),
+            isFromApril3rd: new Date(project.dateCreated || '').toISOString().includes('2023-04-03')
+          })
+          
+          return {
+            type: 'project' as const,
+            icon: <PhCheckCircle className="h-4 w-4 text-green-500" />,
+            text: `Completed "${project.title}"`,
+            date: new Date(project.dateCreated || ''),
+            projectId: project.id,
+          }
+        })
+
+      // Combine and sort activities
+      const combinedActivities = [...beatActivities, ...projectActivities]
+        .sort((a, b) => b.date.getTime() - a.date.getTime())
+        .slice(0, 5)
+
+      console.log('Combined activities:', combinedActivities.map(a => ({
+        type: a.type,
+        text: a.text,
+        date: a.date.toISOString(),
+        projectId: a.projectId
+      })))
+      setActivities(combinedActivities)
+    } catch (err) {
+      console.error('Error fetching recent activities:', err)
+      setError('Failed to load recent activities')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    getRecentActivities()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <Spinner className="h-6 w-6 text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-red-500 p-4">
+        {error}
+      </div>
+    )
+  }
+
+  if (activities.length === 0) {
+    return (
+      <div className="text-center text-gray-500 p-4">
+        No recent activities
+      </div>
+    )
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Recent Activity</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {isLoadingActivities ? (
-            <div className="text-center py-6 text-muted-foreground">
-              <p className="text-sm">Loading activities...</p>
-            </div>
-          ) : recentActivities.length === 0 ? (
-            <div className="text-center py-6 text-muted-foreground">
-              <p className="text-sm">No recent activity</p>
-              <p className="text-xs mt-1">Start creating beats to see your activity here!</p>
-            </div>
-          ) : (
-            recentActivities.map((activity, index) => (
-              <div key={index} className="flex items-start gap-3 group">
-                <div className="mt-0.5">{activity.icon}</div>
-                <div className="flex-1">
-                  <p className="text-sm group-hover:text-primary transition-colors">
-                    {activity.text}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(activity.date, { addSuffix: true })}
-                  </p>
-                </div>
-                {activity.projectId && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => navigate(`/project/${activity.projectId}`)}
-                  >
-                    View
-                  </Button>
-                )}
-              </div>
-            ))
-          )}
+    <div className="space-y-4">
+      {activities.map((activity, index) => (
+        <div
+          key={`${activity.type}-${index}`}
+          className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+          onClick={() => navigate(`/project/${activity.projectId}`)}
+        >
+          <div className="flex items-center space-x-3">
+            {activity.icon}
+            <span className="text-sm text-gray-600">{activity.text}</span>
+          </div>
+          <span className="text-xs text-gray-400">
+            {formatDistanceToNow(activity.date, { addSuffix: true })}
+          </span>
         </div>
-      </CardContent>
-    </Card>
+      ))}
+    </div>
   )
 }

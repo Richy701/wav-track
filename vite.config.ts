@@ -36,6 +36,13 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom'],
+    exclude: [],
+    esbuildOptions: {
+      target: 'es2020',
+    },
+  },
   build: {
     rollupOptions: {
       output: {
@@ -44,10 +51,18 @@ export default defineConfig({
           'ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-slot'],
         }
       }
-    }
+    },
+    target: 'es2020',
+    sourcemap: true,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: false,
+      },
+    },
   },
   server: {
-    port: 3000,
+    port: 3001,
     host: true,
     cors: {
       origin: process.env.VITE_ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
@@ -104,7 +119,7 @@ export default defineConfig({
             }
           });
         }
-      }
-    }
+      },
+    },
   },
 }) 

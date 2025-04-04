@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { 
+  getUserPreferences, 
+  getUserMetrics, 
+  getCategoryProgress, 
+  getSessionsWithGoals 
+} from '@/lib/database'
 
 interface AICoachSuggestion {
   type: 'tip' | 'goal' | 'reminder' | 'insight'
@@ -88,61 +94,29 @@ export function useAICoach() {
           return null
         }
 
-        // Fetch recent sessions with more detailed data
-        const { data: sessions, error: sessionsError } = await supabase
-          .from('sessions')
-          .select(`
-            *,
-            active_goal:session_goals(*)
-          `)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(20)
+        // Fetch sessions with goals using the utility function
+        const sessions = await getSessionsWithGoals(user.id)
 
-        if (sessionsError) {
-          console.error('Error fetching sessions:', sessionsError)
-          return null
-        }
+        // Fetch user preferences using the utility function
+        const preferences = await getUserPreferences(user.id)
 
-        // Fetch user preferences
-        const { data: preferences, error: preferencesError } = await supabase
-          .from('user_preferences')
-          .select('*')
-          .eq('user_id', user.id)
-          .single()
+        // Fetch user metrics using the utility function
+        const metrics = await getUserMetrics(user.id)
 
-        if (preferencesError && preferencesError.code !== 'PGRST116') {
-          console.error('Error fetching preferences:', preferencesError)
-        }
+        // Fetch category progress using the utility function
+        const categoryProgress = await getCategoryProgress(user.id)
 
-        // Fetch productivity metrics
-        const { data: metrics, error: metricsError } = await supabase
-          .from('user_metrics')
-          .select('*')
-          .eq('user_id', user.id)
-          .single()
-
-        if (metricsError && metricsError.code !== 'PGRST116') {
-          console.error('Error fetching metrics:', metricsError)
-        }
-
-        // Fetch category progress
-        const { data: categoryProgress, error: progressError } = await supabase
-          .from('category_progress')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('date', { ascending: false })
-          .limit(7)
-
-        if (progressError && progressError.code !== 'PGRST116') {
-          console.error('Error fetching category progress:', progressError)
-        }
+        // Map category progress to the expected format
+        const mappedCategoryProgress = categoryProgress.map(progress => ({
+          category: progress.category,
+          improvement: progress.progress_percent
+        }))
 
         return {
-          sessions: sessions || [],
+          sessions,
           preferences: preferences || {},
           metrics: metrics || {},
-          categoryProgress: categoryProgress || []
+          categoryProgress: mappedCategoryProgress
         }
       } catch (error) {
         console.error('Error in useAICoach query:', error)

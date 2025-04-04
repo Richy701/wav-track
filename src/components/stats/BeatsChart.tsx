@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo, memo } from 'react'
 import {
   BarChart,
   Bar,
@@ -18,6 +18,8 @@ import { getBeatsDataForChart, getBeatsCreatedByProject } from '@/lib/data'
 import { cn } from '@/lib/utils'
 import { Project } from '@/lib/types'
 import { BarChart3, LineChart as LineChartIcon } from 'lucide-react'
+import { format } from 'date-fns'
+import { enGB } from 'date-fns/locale'
 
 type ChartView = 'bar' | 'line'
 
@@ -33,6 +35,67 @@ type ChartData = {
   cumulative?: number
 }
 
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    payload: {
+      date?: string;
+      label: string;
+      value: number;
+    };
+  }>;
+  label?: string;
+}
+
+// Memoize the CustomTooltip component
+const CustomTooltip = memo(({ active, payload }: CustomTooltipProps) => {
+  const formattedDate = useMemo(() => {
+    if (!active || !payload || !payload.length) return '';
+    
+    const data = payload[0].payload;
+    if (!data.date) return data.label;
+    
+    try {
+      const now = new Date();
+      const weekStart = new Date(now);
+      const day = weekStart.getDay();
+      const diff = day === 0 ? 6 : day - 1;
+      weekStart.setDate(weekStart.getDate() - diff);
+      
+      const dayToIndex = {
+        'Mon': 0, 'Tue': 1, 'Wed': 2, 'Thu': 3, 
+        'Fri': 4, 'Sat': 5, 'Sun': 6
+      };
+      
+      const dayOffset = dayToIndex[data.label as keyof typeof dayToIndex] || 0;
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + dayOffset);
+      
+      return `${format(date, "dd MMM yyyy")} • ${data.label}`;
+    } catch (e) {
+      console.error('Date parsing error:', e);
+      return `${data.date} • ${data.label}`;
+    }
+  }, [active, payload]);
+
+  if (!active || !payload || !payload.length) return null;
+  const data = payload[0].payload;
+
+  return (
+    <div className="rounded-sm bg-zinc-900/90 border border-zinc-800 px-2 py-1.5 text-[0.65rem] text-zinc-200 shadow-sm backdrop-blur-sm ring-1 ring-violet-500/20 space-y-0.5 transition-all">
+      <p className="text-violet-400 font-medium">
+        {formattedDate}
+      </p>
+      <div className="flex items-center gap-1.5">
+        <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
+        <span className="text-zinc-300">Beats: {data.value}</span>
+      </div>
+    </div>
+  );
+});
+
+CustomTooltip.displayName = 'CustomTooltip';
+
 export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartProps) {
   const [beatsData, setBeatsData] = useState<ChartData[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -41,6 +104,52 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
   const [chartView, setChartView] = useState<ChartView>('bar')
   const [maxValue, setMaxValue] = useState(0)
   const [yAxisMax, setYAxisMax] = useState(0)
+
+  // Memoize data fetching function
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await getBeatsDataForChart(timeRange, selectedProject?.id);
+      setBeatsData(data);
+    } catch (error) {
+      console.error('Error fetching beats data:', error);
+      setBeatsData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [timeRange, selectedProject?.id]);
+
+  // Update refreshKey when projects change
+  useEffect(() => {
+    setRefreshKey(prev => prev + 1);
+  }, [projects, selectedProject]);
+
+  // Fetch data when dependencies change
+  useEffect(() => {
+    fetchData();
+  }, [fetchData, refreshKey]);
+
+  // Memoize chart calculations
+  const chartData = useMemo(() => {
+    const max = beatsData.length > 0 ? Math.max(...beatsData.map(d => d.value || 0)) : 0;
+    const yMax = max === 0 ? 0 : Math.max(1, Math.ceil(max * 1.2));
+    
+    const cumulative = beatsData.length > 0 ? beatsData.reduce((acc, curr) => {
+      const lastValue = acc.length > 0 ? (acc[acc.length - 1]?.cumulative ?? 0) : 0;
+      acc.push({
+        ...curr,
+        cumulative: lastValue + (curr.value || 0),
+      });
+      return acc;
+    }, [] as ChartData[]) : [];
+
+    return {
+      maxValue: max,
+      yAxisMax: yMax,
+      cumulativeData: cumulative,
+      hasValidData: beatsData.length > 0,
+    };
+  }, [beatsData]);
 
   // Calculate max value for YAxis domain
   useEffect(() => {
@@ -54,61 +163,6 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
     }
   }, [beatsData])
 
-  // Calculate cumulative data for line chart
-  const cumulativeData = beatsData.length > 0 ? beatsData.reduce((acc, curr) => {
-    const lastValue = acc.length > 0 ? (acc[acc.length - 1]?.cumulative ?? 0) : 0
-    acc.push({
-      ...curr,
-      cumulative: lastValue + (curr.value || 0),
-    })
-    return acc
-  }, [] as ChartData[]) : []
-
-  // Add validation check for data
-  const hasValidData = beatsData.length > 0
-
-  // Update refreshKey when projects change or when selectedProject changes
-  useEffect(() => {
-    setRefreshKey(prev => prev + 1)
-  }, [projects, selectedProject])
-
-  // Fetch data when timeRange, project selection, or refreshKey changes
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
-      try {
-        console.log('Starting to fetch beats data:', {
-          timeRange,
-          selectedProjectId: selectedProject?.id,
-          timestamp: new Date().toISOString()
-        })
-        const data = await getBeatsDataForChart(timeRange, selectedProject?.id)
-        console.log('Raw beats data:', data)
-        console.log('Beats data fetched successfully:', {
-          dataLength: data.length,
-          data,
-          timestamp: new Date().toISOString(),
-          hasValidData: data.length > 0,
-          maxValue: Math.max(...data.map(d => d.value || 0)),
-          dataPoints: data.map(d => ({ label: d.label, value: d.value }))
-        })
-        setBeatsData(data)
-      } catch (error) {
-        console.error('Error fetching beats data:', {
-          error,
-          timeRange,
-          selectedProjectId: selectedProject?.id,
-          timestamp: new Date().toISOString()
-        })
-        setBeatsData([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [timeRange, selectedProject, refreshKey])
-
   // Add logging for render conditions
   useEffect(() => {
     console.log('Chart render conditions:', {
@@ -117,34 +171,13 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
       beatsData,
       maxValue,
       yAxisMax,
-      hasValidData,
-      cumulativeDataLength: cumulativeData.length,
-      cumulativeData,
+      hasValidData: chartData.hasValidData,
+      cumulativeDataLength: chartData.cumulativeData.length,
+      cumulativeData: chartData.cumulativeData,
       chartView,
       timeRange
     })
-  }, [isLoading, beatsData, maxValue, yAxisMax, hasValidData, cumulativeData, chartView, timeRange])
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload
-      const date = data.date || new Date().toISOString().split('T')[0]
-      const time = data.label || ''
-
-      return (
-        <div className="bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-3 animate-in fade-in zoom-in duration-200">
-          <div className="text-sm font-medium text-foreground">
-            {date}
-            {time && ` • ${time}`}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            Beats: {data.value}
-          </div>
-        </div>
-      )
-    }
-    return null
-  }
+  }, [isLoading, beatsData, maxValue, yAxisMax, chartData.hasValidData, chartData.cumulativeData, chartView, timeRange])
 
   if (isLoading) {
     return (
@@ -155,10 +188,10 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
   }
 
   // If there's no data or invalid data, show a message
-  if (!hasValidData) {
+  if (!chartData.hasValidData) {
     console.log('No valid data to display:', {
       beatsDataLength: beatsData.length,
-      hasValidData,
+      hasValidData: chartData.hasValidData,
       maxValue,
       beatsData,
       timeRange,
@@ -177,9 +210,9 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
     maxValue,
     yAxisMax,
     chartView,
-    cumulativeData,
+    cumulativeData: chartData.cumulativeData,
     timeRange,
-    chartData: chartView === 'bar' ? beatsData : (timeRange === 'day' ? beatsData : cumulativeData)
+    displayData: chartView === 'bar' ? beatsData : chartData.cumulativeData
   })
 
   return (
@@ -313,12 +346,12 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
               data={beatsData}
               margin={{ top: 16, right: 8, left: 8, bottom: 32 }}
               barGap={4}
-              className="animate-in fade-in duration-300"
+              className="animate-in fade-in duration-300 z-10 relative"
             >
               <defs>
                 <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgb(139, 92, 246)" stopOpacity={0.85} />
-                  <stop offset="100%" stopColor="rgb(139, 92, 246)" stopOpacity={0.35} />
+                  <stop offset="0%" stopColor="rgb(139, 92, 246)" stopOpacity={1} />
+                  <stop offset="100%" stopColor="rgb(139, 92, 246)" stopOpacity={0.6} />
                 </linearGradient>
                 <linearGradient id="barGradientHoverLight" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="rgb(124, 58, 237)" stopOpacity={0.95} />
@@ -379,8 +412,6 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
               <Tooltip
                 content={<CustomTooltip />}
                 cursor={{ stroke: 'rgba(124, 58, 237, 0.1)' }}
-                position={{ x: 0, y: 0 }}
-                offset={0}
                 wrapperStyle={{ pointerEvents: 'none' }}
                 cursorStyle={{ stroke: 'rgba(124, 58, 237, 0.1)' }}
                 contentStyle={{
@@ -427,7 +458,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
             </BarChart>
           ) : (
             <LineChart
-              data={timeRange === 'day' ? beatsData : cumulativeData}
+              data={timeRange === 'day' ? beatsData : chartData.cumulativeData}
               margin={{ top: 16, right: 8, left: 8, bottom: 32 }}
               className="animate-in fade-in duration-300"
             >
@@ -487,8 +518,6 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
               <Tooltip
                 content={<CustomTooltip />}
                 cursor={{ stroke: 'rgba(124, 58, 237, 0.1)' }}
-                position={{ x: 0, y: 0 }}
-                offset={0}
                 wrapperStyle={{ pointerEvents: 'none' }}
                 cursorStyle={{ stroke: 'rgba(124, 58, 237, 0.1)' }}
                 contentStyle={{

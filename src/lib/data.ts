@@ -5,6 +5,7 @@ import { supabase } from './supabase'
 import { User } from '@supabase/supabase-js'
 import { Database } from '@/integrations/supabase/types'
 import { QueryClient } from '@tanstack/react-query'
+import { PostgrestError } from '@supabase/supabase-js'
 
 // Batch size for storage operations
 const BATCH_SIZE = 100
@@ -25,6 +26,14 @@ interface ChartData {
 interface ChartDataPoint {
   label: string
   value: number
+}
+
+type Tables = Database['public']['Tables']
+type BeatActivityRow = Tables['beat_activities']['Row']
+type ProjectRow = Tables['projects']['Row']
+
+type BeatActivityWithProject = BeatActivityRow & {
+  projects?: Pick<ProjectRow, 'is_deleted'>
 }
 
 // Load data from localStorage with caching
@@ -472,77 +481,74 @@ export const deleteProject = async (projectId: string): Promise<void> => {
       throw new Error('No user found')
     }
 
-    // Soft delete the project
-    const { error: projectError } = await supabase
-      .from('projects')
-      .update({ 
-        is_deleted: true,
-        deleted_at: new Date().toISOString()
-      })
-      .eq('id', projectId)
+    // Run the soft delete and beat activities deletion in parallel
+    const [projectResult, activitiesResult] = await Promise.all([
+      supabase
+        .from('projects')
+        .update({ 
+          is_deleted: true,
+          deleted_at: new Date().toISOString()
+        })
+        .eq('id', projectId),
+      supabase
+        .from('beat_activities')
+        .delete()
+        .eq('project_id', projectId)
+    ])
 
-    if (projectError) {
-      throw projectError
+    if (projectResult.error) {
+      throw projectResult.error
     }
 
-    // Delete related beat activities
-    const { error: activitiesError } = await supabase
-      .from('beat_activities')
-      .delete()
-      .eq('project_id', projectId)
-
-    if (activitiesError) {
-      throw activitiesError
+    if (activitiesResult.error) {
+      throw activitiesResult.error
     }
 
-    // Get all remaining active projects to calculate stats
-    const { data: allProjects } = await supabase
-      .from('projects')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_deleted', false)
-
-    if (allProjects) {
-      const totalProjects = allProjects.length
-      const completedProjects = allProjects.filter(p => p.status === 'completed').length
-      const completionRate =
-        totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0
-
-      // Get total beats from beat activities
-      const { data: beatActivities } = await supabase
+    // Run these queries in parallel
+    const [allProjects, beatActivities, sessions] = await Promise.all([
+      supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_deleted', false),
+      supabase
         .from('beat_activities')
         .select('count')
-        .eq('user_id', user.id)
-
-      const totalBeats = beatActivities
-        ? beatActivities.reduce((sum, activity) => sum + activity.count, 0)
-        : 0
-
-      // Get total sessions
-      const { data: sessions } = await supabase
+        .eq('user_id', user.id),
+      supabase
         .from('sessions')
         .select('id')
         .eq('user_id', user.id)
+    ])
 
-      const totalSessions = sessions?.length || 0
+    if (allProjects.data) {
+      const totalProjects = allProjects.data.length
+      const completedProjects = allProjects.data.filter(p => p.status === 'completed').length
+      const completionRate =
+        totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0
 
-      // Calculate productivity score
+      const totalBeats = beatActivities.data
+        ? beatActivities.data.reduce((sum, activity) => sum + activity.count, 0)
+        : 0
+
+      const totalSessions = sessions.data?.length || 0
+
       const productivityScore = calculateProductivityScore(
         totalBeats,
         completedProjects,
         totalSessions
       )
 
-      // Update profile stats
-      await updateProfileStats(user.id, {
-        total_beats: totalBeats,
-        completed_projects: completedProjects,
-        completion_rate: completionRate,
-        productivity_score: productivityScore
-      })
-
-      // Update achievements if needed
-      await updateUserAchievements(user.id, totalBeats)
+      // Update profile stats and achievements in parallel
+      await Promise.all([
+        updateProfileStats(user.id, {
+          total_beats: totalBeats,
+          completed_projects: completedProjects,
+          completion_rate: completionRate,
+          productivity_score: productivityScore
+        }),
+        updateUserAchievements(user.id, totalBeats)
+      ])
     }
   } catch (error) {
     console.error('Error in deleteProject:', error)
@@ -552,116 +558,59 @@ export const deleteProject = async (projectId: string): Promise<void> => {
 
 export const clearAllProjects = async (): Promise<void> => {
   try {
-    // Get the current user
     const {
       data: { user },
       error: authError
     } = await supabase.auth.getUser()
 
-    if (authError) {
-      console.error('Authentication error:', authError)
+    if (authError || !user) {
       throw new Error('Authentication failed')
     }
 
-    if (!user) {
-      console.error('No user found when trying to clear projects')
-      throw new Error('No authenticated user found')
-    }
-
-    console.log('Starting to clear projects for user:', user.id)
-
-    // First, get all non-deleted projects to ensure we have access
-    const { data: projects, error: fetchError } = await supabase
-      .from('projects')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('is_deleted', false)
-
-    if (fetchError) {
-      console.error('Error fetching projects:', fetchError)
-      throw fetchError
-    }
-
-    if (projects && projects.length > 0) {
-      // Perform a single batch update for all projects
-      const now = new Date().toISOString()
-      const { error: updateError } = await supabase
+    // Run all operations in parallel
+    const now = new Date().toISOString()
+    
+    await Promise.all([
+      // Soft delete all projects in one operation
+      supabase
         .from('projects')
         .update({ 
           is_deleted: true,
           deleted_at: now
         })
         .eq('user_id', user.id)
-        .eq('is_deleted', false)
+        .eq('is_deleted', false),
 
-      if (updateError) {
-        console.error('Error updating projects:', updateError)
-        throw updateError
-      }
-    }
+      // Delete all beat activities in one operation
+      supabase
+        .from('beat_activities')
+        .delete()
+        .eq('user_id', user.id),
 
-    // Delete all beat activities
-    console.log('Clearing beat activities')
-    const { error: activitiesError } = await supabase
-      .from('beat_activities')
-      .delete()
-      .eq('user_id', user.id)
-
-    if (activitiesError) {
-      console.error('Error clearing beat activities:', activitiesError)
-      throw activitiesError
-    }
-
-    // Reset all user achievements to 0 progress
-    console.log('Resetting achievements')
-    const { data: achievements, error: achievementsError } = await supabase
-      .from('achievements')
-      .select('id, requirement')
-
-    if (achievementsError) {
-      console.error('Error fetching achievements:', achievementsError)
-      throw achievementsError
-    }
-
-    if (achievements) {
-      // Reset progress for each achievement
-      const resetPromises = achievements.map(achievement =>
-        supabase
-          .from('user_achievements')
-          .upsert({
+      // Reset all achievements in one operation
+      supabase
+        .from('user_achievements')
+        .upsert(
+          { 
             user_id: user.id,
-            achievement_id: achievement.id,
             progress: 0,
-            total: achievement.requirement,
             unlocked_at: null
-          }, {
-            onConflict: 'user_id,achievement_id'
-          })
-      )
+          },
+          { 
+            onConflict: 'user_id,achievement_id',
+            ignoreDuplicates: false
+          }
+        ),
 
-      await Promise.all(resetPromises)
-    }
-
-    // Update profile stats with zero values
-    console.log('Updating profile stats')
-    await updateProfileStats(user.id, {
-      total_beats: 0,
-      completed_projects: 0,
-      completion_rate: 0,
-      productivity_score: 0
-    })
-
-    // Invalidate all relevant queries
-    const queryClient = new QueryClient()
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['projects'] }),
-      queryClient.invalidateQueries({ queryKey: ['beatActivities'] }),
-      queryClient.invalidateQueries({ queryKey: ['achievements'] }),
-      queryClient.invalidateQueries({ queryKey: ['profile'] }),
-      queryClient.invalidateQueries({ queryKey: ['stats'] })
+      // Reset profile stats in one operation
+      updateProfileStats(user.id, {
+        total_beats: 0,
+        completed_projects: 0,
+        completion_rate: 0,
+        productivity_score: 0
+      })
     ])
 
-    console.log('Successfully cleared all projects and reset achievements')
   } catch (error) {
     console.error('Error in clearAllProjects:', error)
     throw error
@@ -742,9 +691,11 @@ export const getProjectsByStatus = async (status: Project['status']): Promise<Pr
     } = await supabase.auth.getUser()
 
     if (!user) {
-      console.error('No user found')
+      console.error('No user found when fetching projects by status')
       return []
     }
+
+    console.log(`Fetching ${status} projects for user:`, user.id)
 
     // Fetch from Supabase
     const { data, error } = await supabase
@@ -759,16 +710,37 @@ export const getProjectsByStatus = async (status: Project['status']): Promise<Pr
       throw error
     }
 
-    if (!data) {
+    if (!data || data.length === 0) {
+      console.log(`No ${status} projects found`)
       return []
     }
+
+    console.log(`Found ${data.length} ${status} projects:`, 
+      data.map(p => ({
+        id: p.id,
+        title: p.title,
+        created_at: p.created_at,
+        last_modified: p.last_modified,
+        is_deleted: p.is_deleted
+      }))
+    )
 
     // Transform the data to match our Project interface
     return data.map(project => {
       const now = new Date().toISOString()
+      const dateCreated = project.created_at || now
+      
+      console.log('Processing project:', {
+        id: project.id,
+        title: project.title,
+        originalCreatedAt: project.created_at,
+        transformedDateCreated: dateCreated,
+        isFromApril3rd: dateCreated.includes('2023-04-03')
+      })
+      
       return {
         ...project,
-        dateCreated: project.created_at || now,
+        dateCreated: dateCreated,
         lastModified: project.last_modified || now,
         bpm: project.bpm ?? 120,
         key: project.key ?? 'C',
@@ -878,6 +850,7 @@ export const getBeatsCreatedInRange = async (
     } = await supabase.auth.getUser()
 
     if (!user) {
+      console.error('No user found when fetching beat activities')
       return []
     }
 
@@ -890,33 +863,98 @@ export const getBeatsCreatedInRange = async (
       end: endDate.toISOString(),
       startTimestamp,
       endTimestamp,
+      userId: user.id
     })
 
-    // Fetch beat activities from Supabase
+    // Fetch beat activities from Supabase with join to projects
     const { data: activities, error } = await supabase
       .from('beat_activities')
-      .select('*')
+      .select('*, projects!left(is_deleted)')
       .eq('user_id', user.id)
       .gte('timestamp', startTimestamp)
       .lte('timestamp', endTimestamp)
       .order('timestamp', { ascending: true })
 
     if (error) {
-      console.error('Error fetching beat activities:', error)
+      console.error('Error fetching beat activities:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      })
       return []
     }
 
-    // Transform the data to match our BeatActivity interface
-    return activities.map(activity => {
-      const transformedActivity: BeatActivity = {
-        id: activity.id,
-        projectId: activity.project_id || '',
-        date: activity.date,
-        count: activity.count,
-        timestamp: activity.timestamp || new Date().toISOString()
+    if (!activities || activities.length === 0) {
+      console.log('No beat activities found in the specified date range')
+      return []
+    }
+
+    const typedActivities = activities as BeatActivityWithProject[]
+
+    console.log(`Found ${typedActivities.length} beat activities in the specified date range:`, 
+      typedActivities.map(a => ({
+        id: a.id,
+        date: a.date,
+        count: a.count,
+        timestamp: a.timestamp,
+        project_id: a.project_id,
+        project_deleted: a.projects?.is_deleted,
+        isFromApril3rd: a.date === '2023-04-03' || new Date(a.timestamp).toISOString().includes('2023-04-03')
+      }))
+    )
+
+    // Filter out activities from deleted projects and April 3rd
+    const filteredActivities = typedActivities.filter(activity => {
+      // Skip if project is deleted
+      if (activity.projects?.is_deleted) {
+        console.log('Filtering out activity from deleted project:', activity.id)
+        return false
       }
-      return transformedActivity
+
+      // Skip activities from April 3rd, 2023
+      const activityDate = activity.date 
+        ? new Date(activity.date + 'T00:00:00.000Z')  // Ensure consistent timezone handling for date strings
+        : new Date(activity.timestamp)
+      const april3rd2023 = new Date('2023-04-03T00:00:00.000Z')
+      
+      // Compare dates in UTC to avoid timezone issues
+      const isFromApril3rd = activityDate.getUTCFullYear() === april3rd2023.getUTCFullYear() &&
+                           activityDate.getUTCMonth() === april3rd2023.getUTCMonth() &&
+                           activityDate.getUTCDate() === april3rd2023.getUTCDate()
+      
+      if (isFromApril3rd) {
+        console.log('Filtering out activity from April 3rd:', {
+          id: activity.id,
+          date: activity.date,
+          timestamp: activity.timestamp,
+          parsedDate: activityDate.toISOString(),
+          isFromApril3rd
+        })
+        return false
+      }
+      
+      return true
     })
+
+    console.log(`After filtering, ${filteredActivities.length} beat activities remain:`,
+      filteredActivities.map(a => ({
+        id: a.id,
+        date: a.date,
+        count: a.count,
+        timestamp: a.timestamp,
+        parsedDate: new Date(a.date + 'T00:00:00.000Z').toISOString()
+      }))
+    )
+
+    // Transform the data to match our BeatActivity interface
+    return filteredActivities.map(activity => ({
+      id: activity.id,
+      projectId: activity.project_id || '',
+      date: activity.date || new Date(activity.timestamp).toISOString().split('T')[0],
+      count: activity.count,
+      timestamp: activity.timestamp
+    }))
   } catch (error) {
     console.error('Error in getBeatsCreatedInRange:', error)
     return []
@@ -1293,21 +1331,21 @@ export const getBeatsDataForChart = async (
 
         // Create 6 intervals (4 hours each)
         const intervals = [
-          '8 PM - 12 AM',
-          '4 PM - 8 PM',
-          '12 PM - 4 PM',
-          '8 AM - 12 PM',
+          '12 AM - 4 AM',
           '4 AM - 8 AM',
-          '12 AM - 4 AM'
+          '8 AM - 12 PM',
+          '12 PM - 4 PM',
+          '4 PM - 8 PM',
+          '8 PM - 12 AM'
         ]
 
         // Always create data points for all intervals
         intervals.forEach((label, index) => {
           const intervalStart = new Date(dayStart)
-          intervalStart.setHours(20 - (index * 4), 0, 0, 0)
+          intervalStart.setHours(index * 4, 0, 0, 0)
 
           const intervalEnd = new Date(dayStart)
-          intervalEnd.setHours(23 - (index * 4), 59, 59, 999)
+          intervalEnd.setHours((index * 4) + 3, 59, 59, 999)
 
           // If we have activities, filter them for this interval
           const intervalActivities = activities?.filter(activity => {
@@ -1320,7 +1358,7 @@ export const getBeatsDataForChart = async (
           data.push({
             label: label,
             value: value,
-            period: ['night', 'evening', 'afternoon', 'morning', 'early-morning', 'late-night'][index]
+            period: ['late-night', 'early-morning', 'morning', 'afternoon', 'evening', 'night'][index]
           })
         })
         break

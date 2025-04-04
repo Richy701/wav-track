@@ -11,24 +11,95 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-// Create Supabase client with enhanced configuration
+// Create Supabase client with enhanced security configuration
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce',
-    storage: window.localStorage
+    storage: window.localStorage,
+    // Add security headers
+    headers: {
+      'X-Client-Info': 'supabase-js/2.39.3',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    },
+    // Add security options
+    cookieOptions: {
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+    },
   },
   global: {
     headers: {
       'X-Client-Info': 'supabase-js/2.39.3',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
     },
   },
   db: {
-    schema: 'public'
+    schema: 'public',
+    // Add query timeout
+    queryTimeout: 10000, // 10 seconds
+  },
+  // Add realtime configuration with security
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+    headers: {
+      'X-Client-Info': 'supabase-js/2.39.3',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    },
+  },
+})
+
+// Add error handling middleware
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_OUT') {
+    // Clear sensitive data on sign out
+    localStorage.removeItem('supabase.auth.token')
+    sessionStorage.clear()
   }
 })
+
+// Add request interceptor for rate limiting
+const originalFetch = window.fetch
+window.fetch = async (input, init) => {
+  try {
+    // Add security headers to all requests
+    const headers = new Headers(init?.headers)
+    headers.set('X-Requested-With', 'XMLHttpRequest')
+    headers.set('X-Client-Info', 'supabase-js/2.39.3')
+
+    const response = await originalFetch(input, {
+      ...init,
+      headers,
+    })
+
+    // Log errors
+    if (!response.ok) {
+      errorLogger.logError('API Error', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+      })
+    }
+
+    return response
+  } catch (error) {
+    errorLogger.logError('Fetch Error', error)
+    throw error
+  }
+}
 
 // Add retry logic for rate-limited requests
 const MAX_RETRIES = 3

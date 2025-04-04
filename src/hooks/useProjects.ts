@@ -193,6 +193,7 @@ export function useProjects(projectsPerPage: number = 9) {
   const deleteProjectMutation = useMutation({
     mutationFn: deleteProject,
     onMutate: async projectId => {
+      // Cancel any outgoing refetches
       await Promise.all([
         queryClient.cancelQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] }),
         queryClient.cancelQueries({ queryKey: QUERY_KEYS.stats }),
@@ -201,6 +202,7 @@ export function useProjects(projectsPerPage: number = 9) {
         queryClient.cancelQueries({ queryKey: ['profile'] }),
       ])
 
+      // Snapshot the previous values
       const previousProjects = queryClient.getQueryData([...QUERY_KEYS.projects, user?.id])
       const previousStats = queryClient.getQueryData(QUERY_KEYS.stats)
       const previousActivities = queryClient.getQueryData(QUERY_KEYS.beatActivities)
@@ -210,6 +212,21 @@ export function useProjects(projectsPerPage: number = 9) {
       // Optimistically update projects
       queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], (old: Project[] = []) => {
         return old.filter(project => project.id !== projectId)
+      })
+
+      // Optimistically update stats
+      queryClient.setQueryData(QUERY_KEYS.stats, (old: any) => {
+        if (!old) return old
+        const totalProjects = (old.totalProjects || 1) - 1
+        const completedProjects = old.completedProjects
+        const completionRate = totalProjects > 0 
+          ? Math.round((completedProjects / totalProjects) * 100) 
+          : 0
+        return {
+          ...old,
+          totalProjects,
+          completionRate
+        }
       })
 
       return { 
@@ -231,6 +248,7 @@ export function useProjects(projectsPerPage: number = 9) {
       console.error('Failed to delete project:', err)
     },
     onSettled: async () => {
+      // Invalidate queries in parallel
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] }),
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.stats }),

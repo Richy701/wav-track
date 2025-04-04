@@ -331,7 +331,7 @@ const ProfileSettings = () => {
           transition={{ duration: 0.3 }}
           className="flex items-center gap-2 mb-8"
         >
-          <Gear className="h-5 w-5 text-muted-foreground" />
+          <Gear className="h-5 w-5 text-muted-foreground -mt-4" />
           <h1 className="text-2xl font-semibold tracking-tight">Profile Settings</h1>
         </motion.div>
 

@@ -241,3 +241,58 @@ The `/shared` directory contains code that can be used by both the web and mobil
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+# Wav Track - Database Fixes
+
+This repository contains fixes for database structure issues in the Wav Track application.
+
+## Database Issues Fixed
+
+1. **Missing Date Column**: Added a date column to the category_progress table.
+2. **Missing Tables**: Recreated the user_preferences, user_metrics, and category_progress tables with the correct structure.
+3. **Missing Foreign Key**: Added a foreign key constraint between the sessions and session_goals tables.
+4. **Type Definitions**: Updated TypeScript type definitions to match the database schema.
+5. **Utility Functions**: Added utility functions for database operations.
+
+## How to Apply Changes
+
+### 1. Apply Database Migrations
+
+1. Log in to your Supabase dashboard
+2. Navigate to the SQL Editor
+3. Copy and paste the contents of each migration file in the following order:
+   - `supabase/migrations/20240403000000_fix_database_structure.sql`
+   - `supabase/migrations/20240403000001_insert_test_data.sql`
+   - `supabase/migrations/20240403000002_fix_session_goals_relationship.sql`
+
+### 2. Update Code
+
+The following files have been updated:
+
+- `src/hooks/use-ai-coach.ts`: Updated to use the new database utility functions
+- `src/types/database.ts`: Added TypeScript type definitions for the database tables
+- `src/lib/database.ts`: Added utility functions for database operations
+
+### 3. Test the Application
+
+1. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+2. Test the application to ensure that the database issues have been fixed.
+
+## Troubleshooting
+
+If you encounter any issues after applying these changes:
+
+1. Check the browser console for error messages
+2. Verify that the database tables were created correctly by inspecting them in the Supabase dashboard
+3. Ensure that the RLS policies are working by testing queries with different user accounts
+4. Check that the foreign key constraint between sessions and session_goals is working correctly
+
+## Additional Notes
+
+- The migration files are located in the `supabase/migrations` directory
+- The README file in the `supabase` directory contains more detailed information about the migrations
+- The TypeScript type definitions in `src/types/database.ts` should be kept in sync with the database schema

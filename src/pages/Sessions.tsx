@@ -2264,7 +2264,7 @@ const Sessions: React.FC = () => {
         <div className="max-w-6xl mx-auto px-4 md:px-8 py-6">
           <div className="space-y-6">
             <div className="flex items-center space-x-3">
-              <Clock className="w-6 h-6 text-emerald-500" />
+              <Clock className="w-6 h-6 text-emerald-500 -mt-4" />
               <h1 className="text-2xl font-semibold">Production Sessions</h1>
             </div>
             

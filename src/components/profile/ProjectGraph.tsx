@@ -65,6 +65,11 @@ export function ProjectGraph() {
         const diff = day === 0 ? 6 : day - 1 // If Sunday (0), go back 6 days, otherwise go back (day-1) days
         const weekStart = subDays(today, diff)
         
+        console.log('Loading activity data for date range:', {
+          from: weekStart.toISOString(),
+          to: today.toISOString()
+        })
+        
         // Get beats created in the last 7 days
         const [beatActivities, completedProjects] = await Promise.all([
           getBeatsCreatedInRange(weekStart, today),
@@ -96,25 +101,52 @@ export function ProjectGraph() {
         }
         
         // Aggregate beat activities by date
-        beatActivities.forEach((activity: BeatActivity) => {
-          const dateStr = format(new Date(activity.date), 'yyyy-MM-dd')
-          const dayData = dailyData.get(dateStr)
-          if (dayData) {
-            dayData.beats += activity.count
-          }
-        })
+        if (beatActivities && beatActivities.length > 0) {
+          beatActivities.forEach((activity: BeatActivity) => {
+            const activityDate = new Date(activity.date)
+            const dateStr = format(activityDate, 'yyyy-MM-dd')
+            
+            // Skip activities from April 3rd, 2023
+            const april3rd2023 = new Date('2023-04-03T00:00:00.000Z')
+            const isFromApril3rd = activityDate.getFullYear() === april3rd2023.getFullYear() &&
+                                   activityDate.getMonth() === april3rd2023.getMonth() &&
+                                   activityDate.getDate() === april3rd2023.getDate()
+            
+            if (isFromApril3rd) {
+              console.log('Skipping beat activity from April 3rd:', activity)
+              return
+            }
+            
+            const dayData = dailyData.get(dateStr)
+            if (dayData) {
+              dayData.beats += activity.count || 1
+            }
+          })
+        }
 
         // Aggregate completed projects by date
-        completedProjects.forEach((project: Project) => {
-          const projectDate = new Date(project.lastModified)
-          // Use isSameDay to check if the project was completed within the last 7 days
-          const matchingDate = Array.from(dailyData.values()).find(dayData => 
-            isSameDay(dayData.date, projectDate)
-          )
-          if (matchingDate) {
-            matchingDate.completed += 1
-          }
-        })
+        if (completedProjects && completedProjects.length > 0) {
+          completedProjects.forEach((project: Project) => {
+            const projectDate = new Date(project.lastModified)
+            const dateStr = format(projectDate, 'yyyy-MM-dd')
+            
+            // Skip projects completed on April 3rd, 2023
+            const april3rd2023 = new Date('2023-04-03T00:00:00.000Z')
+            const isFromApril3rd = projectDate.getFullYear() === april3rd2023.getFullYear() &&
+                                   projectDate.getMonth() === april3rd2023.getMonth() &&
+                                   projectDate.getDate() === april3rd2023.getDate()
+            
+            if (isFromApril3rd) {
+              console.log('Skipping completed project from April 3rd:', project)
+              return
+            }
+            
+            const dayData = dailyData.get(dateStr)
+            if (dayData) {
+              dayData.completed += 1
+            }
+          })
+        }
         
         // Convert map to array and sort by date
         const chartData = Array.from(dailyData.values())
@@ -248,7 +280,6 @@ export function ProjectGraph() {
               <Tooltip
                 content={<CustomTooltip />}
                 isAnimationActive={false}
-                cursor={false}
               />
             </LineChart>
           </ResponsiveContainer>

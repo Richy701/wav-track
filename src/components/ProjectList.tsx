@@ -94,14 +94,43 @@ const ProjectList: React.FC<ProjectListProps> = ({
 
   const handleClearAllProjects = async () => {
     try {
-      await clearAllProjects()
-      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      // Optimistically update the UI
+      queryClient.setQueryData(['projects'], [])
+      queryClient.setQueryData(['stats'], {
+        totalProjects: 0,
+        completedProjects: 0,
+        completionRate: 0,
+        productivityScore: 0
+      })
+      
+      // Close the dialog immediately for better UX
       setIsClearDialogOpen(false)
+      
+      // Show loading toast
+      const loadingToast = toast.loading('Clearing all data...')
+      
+      // Perform the actual deletion
+      await clearAllProjects()
+      
+      // Invalidate all relevant queries in parallel
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['projects'] }),
+        queryClient.invalidateQueries({ queryKey: ['beatActivities'] }),
+        queryClient.invalidateQueries({ queryKey: ['achievements'] }),
+        queryClient.invalidateQueries({ queryKey: ['profile'] }),
+        queryClient.invalidateQueries({ queryKey: ['stats'] })
+      ])
+      
+      // Update toast to success
+      toast.dismiss(loadingToast)
       toast.success('All data cleared', {
         description: "You're starting fresh.",
       })
     } catch (error) {
       console.error('Error clearing projects:', error)
+      // Revert optimistic updates on error
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
       toast.error('Failed to clear projects', {
         description: 'An error occurred while clearing projects.',
       })

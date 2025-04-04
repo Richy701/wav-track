@@ -415,7 +415,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
           />
         </div>
 
-        <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
+        <div className="h-[200px] sm:h-[250px] lg:h-[300px] relative z-0 bg-transparent">
           <BeatsChart
             key={refreshKey}
             timeRange={timeRange}
