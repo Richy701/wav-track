@@ -2,9 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
 import { useState, useRef, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
 import { ResponsiveImage } from "@/components/ui/responsive-image";
 import { 
   PhosphorLogo, 
@@ -18,12 +16,16 @@ import {
   Users,
   Sliders,
   GridFour,
-  Waveform
+  Waveform,
+  CheckCircle,
+  Spinner
 } from "@phosphor-icons/react";
 import BaseLayout from "@/components/layout/BaseLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Variants } from "framer-motion";
+import { addToWaitlist } from "@/lib/waitlist";
+import { toast } from "sonner";
 
 const fadeInUp: Variants = {
   initial: { opacity: 0, y: 20 },
@@ -72,30 +74,47 @@ const testimonials = [
 export default function LandingPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const [showConfetti, setShowConfetti] = useState(false);
   const emailInputRef = useRef<HTMLInputElement>(null);
+
+  // Reset confetti after animation
+  useEffect(() => {
+    if (showConfetti) {
+      const timer = setTimeout(() => {
+        setShowConfetti(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showConfetti]);
 
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('waitlist')
-        .insert({ email, id: crypto.randomUUID() });
+      const { error } = await addToWaitlist(email);
 
       if (error) throw error;
 
-      toast({
-        title: "🎉 You're on the waitlist!",
-        description: "We'll notify you when WavTrack launches.",
+      // Show confetti effect
+      setShowConfetti(true);
+      
+      // Show toast notification with Sonner
+      toast.success("You're on the waitlist!", {
+        description: "We'll keep you posted as things roll out.",
+        icon: <CheckCircle className="text-purple-500" />,
+        className: "bg-white text-black dark:bg-zinc-900 dark:text-white border border-purple-500 shadow-lg rounded-xl px-4 py-3",
+        duration: 4000,
       });
-      setEmail("");
+      
+      // Reset form after a delay
+      setTimeout(() => {
+        setEmail("");
+      }, 3000);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
+      toast.error("Something went wrong", {
+        description: "Please try again later.",
+        className: "bg-white text-black dark:bg-zinc-900 dark:text-white border border-red-500 shadow-lg rounded-xl px-4 py-3",
       });
     } finally {
       setIsLoading(false);
@@ -112,6 +131,39 @@ export default function LandingPage() {
   return (
     <BaseLayout>
       <div className="min-h-screen flex flex-col">
+        {/* Confetti effect */}
+        {showConfetti && (
+          <div className="fixed inset-0 pointer-events-none z-50">
+            {Array.from({ length: 50 }).map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-2 h-2 rounded-full"
+                style={{
+                  backgroundColor: ['#8257E5', '#B490FF', '#FFD700', '#FF6B6B', '#4CAF50'][Math.floor(Math.random() * 5)],
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                }}
+                initial={{ 
+                  y: -20, 
+                  x: 0,
+                  opacity: 0 
+                }}
+                animate={{ 
+                  y: window.innerHeight + 20, 
+                  x: (Math.random() - 0.5) * 200,
+                  opacity: [0, 1, 1, 0],
+                  rotate: Math.random() * 360
+                }}
+                transition={{ 
+                  duration: 2 + Math.random() * 2,
+                  ease: "easeOut",
+                  delay: Math.random() * 0.5
+                }}
+              />
+            ))}
+          </div>
+        )}
+
         {/* Hero Section */}
         <section className="relative flex-1 flex items-center justify-center px-4 md:px-8 py-12 md:py-20 overflow-hidden">
           {/* Background Image */}
@@ -152,19 +204,29 @@ export default function LandingPage() {
             <form onSubmit={handleWaitlistSubmit} className="flex w-full max-w-md gap-2 mt-6 mx-auto">
               <Input
                 ref={emailInputRef}
+                id="waitlist-email"
+                name="email"
                 type="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
                 className="rounded-xl px-4 py-2 shadow-sm border border-muted text-sm bg-white dark:bg-black"
               />
               <Button 
                 type="submit" 
                 disabled={isLoading} 
-                className="rounded-xl px-5 py-2 font-medium bg-gradient-to-r from-[#8257E5] to-[#B490FF] hover:from-[#8257E5]/90 hover:to-[#B490FF]/90 text-white transition hover:opacity-90 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25"
+                className="rounded-xl px-5 py-2 font-medium bg-gradient-to-r from-[#8257E5] to-[#B490FF] hover:from-[#8257E5]/90 hover:to-[#B490FF]/90 text-white transition hover:opacity-90 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 flex items-center gap-2"
               >
-                {isLoading ? "Joining..." : "Join Waitlist"}
+                {isLoading ? (
+                  <>
+                    <Spinner className="h-4 w-4 animate-spin" />
+                    <span>Joining...</span>
+                  </>
+                ) : (
+                  "Join Waitlist"
+                )}
               </Button>
             </form>
             <p className="text-sm text-muted-foreground">Over 1,200 sessions tracked this month</p>
@@ -213,6 +275,9 @@ export default function LandingPage() {
               alt="Music Production Interface"
               className="absolute inset-0 w-full h-full object-cover opacity-20 dark:opacity-30"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 50vw"
+              priority={true}
+              fetchPriority="high"
+              quality={85}
             />
             <div className="absolute inset-0 flex items-center justify-center">
               <motion.div 

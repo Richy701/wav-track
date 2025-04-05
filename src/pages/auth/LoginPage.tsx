@@ -4,7 +4,7 @@ import { LoginForm } from '@/components/auth/LoginForm'
 import { cn } from '@/lib/utils'
 import { ArrowRight } from 'lucide-react'
 import { FeatureHighlights } from '@/components/features/FeatureHighlights'
-import { useTheme } from '@/lib/ThemeContext'
+import { useTheme } from 'next-themes'
 
 export default function LoginPage() {
   const { theme } = useTheme()

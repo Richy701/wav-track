@@ -1,8 +1,15 @@
 import React, { Suspense, useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
-import { ThemeProvider } from './lib/ThemeContext'
+import { 
+  createBrowserRouter, 
+  RouterProvider, 
+  useLocation,
+  createRoutesFromElements,
+  Route,
+  Outlet
+} from 'react-router-dom'
+import { ThemeProvider } from 'next-themes'
 import { Toaster } from 'sonner'
-import { AuthProvider } from './contexts/AuthContext'
+import { AuthProvider, AuthNavigationProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import LoadingScreen from './components/LoadingScreen'
 import OfflineStatus from './components/OfflineStatus'
@@ -80,6 +87,143 @@ const preloadComponent = (component: React.LazyExoticComponent<React.ComponentTy
   }
 }
 
+// Create router with future flags
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route
+      element={
+        <ErrorBoundary
+          fallback={
+            <div className="p-8 text-center">
+              Something went wrong. Please refresh the page or try again later.
+            </div>
+          }
+        >
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider 
+              attribute="class" 
+              defaultTheme="dark" 
+              enableSystem 
+              disableTransitionOnChange 
+              themes={['light', 'dark']}
+              value={{
+                light: 'light',
+                dark: 'dark'
+              }}
+            >
+              <div className="min-h-screen bg-background">
+                <AuthProvider>
+                  <AuthNavigationProvider>
+                    <NavigationWrapper>
+                      <Suspense fallback={<LoadingScreen />}>
+                        <Outlet />
+                      </Suspense>
+                    </NavigationWrapper>
+                    <Toaster />
+                    <OfflineStatus />
+                  </AuthNavigationProvider>
+                </AuthProvider>
+              </div>
+            </ThemeProvider>
+          </QueryClientProvider>
+        </ErrorBoundary>
+      }
+    >
+      <Route
+        path="/"
+        element={
+          <Suspense fallback={<LoadingScreen message="Loading landing page..." />}>
+            <LandingPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/login"
+        element={
+          <Suspense fallback={<LoadingScreen message="Loading login..." />}>
+            <Login />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
+              <Index />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/auth/callback"
+        element={
+          <Suspense fallback={<LoadingScreen message="Processing authentication..." />}>
+            <Callback />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingScreen message="Loading profile..." />}>
+              <Profile />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile/settings"
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingScreen message="Loading settings..." />}>
+              <ProfileSettings />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sessions"
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingScreen message="Loading sessions..." />}>
+              <Sessions />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/project/:id"
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingScreen message="Loading project..." />}>
+              <ProjectDetail />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/achievements"
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingScreen message="Loading achievements..." />}>
+              <Achievements />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+    </Route>
+  ),
+  {
+    future: {
+      v7_relativeSplatPath: true
+      // Note: React Router v7 will use React.startTransition for state updates
+      // We can't add v7_startTransition here due to TypeScript type constraints
+    }
+  }
+)
+
 function App() {
   const [isReady, setIsReady] = useState(false)
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null)
@@ -94,117 +238,7 @@ function App() {
     return <LoadingScreen message="Initializing application..." />
   }
 
-  return (
-    <ErrorBoundary
-      fallback={
-        <div className="p-8 text-center">
-          Something went wrong. Please refresh the page or try again later.
-        </div>
-      }
-    >
-      <QueryClientProvider client={queryClient}>
-        <Router>
-          <DirectionProvider>
-            <ThemeProvider>
-              <AuthProvider>
-                <NavigationWrapper>
-                  <Suspense fallback={<LoadingScreen />}>
-                    <Routes>
-                      <Route
-                        path="/"
-                        element={
-                          <Suspense fallback={<LoadingScreen message="Loading landing page..." />}>
-                            <LandingPage />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="/login"
-                        element={
-                          <Suspense fallback={<LoadingScreen message="Loading login..." />}>
-                            <Login />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="/dashboard"
-                        element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
-                              <Index />
-                            </Suspense>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/auth/callback"
-                        element={
-                          <Suspense fallback={<LoadingScreen message="Processing authentication..." />}>
-                            <Callback />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="/profile"
-                        element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingScreen message="Loading profile..." />}>
-                              <Profile />
-                            </Suspense>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/profile/settings"
-                        element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingScreen message="Loading settings..." />}>
-                              <ProfileSettings />
-                            </Suspense>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/sessions"
-                        element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingScreen message="Loading sessions..." />}>
-                              <Sessions />
-                            </Suspense>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/project/:id"
-                        element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingScreen message="Loading project..." />}>
-                              <ProjectDetail />
-                            </Suspense>
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/achievements"
-                        element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingScreen message="Loading achievements..." />}>
-                              <Achievements />
-                            </Suspense>
-                          </ProtectedRoute>
-                        }
-                      />
-                    </Routes>
-                  </Suspense>
-                </NavigationWrapper>
-                <Toaster />
-              </AuthProvider>
-            </ThemeProvider>
-          </DirectionProvider>
-        </Router>
-      </QueryClientProvider>
-    </ErrorBoundary>
-  )
+  return <RouterProvider router={router} />
 }
 
 export default App

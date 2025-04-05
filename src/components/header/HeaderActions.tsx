@@ -98,8 +98,8 @@ export default function HeaderActions({
               variant="ghost"
               className={cn(
                 location.pathname === '/login'
-                  ? 'bg-[#8257E5]/20 text-[#8257E5] dark:text-[#B490FF] pointer-events-none'
-                  : 'hover:bg-[#8257E5]/20 dark:hover:bg-[#8257E5]/20 hover:text-[#8257E5] dark:hover:text-[#B490FF]',
+                  ? 'bg-[#8257E5]/20 text-foreground pointer-events-none'
+                  : 'hover:bg-[#8257E5]/20 dark:hover:bg-[#8257E5]/20 hover:text-foreground text-foreground',
                 orientation === 'vertical' ? 'w-full justify-start' : ''
               )}
               onClick={() => handleNavigate('/login')}
@@ -140,8 +140,8 @@ export default function HeaderActions({
           variant="ghost"
           className={cn(
             location.pathname === '/'
-              ? 'bg-[#8257E5]/40 text-[#8257E5] dark:text-[#B490FF] pointer-events-none'
-              : 'hover:bg-[#8257E5]/20 dark:hover:bg-[#8257E5]/20 hover:text-[#8257E5] dark:hover:text-[#B490FF]',
+              ? 'bg-[#8257E5]/40 text-foreground pointer-events-none'
+              : 'hover:bg-[#8257E5]/20 dark:hover:bg-[#8257E5]/20 hover:text-foreground text-foreground',
             orientation === 'vertical' && 'w-full justify-start'
           )}
           onClick={() => handleNavigate('/')}
@@ -158,8 +158,8 @@ export default function HeaderActions({
           variant="ghost"
           className={cn(
             location.pathname === item.href
-              ? 'bg-[#8257E5]/40 text-[#8257E5] dark:text-[#B490FF] pointer-events-none'
-              : 'hover:bg-[#8257E5]/20 dark:hover:bg-[#8257E5]/20 hover:text-[#8257E5] dark:hover:text-[#B490FF]',
+              ? 'bg-[#8257E5]/40 text-foreground pointer-events-none'
+              : 'hover:bg-[#8257E5]/20 dark:hover:bg-[#8257E5]/20 hover:text-foreground text-foreground',
             orientation === 'vertical' && 'w-full justify-start'
           )}
           disabled={location.pathname === item.href || isNavigating}
@@ -204,7 +204,7 @@ export default function HeaderActions({
           <Button
             variant="ghost"
             className={cn(
-              'hover:bg-[#8257E5]/20 dark:hover:bg-[#8257E5]/20 hover:text-[#8257E5] dark:hover:text-[#B490FF]',
+              'hover:bg-[#8257E5]/20 dark:hover:bg-[#8257E5]/20 hover:text-foreground text-foreground',
               orientation === 'vertical' ? 'w-full justify-start' : ''
             )}
             onClick={() => handleNavigate('/login')}

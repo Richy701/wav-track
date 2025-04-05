@@ -9,7 +9,7 @@ export async function getUserPreferences(userId: string): Promise<UserPreference
     .from('user_preferences')
     .select('*')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error('Error fetching user preferences:', error);
@@ -27,7 +27,7 @@ export async function getUserMetrics(userId: string): Promise<UserMetrics | null
     .from('user_metrics')
     .select('*')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error('Error fetching user metrics:', error);
@@ -41,17 +41,20 @@ export async function getUserMetrics(userId: string): Promise<UserMetrics | null
  * Fetches category progress from the database
  */
 export async function getCategoryProgress(userId: string): Promise<CategoryProgress[]> {
+  console.log('Fetching category progress for user:', userId);
+  
+  // Try with just the essential columns first
   const { data, error } = await supabase
     .from('category_progress')
-    .select('*')
-    .eq('user_id', userId)
-    .order('date', { ascending: false });
+    .select('user_id, category, progress_percent')
+    .eq('user_id', userId);
 
   if (error) {
     console.error('Error fetching category progress:', error);
     return [];
   }
 
+  console.log('Category progress data:', data);
   return data || [];
 }
 

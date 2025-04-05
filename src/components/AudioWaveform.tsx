@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useTheme } from '@/lib/ThemeContext'
+import { useTheme } from 'next-themes'
 
 interface AudioWaveformProps {
   audioUrl: string

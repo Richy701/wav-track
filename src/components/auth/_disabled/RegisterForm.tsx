@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select'
 import { Icons } from '@/components/icons'
 import { cn } from '@/lib/utils'
-import { useTheme } from '@/lib/ThemeContext'
+import { useTheme } from 'next-themes'
 import { X } from 'lucide-react'
 import {
   FLStudioIcon,

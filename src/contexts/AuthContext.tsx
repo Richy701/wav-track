@@ -604,41 +604,52 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
   )
 }
 
-// Create a navigation wrapper component
-const AuthNavigationWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// Create a separate AuthNavigationProvider component
+export const AuthNavigationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, isLoading, isInitialized } = useAuth()
+  const { user, isInitialized } = useAuth()
 
   useEffect(() => {
-    console.log('[Debug] Auth navigation effect - Current state:', {
-      user: !!user,
-      isLoading,
-      isInitialized,
-      pathname: location.pathname
-    })
-    
-    // Only redirect to login for protected routes
-    const publicRoutes = ['/', '/login', '/auth/callback', '/register']
-    const isPublicRoute = publicRoutes.includes(location.pathname)
-    
-    if (!user && !isLoading && isInitialized && !isPublicRoute) {
-      console.log('[Debug] Redirecting to login')
-      navigate('/login', { replace: true })
+    if (isInitialized) {
+      const publicPaths = ['/login', '/auth/callback', '/']
+      const isPublicPath = publicPaths.includes(location.pathname)
+
+      if (!user && !isPublicPath) {
+        navigate('/login')
+      } else if (user && isPublicPath && location.pathname !== '/') {
+        navigate('/dashboard')
+      }
     }
-  }, [user, isLoading, isInitialized, location.pathname, navigate])
+  }, [user, isInitialized, location.pathname, navigate])
 
   return <>{children}</>
 }
 
-// Export the main AuthProvider component
+// Update AuthProvider to not include navigation logic
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Create the auth context value with default values
+  const authContextValue: AuthContextType = {
+    user: null,
+    profile: null,
+    isAuthenticated: false,
+    isLoading: true,
+    isInitialized: false,
+    login: async () => false,
+    register: async () => false,
+    logout: async () => {},
+    updateUserProfile: async () => ({ id: '', email: '', name: null, artist_name: null, genres: null, daw: null, bio: null, location: null, phone: null, website: null, birthday: null, timezone: '', productivity_score: 0, total_beats: 0, completed_projects: 0, completion_rate: 0, current_streak: 0, best_streak: 0, join_date: null, updated_at: null, social_links: { instagram: null, instagram_username: null, twitter: null, twitter_username: null, youtube: null, youtube_username: null }, notification_preferences: { newFollowers: true, beatComments: true, collaborationRequests: true } }),
+    refreshProfile: async () => {},
+    showWelcomeModal: false,
+    setShowWelcomeModal: () => {},
+  }
+
   return (
-    <AuthProviderWrapper>
-      <AuthNavigationWrapper>
+    <AuthContext.Provider value={authContextValue}>
+      <AuthProviderWrapper>
         {children}
-      </AuthNavigationWrapper>
-    </AuthProviderWrapper>
+      </AuthProviderWrapper>
+    </AuthContext.Provider>
   )
 }
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Moon, Sun } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useTheme } from '@/lib/ThemeContext'
+import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 
 export default function ThemeSwitcher() {
@@ -11,20 +11,19 @@ export default function ThemeSwitcher() {
   // After mounting, we have access to the theme
   useEffect(() => setMounted(true), [])
 
-  const handleThemeChange = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light'
-    setTheme(newTheme)
-  }
-
   if (!mounted) {
     return null
+  }
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark')
   }
 
   return (
     <Button
       variant="ghost"
       size="icon"
-      onClick={handleThemeChange}
+      onClick={toggleTheme}
       className={cn(
         'relative h-10 w-10 rounded-full',
         'bg-background/80 hover:bg-background',
@@ -32,10 +31,10 @@ export default function ThemeSwitcher() {
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
       )}
     >
-      {theme === 'light' ? (
-        <Sun className="h-5 w-5 text-foreground/80 dark:text-foreground/70" />
-      ) : (
+      {theme === 'dark' ? (
         <Moon className="h-5 w-5 text-foreground/80 dark:text-foreground/70" />
+      ) : (
+        <Sun className="h-5 w-5 text-foreground/80 dark:text-foreground/70" />
       )}
       <span className="sr-only">Toggle theme</span>
     </Button>

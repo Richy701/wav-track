@@ -472,6 +472,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                   <Select value="" onValueChange={handleGenreChange} name="genre">
                     <SelectTrigger
                       id="genre"
+                      name="genre"
                       className={cn(
                         'pl-10 h-9 text-sm transition-colors',
                         errors.genres

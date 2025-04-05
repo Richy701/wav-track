@@ -8,7 +8,20 @@
  * This returns the correct base path regardless of environment
  */
 export const getBaseUrl = (): string => {
+  // For Vercel deployment, always use root path
+  if (window.location.hostname.includes('vercel.app')) {
+    return '/'
+  }
+  // For local development or other environments
   return import.meta.env.BASE_URL || '/'
+}
+
+/**
+ * Get the full URL for a given path
+ */
+export const getFullUrl = (path: string): string => {
+  const baseUrl = getBaseUrl()
+  return `${window.location.origin}${baseUrl}${path.replace(/^\//, '')}`
 }
 
 /**

@@ -3,9 +3,13 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
 import { errorLogger } from './lib/errorLogger'
+import { injectSpeedInsights } from '@vercel/speed-insights'
 
 // Initialize error logging
 errorLogger.init()
+
+// Initialize Speed Insights
+injectSpeedInsights()
 
 // Create loading screen
 const loadingScreen = document.createElement('div')

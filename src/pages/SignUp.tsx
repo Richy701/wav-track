@@ -336,6 +336,7 @@ export function SignUp() {
                   <div className="relative">
                     <select
                       id="daw"
+                      name="daw"
                       aria-label="Select your preferred DAW"
                       className={cn(theme.input.base, 'appearance-none pr-8')}
                     >

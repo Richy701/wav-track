@@ -1,8 +1,8 @@
 import type { Config } from "tailwindcss";
 import animate from "tailwindcss-animate";
 
-export default {
-	darkMode: ["class"],
+const config = {
+	darkMode: "class",
 	content: [
 		"./src/**/*.{ts,tsx}",
 	],
@@ -46,6 +46,9 @@ export default {
 				heading: ['Clash Display', 'sans-serif'],
 				mono: ['JetBrains Mono', 'monospace'],
 			},
+			backgroundImage: {
+				'midnight-gradient': 'radial-gradient(circle at top left, #1E1B4B, #111728)',
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -53,6 +56,14 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				black: '#000000',
+				midnight: {
+					background: '#111728',
+					card: '#1A1F36',
+					accent: '#A78BFA',
+					text: 'hsl(0 0% 95%)',
+					muted: 'hsl(240 5% 64.9%)',
+					border: '#2A2F45'
+				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))',
@@ -174,3 +185,5 @@ export default {
 		objectPosition: true,
 	},
 } satisfies Config;
+
+export default config;
