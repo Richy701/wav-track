@@ -93,11 +93,11 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black relative">
+    <div className="min-h-screen relative bg-white dark:bg-black">
       {/* Background gradient elements */}
-      <div className="absolute inset-0 bg-gradient-to-b from-violet-500/[0.15] to-transparent dark:from-violet-500/10" />
-      <div className="absolute -top-[40rem] left-1/2 -translate-x-1/2 w-[80rem] h-[80rem] bg-gradient-to-b from-violet-500/20 to-transparent dark:from-violet-500/10 rounded-full blur-3xl" />
-      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20" />
+      <div className="absolute inset-0 bg-gradient-to-b from-violet-100 to-white dark:from-violet-500/[0.15] dark:to-transparent" />
+      <div className="absolute -top-[40rem] left-1/2 -translate-x-1/2 w-[80rem] h-[80rem] bg-gradient-to-b from-violet-200/80 to-transparent dark:from-violet-500/20 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 dark:opacity-20" />
 
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-50">
         <ThemeSwitcher />
@@ -119,13 +119,15 @@ const Login = () => {
                 BETA
               </span>
             </div>
-            <h2 className="text-2xl font-semibold text-zinc-100">
+            <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
               Welcome back
             </h2>
           </div>
 
           <Card className={cn(
-            'shadow-xl bg-zinc-900/50 backdrop-blur-xl border-zinc-800/50'
+            'shadow-xl border-0',
+            'bg-white/80 dark:bg-zinc-900/50',
+            'backdrop-blur-xl'
           )}>
             <CardContent className="p-6">
               {error && (
@@ -136,7 +138,7 @@ const Login = () => {
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-zinc-300">
+                  <Label htmlFor="email" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                     Email
                   </Label>
                   <div className="relative">
@@ -154,9 +156,10 @@ const Login = () => {
                       onChange={e => setEmail(e.target.value)}
                       required
                       className={cn(
-                        'pl-10 bg-zinc-800/50',
-                        'border-zinc-700',
-                        'placeholder:text-zinc-500',
+                        'pl-10',
+                        'bg-white/50 dark:bg-zinc-800/50',
+                        'border-zinc-200 dark:border-zinc-700',
+                        'placeholder:text-zinc-400 dark:placeholder:text-zinc-500',
                         'focus:ring-violet-500/20 focus:border-violet-500/60'
                       )}
                     />
@@ -165,10 +168,10 @@ const Login = () => {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-sm font-medium text-zinc-300">
+                    <Label htmlFor="password" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                       Password
                     </Label>
-                    <Link to="/forgot-password" className="text-xs text-violet-400 hover:text-violet-300 hover:underline">
+                    <Link to="/forgot-password" className="text-xs text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 hover:underline">
                       Forgot password?
                     </Link>
                   </div>
@@ -186,9 +189,10 @@ const Login = () => {
                       onChange={e => setPassword(e.target.value)}
                       required
                       className={cn(
-                        'pl-10 bg-zinc-800/50',
-                        'border-zinc-700',
-                        'placeholder:text-zinc-500',
+                        'pl-10',
+                        'bg-white/50 dark:bg-zinc-800/50',
+                        'border-zinc-200 dark:border-zinc-700',
+                        'placeholder:text-zinc-400 dark:placeholder:text-zinc-500',
                         'focus:ring-violet-500/20 focus:border-violet-500/60'
                       )}
                     />
@@ -197,7 +201,12 @@ const Login = () => {
 
                 <Button
                   type="submit"
-                  className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+                  className={cn(
+                    'w-full',
+                    'bg-violet-600 hover:bg-violet-700',
+                    'dark:bg-violet-600 dark:hover:bg-violet-700',
+                    'text-white'
+                  )}
                   disabled={isLoading}
                 >
                   {isLoading ? 'Signing in...' : 'Sign in'}
@@ -205,10 +214,10 @@ const Login = () => {
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-zinc-800" />
+                    <span className="w-full border-t border-zinc-200 dark:border-zinc-800" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-zinc-900 px-2 text-zinc-500">Or continue with</span>
+                    <span className="bg-white dark:bg-zinc-900 px-2 text-zinc-500">Or continue with</span>
                   </div>
                 </div>
 
@@ -217,7 +226,12 @@ const Login = () => {
                   variant="outline"
                   onClick={handleSocialLogin}
                   disabled={!!socialLoading}
-                  className="w-full border-zinc-700 hover:bg-zinc-800 text-zinc-300"
+                  className={cn(
+                    'w-full',
+                    'bg-white hover:bg-zinc-50 dark:bg-zinc-800 dark:hover:bg-zinc-700/50',
+                    'border-zinc-200 dark:border-zinc-700',
+                    'text-zinc-700 dark:text-zinc-300'
+                  )}
                 >
                   {socialLoading === 'google' ? (
                     <div className="flex items-center gap-2">

@@ -10,14 +10,14 @@
 @tailwind utilities;
 
 @layer base {
-  /* Disable all transitions by default */
+  /* Allow transitions for theme-related properties */
   * {
-    transition: none !important;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out !important;
   }
 
   /* Only allow specific hover transitions */
   *:hover {
-    transition-property: transform, box-shadow !important;
+    transition-property: transform, box-shadow, background-color, border-color, color !important;
     transition-duration: 0.2s !important;
     transition-timing-function: ease-out !important;
   }
@@ -35,7 +35,7 @@
     transition: none !important;
   }
 
-  /* Explicitly allow hover transitions only */
+  /* Explicitly allow hover transitions */
   .hover\:scale-\[1\.02\]:hover {
     transition: transform 0.2s ease-out !important;
   }

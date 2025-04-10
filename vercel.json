@@ -12,16 +12,24 @@
   ],
   "routes": [
     {
+      "src": "/assets/(.*)",
+      "headers": { "cache-control": "public, max-age=31536000, immutable" },
+      "continue": true
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
   ],
   "env": {
-    "VITE_SUPABASE_URL": "@vite_supabase_url",
-    "VITE_SUPABASE_ANON_KEY": "@vite_supabase_anon_key",
-    "VITE_GENIUS_API_TOKEN": "@vite_genius_api_token",
-    "VITE_AUDD_API_TOKEN": "@vite_audd_api_token",
-    "VITE_SPOTIFY_CLIENT_ID": "@vite_spotify_client_id",
-    "VITE_SPOTIFY_CLIENT_SECRET": "@vite_spotify_client_secret"
+    "VITE_SUPABASE_URL": "${VITE_SUPABASE_URL}",
+    "VITE_SUPABASE_ANON_KEY": "${VITE_SUPABASE_ANON_KEY}",
+    "VITE_GENIUS_API_TOKEN": "${VITE_GENIUS_API_TOKEN}",
+    "VITE_AUDD_API_TOKEN": "${VITE_AUDD_API_TOKEN}",
+    "VITE_SPOTIFY_CLIENT_ID": "${VITE_SPOTIFY_CLIENT_ID}",
+    "VITE_SPOTIFY_CLIENT_SECRET": "${VITE_SPOTIFY_CLIENT_SECRET}"
   }
 } 
