@@ -5,6 +5,9 @@ import {
   YoutubeLogo,
   Copyright,
 } from '@phosphor-icons/react'
+import { FeedbackButton } from '@/components/dashboard/FeedbackButton'
+import { ScrollToTop } from '@/components/ScrollToTop'
+import { motion } from 'framer-motion'
 
 const DiscordLogo = () => (
   <svg
@@ -19,55 +22,73 @@ const DiscordLogo = () => (
 
 const Footer = () => {
   return (
-    <footer className="w-full border-t border-border/50 mt-24 bg-gradient-to-b from-muted/40 to-muted/20">
-      <div className="py-12 md:py-16">
-        <div className="max-w-4xl mx-auto px-4 md:px-6">
-          {/* Social Links */}
-          <div className="flex items-center justify-center gap-6">
-            <a
-              href="https://twitter.com/wavtrack"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
-            >
-              <TwitterLogo weight="fill" className="h-5 w-5" />
-            </a>
-            <a
-              href="https://instagram.com/wavtrack"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
-            >
-              <InstagramLogo weight="fill" className="h-5 w-5" />
-            </a>
-            <a
-              href="https://youtube.com/wavtrack"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
-            >
-              <YoutubeLogo weight="fill" className="h-5 w-5" />
-            </a>
-            <a
-              href="https://discord.gg/wavtrack"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
-            >
-              <DiscordLogo />
-            </a>
-          </div>
+    <>
+      <footer className="w-full border-t border-border/50 mt-24 bg-gradient-to-b from-muted/40 to-muted/20">
+        <div className="py-12 md:py-16">
+          <div className="max-w-4xl mx-auto px-4 md:px-6">
+            {/* Social Links */}
+            <div className="flex items-center justify-center gap-6">
+              <motion.a
+                href="https://twitter.com/wavtrack"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <TwitterLogo weight="fill" className="h-5 w-5" />
+              </motion.a>
+              <motion.a
+                href="https://instagram.com/wavtrack"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <InstagramLogo weight="fill" className="h-5 w-5" />
+              </motion.a>
+              <motion.a
+                href="https://youtube.com/wavtrack"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <YoutubeLogo weight="fill" className="h-5 w-5" />
+              </motion.a>
+              <motion.a
+                href="https://discord.gg/wavtrack"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <DiscordLogo />
+              </motion.a>
+            </div>
 
-          {/* Copyright */}
-          <div className="mt-8 pt-8 border-t border-border/30">
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Copyright className="h-4 w-4" />
-              <span>2025 WavTrack. All rights reserved.</span>
+            {/* Feedback Button */}
+            <div className="mt-8 flex justify-center">
+              <FeedbackButton />
+            </div>
+
+            {/* Copyright */}
+            <div className="mt-8 pt-8 border-t border-border/30">
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                <Copyright className="h-4 w-4" />
+                <span>2025 WavTrack. All rights reserved.</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+      
+      {/* Scroll to Top Button */}
+      <ScrollToTop />
+    </>
   )
 }
 

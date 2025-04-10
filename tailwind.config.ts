@@ -13,15 +13,15 @@ const config = {
 			variants: ['responsive']
 		},
 		{
-			pattern: /^(scrollbar)-(thin|none)$/,
+			pattern: /^scrollbar-(thin|none)$/,
 			variants: ['responsive']
 		},
 		{
-			pattern: /^(user-select)-(none|text|all|auto)$/,
+			pattern: /^select-(none|text|all|auto)$/,
 			variants: ['responsive']
 		},
 		{
-			pattern: /^duration-\[(\d+)ms\]$/,
+			pattern: /^duration-\[800ms\]$/,
 			variants: ['responsive']
 		}
 	],

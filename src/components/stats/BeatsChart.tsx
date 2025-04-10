@@ -56,25 +56,13 @@ const CustomTooltip = memo(({ active, payload }: CustomTooltipProps) => {
     if (!data.date) return data.label;
     
     try {
-      const now = new Date();
-      const weekStart = new Date(now);
-      const day = weekStart.getDay();
-      const diff = day === 0 ? 6 : day - 1;
-      weekStart.setDate(weekStart.getDate() - diff);
-      
-      const dayToIndex = {
-        'Mon': 0, 'Tue': 1, 'Wed': 2, 'Thu': 3, 
-        'Fri': 4, 'Sat': 5, 'Sun': 6
-      };
-      
-      const dayOffset = dayToIndex[data.label as keyof typeof dayToIndex] || 0;
-      const date = new Date(weekStart);
-      date.setDate(weekStart.getDate() + dayOffset);
-      
-      return `${format(date, "dd MMM yyyy")} • ${data.label}`;
+      // Parse the UTC date string and convert to local time
+      const [year, month, day] = data.date.split('-').map(Number);
+      const date = new Date(Date.UTC(year, month - 1, day));
+      return format(date, "EEEE, MMMM d, yyyy", { locale: enGB });
     } catch (e) {
       console.error('Date parsing error:', e);
-      return `${data.date} • ${data.label}`;
+      return data.label;
     }
   }, [active, payload]);
 

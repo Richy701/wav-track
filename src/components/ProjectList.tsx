@@ -324,7 +324,7 @@ const ProjectList: React.FC<ProjectListProps> = ({
           items={filteredAndSortedProjects.map(project => project.id)}
           strategy={rectSortingStrategy}
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[700px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAndSortedProjects.map(project => (
               <SortableProjectCard
                 key={project.id}

@@ -27,7 +27,10 @@ export const theme = {
       'hover:bg-primary/90 dark:hover:bg-primary/80',
       'text-white',
       'shadow-md dark:shadow-primary/20',
-      'transition-all duration-200'
+      'transition-all duration-200',
+      'rounded-full',
+      'cursor-pointer',
+      'hover:scale-[1.02] active:scale-[0.98]'
     ),
     secondary: cn(
       'bg-white/50 dark:bg-zinc-900/50',
@@ -35,7 +38,10 @@ export const theme = {
       'border border-zinc-200 dark:border-zinc-800',
       'text-zinc-800 dark:text-zinc-200',
       'shadow-sm',
-      'transition-all duration-200'
+      'transition-all duration-200',
+      'rounded-md',
+      'cursor-pointer',
+      'hover:scale-[1.02] active:scale-[0.98]'
     ),
   },
 

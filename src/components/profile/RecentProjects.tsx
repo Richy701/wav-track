@@ -16,7 +16,7 @@ import {
   Star,
   Trophy,
   Flame,
-  Sparkles,
+  Sparkle,
 } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -65,10 +65,11 @@ const calculateStreak = (projects: Project[]) => {
   const today = new Date()
   let currentStreak = 0
   let date = today
+  let hasActivity = true
 
-  while (true) {
+  while (hasActivity) {
     // Check if there was any activity on this date
-    const hasActivity = projects.some(project => {
+    hasActivity = projects.some(project => {
       // Check for project updates on this date
       const projectUpdated = isSameDay(new Date(project.lastModified), date)
       return projectUpdated
@@ -127,8 +128,21 @@ const calculateUniqueGenres = (projects: Project[]) => {
   return uniqueGenres.size
 }
 
+// Define the tooltip props type
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    value: number;
+    dataKey: string;
+    color: string;
+    payload: {
+      date: Date;
+    };
+  }>;
+}
+
 // Memoize the custom tooltip component
-const CustomTooltip = memo(({ active, payload }: any) => {
+const CustomTooltip = memo(({ active, payload }: TooltipProps) => {
   if (!active || !payload || !payload.length) return null
 
   return (
@@ -314,7 +328,7 @@ export function RecentProjects() {
                   </div>
                   {project.genre && (
                     <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/5 text-primary border border-primary/10">
-                      <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                      <Sparkle className="h-3.5 w-3.5 shrink-0" />
                       <span className="truncate">{project.genre}</span>
                     </div>
                   )}

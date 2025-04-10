@@ -5,16 +5,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
-import { AtSign, Lock, ArrowRight, Mail, User } from 'lucide-react'
+import { AtSign, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
-import Footer from '@/components/Footer'
 import ThemeSwitcher from '@/components/ThemeSwitcher'
-import { FeatureHighlights } from '@/components/features/FeatureHighlights'
 import { cn } from '@/lib/utils'
 import { trackEvent, ANALYTICS_EVENTS } from '@/lib/analytics'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { authService } from '@/lib/services/auth'
 import { useQueryClient } from '@tanstack/react-query'
 import { prefetchDashboardData } from '@/lib/prefetch'
 
@@ -47,15 +44,12 @@ const Login = () => {
       if (!success) {
         setError('Invalid email or password')
       } else {
-        // Prefetch dashboard data after successful login
         try {
           await prefetchDashboardData(queryClient)
         } catch (prefetchError) {
           console.error('Error prefetching dashboard data:', prefetchError)
-          // Don't show error to user - prefetch failure shouldn't block login
         }
       }
-      // Navigation will be handled by handleLoginSuccess in AuthContext
     } catch (err) {
       console.error('Login error:', err)
       setError(err instanceof Error ? err.message : 'Failed to sign in')
@@ -89,7 +83,6 @@ const Login = () => {
     }
   }
 
-  // Show loading state while auth is initializing
   if (isAuthLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
@@ -100,177 +93,139 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50/80 dark:bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-black relative">
       {/* Background gradient elements */}
-      <div className="absolute inset-0 bg-gradient-to-b from-violet-500/[0.03] to-transparent dark:from-violet-500/5" />
-      <div className="absolute -top-[40rem] left-1/2 -translate-x-1/2 w-[80rem] h-[80rem] bg-gradient-to-b from-violet-100/20 to-transparent dark:bg-violet-500/5 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-b from-violet-500/[0.15] to-transparent dark:from-violet-500/10" />
+      <div className="absolute -top-[40rem] left-1/2 -translate-x-1/2 w-[80rem] h-[80rem] bg-gradient-to-b from-violet-500/20 to-transparent dark:from-violet-500/10 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20" />
 
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-50">
         <ThemeSwitcher />
       </div>
 
-      <main className="relative flex min-h-screen flex-col">
-        <div className="flex-1 flex flex-col items-center justify-start pt-16 sm:pt-24 pb-8 px-4">
-          {/* Login Content */}
-          <div className="w-full max-w-md relative space-y-6 mb-12">
-            <div className="text-center space-y-4">
-              <div className="inline-flex items-center gap-1.5">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 text-transparent bg-clip-text">
-                  WavTrack
-                </h1>
-                <span
-                  className={cn(
-                    'px-1.5 py-0.5 text-[0.65rem] font-medium rounded-full tracking-wide translate-y-1',
-                    'transition-colors duration-200',
-                    'bg-violet-50 text-violet-700 border border-violet-200/70',
-                    'dark:bg-violet-500/10 dark:text-violet-400 dark:border-violet-500/20'
-                  )}
-                >
-                  BETA
-                </span>
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-2xl font-semibold text-zinc-800 dark:text-zinc-50">
-                  Welcome back
-                </h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">
-                  Track your music production sessions, set goals, and improve your workflow
-                </p>
-              </div>
+      <main className="relative flex min-h-screen flex-col items-center justify-center px-4">
+        <div className="w-full max-w-md space-y-6">
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center gap-1.5">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 text-transparent bg-clip-text">
+                WavTrack
+              </h1>
+              <span className={cn(
+                'px-1.5 py-0.5 text-[0.65rem] font-medium rounded-full tracking-wide translate-y-1',
+                'transition-colors duration-200',
+                'bg-violet-50 text-violet-700 border border-violet-200/70',
+                'dark:bg-violet-500/10 dark:text-violet-400 dark:border-violet-500/20'
+              )}>
+                BETA
+              </span>
             </div>
+            <h2 className="text-2xl font-semibold text-zinc-100">
+              Welcome back
+            </h2>
+          </div>
 
-            <Card
-              className={cn(
-                'shadow-xl bg-white/70 backdrop-blur-sm border-zinc-200/60',
-                'dark:bg-card dark:border-zinc-800/50'
+          <Card className={cn(
+            'shadow-xl bg-zinc-900/50 backdrop-blur-xl border-zinc-800/50'
+          )}>
+            <CardContent className="p-6">
+              {error && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
-            >
-              <CardContent className="p-6">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="email"
-                      className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-                    >
-                      Email
-                    </Label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 dark:text-zinc-400">
-                        <AtSign className="h-4 w-4" />
-                      </div>
-                      <Input
-                        id="email"
-                        placeholder="your.email@example.com"
-                        type="email"
-                        autoCapitalize="none"
-                        autoComplete="email"
-                        autoCorrect="off"
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        required
-                        className={cn(
-                          'pl-10 bg-white dark:bg-zinc-900',
-                          'border-zinc-200 dark:border-zinc-800',
-                          'placeholder:text-zinc-500 dark:placeholder:text-zinc-500',
-                          'focus:ring-violet-500/20 focus:border-violet-500/60'
-                        )}
-                      />
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-zinc-300">
+                    Email
+                  </Label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+                      <AtSign className="h-4 w-4" />
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label
-                        htmlFor="password"
-                        className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-                      >
-                        Password
-                      </Label>
-                      <Link
-                        to="/forgot-password"
-                        className="text-xs text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 hover:underline"
-                      >
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 dark:text-zinc-400">
-                        <Lock className="h-4 w-4" />
-                      </div>
-                      <Input
-                        id="password"
-                        placeholder="••••••••"
-                        type="password"
-                        autoCapitalize="none"
-                        autoComplete="current-password"
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        required
-                        className={cn(
-                          'pl-10 bg-white dark:bg-zinc-900',
-                          'border-zinc-200 dark:border-zinc-800',
-                          'placeholder:text-zinc-500 dark:placeholder:text-zinc-500',
-                          'focus:ring-violet-500/20 focus:border-violet-500/60'
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <Button
-                      type="submit"
+                    <Input
+                      id="email"
+                      placeholder="your.email@example.com"
+                      type="email"
+                      autoCapitalize="none"
+                      autoComplete="email"
+                      autoCorrect="off"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      required
                       className={cn(
-                        'w-full bg-violet-600 hover:bg-violet-700',
-                        'dark:bg-violet-600 dark:hover:bg-violet-700',
-                        'text-white shadow-md'
+                        'pl-10 bg-zinc-800/50',
+                        'border-zinc-700',
+                        'placeholder:text-zinc-500',
+                        'focus:ring-violet-500/20 focus:border-violet-500/60'
                       )}
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          <span>Signing in...</span>
-                        </div>
-                      ) : (
-                        'Sign in'
-                      )}
-                    </Button>
-                  </div>
-                </form>
-
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-
-                <div className="relative flex items-center justify-center my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-zinc-200 dark:border-zinc-800"></div>
-                  </div>
-                  <div className="relative px-2 text-xs text-zinc-500 bg-white/70 dark:bg-card">
-                    Or continue with
+                    />
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <Button
-                    variant="outline"
-                    type="button"
-                    className={cn(
-                      'w-full flex items-center justify-center gap-2 py-5',
-                      'bg-white dark:bg-zinc-900',
-                      'border-zinc-300 dark:border-zinc-700',
-                      'hover:bg-zinc-50 dark:hover:bg-zinc-800/50',
-                      'text-zinc-900 dark:text-zinc-100',
-                      'transition-colors duration-200'
-                    )}
-                    onClick={handleSocialLogin}
-                    disabled={!!socialLoading}
-                  >
-                    {socialLoading === 'google' ? (
-                      <div className="h-4 w-4 border-2 border-zinc-600 dark:border-zinc-400 border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password" className="text-sm font-medium text-zinc-300">
+                      Password
+                    </Label>
+                    <Link to="/forgot-password" className="text-xs text-violet-400 hover:text-violet-300 hover:underline">
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+                      <Lock className="h-4 w-4" />
+                    </div>
+                    <Input
+                      id="password"
+                      type="password"
+                      autoCapitalize="none"
+                      autoComplete="current-password"
+                      autoCorrect="off"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      required
+                      className={cn(
+                        'pl-10 bg-zinc-800/50',
+                        'border-zinc-700',
+                        'placeholder:text-zinc-500',
+                        'focus:ring-violet-500/20 focus:border-violet-500/60'
+                      )}
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Signing in...' : 'Sign in'}
+                </Button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-zinc-800" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-zinc-900 px-2 text-zinc-500">Or continue with</span>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSocialLogin}
+                  disabled={!!socialLoading}
+                  className="w-full border-zinc-700 hover:bg-zinc-800 text-zinc-300"
+                >
+                  {socialLoading === 'google' ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-zinc-500 border-t-transparent" />
+                      <span>Connecting...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
                       <svg viewBox="0 0 48 48" className="w-5 h-5">
                         <path
                           fill="#EA4335"
@@ -289,33 +244,14 @@ const Login = () => {
                           d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
                         />
                       </svg>
-                    )}
-                    <span className="font-medium">Continue with Google</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="text-center">
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                New user?{' '}
-                <span className="text-violet-600 dark:text-violet-400">
-                  Sign in with Google to create an account
-                </span>
-              </p>
-            </div>
-          </div>
-
-          {/* Features section moved up */}
-          <div className="w-full max-w-5xl mx-auto px-4">
-            <h2 className="text-lg font-medium text-zinc-800 dark:text-zinc-50 text-center mb-8">
-              Why producers love WavTrack
-            </h2>
-            <FeatureHighlights />
-          </div>
+                      <span>Continue with Google</span>
+                    </div>
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
         </div>
-
-        <Footer />
       </main>
     </div>
   )

@@ -58,6 +58,7 @@ export interface Database {
           email: string
           name: string | null
           artist_name: string | null
+          avatar_url: string | null
           genres: string[] | null
           daw: string | null
           bio: string | null
@@ -78,6 +79,7 @@ export interface Database {
           email: string
           name?: string | null
           artist_name?: string | null
+          avatar_url?: string | null
           genres?: string[] | null
           daw?: string | null
           bio?: string | null
@@ -98,6 +100,7 @@ export interface Database {
           email?: string
           name?: string | null
           artist_name?: string | null
+          avatar_url?: string | null
           genres?: string[] | null
           daw?: string | null
           bio?: string | null

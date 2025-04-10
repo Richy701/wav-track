@@ -241,7 +241,9 @@ export function AchievementCard({ achievement, className, isLoading }: Achieveme
                     <motion.div
                       className={cn(
                         'h-full transition-all duration-500',
-                        isUnlocked ? tierColor.gradient : 'bg-muted-foreground',
+                        isUnlocked 
+                          ? `bg-gradient-to-r ${tierColor.gradient}` 
+                          : 'bg-muted-foreground',
                         isLoading && "animate-pulse"
                       )}
                       initial={{ width: 0 }}

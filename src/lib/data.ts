@@ -1202,7 +1202,8 @@ export const getBeatsDataForChart = async (
         weekStart.setDate(weekStart.getDate() - diff)
         weekStart.setHours(0, 0, 0, 0)
 
-        const weekEnd = new Date(now)
+        const weekEnd = new Date(weekStart)
+        weekEnd.setDate(weekStart.getDate() + 6)
         weekEnd.setHours(23, 59, 59, 999)
 
         // Fetch all beat activities for the week
@@ -1217,15 +1218,14 @@ export const getBeatsDataForChart = async (
         }
 
         // Get dates for the week starting from Monday
-        const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        const periods = ['workweek', 'workweek', 'workweek', 'workweek', 'workweek', 'weekend', 'weekend']
+        const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
         for (let i = 0; i < 7; i++) {
-          const date = new Date(weekStart)
-          date.setDate(date.getDate() + i)
-          const dayStart = new Date(date)
+          const currentDate = new Date(weekStart)
+          currentDate.setDate(weekStart.getDate() + i)
+          const dayStart = new Date(currentDate)
           dayStart.setHours(0, 0, 0, 0)
-          const dayEnd = new Date(date)
+          const dayEnd = new Date(currentDate)
           dayEnd.setHours(23, 59, 59, 999)
 
           const dayActivities = activities.filter(activity => {
@@ -1235,11 +1235,19 @@ export const getBeatsDataForChart = async (
 
           const value = dayActivities.reduce((sum, activity) => sum + (activity.count || 0), 0)
 
+          // Store the date in UTC to avoid timezone issues
+          const utcDate = new Date(Date.UTC(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            currentDate.getDate(),
+            0, 0, 0
+          ))
+
           data.push({
-            label: formatDate(date, 'EEE'),
+            label: weekDays[i],
             value: value,
-            date: date.toISOString().split('T')[0],
-            period: periods[i]
+            date: utcDate.toISOString().split('T')[0],
+            period: i < 5 ? 'workweek' : 'weekend'
           })
         }
         break

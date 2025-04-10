@@ -1,0 +1,38 @@
+// WavTrack Footer Integration Rules
+// This file provides guidance for integrating the Footer component into the WavTrack app
+
+// Footer Component Integration
+// The Footer component is already integrated into the BaseLayout component
+// It includes:
+// - Social media links with Framer Motion animations
+// - Feedback button
+// - Copyright information
+// - Scroll-to-top button that appears when scrolling down 100px
+
+// Layout Structure
+// The app uses a flex-col min-h-screen layout structure in BaseLayout.tsx
+// This ensures the footer is positioned at the bottom of the page
+// The main content area uses flex-1 to take up available space
+
+// Responsive Design
+// The Footer is responsive with appropriate padding and spacing
+// Social icons scale on hover with smooth animations
+// The scroll-to-top button is positioned at the bottom right
+
+// Animation Guidelines
+// Use Framer Motion for animations
+// Apply consistent animation durations (0.2s for most transitions)
+// Use scale animations for interactive elements (1.1 on hover, 0.95 on tap)
+
+// Best Practices
+// - Keep the Footer component lightweight to avoid performance issues
+// - Ensure the scroll-to-top button doesn't overlap with other UI elements
+// - Maintain consistent spacing between Footer sections
+// - Use semantic HTML elements for accessibility
+// - Ensure all interactive elements have appropriate hover/focus states
+
+// Optional Enhancements
+// - Consider adding a "Back to Top" text label for better accessibility
+// - Add more social media links as needed
+// - Consider adding a newsletter signup form
+// - Add links to Privacy Policy, Terms of Service, etc. 

@@ -15,9 +15,12 @@ import {
   Sparkle,
   FileXls,
   CalendarCheck,
+  ChartBar as BarChartIcon,
+  ChartLine as LineChartIcon,
 } from '@phosphor-icons/react'
 import { StatCard } from './stats/StatCard'
 import { BeatsChart } from './stats/BeatsChart'
+import { BeatBarChart } from './stats/BeatBarChart'
 import { TimeRangeSelector } from './stats/TimeRangeSelector'
 import { getTotalBeatsInTimeRange, getBeatsCreatedByProject, getBeatsDataForChart, getTotalSessionTime } from '@/lib/data'
 import { Project, Session, BeatActivity } from '@/lib/types'
@@ -27,6 +30,8 @@ import { Button } from './ui/button'
 import { toast } from 'sonner'
 import { Badge } from './ui/badge'
 import { useProjects } from '@/hooks/useProjects'
+import { TrendingUp, TrendingDown } from 'lucide-react'
+import { BarChart, LineChart } from 'lucide-react'
 
 interface StatsProps {
   sessions: Session[]
@@ -60,6 +65,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
   const [yearInReview, setYearInReview] = useState<YearInReview | null>(null)
   const [showYearInReview, setShowYearInReview] = useState(false)
   const [isGeneratingReview, setIsGeneratingReview] = useState(false)
+  const [chartType, setChartType] = useState<'bar' | 'line'>('bar')
 
   // Fetch session time when component mounts
   useEffect(() => {
@@ -174,7 +180,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
       id: 'ten_beats',
       title: 'Beat Master',
       description: 'Created 10+ beats',
-      icon: <Trophy className="h-4 w-4" weight="fill" />,
+      icon: <Trophy className="h-4 w-4 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-600" weight="fill" />,
       unlocked: totalBeatsCreated >= 10,
       count: totalBeatsCreated,
       color: 'from-indigo-500 to-violet-500',
@@ -383,44 +389,83 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6 animate-fade-in">
       <div className="bg-card rounded-lg p-3 sm:p-4 lg:p-6 lg:col-span-3 overflow-hidden">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 space-y-3 md:space-y-0">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-primary/10">
-                <Trophy className="h-4 w-4 text-primary" weight="fill" />
-              </div>
-              {selectedProject && (
-                <Badge variant="outline" className="text-xs">
-                  {selectedProject.title}
-                </Badge>
-              )}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+          {/* Stat Block */}
+          <div className="flex flex-col items-start gap-2 font-sans">
+            <div className="bg-muted rounded-md p-2">
+              <Trophy className="h-4 w-4 text-foreground" />
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl lg:text-4xl font-bold">
-                {totalBeatsInPeriod}
-              </span>
-              <span className="text-xs sm:text-sm text-muted-foreground">
-                {totalBeatsInPeriod === 1 ? 'beat' : 'beats'} this {timeRange}
-              </span>
+
+            <div className="flex items-center gap-1">
+              <span className="text-3xl font-bold leading-none">{totalBeatsInPeriod}</span>
+              {totalBeatsInPeriod > 0 ? (
+                <TrendingUp className="h-4 w-4 text-green-500" />
+              ) : null}
             </div>
-            <h3 className="font-medium text-foreground text-sm sm:text-base">
-              {selectedProject ? 'Project Beats' : 'Total Beats'}
-            </h3>
+
+            <span className="text-sm text-muted-foreground">beats this {timeRange}</span>
+            <span className="text-sm font-semibold text-foreground">Total Beats</span>
           </div>
 
-          <TimeRangeSelector
-            timeRange={timeRange}
-            onTimeRangeChange={setTimeRange}
-            className="w-full md:w-auto"
-          />
+          {/* Title Block */}
+          <div className="text-center sm:text-right">
+            <h2 className="text-base sm:text-lg font-semibold leading-tight">Beat Creation Activity</h2>
+            <p className="text-sm text-muted-foreground">Last {timeRange === 'day' ? '24 hours' : timeRange === 'week' ? '7 days' : '12 months'}</p>
+          </div>
         </div>
 
-        <div className="h-[200px] sm:h-[250px] lg:h-[300px] relative z-0 bg-transparent">
-          <BeatsChart
-            key={refreshKey}
-            timeRange={timeRange}
+        <div className="flex justify-between items-center mt-3 mb-1">
+          <div className="flex items-center gap-2 bg-muted p-1 rounded-md">
+            <button
+              onClick={() => setChartType('bar')}
+              aria-label="Switch to bar chart view"
+              className={cn(
+                "p-2 rounded-md transition-colors",
+                chartType === 'bar'
+                  ? "bg-violet-500/15 text-violet-500"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <BarChart className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setChartType('line')}
+              aria-label="Switch to line chart view"
+              className={cn(
+                "p-2 rounded-md transition-colors",
+                chartType === 'line'
+                  ? "bg-violet-500/15 text-violet-500"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <LineChart className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="flex gap-2">
+            {["Day", "Week", "Year"].map((range) => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range.toLowerCase() as 'day' | 'week' | 'year')}
+                className={cn(
+                  "px-3 py-1.5 text-sm rounded-md font-medium transition-colors duration-150",
+                  timeRange === range.toLowerCase()
+                    ? "bg-violet-500/15 text-violet-500 shadow-sm"
+                    : "text-muted-foreground hover:bg-violet-500/7 hover:text-violet-500"
+                )}
+              >
+                {range}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="w-full overflow-x-auto">
+          <BeatBarChart
             projects={projects}
             selectedProject={selectedProject}
+            timeRange={timeRange}
+            chartType={chartType}
           />
         </div>
 

@@ -12,20 +12,17 @@ export function FeedbackButton() {
   return (
     <Button
       onClick={handleFeedbackClick}
+      variant="outline"
       className={cn(
-        'fixed bottom-6 right-6 z-50',
-        'shadow-lg shadow-violet-500/20',
-        'bg-violet-600 hover:bg-violet-700',
-        'dark:bg-violet-600 dark:hover:bg-violet-700',
-        'text-white gap-2 pl-4 pr-5 py-6',
-        'transition-all duration-200 ease-in-out',
-        'hover:shadow-xl hover:shadow-violet-500/30',
-        'hover:-translate-y-0.5',
-        'group'
+        'text-muted-foreground hover:text-primary',
+        'border-border/50 hover:border-primary/50',
+        'bg-transparent hover:bg-primary/5',
+        'transition-all duration-200',
+        'gap-2'
       )}
     >
-      <MessageSquarePlus className="w-5 h-5 transition-transform group-hover:scale-110" />
-      <span className="font-medium">Give Feedback</span>
+      <MessageSquarePlus className="h-4 w-4" />
+      <span>Give Feedback</span>
     </Button>
   )
 }

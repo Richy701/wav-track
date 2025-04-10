@@ -29,16 +29,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <div className="border-b border-zinc-200 dark:border-zinc-800">
             <div className="flex h-16 items-center px-4 sm:px-6">
               <div className="ml-auto flex items-center space-x-2 sm:space-x-4">
+                <FeedbackButton />
                 <UserNav />
               </div>
             </div>
           </div>
-          <div className="flex-1 space-y-4 p-4 sm:p-6 lg:p-8 pt-6 overflow-x-hidden">
+          <div className="flex-1 space-y-6 p-4 sm:p-6 lg:p-8 pt-8 sm:pt-10 lg:pt-12 overflow-x-hidden">
             {children}
           </div>
         </div>
       </div>
-      <FeedbackButton />
     </div>
   )
 }

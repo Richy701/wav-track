@@ -11,6 +11,7 @@ import { Json, Database } from '@/integrations/supabase/types'
 import { PostgrestSingleResponse, PostgrestError } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
 import { WelcomeModal } from '@/components/WelcomeModal'
+import { createClientComponentClient, type SupabaseClient } from '@supabase/auth-helpers-nextjs'
 
 export interface Profile {
   id: string
@@ -272,41 +273,35 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
     })
   }
 
-  const handleNewUser = async (session: Session) => {
-    if (!session.user) return null
-    
-    const defaultProfile = createDefaultProfile(
-      session.user.id,
-      session.user.email!,
-      session.user.user_metadata?.name || session.user.email?.split('@')[0] || null
-    )
-
+  const handleNewUser = async (user: User) => {
     try {
-      const { data: newProfile, error: createError } = await supabase
+      const defaultProfile = {
+        id: user.id,
+        email: user.email!,
+        name: user.user_metadata.name || null,
+        artist_name: null,
+        bio: null,
+        location: null,
+        website: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      } satisfies ProfileInsert
+
+      const { data: newProfile, error: insertError } = await supabase
         .from('profiles')
         .insert(defaultProfile)
         .select()
         .single()
 
-      if (createError) {
-        console.error('[Debug] Error creating profile:', createError)
-        toast({
-          variant: 'destructive',
-          title: 'Profile Error',
-          description: 'Failed to create profile. Please try again.',
-        })
-        return null
-      }
-
-      if (!newProfile) {
-        console.error('[Debug] No profile created')
-        return null
+      if (insertError || !newProfile) {
+        console.error('[Auth] Error creating profile:', insertError)
+        throw insertError
       }
 
       return convertProfileFromDb(newProfile)
     } catch (error) {
-      console.error('[Debug] Error in handleNewUser:', error)
-      return null
+      console.error('[Auth] Error in handleNewUser:', error)
+      throw error
     }
   }
 

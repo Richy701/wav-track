@@ -616,6 +616,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                       selected={new Date(formData.dateCreated)}
                       onSelect={handleDateChange}
                       initialFocus
+                      className="rounded-md border shadow"
                     />
                   </PopoverContent>
                 </Popover>

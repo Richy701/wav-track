@@ -1,6 +1,4 @@
 import { LoginForm } from '@/components/auth/LoginForm'
-import { FeatureList } from '@/components/features/FeatureList'
-import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 export default function LoginPage() {
@@ -30,14 +28,6 @@ export default function LoginPage() {
         </div>
 
         <LoginForm />
-
-        {/* Features section */}
-        <div className="mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-800">
-          <h2 className="text-center text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-6">
-            Why choose WavTrack?
-          </h2>
-          <FeatureList />
-        </div>
       </div>
     </div>
   )
