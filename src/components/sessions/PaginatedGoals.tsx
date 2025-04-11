@@ -121,7 +121,7 @@ export const PaginatedGoals: React.FC<PaginatedGoalsProps> = ({
     <div className={cn("space-y-4", className)}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Target className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
+          <Target className="w-5 h-5 text-neutral-600 dark:text-neutral-400 -mt-2" />
           <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">Recent Goals</h3>
         </div>
         {goals.length > 0 && (

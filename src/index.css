@@ -12,12 +12,17 @@
 @layer base {
   /* Allow transitions for theme-related properties */
   * {
-    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out !important;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out !important;
+  }
+
+  /* Prevent text opacity transitions when switching themes */
+  p, h1, h2, h3, h4, h5, h6, span, div, a, li, button, input, textarea, label, .text-foreground, .text-muted-foreground, [class*="text-"] {
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out !important;
   }
 
   /* Only allow specific hover transitions */
   *:hover {
-    transition-property: transform, box-shadow, background-color, border-color, color !important;
+    transition-property: transform, box-shadow, background-color, border-color !important;
     transition-duration: 0.2s !important;
     transition-timing-function: ease-out !important;
   }

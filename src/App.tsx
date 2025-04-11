@@ -217,10 +217,9 @@ const router = createBrowserRouter(
   ),
   {
     future: {
-      v7_relativeSplatPath: true
-      // Note: React Router v7 will use React.startTransition for state updates
-      // We can't add v7_startTransition here due to TypeScript type constraints
-    }
+      v7_relativeSplatPath: true,
+      v7_startTransition: true
+    } as Partial<{ v7_relativeSplatPath: boolean; v7_startTransition: boolean }>
   }
 )
 

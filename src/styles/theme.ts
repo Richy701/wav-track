@@ -83,8 +83,7 @@ export const theme = {
     muted: cn('text-zinc-500 dark:text-zinc-400'),
     link: cn(
       'text-primary/90 dark:text-primary/80',
-      'hover:text-primary dark:hover:text-primary',
-      'transition-colors duration-200'
+      'hover:text-primary dark:hover:text-primary'
     ),
   },
 
@@ -119,7 +118,7 @@ export const theme = {
 
   // Animation classes
   animation: {
-    fadeUp: cn('opacity-0 translate-y-2', 'animate-fade-up', 'transition-all duration-500'),
-    fadeIn: cn('opacity-0', 'animate-fade-in', 'transition-opacity duration-500'),
+    fadeUp: cn('opacity-0 translate-y-2', 'animate-fade-up', 'transition-transform duration-500'),
+    fadeIn: cn('opacity-0', 'animate-fade-in', 'transition-none duration-500'),
   },
 } as const

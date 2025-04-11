@@ -223,11 +223,8 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: 'easeOut' }}
             >
-              {/* Glow Effect */}
-              <div className="absolute inset-0 z-[-1] blur-2xl bg-gradient-to-br from-purple-400/30 to-purple-600/30" />
-              
               {/* Glassmorphism Container */}
-              <div className="bg-black/30 backdrop-blur-md rounded-xl px-6 py-4 shadow-xl shadow-purple-700/20">
+              <div className="bg-black/30 backdrop-blur-md rounded-xl px-6 py-4">
                 <div className="relative">
                   <div className="text-5xl font-bold tracking-tighter bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent">
                     WT

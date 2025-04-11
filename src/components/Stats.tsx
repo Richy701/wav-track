@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import {
   ChartLineUp,
   PencilSimple,
@@ -32,6 +32,8 @@ import { Badge } from './ui/badge'
 import { useProjects } from '@/hooks/useProjects'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { BarChart, LineChart } from 'lucide-react'
+import { MonthlyBreakdownDialog } from './stats/MonthlyBreakdownDialog'
+import { YearInReviewDialog } from './stats/YearInReviewDialog'
 
 interface StatsProps {
   sessions: Session[]
@@ -64,6 +66,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
   const [refreshKey, setRefreshKey] = useState(0)
   const [yearInReview, setYearInReview] = useState<YearInReview | null>(null)
   const [showYearInReview, setShowYearInReview] = useState(false)
+  const [showMonthlyBreakdown, setShowMonthlyBreakdown] = useState(false)
   const [isGeneratingReview, setIsGeneratingReview] = useState(false)
   const [chartType, setChartType] = useState<'bar' | 'line'>('bar')
 
@@ -266,7 +269,8 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
     }
   }
 
-  const generateYearInReview = async () => {
+  // Memoize the year in review data generation
+  const generateYearInReview = useCallback(async () => {
     const currentYear = new Date().getFullYear()
     const yearStart = new Date(currentYear, 0, 1)
 
@@ -274,62 +278,98 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
     const yearProjects = projects.filter(p => new Date(p.dateCreated) >= yearStart)
     const yearSessions = sessions.filter(s => new Date(s.created_at) >= yearStart)
 
-    // Calculate year-specific stats
-    const yearBeats = await Promise.all(
-      yearProjects.map(project => getBeatsCreatedByProject(project.id))
-    ).then(counts => counts.reduce((total, count) => total + count, 0))
-    
-    const yearCompleted = yearProjects.filter(p => p.status === 'completed').length
-    const yearStudioTime = yearSessions.reduce((total, session) => total + session.duration, 0)
-    const yearHours = Math.floor(yearStudioTime / 60)
+    // Calculate year-specific stats in parallel
+    const [yearBeats, yearCompleted, yearStudioTime, monthlyStats, topGenres] = await Promise.all([
+      // Calculate total beats
+      Promise.all(yearProjects.map(project => getBeatsCreatedByProject(project.id)))
+        .then(counts => counts.reduce((total, count) => total + count, 0)),
+      
+      // Calculate completed projects
+      yearProjects.filter(p => p.status === 'completed').length,
+      
+      // Calculate studio time
+      yearSessions.reduce((total, session) => total + session.duration, 0),
+      
+      // Calculate monthly stats
+      Promise.all(
+        Array.from({ length: 12 }, async (_, i) => {
+          const monthStart = new Date(currentYear, i, 1)
+          const monthEnd = new Date(currentYear, i + 1, 0)
+          const monthProjects = yearProjects.filter(p => {
+            const date = new Date(p.dateCreated)
+            return date >= monthStart && date <= monthEnd
+          })
+          const monthSessions = yearSessions.filter(s => {
+            const date = new Date(s.created_at)
+            return date >= monthStart && date <= monthEnd
+          })
 
-    // Calculate monthly distribution
-    const monthlyStats = await Promise.all(
-      Array.from({ length: 12 }, async (_, i) => {
-        const monthStart = new Date(currentYear, i, 1)
-        const monthEnd = new Date(currentYear, i + 1, 0)
-        const monthProjects = yearProjects.filter(p => {
-          const date = new Date(p.dateCreated)
-          return date >= monthStart && date <= monthEnd
+          const monthBeats = await Promise.all(
+            monthProjects.map(project => getBeatsCreatedByProject(project.id))
+          ).then(counts => counts.reduce((total, count) => total + count, 0))
+
+          return {
+            month: format(monthStart, 'MMM'),
+            beats: monthBeats,
+            completed: monthProjects.filter(p => p.status === 'completed').length,
+            studioTime: monthSessions.reduce((total, s) => total + s.duration, 0),
+          }
         })
-        const monthSessions = yearSessions.filter(s => {
-          const date = new Date(s.created_at)
-          return date >= monthStart && date <= monthEnd
-        })
-
-        const monthBeats = await Promise.all(
-          monthProjects.map(project => getBeatsCreatedByProject(project.id))
-        ).then(counts => counts.reduce((total, count) => total + count, 0))
-
-        return {
-          month: format(monthStart, 'MMM'),
-          beats: monthBeats,
-          completed: monthProjects.filter(p => p.status === 'completed').length,
-          studioTime: monthSessions.reduce((total, s) => total + s.duration, 0),
-        }
-      })
-    )
+      ),
+      
+      // Calculate top genres
+      Promise.resolve(
+        Object.entries(
+          yearProjects.reduce(
+            (acc, p) => {
+              acc[p.genre || 'Uncategorized'] = (acc[p.genre || 'Uncategorized'] || 0) + 1
+              return acc
+            },
+            {} as Record<string, number>
+          )
+        )
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 3)
+          .map(([genre]) => genre)
+      )
+    ])
 
     return {
       year: currentYear,
       totalBeats: yearBeats,
       completedProjects: yearCompleted,
-      studioTime: `${yearHours} hours`,
+      studioTime: `${Math.floor(yearStudioTime / 60)} hours`,
       monthlyStats,
-      topGenres: Object.entries(
-        yearProjects.reduce(
-          (acc, p) => {
-            acc[p.genre || 'Uncategorized'] = (acc[p.genre || 'Uncategorized'] || 0) + 1
-            return acc
-          },
-          {} as Record<string, number>
-        )
-      )
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 3)
-        .map(([genre]) => genre),
+      topGenres,
     }
-  }
+  }, [projects, sessions])
+
+  // Pre-calculate year in review data when projects or sessions change
+  useEffect(() => {
+    let isMounted = true
+
+    const preCalculateYearInReview = async () => {
+      try {
+        const review = await generateYearInReview()
+        if (isMounted) {
+          setYearInReview(review)
+          setIsGeneratingReview(false)
+        }
+      } catch (error) {
+        console.error('Error pre-calculating year in review:', error)
+        if (isMounted) {
+          setIsGeneratingReview(false)
+        }
+      }
+    }
+
+    setIsGeneratingReview(true)
+    preCalculateYearInReview()
+
+    return () => {
+      isMounted = false
+    }
+  }, [generateYearInReview])
 
   const handleExportCSV = async () => {
     const yearReview = generateYearInReview()
@@ -373,17 +413,12 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
     })
   }
 
-  const handleGenerateYearInReview = async () => {
-    try {
-      setIsGeneratingReview(true)
-      const review = await generateYearInReview()
-      setYearInReview(review)
-      setShowYearInReview(true)
-    } catch (error) {
-      console.error('Error generating year in review:', error)
-    } finally {
-      setIsGeneratingReview(false)
-    }
+  const handleMonthlyBreakdown = () => {
+    setShowMonthlyBreakdown(true)
+  }
+
+  const handleYearInReview = () => {
+    setShowYearInReview(true)
   }
 
   return (
@@ -566,7 +601,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
             </button>
 
             <button
-              onClick={handleExportCSV}
+              onClick={handleMonthlyBreakdown}
               className="h-[140px] p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 via-teal-500/15 to-cyan-500/20 border border-emerald-500/20 hover:from-emerald-500/20 hover:via-teal-500/25 hover:to-cyan-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-center w-full group relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 via-teal-500/0 to-cyan-500/0 group-hover:from-emerald-500/5 group-hover:via-teal-500/10 group-hover:to-cyan-500/15 transition-all duration-500" />
@@ -586,7 +621,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
             </button>
 
             <button
-              onClick={handleExportCSV}
+              onClick={handleYearInReview}
               className="h-[140px] p-4 rounded-xl bg-gradient-to-br from-rose-500/10 via-pink-500/15 to-fuchsia-500/20 border border-rose-500/20 hover:from-rose-500/20 hover:via-pink-500/25 hover:to-fuchsia-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-center w-full group relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-rose-500/0 via-pink-500/0 to-fuchsia-500/0 group-hover:from-rose-500/5 group-hover:via-pink-500/10 group-hover:to-fuchsia-500/15 transition-all duration-500" />
@@ -646,32 +681,21 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
         />
       </div>
 
-      {showYearInReview && yearInReview && (
-        <div>
-          <h2>{yearInReview.year} Year in Review</h2>
-          <p>Total Beats: {yearInReview.totalBeats}</p>
-          <p>Completed Projects: {yearInReview.completedProjects}</p>
-          <p>Studio Time: {yearInReview.studioTime}</p>
-          <div>
-            {yearInReview.monthlyStats.map(stat => (
-              <div key={stat.month}>
-                <h3>{stat.month}</h3>
-                <p>Beats: {stat.beats}</p>
-                <p>Completed: {stat.completed}</p>
-                <p>Studio Time: {stat.studioTime} minutes</p>
-              </div>
-            ))}
-          </div>
-          <div>
-            <h3>Top Genres</h3>
-            <ul>
-              {yearInReview.topGenres.map(genre => (
-                <li key={genre}>{genre}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+      {/* Add Dialog Components */}
+      <MonthlyBreakdownDialog
+        isOpen={showMonthlyBreakdown}
+        onOpenChange={setShowMonthlyBreakdown}
+        projects={projects}
+        selectedProject={selectedProject}
+      />
+
+      <YearInReviewDialog
+        isOpen={showYearInReview}
+        onOpenChange={setShowYearInReview}
+        yearInReview={yearInReview}
+        onExport={handleExportCSV}
+        isLoading={isGeneratingReview}
+      />
     </div>
   )
 }
