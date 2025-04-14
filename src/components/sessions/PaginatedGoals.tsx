@@ -214,6 +214,7 @@ export const PaginatedGoals: React.FC<PaginatedGoalsProps> = ({
                           "shadow-sm hover:shadow-md dark:shadow-none"
                         )}
                         onClick={() => onCompleteGoal(goal)}
+                        aria-label="Mark goal as complete"
                       >
                         <Check className="h-3 w-3" />
                       </Button>
@@ -232,6 +233,7 @@ export const PaginatedGoals: React.FC<PaginatedGoalsProps> = ({
                         "shadow-sm hover:shadow-md dark:shadow-none"
                       )}
                       onClick={() => onEditGoal(goal)}
+                      aria-label="Edit goal"
                     >
                       <Edit className="h-3 w-3" />
                     </Button>
@@ -249,6 +251,7 @@ export const PaginatedGoals: React.FC<PaginatedGoalsProps> = ({
                         "shadow-sm hover:shadow-md dark:shadow-none"
                       )}
                       onClick={() => onDeleteGoal(goal)}
+                      aria-label="Delete goal"
                     >
                       <Trash className="h-3 w-3" />
                     </Button>

@@ -149,7 +149,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="min-h-screen bg-background/50 pt-20">
+      <main className="min-h-screen bg-background/50 pt-20">
         {/* Profile Header */}
         <motion.div 
           className="border-b border-muted"
@@ -291,7 +291,7 @@ const Profile = () => {
             <Achievements />
           </motion.div>
         </motion.div>
-      </div>
+      </main>
       <Footer />
     </div>
   )

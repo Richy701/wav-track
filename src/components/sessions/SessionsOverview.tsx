@@ -252,10 +252,10 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className={cn(
-        "relative overflow-hidden rounded-lg p-3",
+        "relative overflow-hidden rounded-lg p-3 pb-0",
         "bg-gradient-to-b from-muted/5 to-muted/10 dark:from-muted/10 dark:to-muted/20",
         "border border-border/50 shadow-lg",
-        "h-[532px]",
+        "h-[480px]",
         "hover:scale-[1.002] hover:shadow-xl transition-all duration-300 ease-in-out",
         activeSession && "border-l-4 border-l-primary/40"
       )}
@@ -299,7 +299,7 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
 
         {/* Stats Summary */}
         {stats && (
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground mb-3">
+          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground mb-2">
             <div className="flex items-center gap-1.5 p-1 rounded-lg bg-muted/5 dark:bg-muted/10 group">
               <Timer className="w-3 h-3 text-[#FACC15]/70 group-hover:text-[#FACC15]" />
               <span>{Math.round(stats.averageDuration)}m avg</span>
@@ -320,10 +320,10 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
         )}
 
         {/* Divider */}
-        <div className="h-px bg-border/20 mb-2" />
+        <div className="h-px bg-border/20 mb-1" />
 
         {/* Recent Activity */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto pb-1">
           <div className="flex items-center justify-between mb-1">
             <h4 className="text-[10px] font-medium text-muted-foreground">Recent Activity</h4>
             {recentSessions.length > 0 && (
@@ -421,7 +421,7 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-1 mt-2">
+        <div className="flex gap-1 mt-1">
           <AnimatePresence mode="wait">
             {!isSessionActive ? (
               <motion.div

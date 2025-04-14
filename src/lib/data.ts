@@ -984,7 +984,10 @@ export const getTotalBeatsInTimeRange = async (
         startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
         break
       case 'week':
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7)
+        // Calculate the start of the current week (Monday)
+        const day = now.getDay()
+        const diff = day === 0 ? 6 : day - 1 // If Sunday (0), go back 6 days, otherwise go back (day-1) days
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diff)
         break
       case 'month':
         startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())

@@ -35,8 +35,10 @@ const Footer = () => {
                 className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
+                aria-label="Follow WavTrack on Twitter"
               >
                 <TwitterLogo weight="fill" className="h-5 w-5" />
+                <span className="sr-only">Follow WavTrack on Twitter</span>
               </motion.a>
               <motion.a
                 href="https://instagram.com/wavtrack"
@@ -45,8 +47,10 @@ const Footer = () => {
                 className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
+                aria-label="Follow WavTrack on Instagram"
               >
                 <InstagramLogo weight="fill" className="h-5 w-5" />
+                <span className="sr-only">Follow WavTrack on Instagram</span>
               </motion.a>
               <motion.a
                 href="https://youtube.com/wavtrack"
@@ -55,8 +59,10 @@ const Footer = () => {
                 className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
+                aria-label="Subscribe to WavTrack on YouTube"
               >
                 <YoutubeLogo weight="fill" className="h-5 w-5" />
+                <span className="sr-only">Subscribe to WavTrack on YouTube</span>
               </motion.a>
               <motion.a
                 href="https://discord.gg/wavtrack"
@@ -65,8 +71,10 @@ const Footer = () => {
                 className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
+                aria-label="Join WavTrack Discord community"
               >
                 <DiscordLogo />
+                <span className="sr-only">Join WavTrack Discord community</span>
               </motion.a>
             </div>
 

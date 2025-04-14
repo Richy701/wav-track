@@ -218,6 +218,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
             aria-label="Switch to bar chart view"
           >
             <BarChart3 className="h-5 w-5" />
+            <span className="sr-only">Bar Chart</span>
           </button>
           <button
             onClick={() => setChartView('line')}
@@ -230,6 +231,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
             aria-label="Switch to line chart view"
           >
             <LineChartIcon className="h-5 w-5" />
+            <span className="sr-only">Line Chart</span>
           </button>
         </div>
       </div>

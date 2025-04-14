@@ -723,13 +723,14 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                             ? 'bg-gradient-to-br from-emerald-400 to-emerald-500 dark:from-violet-500 dark:via-fuchsia-600 dark:to-purple-700 shadow-lg shadow-emerald-500/30 dark:shadow-purple-900/40'
                             : 'bg-gradient-to-br from-emerald-300 to-emerald-400 hover:from-emerald-400 hover:to-emerald-500 dark:from-violet-400 dark:via-fuchsia-500 dark:to-purple-600 shadow-md shadow-emerald-500/20 dark:shadow-purple-900/30'
                         )}
-                        aria-label={isPlaying ? 'Pause Preview' : 'Play Preview'}
+                        aria-label={isPlaying ? 'Pause audio preview' : 'Play audio preview'}
                       >
                         {isPlaying ? (
                           <Pause className="h-6 w-6 text-white drop-shadow-sm" weight="fill" />
                         ) : (
                           <Play className="h-6 w-6 ml-0.5 text-white drop-shadow-sm" weight="fill" />
                         )}
+                        <span className="sr-only">{isPlaying ? 'Pause' : 'Play'}</span>
                       </button>
                     </div>
                     {isAnalyzing && (

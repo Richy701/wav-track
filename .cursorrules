@@ -35,4 +35,47 @@
 // - Consider adding a "Back to Top" text label for better accessibility
 // - Add more social media links as needed
 // - Consider adding a newsletter signup form
-// - Add links to Privacy Policy, Terms of Service, etc. 
+// - Add links to Privacy Policy, Terms of Service, etc.
+
+// Heading Level Hierarchy Rules
+// This file provides guidance for maintaining proper heading level hierarchy
+
+// Heading Level Rules
+// - Heading levels should only increase by one level at a time
+// - Example: h1 -> h2 -> h3 (correct)
+// - Example: h1 -> h3 (incorrect, missing h2)
+// - Example: h2 -> h4 (incorrect, missing h3)
+
+// Implementation Guidelines
+// - Use the Typography component for all headings
+// - Available heading variants: h1, h2, h3, h4
+// - Each heading level should be semantically meaningful
+// - Avoid skipping heading levels for visual styling
+// - Use CSS classes for visual styling instead of heading levels
+
+// Best Practices
+// - Start with h1 for the main page title
+// - Use h2 for major sections
+// - Use h3 for subsections
+// - Use h4 for minor sections
+// - Use appropriate text styling classes for visual hierarchy
+// - Maintain consistent heading structure across pages
+
+// Example Usage
+// <Typography variant="h1">Page Title</Typography>
+// <Typography variant="h2">Major Section</Typography>
+// <Typography variant="h3">Subsection</Typography>
+// <Typography variant="h4">Minor Section</Typography>
+
+// Visual Styling
+// - Use text-fluid-* classes for responsive font sizes
+// - Use font-* classes for font weights
+// - Use tracking-* classes for letter spacing
+// - Use mb-* classes for margin bottom
+// - Use text-* classes for text colors
+
+// Accessibility
+// - Proper heading hierarchy improves screen reader navigation
+// - Each page should have exactly one h1
+// - Headings should be used for structure, not styling
+// - Use appropriate ARIA labels when needed 

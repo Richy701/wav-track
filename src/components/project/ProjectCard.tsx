@@ -301,25 +301,25 @@ export default function ProjectCard({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={handlePlayPause}
                     className={cn(
-                      'play-button w-14 h-14 rounded-full transition-all duration-300',
+                      'w-12 h-12 rounded-full transition-all duration-300',
                       'flex items-center justify-center',
                       'focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2 focus:ring-offset-background',
-                      'transform hover:scale-105',
-                      !project.audio_url?.trim()
-                        ? 'bg-gradient-to-br from-emerald-200 to-emerald-300 dark:from-violet-400/40 dark:via-fuchsia-500/40 dark:to-purple-600/40 opacity-60 cursor-not-allowed'
-                        : isPlaying
-                          ? 'bg-gradient-to-br from-emerald-400 to-emerald-500 dark:from-violet-500 dark:via-fuchsia-600 dark:to-purple-700 shadow-lg shadow-emerald-500/30 dark:shadow-purple-900/40'
-                          : 'bg-gradient-to-br from-emerald-300 to-emerald-400 hover:from-emerald-400 hover:to-emerald-500 dark:from-violet-400 dark:via-fuchsia-500 dark:to-purple-600 shadow-md shadow-emerald-500/20 dark:shadow-purple-900/30 hover:shadow-lg hover:shadow-emerald-500/25 dark:hover:shadow-purple-900/35'
+                      'transform hover:scale-105 active:scale-95',
+                      'hover:shadow-lg hover:shadow-emerald-500/25 dark:hover:shadow-purple-900/35',
+                      isPlaying
+                        ? 'bg-gradient-to-br from-emerald-400 to-emerald-500 dark:from-violet-500 dark:via-fuchsia-600 dark:to-purple-700 shadow-lg shadow-emerald-500/30 dark:shadow-purple-900/40'
+                        : 'bg-gradient-to-br from-emerald-300 to-emerald-400 hover:from-emerald-400 hover:to-emerald-500 dark:from-violet-400 dark:via-fuchsia-500 dark:to-purple-600 shadow-md shadow-emerald-500/20 dark:shadow-purple-900/30'
                     )}
-                    aria-label={isPlaying ? 'Pause Preview' : 'Play Preview'}
+                    onClick={handlePlayPause}
+                    aria-label={isPlaying ? 'Pause audio preview' : 'Play audio preview'}
                   >
                     {isPlaying ? (
                       <Pause className="h-7 w-7 text-white drop-shadow-md" weight="fill" />
                     ) : (
                       <Play className="h-7 w-7 ml-0.5 text-white drop-shadow-md" weight="fill" />
                     )}
+                    <span className="sr-only">{isPlaying ? 'Pause' : 'Play'}</span>
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>

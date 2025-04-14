@@ -392,10 +392,10 @@ export type Database = {
         Row: {
           id: string
           email: string
-          created_at?: string
+          created_at: string
         }
         Insert: {
-          id: string
+          id?: string
           email: string
           created_at?: string
         }

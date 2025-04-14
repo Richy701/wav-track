@@ -423,7 +423,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6 animate-fade-in">
-      <div className="bg-card rounded-lg p-3 sm:p-4 lg:p-6 lg:col-span-3 overflow-hidden">
+      <div className="bg-card rounded-lg p-3 sm:p-4 lg:p-6 lg:col-span-3 overflow-hidden flex flex-col">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
           {/* Stat Block */}
           <div className="flex flex-col items-start gap-2 font-sans">
@@ -495,13 +495,15 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
           </div>
         </div>
 
-        <div className="w-full overflow-x-auto">
-          <BeatBarChart
-            projects={projects}
-            selectedProject={selectedProject}
-            timeRange={timeRange}
-            chartType={chartType}
-          />
+        <div className="w-full overflow-x-auto flex-grow">
+          <div className="h-[300px]">
+            <BeatBarChart
+              projects={projects}
+              selectedProject={selectedProject}
+              timeRange={timeRange}
+              chartType={chartType}
+            />
+          </div>
         </div>
 
         {/* Achievements Section */}
