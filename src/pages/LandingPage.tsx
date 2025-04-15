@@ -219,7 +219,9 @@ export default function LandingPage() {
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 50vw"
                 priority={true}
                 fetchPriority="high"
-                quality={85}
+                quality={LANDING_PAGE_IMAGES.hero.quality}
+                widths={LANDING_PAGE_IMAGES.hero.widths}
+                blurUrl={LANDING_PAGE_IMAGES.hero.blurUrl}
               />
               <div className="absolute inset-0 flex items-center justify-center">
                 <motion.div 

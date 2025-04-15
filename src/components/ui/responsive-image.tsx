@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { generateSrcSet, generateSizes } from '@/lib/image-utils';
+import { cn } from '@/lib/utils';
 
 interface ResponsiveImageProps {
   src: string;
@@ -10,6 +11,7 @@ interface ResponsiveImageProps {
   quality?: number;
   widths?: number[];
   fetchPriority?: 'high' | 'low' | 'auto';
+  blurUrl?: string;
 }
 
 export function ResponsiveImage({
@@ -18,10 +20,14 @@ export function ResponsiveImage({
   className = '',
   sizes,
   priority = false,
-  quality = 80,
+  quality = 75,
   widths = [480, 768, 1024, 1920],
   fetchPriority = 'auto',
+  blurUrl,
 }: ResponsiveImageProps) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isBlurLoaded, setIsBlurLoaded] = useState(false);
+
   // Generate WebP and AVIF versions of the URL
   const webpSrc = src.replace(/\.(jpg|jpeg|png)$/i, '.webp');
   const avifSrc = src.replace(/\.(jpg|jpeg|png)$/i, '.avif');
@@ -40,18 +46,30 @@ export function ResponsiveImage({
     : fetchPriority;
 
   // Create a safe img props object that includes fetchpriority as a data attribute
-  // This avoids the React warning while still allowing the attribute to be set
   const imgProps: React.ImgHTMLAttributes<HTMLImageElement> = {
     src,
     srcSet: jpgSrcSet,
     sizes: sizesAttr,
     alt,
-    className,
+    className: cn(
+      className,
+      isLoading && blurUrl ? 'scale-110 blur-2xl grayscale' : 'scale-100 blur-0 grayscale-0',
+      'transition-all duration-300'
+    ),
     loading: priority ? 'eager' : 'lazy',
     decoding: priority ? 'sync' : 'async',
-    // Use data-fetchpriority instead of fetchpriority to avoid React warnings
     'data-fetchpriority': effectiveFetchPriority,
+    onLoad: () => setIsLoading(false),
   };
+
+  // Preload blur image if provided
+  useEffect(() => {
+    if (blurUrl) {
+      const img = new Image();
+      img.src = blurUrl;
+      img.onload = () => setIsBlurLoaded(true);
+    }
+  }, [blurUrl]);
 
   return (
     <picture>
