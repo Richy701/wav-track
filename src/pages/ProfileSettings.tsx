@@ -22,7 +22,6 @@ import {
   FloppyDisk,
   MusicNote,
   InstagramLogo,
-  TwitterLogo,
   YoutubeLogo,
   X,
   Gear,
@@ -54,6 +53,7 @@ import { Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import XLogo from '@/components/XLogo'
 
 interface FormData {
   name: string
@@ -586,12 +586,12 @@ const ProfileSettings = () => {
                   {/* Twitter */}
                   <div className="space-y-4 md:col-span-2">
                     <Label className="flex items-center gap-2 text-sm font-medium">
-                      <TwitterLogo className="h-4 w-4" />
-                      Twitter
+                      <XLogo className="h-4 w-4" />
+                      X (Twitter)
                     </Label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Input
-                        placeholder="Twitter profile URL"
+                        placeholder="X profile URL"
                         value={formData.social_links.twitter ?? ''}
                         onChange={e => handleSocialChange('twitter', 'url', e.target.value)}
                         className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"

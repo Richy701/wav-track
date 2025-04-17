@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import {
-  TwitterLogo,
   InstagramLogo,
   YoutubeLogo,
   Copyright,
@@ -8,6 +7,7 @@ import {
 import { FeedbackButton } from '@/components/dashboard/FeedbackButton'
 import { ScrollToTop } from '@/components/ScrollToTop'
 import { motion } from 'framer-motion'
+import XLogo from '@/components/XLogo'
 
 const DiscordLogo = () => (
   <svg
@@ -35,10 +35,10 @@ const Footer = () => {
                 className="hover:text-primary transition-colors hover:scale-110 transform duration-200"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
-                aria-label="Follow WavTrack on Twitter"
+                aria-label="Follow WavTrack on X (formerly Twitter)"
               >
-                <TwitterLogo weight="fill" className="h-5 w-5" />
-                <span className="sr-only">Follow WavTrack on Twitter</span>
+                <XLogo className="h-5 w-5" />
+                <span className="sr-only">Follow WavTrack on X (formerly Twitter)</span>
               </motion.a>
               <motion.a
                 href="https://instagram.com/wavtrack"

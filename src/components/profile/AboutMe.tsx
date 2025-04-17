@@ -6,11 +6,11 @@ import {
   MusicNotes,
   ShareNetwork,
   InstagramLogo,
-  TwitterLogo,
   YoutubeLogo,
   Envelope,
 } from '@phosphor-icons/react'
 import { useAuth } from '@/contexts/AuthContext'
+import XLogo from '@/components/XLogo'
 import {
   FLStudioIcon,
   AbletonIcon,
@@ -54,11 +54,11 @@ export function AboutMe() {
       className: 'text-[#E4405F] dark:text-[#E4405F] bg-[#E4405F]/5 dark:bg-[#E4405F]/10',
     },
     {
-      name: 'Twitter',
-      icon: <TwitterLogo weight="fill" className="h-4 w-4" />,
+      name: 'X (Twitter)',
+      icon: <XLogo className="h-4 w-4" />,
       href: profile?.social_links?.twitter || '#',
-      username: profile?.social_links?.twitter_username || 'Add Twitter',
-      className: 'text-[#1DA1F2] dark:text-[#1DA1F2] bg-[#1DA1F2]/5 dark:bg-[#1DA1F2]/10',
+      username: profile?.social_links?.twitter_username || 'Add X',
+      className: 'text-[#000000] dark:text-[#FFFFFF] bg-[#000000]/5 dark:bg-[#FFFFFF]/10',
     },
     {
       name: 'YouTube',
