@@ -1,6 +1,7 @@
 import React from 'react'
+
 import { useNavigate } from 'react-router-dom'
-import { User, Settings, LogOut } from 'lucide-react'
+import { UserIcon as UserSolid, Cog6ToothIcon as CogSolid, ArrowRightOnRectangleIcon as ArrowRightSolid } from '@heroicons/react/24/solid'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,11 +68,11 @@ const UserMenu = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => navigate('/profile')}>
-          <User className="mr-2 h-4 w-4" />
+          <UserSolid className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate('/profile/settings')}>
-          <Settings className="mr-2 h-4 w-4" />
+          <CogSolid className="mr-2 h-4 w-4" />
           <span>Settings</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -79,7 +80,7 @@ const UserMenu = () => {
           onClick={handleSignOut}
           className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
         >
-          <LogOut className="mr-2 h-4 w-4" />
+          <ArrowRightSolid className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

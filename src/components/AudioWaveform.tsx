@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Play, Pause, Volume2, VolumeX } from 'lucide-react'
+import { PlayIcon, PauseIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/24/outline'
 import { cn } from '@/lib/utils'
 import { useTheme } from 'next-themes'
 
@@ -144,9 +144,9 @@ export default function AudioWaveform({
           className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center transition-colors"
         >
           {isPlaying ? (
-            <Pause size={16} className="text-primary-foreground" />
+            <PauseIcon className="h-4 w-4 text-primary-foreground" />
           ) : (
-            <Play size={16} className="text-primary-foreground ml-0.5" />
+            <PlayIcon className="h-4 w-4 text-primary-foreground ml-0.5" />
           )}
         </button>
 
@@ -155,7 +155,7 @@ export default function AudioWaveform({
             onClick={toggleMute}
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
-            {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            {isMuted ? <SpeakerXMarkIcon className="h-4 w-4" /> : <SpeakerWaveIcon className="h-4 w-4" />}
           </button>
           <input
             type="range"

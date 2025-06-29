@@ -2,7 +2,7 @@ import { Button } from '../ui/button'
 import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { NotificationSound, playNotificationSound } from './timerUtils'
-import { Volume2, Plus, Minus, Clock, Bell, ArrowRight } from 'lucide-react'
+import { SpeakerWaveIcon, PlusIcon, MinusIcon, ClockIcon, BellIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
 import { Slider } from '../ui/slider'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
@@ -74,7 +74,7 @@ export function TimerSettings({
       <motion.div variants={item} className="space-y-3">
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-emerald-500/10 flex items-center justify-center shadow-inner shadow-emerald-500/5">
-            <Clock className="h-3.5 w-3.5 text-emerald-500" />
+            <ClockIcon className="h-3.5 w-3.5 text-emerald-500" />
           </div>
           <h3 className="text-sm font-medium bg-gradient-to-r from-emerald-500 to-emerald-300 bg-clip-text text-transparent">Timer Durations</h3>
         </div>
@@ -94,7 +94,7 @@ export function TimerSettings({
                 onClick={() => adjustDuration('work', false)}
                 disabled={workDuration <= 1}
               >
-                <Minus className="h-3 w-3" />
+                <MinusIcon className="h-3 w-3" />
               </Button>
               <Slider
                 value={[workDuration]}
@@ -111,7 +111,7 @@ export function TimerSettings({
                 onClick={() => adjustDuration('work', true)}
                 disabled={workDuration >= 60}
               >
-                <Plus className="h-3 w-3" />
+                <PlusIcon className="h-3 w-3" />
               </Button>
             </div>
           </div>
@@ -130,7 +130,7 @@ export function TimerSettings({
                 onClick={() => adjustDuration('break', false)}
                 disabled={breakDuration <= 1}
               >
-                <Minus className="h-3 w-3" />
+                <MinusIcon className="h-3 w-3" />
               </Button>
               <Slider
                 value={[breakDuration]}
@@ -147,7 +147,7 @@ export function TimerSettings({
                 onClick={() => adjustDuration('break', true)}
                 disabled={breakDuration >= 30}
               >
-                <Plus className="h-3 w-3" />
+                <PlusIcon className="h-3 w-3" />
               </Button>
             </div>
           </div>
@@ -158,7 +158,7 @@ export function TimerSettings({
       <motion.div variants={item} className="space-y-2">
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-amber-500/10 flex items-center justify-center shadow-inner shadow-amber-500/5">
-            <Bell className="h-3.5 w-3.5 text-amber-500" />
+            <BellIcon className="h-3.5 w-3.5 text-amber-500" />
           </div>
           <h3 className="text-sm font-medium bg-gradient-to-r from-amber-500 to-amber-300 bg-clip-text text-transparent">Notification Sound</h3>
         </div>
@@ -187,7 +187,7 @@ export function TimerSettings({
           onClick={applySettings}
         >
           Apply Changes
-          <ArrowRight className="w-3 h-3 ml-1.5" />
+          <ArrowRightIcon className="w-3 h-3 ml-1.5" />
         </Button>
       </motion.div>
     </motion.div>

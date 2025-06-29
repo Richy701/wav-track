@@ -1,18 +1,18 @@
 import { useState, useRef, useEffect } from 'react'
 import {
-  Plus,
-  Calendar as PhCalendar,
-  Sparkle,
-  MusicNote,
-  Timer as PhTimer,
-  Queue as PhQueue,
-  UploadSimple,
-  Tag as PhTag,
-  X as PhX,
-  CircleNotch,
-  Play,
-  Pause,
-} from '@phosphor-icons/react'
+  PlusIcon,
+  CalendarIcon,
+  SparklesIcon,
+  MusicalNoteIcon,
+  ClockIcon,
+  QueueListIcon,
+  ArrowUpTrayIcon,
+  TagIcon,
+  XMarkIcon,
+  ArrowPathIcon,
+  PlayIcon,
+  PauseIcon,
+} from '@heroicons/react/24/outline'
 import { v4 as uuidv4 } from 'uuid'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
@@ -45,7 +45,6 @@ import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { useProjects } from '@/hooks/useProjects'
 import { Badge } from '@/components/ui/badge'
-import { X } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { analyzeAudioWithSpotify, updateProjectWithAnalysis } from '@/lib/services/spotifyAnalysis'
 import { supabase } from '@/lib/supabase'
@@ -416,7 +415,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                 <div className="col-span-3 relative">
                   <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
                     <div className="p-1 rounded-md bg-violet-500/10">
-                      <MusicNote weight="fill" className="h-4 w-4 text-violet-500" />
+                      <MusicalNoteIcon className="h-4 w-4 text-violet-500" />
                     </div>
                   </div>
                   <Input
@@ -466,7 +465,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                 <div className="relative">
                   <div className="absolute left-2.5 top-1/2 -translate-y-1/2 z-10">
                     <div className="p-1 rounded-md bg-pink-500/10">
-                      <PhTag weight="fill" className="h-4 w-4 text-pink-500" />
+                      <TagIcon className="h-4 w-4 text-pink-500" />
                     </div>
                   </div>
                   <Select value="" onValueChange={handleGenreChange} name="genre">
@@ -519,7 +518,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                           className="ml-1 hover:text-pink-600"
                           aria-label={`Remove ${genre} genre`}
                         >
-                          <X className="h-3 w-3" />
+                          <XMarkIcon className="h-3 w-3" />
                         </button>
                       </Badge>
                     ))}
@@ -541,7 +540,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
               <div className="col-span-3 relative">
                 <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
                   <div className="p-1 rounded-md bg-amber-500/10">
-                    <PhTimer weight="fill" className="h-4 w-4 text-amber-500" />
+                    <ClockIcon className="h-4 w-4 text-amber-500" />
                   </div>
                 </div>
                 <Input
@@ -564,7 +563,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
               <div className="col-span-3 relative">
                 <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
                   <div className="p-1 rounded-md bg-emerald-500/10">
-                    <Sparkle weight="fill" className="h-4 w-4 text-emerald-500" />
+                    <SparklesIcon className="h-4 w-4 text-emerald-500" />
                   </div>
                 </div>
                 <Select value={formData.key} onValueChange={value => setFormData(prev => ({ ...prev, key: value }))}>
@@ -602,7 +601,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                     >
                       <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
                         <div className="p-1 rounded-md bg-blue-500/10">
-                          <PhCalendar weight="fill" className="h-4 w-4 text-blue-500" />
+                          <CalendarIcon className="h-4 w-4 text-blue-500" />
                         </div>
                       </div>
                       {formData.dateCreated
@@ -631,7 +630,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
               <div className="col-span-3 relative">
                 <div className="absolute left-2.5 top-1/2 -translate-y-1/2 z-10">
                   <div className="p-1 rounded-md bg-indigo-500/10">
-                    <PhQueue weight="fill" className="h-4 w-4 text-indigo-500" />
+                    <QueueListIcon className="h-4 w-4 text-indigo-500" />
                   </div>
                 </div>
                 <Select value={formData.status} onValueChange={handleStatusChange} name="status">
@@ -700,7 +699,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-4 overflow-hidden">
                         <div className="p-2 rounded-lg bg-background border border-border/50 dark:border-border/30 text-foreground group-hover:border-primary/50 dark:group-hover:border-primary/30 transition-colors">
-                          <MusicNote className="h-5 w-5 animate-pulse-subtle" />
+                          <MusicalNoteIcon className="h-5 w-5 animate-pulse-subtle" />
                         </div>
                         <div className="flex flex-col overflow-hidden">
                           <span className="font-semibold text-foreground truncate max-w-[220px]" title={audioFileName || 'Audio file'}>
@@ -726,16 +725,16 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                         aria-label={isPlaying ? 'Pause audio preview' : 'Play audio preview'}
                       >
                         {isPlaying ? (
-                          <Pause className="h-6 w-6 text-white drop-shadow-sm" weight="fill" />
+                          <PauseIcon className="h-6 w-6 text-white drop-shadow-sm" />
                         ) : (
-                          <Play className="h-6 w-6 ml-0.5 text-white drop-shadow-sm" weight="fill" />
+                          <PlayIcon className="h-6 w-6 ml-0.5 text-white drop-shadow-sm" />
                         )}
                         <span className="sr-only">{isPlaying ? 'Pause' : 'Play'}</span>
                       </button>
                     </div>
                     {isAnalyzing && (
                       <div className="flex items-center gap-2 text-xs text-muted-foreground animate-pulse">
-                        <CircleNotch className="h-3.5 w-3.5 animate-spin" />
+                        <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" />
                         Analyzing audio file...
                       </div>
                     )}
@@ -752,12 +751,12 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
             <Button type="submit" disabled={isAnalyzing} className="w-full h-9 text-sm">
               {isAnalyzing ? (
                 <>
-                  <CircleNotch className="mr-2 h-4 w-4 animate-spin" />
+                  <ArrowPathIcon className="mr-2 h-4 w-4 animate-spin" />
                   Analyzing...
                 </>
               ) : (
                 <>
-                  <Plus className="mr-2 h-4 w-4" />
+                  <PlusIcon className="mr-2 h-4 w-4" />
                   Create Project
                 </>
               )}

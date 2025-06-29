@@ -3,7 +3,7 @@ import { Achievement } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle, Trophy, Star, Clock, Target, Fire, MusicNote } from '@phosphor-icons/react'
+import { CheckCircleIcon, TrophyIcon, StarIcon, ClockIcon, FlagIcon, FireIcon, MusicalNoteIcon } from '@heroicons/react/24/solid'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Spinner } from '@/components/ui/spinner'
 import { Badge } from '@/components/ui/badge'
@@ -60,7 +60,7 @@ const categoryStyles = {
     hover: 'hover:shadow-violet-500/20',
     border: 'border-violet-500/20',
     text: 'text-violet-600 dark:text-violet-400',
-    icon: <MusicNote className="h-full w-full" weight="fill" />
+    icon: <MusicalNoteIcon className="h-full w-full" />
   },
   streak: {
     gradient: 'from-orange-500 to-amber-600',
@@ -69,7 +69,7 @@ const categoryStyles = {
     hover: 'hover:shadow-orange-500/20',
     border: 'border-orange-500/20',
     text: 'text-orange-600 dark:text-orange-400',
-    icon: <Fire className="h-full w-full" weight="fill" />
+    icon: <FireIcon className="h-full w-full" />
   },
   time: {
     gradient: 'from-blue-500 to-indigo-600',
@@ -78,7 +78,7 @@ const categoryStyles = {
     hover: 'hover:shadow-blue-500/20',
     border: 'border-blue-500/20',
     text: 'text-blue-600 dark:text-blue-400',
-    icon: <Clock className="h-full w-full" weight="fill" />
+    icon: <ClockIcon className="h-full w-full" />
   },
   goals: {
     gradient: 'from-emerald-500 to-teal-600',
@@ -87,31 +87,31 @@ const categoryStyles = {
     hover: 'hover:shadow-emerald-500/20',
     border: 'border-emerald-500/20',
     text: 'text-emerald-600 dark:text-emerald-400',
-    icon: <Target className="h-full w-full" weight="fill" />
+    icon: <FlagIcon className="h-full w-full" />
   }
 }
 
 const tierBadges = {
   bronze: {
-    icon: <Trophy className="h-4 w-4" weight="fill" />,
+    icon: <TrophyIcon className="h-4 w-4" />,
     bg: 'bg-amber-500/10',
     text: 'text-amber-600 dark:text-amber-400',
     border: 'border-amber-500/20'
   },
   silver: {
-    icon: <Star className="h-4 w-4" weight="fill" />,
+    icon: <StarIcon className="h-4 w-4" />,
     bg: 'bg-zinc-500/10',
     text: 'text-zinc-600 dark:text-zinc-400',
     border: 'border-zinc-500/20'
   },
   gold: {
-    icon: <Trophy className="h-4 w-4" weight="fill" />,
+    icon: <TrophyIcon className="h-4 w-4" />,
     bg: 'bg-yellow-500/10',
     text: 'text-yellow-600 dark:text-yellow-400',
     border: 'border-yellow-500/20'
   },
   platinum: {
-    icon: <Star className="h-4 w-4" weight="fill" />,
+    icon: <StarIcon className="h-4 w-4" />,
     bg: 'bg-purple-500/10',
     text: 'text-purple-600 dark:text-purple-400',
     border: 'border-purple-500/20'
@@ -184,7 +184,7 @@ export function AchievementCard({ achievement, className, isLoading }: Achieveme
                     transition={{ delay: 0.2 }}
                     className="absolute -top-1 -right-1"
                   >
-                    <CheckCircle className="w-4 h-4 text-green-500" weight="fill" />
+                    <CheckCircleIcon className="w-4 h-4 text-green-500" />
                   </motion.div>
                 )}
               </motion.div>

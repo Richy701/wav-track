@@ -6,7 +6,7 @@ import { useProjects } from '@/hooks/useProjects'
 import UserAvatar from '@/components/UserAvatar'
 import ThemeSwitcher from '@/components/ThemeSwitcher'
 import CreateProjectDialog from '@/components/project/CreateProjectDialog'
-import { Plus, Wrench, House, LayoutDashboard } from '@phosphor-icons/react'
+import { PlusIcon, WrenchScrewdriverIcon, HomeIcon, Squares2X2Icon } from '@heroicons/react/24/outline'
 import { cn } from '@/lib/utils'
 import { getProjects } from '@/lib/data'
 import { Spinner } from '@/components/ui/spinner'
@@ -147,7 +147,7 @@ export default function HeaderActions({
           onClick={() => handleNavigate('/')}
           disabled={location.pathname === '/'}
         >
-          <House className="h-4 w-4 mr-2" />
+          <HomeIcon className="h-4 w-4 mr-2" />
           Home
         </Button>
       )}
@@ -194,7 +194,7 @@ export default function HeaderActions({
               )}
               onClick={() => setIsCreateProjectOpen(true)}
             >
-              <Plus weight="bold" className="h-4 w-4 mr-2" />
+              <PlusIcon className="h-4 w-4 mr-2" />
               New Project
             </Button>
           )}

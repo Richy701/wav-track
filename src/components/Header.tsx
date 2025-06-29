@@ -4,7 +4,7 @@ import HeaderTitle from './header/HeaderTitle'
 import HeaderActions from './header/HeaderActions'
 import { Button } from './ui/button'
 import { Sheet, SheetContent, SheetTrigger, SheetOverlay } from './ui/sheet'
-import { List } from '@phosphor-icons/react'
+import { Bars3Icon } from '@heroicons/react/24/outline'
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false)
@@ -48,7 +48,7 @@ export default function Header() {
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="touch-manipulation text-foreground">
-                <List className="h-5 w-5" />
+                <Bars3Icon className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>

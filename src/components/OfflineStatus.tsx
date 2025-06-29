@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Wifi, WifiOff, CloudOff, RefreshCw } from 'lucide-react'
+import { SignalIcon, SignalSlashIcon, CloudIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import { getDB } from '@/lib/indexedDB'
 import { cn } from '@/lib/utils'
 
@@ -51,14 +51,14 @@ export default function OfflineStatus() {
   return (
     <div className="fixed bottom-4 right-4 flex items-center gap-2 rounded-lg bg-background/80 p-2 shadow-lg backdrop-blur">
       {isOnline ? (
-        <Wifi className="h-4 w-4 text-green-500" />
+        <SignalIcon className="h-4 w-4 text-green-500" />
       ) : (
-        <WifiOff className="h-4 w-4 text-yellow-500" />
+        <SignalSlashIcon className="h-4 w-4 text-yellow-500" />
       )}
 
       {hasPendingSync && (
         <div className="flex items-center gap-1">
-          <RefreshCw className={cn('h-4 w-4 text-blue-500', isSyncing && 'animate-spin')} />
+          <ArrowPathIcon className={cn('h-4 w-4 text-blue-500', isSyncing && 'animate-spin')} />
           <span className="text-xs text-muted-foreground">
             {isSyncing ? 'Syncing...' : 'Changes pending'}
           </span>
@@ -67,7 +67,7 @@ export default function OfflineStatus() {
 
       {!isOnline && !hasPendingSync && (
         <div className="flex items-center gap-1">
-          <CloudOff className="h-4 w-4 text-yellow-500" />
+          <CloudIcon className="h-4 w-4 text-yellow-500" />
           <span className="text-xs text-muted-foreground">Working offline</span>
         </div>
       )}

@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
-import { Music, Coffee } from 'lucide-react'
+import { MusicalNoteIcon, BeakerIcon } from '@heroicons/react/24/outline'
 
 interface TimerModeSelectorProps {
   mode: 'work' | 'break'
@@ -22,7 +22,7 @@ export function TimerModeSelector({ mode, onModeChange }: TimerModeSelectorProps
             : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent"
         )}
       >
-        <Music className="w-4 h-4" />
+        <MusicalNoteIcon className="w-4 h-4" />
         <span className="text-sm">Focus</span>
       </motion.button>
 
@@ -38,7 +38,7 @@ export function TimerModeSelector({ mode, onModeChange }: TimerModeSelectorProps
             : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent"
         )}
       >
-        <Coffee className="w-4 h-4" />
+        <BeakerIcon className="w-4 h-4" />
         <span className="text-sm">Break</span>
       </motion.button>
     </div>

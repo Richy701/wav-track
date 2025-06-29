@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
-import { Play, Pause, SkipForward, RotateCcw } from 'lucide-react'
+import { PlayIcon as PlaySolid, PauseIcon as PauseSolid, ArrowPathIcon as ArrowPathSolid, ForwardIcon as ForwardSolid } from '@heroicons/react/24/solid'
 
 interface TimerControlsProps {
   isRunning: boolean
@@ -34,7 +34,7 @@ export function TimerControls({
             : "text-violet-600/70 hover:bg-violet-100/50 focus:ring-violet-500/50 dark:text-violet-400/70 dark:hover:bg-violet-500/10"
         )}
       >
-        <RotateCcw className="w-5 h-5" />
+        <ArrowPathSolid className="w-5 h-5" />
       </motion.button>
 
       {/* Play/Pause Button */}
@@ -52,9 +52,9 @@ export function TimerControls({
         )}
       >
         {isRunning ? (
-          <Pause className="w-6 h-6 text-white" />
+          <PauseSolid className="w-6 h-6 text-white" />
         ) : (
-          <Play className="w-6 h-6 text-white" />
+          <PlaySolid className="w-6 h-6 text-white" />
         )}
       </motion.button>
 
@@ -71,7 +71,7 @@ export function TimerControls({
             : "text-violet-600/70 hover:bg-violet-100/50 focus:ring-violet-500/50 dark:text-violet-400/70 dark:hover:bg-violet-500/10"
         )}
       >
-        <SkipForward className="w-5 h-5" />
+        <ForwardSolid className="w-5 h-5" />
       </motion.button>
     </div>
   )

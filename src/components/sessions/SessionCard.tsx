@@ -1,7 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { Check, Clock, Edit2, MoreVertical, Play, Pause } from 'lucide-react'
+import { CheckIcon, ClockIcon, PencilIcon, EllipsisVerticalIcon, PlayIcon, PauseIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui/button'
 import { Track } from '@/types/track'
 import {
@@ -175,7 +175,7 @@ export function SessionCard({ track, onComplete, onEdit, onPlay, onPause }: Sess
                     "transition-all duration-200"
                   )}
                 >
-                  <Play className="h-4 w-4" />
+                  <PlayIcon className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -193,7 +193,7 @@ export function SessionCard({ track, onComplete, onEdit, onPlay, onPause }: Sess
                     "transition-all duration-200"
                   )}
                 >
-                  <Edit2 className="h-4 w-4" />
+                  <PencilIcon className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -211,7 +211,7 @@ export function SessionCard({ track, onComplete, onEdit, onPlay, onPause }: Sess
                     "transition-all duration-200"
                   )}
                 >
-                  <Check className="h-4 w-4" />
+                  <CheckIcon className="h-4 w-4" />
                 </Button>
               </>
             )}

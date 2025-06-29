@@ -1,17 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import {
-  ArrowClockwise,
-  Calendar,
-  CheckCircle,
-  DotsThreeVertical,
-  MusicNote,
-  PencilSimple,
-  Trash,
-  Waveform,
-  Lightning,
-  Play,
-  Pause,
-} from '@phosphor-icons/react'
+  ArrowPathIcon,
+  CalendarIcon,
+  CheckCircleIcon,
+  EllipsisVerticalIcon,
+  MusicalNoteIcon,
+  PencilIcon,
+  TrashIcon,
+  ChartBarIcon,
+  BoltIcon,
+  PlayIcon,
+  PauseIcon,
+} from '@heroicons/react/24/outline'
 import { Project } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { updateProject } from '@/lib/data'
@@ -38,7 +38,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Sparkles } from 'lucide-react'
+import { SparklesIcon } from '@heroicons/react/24/outline'
 
 interface ProjectCardProps {
   project: Project
@@ -315,9 +315,9 @@ export default function ProjectCard({
                     aria-label={isPlaying ? 'Pause audio preview' : 'Play audio preview'}
                   >
                     {isPlaying ? (
-                      <Pause className="h-7 w-7 text-white drop-shadow-md" weight="fill" />
+                      <PauseIcon className="h-7 w-7 text-white drop-shadow-md" />
                     ) : (
-                      <Play className="h-7 w-7 ml-0.5 text-white drop-shadow-md" weight="fill" />
+                      <PlayIcon className="h-7 w-7 ml-0.5 text-white drop-shadow-md" />
                     )}
                     <span className="sr-only">{isPlaying ? 'Pause' : 'Play'}</span>
                   </button>
@@ -362,16 +362,16 @@ export default function ProjectCard({
                     className="h-8 w-8 shrink-0"
                     onClick={e => e.stopPropagation()}
                   >
-                    <DotsThreeVertical className="h-4 w-4" />
+                    <EllipsisVerticalIcon className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={handleEditClick} className="gap-2">
-                    <PencilSimple className="h-4 w-4" />
+                    <PencilIcon className="h-4 w-4" />
                     Edit
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleDeleteClick} className="gap-2 text-destructive">
-                    <Trash className="h-4 w-4" />
+                    <TrashIcon className="h-4 w-4" />
                     Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -393,19 +393,19 @@ export default function ProjectCard({
               {/* Project metadata with improved layout */}
               <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
-                  <Calendar className="h-3.5 w-3.5 shrink-0" />
+                  <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">{formatDate(localProject.dateCreated)}</span>
                 </div>
                 <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
-                  <MusicNote className="h-3.5 w-3.5 shrink-0" />
+                  <MusicalNoteIcon className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">{localProject.bpm} BPM</span>
                 </div>
                 <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
-                  <MusicNote className="h-3.5 w-3.5 shrink-0" />
+                  <MusicalNoteIcon className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">{localProject.key}</span>
                 </div>
                 <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
-                  <ArrowClockwise className="h-3.5 w-3.5 shrink-0" />
+                  <ArrowPathIcon className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">Updated {formatTimeAgo(localProject.lastModified)}</span>
                 </div>
               </div>

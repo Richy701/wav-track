@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Music, Upload, X } from 'lucide-react'
+import { MusicalNoteIcon, ArrowUpTrayIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { analyzeAudio, AudioAnalysisResult } from '@/lib/audioAnalysis'
@@ -102,7 +102,7 @@ export function AudioUpload({
         >
           <input {...getInputProps()} />
           <div className="flex items-center gap-2 text-center">
-            <Upload
+            <ArrowUpTrayIcon
               className={cn(
                 'h-3 w-3 transition-colors',
                 isDragActive ? 'text-primary' : 'text-muted-foreground'
@@ -119,7 +119,7 @@ export function AudioUpload({
       ) : (
         <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/5 border border-primary/10">
           <div className="p-1 rounded-md bg-primary/10">
-            <Music className="h-3 w-3 text-primary" />
+            <MusicalNoteIcon className="h-3 w-3 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-medium truncate">{audioFile.name}</p>
@@ -133,7 +133,7 @@ export function AudioUpload({
             className="p-1 rounded-md hover:bg-primary/10 transition-colors"
             aria-label="Remove audio file"
           >
-            <X className="h-3 w-3 text-muted-foreground" />
+            <XMarkIcon className="h-3 w-3 text-muted-foreground" />
           </button>
         </div>
       )}

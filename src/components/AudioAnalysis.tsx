@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Waves, Music, Activity } from 'lucide-react'
+import { WaveformIcon, MusicalNoteIcon, ChartBarIcon } from '@heroicons/react/24/outline'
 import { toast } from 'sonner'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
@@ -41,7 +41,7 @@ export function AudioAnalysis({ audioBuffer, className }: AudioAnalysisProps) {
     <Card className={cn('p-4', className)}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Activity className="h-4 w-4" />
+          <ChartBarIcon className="h-4 w-4" />
           <h3 className="text-sm font-medium">Audio Analysis</h3>
         </div>
         <Button
@@ -66,14 +66,14 @@ export function AudioAnalysis({ audioBuffer, className }: AudioAnalysisProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Waves className="h-4 w-4 text-primary" />
+                <WaveformIcon className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">BPM</span>
               </div>
               <p className="text-2xl font-bold">{analysisResult.bpm}</p>
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Music className="h-4 w-4 text-primary" />
+                <MusicalNoteIcon className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">Key</span>
               </div>
               <p className="text-2xl font-bold">
@@ -113,7 +113,7 @@ export function AudioAnalysis({ audioBuffer, className }: AudioAnalysisProps) {
 
       {!analysisResult && !isAnalyzing && (
         <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-          <Activity className="h-8 w-8 mb-4 animate-pulse" />
+          <ChartBarIcon className="h-8 w-8 mb-4 animate-pulse" />
           <p className="text-sm">Click analyze to extract audio features</p>
         </div>
       )}

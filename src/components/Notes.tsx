@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Pin, PinOff, X } from 'lucide-react'
+import { PlusIcon, MapPinIcon, MapPinIcon as PinOffIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { Note } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -32,7 +32,7 @@ export default function Notes({ notes }: NotesProps) {
         <div className="flex items-center justify-between">
           <h3 className="font-medium">Notes & Ideas</h3>
           <button className="text-sm text-primary hover:text-primary/80 flex items-center transition-colors">
-            <Plus size={16} className="mr-1" />
+            <PlusIcon className="h-4 w-4 mr-1" />
             New Note
           </button>
         </div>
@@ -59,7 +59,7 @@ export default function Notes({ notes }: NotesProps) {
                     }}
                     className="text-muted-foreground hover:text-primary ml-2 transition-colors"
                   >
-                    {note.pinned ? <Pin size={14} /> : <PinOff size={14} />}
+                    {note.pinned ? <MapPinIcon className="h-3 w-3" /> : <PinOffIcon className="h-3 w-3" />}
                   </button>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2">{note.content}</p>
@@ -76,8 +76,11 @@ export default function Notes({ notes }: NotesProps) {
             <div className="animate-fade-in">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-medium">{selectedNote.title}</h3>
-                <button className="text-muted-foreground hover:text-foreground">
-                  <X size={18} />
+                <button 
+                  className="text-muted-foreground hover:text-foreground"
+                  aria-label="Close note"
+                >
+                  <XMarkIcon className="h-4 w-4" />
                 </button>
               </div>
 
@@ -95,7 +98,7 @@ export default function Notes({ notes }: NotesProps) {
               <div>
                 <p className="mb-4">Select a note to view or edit</p>
                 <button className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 mx-auto transition-colors">
-                  <Plus size={18} />
+                  <PlusIcon className="h-4 w-4" />
                   <span>Create New Note</span>
                 </button>
               </div>

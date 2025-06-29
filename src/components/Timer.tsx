@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Bell, Settings, Quote, Sparkles } from 'lucide-react'
+import { BellIcon, Cog6ToothIcon, ChatBubbleLeftRightIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import {
   TimerSession,
   loadSessions,
@@ -482,7 +482,8 @@ export default function Timer() {
                 ? "bg-emerald-100 dark:bg-emerald-500/10"
                 : "bg-violet-100 dark:bg-violet-500/10"
             )}>
-              <Bell size={16} className={cn(
+              <BellIcon className={cn(
+                "h-4 w-4",
                 mode === 'work'
                   ? "text-emerald-600 dark:text-emerald-400"
                   : "text-violet-600 dark:text-violet-400"
@@ -501,7 +502,8 @@ export default function Timer() {
             )}
             aria-label="Open timer settings"
           >
-            <Settings size={14} className={cn(
+            <Cog6ToothIcon className={cn(
+              "h-3 w-3",
               mode === 'work'
                 ? "text-emerald-600/90 dark:text-emerald-400/90"
                 : "text-violet-600/90 dark:text-violet-400/90"
@@ -575,7 +577,7 @@ export default function Timer() {
                       )}
                       title="Change quote"
                     >
-                      <Sparkles className={cn(
+                      <SparklesIcon className={cn(
                         "w-3.5 h-3.5",
                         mode === 'work'
                           ? "text-emerald-600/90 dark:text-emerald-400/90"

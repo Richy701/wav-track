@@ -3,25 +3,25 @@ import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Progress } from '@/components/ui/progress'
-import { MusicNote, Fire, Clock, Target } from '@phosphor-icons/react'
+import { MusicalNoteIcon, FireIcon, ClockIcon, FlagIcon } from '@heroicons/react/24/solid'
 import { Spinner } from '@/components/ui/spinner'
 
 const categoryStyles = {
   production: {
     gradient: 'from-violet-500 to-purple-600',
-    icon: <MusicNote className="h-5 w-5" weight="fill" />
+    icon: <MusicalNoteIcon className="h-5 w-5" />
   },
   streak: {
     gradient: 'from-orange-500 to-amber-600',
-    icon: <Fire className="h-5 w-5" weight="fill" />
+    icon: <FireIcon className="h-5 w-5" />
   },
   time: {
     gradient: 'from-blue-500 to-indigo-600',
-    icon: <Clock className="h-5 w-5" weight="fill" />
+    icon: <ClockIcon className="h-5 w-5" />
   },
   goals: {
     gradient: 'from-emerald-500 to-teal-600',
-    icon: <Target className="h-5 w-5" weight="fill" />
+    icon: <FlagIcon className="h-5 w-5" />
   }
 } as const
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ArrowUp } from 'lucide-react'
+import { ArrowUpIcon as ArrowUpSolid } from '@heroicons/react/24/solid'
 import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -47,7 +47,7 @@ export function ScrollToTop() {
             className="rounded-full h-10 w-10 shadow-md"
             aria-label="Scroll to top"
           >
-            <ArrowUp className="h-5 w-5" />
+            <ArrowUpSolid className="h-5 w-5" />
           </Button>
         </motion.div>
       )}

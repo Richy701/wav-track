@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Quote, RefreshCw } from 'lucide-react'
+import { ChatBubbleLeftRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -57,7 +57,7 @@ export function MotivationalQuotes() {
       <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Quote className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <ChatBubbleLeftRightIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <h3 className="text-sm font-medium text-blue-600 dark:text-blue-400">
               Daily Inspiration
             </h3>
@@ -68,7 +68,7 @@ export function MotivationalQuotes() {
             onClick={changeQuote}
             className="hover:bg-blue-100/50 dark:hover:bg-blue-900/50"
           >
-            <RefreshCw className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <ArrowPathIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           </Button>
         </div>
 
