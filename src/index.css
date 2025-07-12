@@ -313,15 +313,25 @@
       @apply py-3;
     }
 
-    /* Fixed mobile navigation */
-    header {
-      @apply px-4 !important;
-    }
+      /* Fixed mobile navigation */
+  header {
+    @apply px-4 !important;
+  }
 
-    /* Ensure content doesn't overlap with fixed header */
-    main {
-      @apply pt-20;
-    }
+  /* Ensure content doesn't overlap with fixed header */
+  main {
+    @apply pt-20;
+  }
+
+  /* Improved mobile header spacing */
+  .header-container {
+    @apply gap-2 md:gap-4;
+  }
+
+  /* Better touch targets for mobile */
+  .mobile-nav-button {
+    @apply min-h-[44px] min-w-[44px];
+  }
 
     /* Ensure buttons are large enough for touch */
     button,

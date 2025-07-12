@@ -32,6 +32,7 @@ import HeroSection from "@/components/landing/HeroSection";
 import { LANDING_PAGE_IMAGES } from "@/config/images";
 import { BentoDemo } from "@/components/ui/bento-demo";
 import { HeroSectionDemo } from "@/components/ui/hero-section-demo";
+import FeatureGrid from "@/components/landing/FeatureGrid";
 
 
 const fadeInUp: Variants = {
@@ -138,6 +139,9 @@ export default function LandingPage() {
         </div>
 
         <BentoDemo />
+        
+        {/* Feature Grid Section */}
+        <FeatureGrid />
         
         {/* Content sections */}
         <div className="relative w-full">

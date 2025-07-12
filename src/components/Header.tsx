@@ -47,13 +47,17 @@ export default function Header() {
         'px-4 py-3 md:px-6 md:py-4'
       )}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 md:gap-4 header-container">
         {/* Logo left */}
-        <HeaderTitle />
-        {/* Nav pill centered */}
-        <nav className="flex-1 flex justify-center">
+        <div className="flex-shrink-0">
+          <HeaderTitle />
+        </div>
+        
+        {/* Nav pill centered - hidden on mobile */}
+        <nav className="hidden md:flex flex-1 justify-center">
           <TubelightNavbar />
         </nav>
+        
         {/* Actions right */}
         <div className="flex items-center gap-2">
           <ThemeSwitcher />
@@ -80,35 +84,43 @@ export default function Header() {
               Sign In
             </Button>
           )}
-        </div>
-        {/* Mobile Navigation */}
-        <div className="md:hidden">
-          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="touch-manipulation text-foreground">
-                <Bars3Icon className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetOverlay className="bg-black/80 backdrop-blur-sm" />
-            <SheetContent side="right" className="w-[85vw] sm:w-[385px] p-6">
-              <div className="flex flex-col space-y-6 py-4">
-                <TubelightNavbar />
-                {!user && (
-                  <Button
-                    variant="default"
-                    className="bg-gradient-to-r from-violet-600 to-violet-400 text-white px-4 py-2 rounded-full text-sm font-medium hover:from-violet-700 hover:to-violet-500 transition-all duration-200 w-full"
-                    onClick={() => {
-                      setIsMobileMenuOpen(false)
-                      navigate('/login')
-                    }}
-                  >
-                    Sign In
-                  </Button>
-                )}
-              </div>
-            </SheetContent>
-          </Sheet>
+          
+          {/* Mobile Navigation Button */}
+          <div className="md:hidden">
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="touch-manipulation text-foreground h-9 w-9 min-h-[44px] min-w-[44px] mobile-nav-button"
+                >
+                  <Bars3Icon className="h-5 w-5" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetOverlay className="bg-black/80 backdrop-blur-sm" />
+              <SheetContent side="right" className="w-[85vw] sm:w-[385px] p-6">
+                <div className="flex flex-col space-y-6 py-4">
+                  <TubelightNavbar 
+                    isMobileMenu={true} 
+                    onNavigate={() => setIsMobileMenuOpen(false)}
+                  />
+                  {!user && (
+                    <Button
+                      variant="default"
+                      className="bg-gradient-to-r from-violet-600 to-violet-400 text-white px-4 py-2 rounded-full text-sm font-medium hover:from-violet-700 hover:to-violet-500 transition-all duration-200 w-full"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false)
+                        navigate('/login')
+                      }}
+                    >
+                      Sign In
+                    </Button>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
 
         {/* Add CreateProjectDialog */}

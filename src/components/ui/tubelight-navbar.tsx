@@ -12,7 +12,15 @@ import { Button } from '@/components/ui/button'
 import CreateProjectDialog from '@/components/project/CreateProjectDialog'
 import { Spinner } from '@/components/ui/spinner'
 
-export function TubelightNavbar({ className }: { className?: string }) {
+export function TubelightNavbar({ 
+  className, 
+  isMobileMenu = false, 
+  onNavigate 
+}: { 
+  className?: string, 
+  isMobileMenu?: boolean,
+  onNavigate?: () => void 
+}) {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, isLoading: authLoading, isInitialized } = useAuth()
@@ -42,6 +50,17 @@ export function TubelightNavbar({ className }: { className?: string }) {
     }, 300)
   }, [navigate, location.pathname])
 
+  // Close mobile menu when navigating (if in mobile menu context)
+  const handleMobileNavigate = useCallback((path: string) => {
+    handleNavigate(path)
+    // Close mobile menu after navigation
+    if (isMobileMenu && onNavigate) {
+      setTimeout(() => {
+        onNavigate()
+      }, 100)
+    }
+  }, [handleNavigate, isMobileMenu, onNavigate])
+
   // Main nav items
   const navItems = [
     { name: 'Dashboard', url: '/dashboard', icon: BarChart3 },
@@ -60,6 +79,53 @@ export function TubelightNavbar({ className }: { className?: string }) {
     )
   }
 
+  // Mobile menu layout
+  if (isMobileMenu) {
+    return (
+      <div className={cn("w-full", className)}>
+        <div className="flex flex-col space-y-2">
+          {/* Home button */}
+          <Button
+            variant="ghost"
+            className={cn(
+              "relative cursor-pointer text-sm font-semibold px-4 py-3 rounded-lg transition-colors w-full justify-start",
+              "text-foreground/80 hover:text-[#8257E5] dark:hover:text-[#E4D5FF]",
+              location.pathname === '/' && "bg-[#8257E5]/10 dark:bg-[#8257E5]/20 text-[#8257E5] dark:text-[#E4D5FF]"
+            )}
+            onClick={() => isMobileMenu ? handleMobileNavigate('/') : handleNavigate('/')}
+            disabled={location.pathname === '/'}
+          >
+            <Home className="h-5 w-5 mr-3" />
+            <span>Home</span>
+          </Button>
+          
+          {/* Main nav items */}
+          {navItems.map((item) => {
+            const Icon = item.icon
+            const isActive = activeTab === item.url
+            return (
+              <Button
+                key={item.url}
+                variant="ghost"
+                className={cn(
+                  "relative cursor-pointer text-sm font-semibold px-4 py-3 rounded-lg transition-colors w-full justify-start",
+                  "text-foreground/80 hover:text-[#8257E5] dark:hover:text-[#E4D5FF]",
+                  isActive && "bg-[#8257E5]/10 dark:bg-[#8257E5]/20 text-[#8257E5] dark:text-[#E4D5FF]"
+                )}
+                onClick={() => isMobileMenu ? handleMobileNavigate(item.url) : handleNavigate(item.url)}
+                disabled={isActive || isNavigating}
+              >
+                <Icon className="h-5 w-5 mr-3" />
+                <span>{item.name}</span>
+              </Button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  // Desktop layout
   return (
     <div className={cn("top-0 left-0 z-50 relative", className)}>
       <div className="inline-flex max-w-fit mx-auto items-center gap-3 bg-gradient-to-r from-[#8257E5]/5 via-[#9B6FFF]/5 to-[#B490FF]/5 dark:from-[#8257E5]/10 dark:via-[#9B6FFF]/10 dark:to-[#B490FF]/10 border border-[#8257E5]/20 dark:border-[#8257E5]/30 backdrop-blur-lg py-1 px-1 rounded-full shadow-lg">
@@ -71,7 +137,7 @@ export function TubelightNavbar({ className }: { className?: string }) {
             "text-foreground/80 hover:text-[#8257E5] dark:hover:text-[#E4D5FF]",
             location.pathname === '/' && "bg-[#8257E5]/10 dark:bg-[#8257E5]/20 text-[#8257E5] dark:text-[#E4D5FF]"
           )}
-          onClick={() => handleNavigate('/')}
+          onClick={() => isMobileMenu ? handleMobileNavigate('/') : handleNavigate('/')}
           disabled={location.pathname === '/'}
         >
           <Home className="md:hidden" size={18} strokeWidth={2.5} />
@@ -104,7 +170,7 @@ export function TubelightNavbar({ className }: { className?: string }) {
                 "text-foreground/80 hover:text-[#8257E5] dark:hover:text-[#E4D5FF]",
                 isActive && "bg-[#8257E5]/10 dark:bg-[#8257E5]/20 text-[#8257E5] dark:text-[#E4D5FF]"
               )}
-              onClick={() => handleNavigate(item.url)}
+              onClick={() => isMobileMenu ? handleMobileNavigate(item.url) : handleNavigate(item.url)}
               disabled={isActive || isNavigating}
             >
               <span className="hidden md:inline">{item.name}</span>
