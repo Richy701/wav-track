@@ -14,7 +14,7 @@ import {
 import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Project } from '@/lib/types'
-import { TrendUp, TrendDown, ChartBar, ChartLine, Waveform, Icon } from '@phosphor-icons/react'
+import { TrendUp, TrendDown, ChartBar, ChartLine, Waveform, MusicNote, Disc, Icon } from '@phosphor-icons/react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { getBeatsDataForChart } from '@/lib/data'
 import { Spinner } from '@/components/ui/spinner'
@@ -204,13 +204,16 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
     )
   }
 
-  if (beatsData.length === 0) {
+  const allZero = beatsData.length === 0 || beatsData.every(d => d.value === 0);
+  if (allZero) {
     console.log('BeatBarChart: No data available, showing empty state')
     return (
       <Card className={cn("w-full bg-transparent", className)}>
         <CardContent className="p-0">
-          <div className="h-[300px] w-full flex items-center justify-center text-muted-foreground">
-            <p>No beat data available</p>
+          <div className="h-[400px] w-full flex flex-col items-center justify-center text-muted-foreground">
+            <Disc className="w-10 h-10 mb-3 text-violet-400 opacity-60" />
+            <p className="text-base font-semibold mb-1">No beat data available</p>
+            <p className="text-xs">Start creating beats to see your activity chart!</p>
           </div>
         </CardContent>
       </Card>
@@ -230,13 +233,13 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
     <div className="card-glass relative w-full rounded-2xl shadow-lg border border-card/30 p-4 mb-6 bg-white dark:bg-[rgb(12,13,13)]">
       {/* Controls row (toggle, time range) - keep as is if present, or add here if not */}
       {/* Chart area */}
-      <div className="p-0 w-full overflow-x-auto flex-grow">
-        <div className="h-[300px] w-full">
-          <ResponsiveContainer width="100%" height={300}>
+      <div className="p-0 w-full flex-grow">
+        <div className="h-[400px] w-full">
+          <ResponsiveContainer width="100%" height={400}>
             {chartType === 'bar' ? (
               <BarChart
                 data={beatsData}
-                margin={{ top: 50, right: 10, left: 10, bottom: 40 }}
+                margin={{ top: 50, right: 5, left: 10, bottom: 40 }}
               >
                 <XAxis
                   dataKey="label"
@@ -281,7 +284,7 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
             ) : (
               <LineChart
                 data={beatsData}
-                margin={{ top: 50, right: 10, left: 10, bottom: 40 }}
+                margin={{ top: 50, right: 5, left: 10, bottom: 40 }}
               >
                 <XAxis
                   dataKey="label"
@@ -320,29 +323,12 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
               </LineChart>
             )}
           </ResponsiveContainer>
+          <p className="w-full text-center text-muted-foreground text-xs -mt-2">
+            Showing total beats created for the last {timeframeLabel}
+          </p>
         </div>
       </div>
       {/* Footer (trend, description) */}
-      <div className="flex p-6 flex-col items-start gap-2 text-sm pt-2">
-        {trendInfo.showTrend && (
-          <div className="flex gap-2 font-medium leading-none">
-            {trendInfo.percentage > 0 ? (
-              <>
-                Trending up by {trendInfo.percentage.toFixed(1)}% this period
-                <TrendUp className="h-4 w-4 text-emerald-500" />
-              </>
-            ) : (
-              <>
-                Trending down by {Math.abs(trendInfo.percentage).toFixed(1)}% this period
-                <TrendDown className="h-4 w-4 text-rose-500" />
-              </>
-            )}
-          </div>
-        )}
-        <div className="leading-none text-muted-foreground text-xs mt-2">
-          Showing total beats created for the last {timeframeLabel}
-        </div>
-      </div>
     </div>
   )
 })

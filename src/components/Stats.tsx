@@ -549,7 +549,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
               ))}
             </div>
           </div>
-          <div className="w-full overflow-x-auto flex-grow">
+          <div className="w-full flex-grow">
             <div className="h-[380px]">
               <BeatBarChart
                 projects={projects}
