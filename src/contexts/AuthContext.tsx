@@ -11,7 +11,6 @@ import { Json, Database } from '@/integrations/supabase/types'
 import { PostgrestSingleResponse, PostgrestError } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
 import { WelcomeModal } from '@/components/WelcomeModal'
-import { createClientComponentClient, type SupabaseClient } from '@supabase/auth-helpers-nextjs'
 
 export interface Profile {
   id: string
@@ -84,6 +83,7 @@ interface AuthContextType {
   isLoading: boolean
   isInitialized: boolean
   login: (email: string, password: string) => Promise<boolean>
+  loginWithGoogle: () => Promise<boolean>
   register: (data: RegisterData) => Promise<boolean>
   logout: () => Promise<void>
   updateUserProfile: (userData: Partial<Profile>) => Promise<Profile>
@@ -391,6 +391,44 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
+  const loginWithGoogle = async (): Promise<boolean> => {
+    try {
+      setIsLoading(true)
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      })
+
+      if (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Google Login Failed',
+          description: error.message || 'An error occurred during Google login',
+        })
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error('Google login error:', error)
+      toast({
+        variant: 'destructive',
+        title: 'Google Login Failed',
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
+      })
+      return false
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const register = async (data: RegisterData): Promise<boolean> => {
     console.log('[Auth] Registration attempt blocked - direct registration is disabled')
     toast({
@@ -585,6 +623,7 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         isInitialized,
         login,
+        loginWithGoogle,
         register,
         logout,
         updateUserProfile,
@@ -631,6 +670,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading: true,
     isInitialized: false,
     login: async () => false,
+    loginWithGoogle: async () => false,
     register: async () => false,
     logout: async () => {},
     updateUserProfile: async () => ({ id: '', email: '', name: null, artist_name: null, genres: null, daw: null, bio: null, location: null, phone: null, website: null, birthday: null, timezone: '', productivity_score: 0, total_beats: 0, completed_projects: 0, completion_rate: 0, current_streak: 0, best_streak: 0, join_date: null, updated_at: null, social_links: { instagram: null, instagram_username: null, twitter: null, twitter_username: null, youtube: null, youtube_username: null }, notification_preferences: { newFollowers: true, beatComments: true, collaborationRequests: true } }),

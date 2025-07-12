@@ -1,5 +1,6 @@
-import React, { Suspense } from 'react'
+import React, { Suspense, lazy } from 'react'
 import { Loading } from '@/components/ui/loading'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 interface LazyComponentProps {
   children: React.ReactNode
@@ -13,36 +14,61 @@ export const LazyComponent: React.FC<LazyComponentProps> = ({
   return <Suspense fallback={fallback}>{children}</Suspense>
 }
 
-// Helper function to create lazy-loaded components with consistent loading states
-export function createLazyComponent<T extends React.ComponentType<any>>(
-  importFn: () => Promise<{ default: T }>,
-  LoadingComponent: React.ComponentType = Loading
-) {
-  const LazyLoadedComponent = React.lazy(importFn)
+interface LazyLoadOptions {
+  ssr?: boolean
+  loading?: React.ComponentType
+  minDelay?: number
+}
 
-  return (props: React.ComponentProps<T>) => (
-    <Suspense fallback={<LoadingComponent isLoading={true} />}>
-      <LazyLoadedComponent {...props} />
-    </Suspense>
-  )
+export function lazyLoad<T extends React.ComponentType<any>>(
+  importFn: () => Promise<{ default: T }>,
+  options: LazyLoadOptions = {}
+) {
+  const {
+    ssr = false,
+    loading = LoadingSpinner,
+    minDelay = 0
+  } = options
+
+  const LazyComponent = lazy(() => {
+    if (minDelay > 0) {
+      return Promise.all([
+        importFn(),
+        new Promise(resolve => setTimeout(resolve, minDelay))
+      ]).then(([moduleExport]) => moduleExport)
+    }
+    return importFn()
+  })
+
+  return function LazyLoadWrapper(props: React.ComponentProps<T>) {
+    if (typeof window === 'undefined' && !ssr) {
+      return null
+    }
+
+    return (
+      <Suspense fallback={<loading />}>
+        <LazyComponent {...props} />
+      </Suspense>
+    )
+  }
 }
 
 // Create feature bundles
 export const TimerBundle = {
-  Timer: createLazyComponent(() => import('@/components/Timer')),
-  TimerSettings: createLazyComponent(() => import('@/components/timer/TimerSettings')),
-  TimerDisplay: createLazyComponent(() => import('@/components/timer/TimerDisplay')),
-  TimerControls: createLazyComponent(() => import('@/components/timer/TimerControls')),
+  Timer: lazyLoad(() => import('@/components/Timer')),
+  TimerSettings: lazyLoad(() => import('@/components/timer/TimerSettings')),
+  TimerDisplay: lazyLoad(() => import('@/components/timer/TimerDisplay')),
+  TimerControls: lazyLoad(() => import('@/components/timer/TimerControls')),
 }
 
 export const MediaBundle = {
-  LazyImage: createLazyComponent(() => import('@/components/ui/lazy-image')),
-  LazyVideo: createLazyComponent(() => import('@/components/ui/lazy-video')),
-  OptimizedImage: createLazyComponent(() => import('@/components/OptimizedImage')),
+  LazyImage: lazyLoad(() => import('@/components/ui/lazy-image')),
+  LazyVideo: lazyLoad(() => import('@/components/ui/lazy-video')),
+  OptimizedImage: lazyLoad(() => import('@/components/OptimizedImage')),
 }
 
 export const FeatureBundle = {
-  Stats: createLazyComponent(() => import('@/components/Stats')),
-  ProjectList: createLazyComponent(() => import('@/components/ProjectList')),
-  UserMenu: createLazyComponent(() => import('@/components/UserMenu')),
+  Stats: lazyLoad(() => import('@/components/Stats')),
+  ProjectList: lazyLoad(() => import('@/components/ProjectList')),
+  UserMenu: lazyLoad(() => import('@/components/UserMenu')),
 }

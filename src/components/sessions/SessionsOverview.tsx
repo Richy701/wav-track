@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import { format, formatDistanceToNow } from 'date-fns'
 import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
+import { EmptySessionsCard } from './EmptySessionsCard'
 
 interface SessionsOverviewProps {
   onStartSession?: () => void
@@ -250,17 +251,16 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      exit={{ opacity: 0, y: -20 }}
       className={cn(
         "relative overflow-hidden rounded-lg p-3 pb-0",
         "bg-gradient-to-b from-muted/5 to-muted/10 dark:from-muted/10 dark:to-muted/20",
         "border border-border/50 shadow-lg",
-        "h-[480px]",
+        "h-[580px]",
         "hover:scale-[1.002] hover:shadow-xl transition-all duration-300 ease-in-out",
         activeSession && "border-l-4 border-l-primary/40"
       )}
     >
-      {/* Content */}
       <div className="relative flex flex-col h-full">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
@@ -348,6 +348,7 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
               </TooltipProvider>
             )}
           </div>
+
           <AnimatePresence mode="popLayout">
             {recentSessions.length > 0 ? (
               <div className="text-xs text-muted-foreground space-y-0.5">
@@ -379,31 +380,9 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
                 ))}
               </div>
             ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col items-center justify-center h-full py-8 text-center"
-              >
-                <motion.div
-                  animate={{
-                    scale: [1, 1.05, 1],
-                    opacity: [0.2, 0.3, 0.2]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  className="flex items-center justify-center"
-                >
-                  <Timer className="w-14 h-14 text-muted-foreground/20" weight="thin" />
-                </motion.div>
-                <h4 className="mt-4 text-sm font-medium text-foreground">No studio sessions yet</h4>
-                <p className="mt-1 text-xs text-muted-foreground max-w-[200px]">
-                  Start your first session to begin tracking your music productivity.
-                </p>
-              </motion.div>
+              <div className="flex-1 h-[calc(100%-2rem)]">
+                <EmptySessionsCard onStartSession={handleStartSession} />
+              </div>
             )}
             {recentSessions.length > 3 && !showAllSessions && (
               <motion.button
@@ -421,49 +400,51 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-1 mt-1">
-          <AnimatePresence mode="wait">
-            {!isSessionActive ? (
-              <motion.div
-                key="start"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className="flex-1"
-              >
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-xs h-6"
-                  onClick={handleStartSession}
+        {recentSessions.length > 0 && (
+          <div className="flex gap-1 mt-1">
+            <AnimatePresence mode="wait">
+              {!isSessionActive ? (
+                <motion.div
+                  key="start"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex-1"
                 >
-                  <Play className="w-2.5 h-2.5 mr-1" />
-                  Start Session
-                </Button>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="stop"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className="flex-1"
-              >
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-xs h-6 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
-                  onClick={handleEndSession}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs h-6"
+                    onClick={handleStartSession}
+                  >
+                    <Play className="w-2.5 h-2.5 mr-1" />
+                    Start Session
+                  </Button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="stop"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex-1"
                 >
-                  <Stop className="w-2.5 h-2.5 mr-1" />
-                  Stop Session
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs h-6 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
+                    onClick={handleEndSession}
+                  >
+                    <Stop className="w-2.5 h-2.5 mr-1" />
+                    Stop Session
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
     </motion.div>
   )

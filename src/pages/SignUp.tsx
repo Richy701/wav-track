@@ -27,19 +27,7 @@ import {
   Drumstick,
 } from 'lucide-react'
 
-// Mock dashboard preview data
-const dashboardPreview = {
-  stats: [
-    { label: 'Total Beats', value: '24' },
-    { label: 'Projects', value: '8' },
-    { label: 'Collaborations', value: '3' },
-  ],
-  recentBeats: [
-    { name: 'Summer Vibes', genre: 'Trap', bpm: 140 },
-    { name: 'Night Drive', genre: 'Lo-fi', bpm: 85 },
-    { name: 'Urban Dreams', genre: 'Hip Hop', bpm: 95 },
-  ],
-}
+
 
 // Genre options with icons
 const genres = [
@@ -167,49 +155,54 @@ export function SignUp() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-3 gap-4 mb-8">
-              {dashboardPreview.stats.map((stat, index) => (
-                <div
-                  key={index}
-                  className={cn(
-                    'p-4 rounded-lg',
-                    'bg-white/50 dark:bg-zinc-800/50',
-                    'border border-zinc-200 dark:border-zinc-700',
-                    'text-center'
-                  )}
-                >
-                  <div className={cn(theme.text.heading, 'text-2xl font-bold mb-1')}>
-                    {stat.value}
-                  </div>
-                  <div className={cn(theme.text.muted, 'text-sm')}>{stat.label}</div>
+              <div
+                className={cn(
+                  'p-4 rounded-lg',
+                  'bg-white/50 dark:bg-zinc-800/50',
+                  'border border-zinc-200 dark:border-zinc-700',
+                  'text-center'
+                )}
+              >
+                <div className={cn(theme.text.heading, 'text-2xl font-bold mb-1')}>
+                  0
                 </div>
-              ))}
+                <div className={cn(theme.text.muted, 'text-sm')}>Total Beats</div>
+              </div>
+              <div
+                className={cn(
+                  'p-4 rounded-lg',
+                  'bg-white/50 dark:bg-zinc-800/50',
+                  'border border-zinc-200 dark:border-zinc-700',
+                  'text-center'
+                )}
+              >
+                <div className={cn(theme.text.heading, 'text-2xl font-bold mb-1')}>
+                  0
+                </div>
+                <div className={cn(theme.text.muted, 'text-sm')}>Projects</div>
+              </div>
+              <div
+                className={cn(
+                  'p-4 rounded-lg',
+                  'bg-white/50 dark:bg-zinc-800/50',
+                  'border border-zinc-200 dark:border-zinc-700',
+                  'text-center'
+                )}
+              >
+                <div className={cn(theme.text.heading, 'text-2xl font-bold mb-1')}>
+                  0
+                </div>
+                <div className={cn(theme.text.muted, 'text-sm')}>Collaborations</div>
+              </div>
             </div>
 
             {/* Recent Beats */}
             <div>
               <h3 className={cn(theme.text.heading, 'text-lg mb-4')}>Recent Beats</h3>
               <div className="space-y-3">
-                {dashboardPreview.recentBeats.map((beat, index) => (
-                  <div
-                    key={index}
-                    className={cn(
-                      'p-3 rounded-lg',
-                      'bg-white/50 dark:bg-zinc-800/50',
-                      'border border-zinc-200 dark:border-zinc-700',
-                      'flex items-center justify-between'
-                    )}
-                  >
-                    <div>
-                      <div className={cn(theme.text.body, 'font-medium')}>{beat.name}</div>
-                      <div className={cn(theme.text.muted, 'text-sm')}>
-                        {beat.genre} • {beat.bpm} BPM
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="sm">
-                      Edit
-                    </Button>
-                  </div>
-                ))}
+                <div className={cn(theme.text.muted, 'text-sm text-center py-8')}>
+                  No beats created yet
+                </div>
               </div>
             </div>
           </div>

@@ -8,7 +8,7 @@ This directory contains migration files to fix database structure issues and add
 2. Navigate to the SQL Editor
 3. Copy and paste the contents of each migration file in the following order:
    - `20240403000000_fix_database_structure.sql`
-   - `20240403000001_insert_test_data.sql`
+   
    - `20240403000002_fix_session_goals_relationship.sql`
 
 ## Migration Files
@@ -21,9 +21,7 @@ This migration:
 - Enables Row Level Security (RLS) on these tables
 - Creates RLS policies to allow users to access their own data
 
-### 2. Insert Test Data (`20240403000001_insert_test_data.sql`)
 
-This migration inserts test data into the tables. **Important**: Replace the UUID with a valid auth user ID from your Supabase dashboard.
 
 ### 3. Fix Session Goals Relationship (`20240403000002_fix_session_goals_relationship.sql`)
 

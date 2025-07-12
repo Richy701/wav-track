@@ -1,39 +1,80 @@
-import React from 'react'
+import { Suspense, memo } from 'react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { lazyLoad } from '@/lib/lazyLoad'
 import { cn } from '@/lib/utils'
+
+// Lazy load non-critical components
+const UserMenu = lazyLoad(() => import('@/components/UserMenu'), {
+  loading: () => <LoadingSpinner size="sm" />
+})
+
+const ScrollToTop = lazyLoad(() => import('@/components/ScrollToTop').then(m => ({ default: m.ScrollToTop })), {
+  loading: () => null
+})
+
+const OfflineStatus = lazyLoad(() => import('@/components/OfflineStatus'), {
+  loading: () => null
+})
 
 interface BaseLayoutProps {
   children: React.ReactNode
   className?: string
   containerWidth?: 'default' | 'narrow' | 'wide'
   withPadding?: boolean
+  showHeader?: boolean
+  showFooter?: boolean
 }
 
-export default function BaseLayout({
+const BaseLayoutInner = ({
   children,
   className,
   containerWidth = 'default',
   withPadding = true,
-}: BaseLayoutProps) {
+  showHeader = true,
+  showFooter = true
+}: BaseLayoutProps) => {
+  const containerClasses = cn(
+    'w-full mx-auto',
+    {
+      'max-w-7xl': containerWidth === 'default',
+      'max-w-5xl': containerWidth === 'narrow',
+      'max-w-full': containerWidth === 'wide',
+      'px-4 sm:px-6 lg:px-8': withPadding
+    },
+    className
+  )
+
   return (
-    <div className="min-h-screen bg-white dark:bg-black flex flex-col overflow-x-hidden touch-manipulation overscroll-none">
-      <Header />
-
-      <main
-        className={cn(
-          'flex-1 w-full mx-auto overflow-x-hidden',
-          withPadding && 'px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-8 sm:pb-12 lg:pb-16',
-          containerWidth === 'narrow' && 'max-w-4xl',
-          containerWidth === 'wide' && 'max-w-7xl',
-          containerWidth === 'default' && 'max-w-6xl',
-          className
+    <div className="flex min-h-screen flex-col bg-white dark:from-background dark:to-background/95">
+      {/* Subtle grid pattern overlay */}
+      <div className="pointer-events-none fixed inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] dark:bg-[url('/grid-dark.svg')]" />
+      
+      {/* Content */}
+      <div className="relative flex min-h-screen flex-col">
+        {showHeader && (
+          <Header />
         )}
-      >
-        {children}
-      </main>
 
-      <Footer />
+        <main className={containerClasses}>
+          {children}
+        </main>
+
+        {showFooter && (
+          <Footer />
+        )}
+
+        <Suspense fallback={null}>
+          <ScrollToTop />
+        </Suspense>
+
+        <Suspense fallback={null}>
+          <OfflineStatus />
+        </Suspense>
+      </div>
     </div>
   )
 }
+
+export const BaseLayout = memo(BaseLayoutInner)

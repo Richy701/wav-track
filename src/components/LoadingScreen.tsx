@@ -1,4 +1,5 @@
 import React from 'react'
+import { Spinner } from '@/components/ui/spinner'
 
 interface LoadingScreenProps {
   message?: string
@@ -23,7 +24,11 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = 'Tracking your 
         {/* Loading animation */}
         <div className="relative">
           <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-primary/0 animate-pulse blur-md" />
-          <div className="relative h-12 w-12 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+          <Spinner 
+            variant="circle-filled" 
+            size={48}
+            className="text-primary"
+          />
         </div>
 
         {/* Loading text */}

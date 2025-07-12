@@ -1,5 +1,6 @@
-import { motion } from 'framer-motion'
+import { memo } from 'react'
 import { cn } from '@/lib/utils'
+import { Spinner } from '@/components/ui/spinner'
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg'
@@ -8,27 +9,16 @@ interface LoadingSpinnerProps {
 }
 
 const sizeMap = {
-  sm: 'w-4 h-4',
-  md: 'w-8 h-8',
-  lg: 'w-12 h-12'
+  sm: 16,
+  md: 24,
+  lg: 32
 }
 
-export const LoadingSpinner = ({ 
+const LoadingSpinnerInner = ({ 
   size = 'md', 
   className,
   fullScreen = false 
 }: LoadingSpinnerProps) => {
-  const spinnerVariants = {
-    animate: {
-      rotate: 360,
-      transition: {
-        duration: 1,
-        repeat: Infinity,
-        ease: 'linear'
-      }
-    }
-  }
-
   const containerClasses = cn(
     'flex items-center justify-center',
     fullScreen && 'fixed inset-0 bg-background/80 backdrop-blur-sm z-50',
@@ -37,19 +27,15 @@ export const LoadingSpinner = ({
 
   return (
     <div className={containerClasses}>
-      <motion.div
-        className={cn(
-          'border-2 border-primary border-t-transparent rounded-full',
-          sizeMap[size]
-        )}
-        variants={spinnerVariants}
-        animate="animate"
-        style={{
-          willChange: 'transform',
-          transform: 'translateZ(0)',
-          backfaceVisibility: 'hidden'
-        }}
+      <Spinner 
+        variant="circle-filled"
+        size={sizeMap[size]}
+        className="text-primary"
       />
     </div>
   )
-} 
+}
+
+LoadingSpinnerInner.displayName = 'LoadingSpinnerInner'
+
+export const LoadingSpinner = memo(LoadingSpinnerInner) 

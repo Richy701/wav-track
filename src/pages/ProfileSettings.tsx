@@ -341,17 +341,17 @@ const ProfileSettings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-background/50 to-background flex flex-col">
       <Header />
 
-      <main className="w-full max-w-4xl mx-auto px-4 pt-24 pb-8 flex-1">
+      <main className="w-full max-w-4xl mx-auto px-4 pt-24 pb-8 flex-1 relative">
         <motion.div 
           initial={{ opacity: 0 }} 
           animate={{ opacity: 1 }} 
           transition={{ duration: 0.3 }}
           className="flex items-center gap-2 mb-8"
         >
-          <Gear className="h-5 w-5 text-muted-foreground -mt-4" />
+          <Gear className="h-5 w-5 text-muted-foreground/80 -mt-3" />
           <h1 className="text-2xl font-semibold tracking-tight">Profile Settings</h1>
         </motion.div>
 
@@ -364,39 +364,40 @@ const ProfileSettings = () => {
         >
           {/* Basic Information */}
           <motion.div variants={itemVariants}>
-            <Card className="bg-white dark:bg-zinc-900 text-black dark:text-white p-6 rounded-2xl shadow-xl ring-1 ring-zinc-200 dark:ring-zinc-800">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl font-semibold">Basic Information</CardTitle>
-                <CardDescription className="text-sm text-zinc-600 dark:text-zinc-400">
+            <Card className="relative overflow-hidden border border-white/20 dark:border-white/10 bg-white/10 dark:bg-black/10 backdrop-blur-xl shadow-xl rounded-3xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/10 dark:from-white/5 dark:to-transparent pointer-events-none rounded-3xl" />
+              <CardHeader className="pb-4 relative">
+                <CardTitle className="text-xl font-semibold text-foreground/90">Basic Information</CardTitle>
+                <CardDescription className="text-muted-foreground/70">
                   Update your profile information
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="relative">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
                   <div className="space-y-2 w-full">
-                    <Label htmlFor="name" className="text-sm font-medium">Name</Label>
+                    <Label htmlFor="name" className="text-sm font-medium text-foreground/90">Name</Label>
                     <Input
                       id="name"
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="Your name"
-                      className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
                     />
                   </div>
                   <div className="space-y-2 w-full">
-                    <Label htmlFor="artist_name" className="text-sm font-medium">Artist Name</Label>
+                    <Label htmlFor="artist_name" className="text-sm font-medium text-foreground/90">Artist Name</Label>
                     <Input
                       id="artist_name"
                       name="artist_name"
                       value={formData.artist_name}
                       onChange={handleChange}
                       placeholder="Your artist name"
-                      className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
                     />
                   </div>
                   <div className="space-y-2 w-full">
-                    <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                    <Label htmlFor="email" className="text-sm font-medium text-foreground/90">Email</Label>
                     <Input
                       id="email"
                       name="email"
@@ -404,11 +405,11 @@ const ProfileSettings = () => {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="your@email.com"
-                      className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
                     />
                   </div>
                   <div className="space-y-2 w-full">
-                    <Label htmlFor="phone" className="text-sm font-medium">Phone</Label>
+                    <Label htmlFor="phone" className="text-sm font-medium text-foreground/90">Phone</Label>
                     <Input
                       id="phone"
                       name="phone"
@@ -416,22 +417,22 @@ const ProfileSettings = () => {
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="Your phone number"
-                      className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
                     />
                   </div>
                   <div className="space-y-2 w-full">
-                    <Label htmlFor="location" className="text-sm font-medium">Location</Label>
+                    <Label htmlFor="location" className="text-sm font-medium text-foreground/90">Location</Label>
                     <Input
                       id="location"
                       name="location"
                       value={formData.location}
                       onChange={handleChange}
                       placeholder="Your location"
-                      className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
                     />
                   </div>
                   <div className="space-y-2 w-full">
-                    <Label htmlFor="website" className="text-sm font-medium">Website</Label>
+                    <Label htmlFor="website" className="text-sm font-medium text-foreground/90">Website</Label>
                     <Input
                       id="website"
                       name="website"
@@ -439,7 +440,7 @@ const ProfileSettings = () => {
                       value={formData.website}
                       onChange={handleChange}
                       placeholder="https://your-website.com"
-                      className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
                     />
                   </div>
                 </div>
@@ -449,34 +450,35 @@ const ProfileSettings = () => {
 
           {/* Producer Information */}
           <motion.div variants={itemVariants}>
-            <Card className="bg-white dark:bg-zinc-900 text-black dark:text-white p-6 rounded-2xl shadow-xl ring-1 ring-zinc-200 dark:ring-zinc-800">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl font-semibold">Producer Information</CardTitle>
-                <CardDescription className="text-sm text-zinc-600 dark:text-zinc-400">
+            <Card className="relative overflow-hidden border border-white/20 dark:border-white/10 bg-white/10 dark:bg-black/10 backdrop-blur-xl shadow-xl rounded-3xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/10 dark:from-white/5 dark:to-transparent pointer-events-none rounded-3xl" />
+              <CardHeader className="pb-4 relative">
+                <CardTitle className="text-xl font-semibold text-foreground/90">Producer Information</CardTitle>
+                <CardDescription className="text-muted-foreground/70">
                   Tell others about your music production
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="relative">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
                   <div className="space-y-2 w-full md:col-span-2">
-                    <Label htmlFor="bio" className="text-sm font-medium">Bio</Label>
+                    <Label htmlFor="bio" className="text-sm font-medium text-foreground/90">Bio</Label>
                     <textarea
                       id="bio"
                       name="bio"
                       value={formData.bio}
                       onChange={handleChange}
                       placeholder="Tell others about yourself and your music..."
-                      className="w-full min-h-[100px] p-3 rounded-md bg-white dark:bg-zinc-900 text-sm hover:ring-1 hover:ring-purple-500"
+                      className="w-full min-h-[100px] p-3 rounded-xl bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm hover:bg-white/20 dark:hover:bg-white/10 transition-colors resize-y focus:ring-2 ring-primary/20"
                     />
                   </div>
                   <div className="space-y-2 w-full">
-                    <Label htmlFor="daw" className="text-sm font-medium">Preferred DAW</Label>
+                    <Label htmlFor="daw" className="text-sm font-medium text-foreground/90">Preferred DAW</Label>
                     <div className="relative w-full min-h-[42px]">
                       <Select
                         value={formData.daw}
                         onValueChange={value => setFormData(prev => ({ ...prev, daw: value }))}
                       >
-                        <SelectTrigger className="w-full h-10 bg-transparent text-foreground border border-border transition-colors duration-300">
+                        <SelectTrigger className="w-full h-10 bg-white/10 dark:bg-white/5 backdrop-blur-xl text-foreground transition-colors hover:bg-white/20 dark:hover:bg-white/10">
                           <SelectValue>
                             {formData.daw ? (
                               <div className="flex items-center">
@@ -490,12 +492,12 @@ const ProfileSettings = () => {
                             )}
                           </SelectValue>
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-white/95 backdrop-blur-xl border-white/20 dark:border-white/10">
                           {dawOptions.map(option => (
                             <SelectItem
                               key={option.value}
                               value={option.value}
-                              className="flex items-center hover:bg-purple-50 dark:hover:bg-purple-950/50 hover:text-purple-600 dark:hover:text-purple-400"
+                              className="flex items-center hover:bg-foreground/5"
                             >
                               <div className="flex items-center">
                                 <div className="w-6 h-6 mr-2 flex items-center justify-center">
@@ -510,7 +512,7 @@ const ProfileSettings = () => {
                     </div>
                   </div>
                   <div className="space-y-2 w-full">
-                    <Label className="text-sm font-medium">Genres</Label>
+                    <Label className="text-sm font-medium text-foreground/90">Genres</Label>
                     <div className="relative w-full min-h-[42px]">
                       <Select
                         onValueChange={value => {
@@ -522,15 +524,15 @@ const ProfileSettings = () => {
                           }
                         }}
                       >
-                        <SelectTrigger className="w-full h-10 bg-transparent text-foreground border border-border transition-colors duration-300">
+                        <SelectTrigger className="w-full h-10 bg-white/10 dark:bg-white/5 backdrop-blur-xl text-foreground transition-colors hover:bg-white/20 dark:hover:bg-white/10">
                           <SelectValue placeholder="Select a genre" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-white/95 backdrop-blur-xl border-white/20 dark:border-white/10">
                           {popularGenres.map(genre => (
                             <SelectItem 
                               key={genre} 
                               value={genre}
-                              className="hover:bg-purple-50 dark:hover:bg-purple-950/50 hover:text-purple-600 dark:hover:text-purple-400"
+                              className="hover:bg-foreground/5"
                             >
                               {genre}
                             </SelectItem>
@@ -544,7 +546,7 @@ const ProfileSettings = () => {
                           <Badge
                             key={genre}
                             variant="secondary"
-                            className="flex items-center gap-1 px-2 py-1 bg-zinc-100 dark:bg-zinc-800"
+                            className="flex items-center gap-1 px-2 py-1 bg-white/10 dark:bg-white/5 backdrop-blur-xl border border-white/20 dark:border-white/10 hover:bg-white/20 dark:hover:bg-white/10"
                           >
                             {genre}
                             <button
@@ -572,40 +574,41 @@ const ProfileSettings = () => {
 
           {/* Social Links */}
           <motion.div variants={itemVariants}>
-            <Card className="bg-white dark:bg-zinc-900 text-black dark:text-white p-6 rounded-2xl shadow-xl ring-1 ring-zinc-200 dark:ring-zinc-800">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl font-semibold">Social Links</CardTitle>
-                <CardDescription className="text-sm text-zinc-600 dark:text-zinc-400">
+            <Card className="relative overflow-hidden border border-white/20 dark:border-white/10 bg-white/10 dark:bg-black/10 backdrop-blur-xl shadow-xl rounded-3xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/10 dark:from-white/5 dark:to-transparent pointer-events-none rounded-3xl" />
+              <CardHeader className="pb-4 relative">
+                <CardTitle className="text-xl font-semibold text-foreground/90">Social Links</CardTitle>
+                <CardDescription className="text-muted-foreground/70">
                   Connect your social media accounts
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="relative">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
                   {/* Instagram */}
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-medium">
+                    <label className="flex items-center gap-2 text-sm font-medium text-foreground/90">
                       <InstagramLogo />
                       Instagram
                     </label>
-                    <input
+                    <Input
                       type="url"
                       placeholder="Instagram profile URL"
                       value={formData.social_links.instagram ?? ''}
                       onChange={e => handleSocialChange('instagram', 'url', e.target.value)}
-                      className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground"
+                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
                     />
-                    <input
+                    <Input
                       type="text"
                       placeholder="Instagram username"
                       value={formData.social_links.instagram_username ?? ''}
                       onChange={e => handleSocialChange('instagram', 'username', e.target.value)}
-                      className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground"
+                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
                     />
                   </div>
 
                   {/* Twitter */}
                   <div className="space-y-4 md:col-span-2">
-                    <Label className="flex items-center gap-2 text-sm font-medium">
+                    <Label className="flex items-center gap-2 text-sm font-medium text-foreground/90">
                       <XLogo className="h-4 w-4" />
                       X (Twitter)
                     </Label>
@@ -614,36 +617,36 @@ const ProfileSettings = () => {
                         placeholder="X profile URL"
                         value={formData.social_links.twitter ?? ''}
                         onChange={e => handleSocialChange('twitter', 'url', e.target.value)}
-                        className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                        className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
                       />
                       <Input
                         placeholder="@username"
                         value={formData.social_links.twitter_username ?? ''}
                         onChange={e => handleSocialChange('twitter', 'username', e.target.value)}
-                        className="w-full bg-white dark:bg-zinc-900 text-sm rounded-md px-3 py-2 hover:ring-1 hover:ring-purple-500"
+                        className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
                       />
                     </div>
                   </div>
 
                   {/* YouTube */}
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-medium">
+                    <label className="flex items-center gap-2 text-sm font-medium text-foreground/90">
                       <YoutubeLogo />
                       YouTube
                     </label>
-                    <input
+                    <Input
                       type="url"
                       placeholder="YouTube channel URL"
                       value={formData.social_links.youtube ?? ''}
                       onChange={e => handleSocialChange('youtube', 'url', e.target.value)}
-                      className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground"
+                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
                     />
-                    <input
+                    <Input
                       type="text"
                       placeholder="YouTube username"
                       value={formData.social_links.youtube_username ?? ''}
                       onChange={e => handleSocialChange('youtube', 'username', e.target.value)}
-                      className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground"
+                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
                     />
                   </div>
                 </div>
@@ -652,14 +655,28 @@ const ProfileSettings = () => {
           </motion.div>
 
           {/* Form Actions */}
-          <motion.div variants={itemVariants} className="flex justify-end gap-2 mt-6">
-            <Button type="button" variant="outline" onClick={() => navigate('/profile')}>
+          <motion.div variants={itemVariants} className="flex justify-end gap-4 mt-6">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => navigate('/profile')}
+              className="bg-white/10 dark:bg-white/5 backdrop-blur-xl hover:bg-white/20 dark:hover:bg-white/10 border-white/20 dark:border-white/10 rounded-xl"
+            >
               Cancel
             </Button>
-            <Button type="button" variant="destructive" onClick={() => setShowDeleteDialog(true)}>
+            <Button 
+              type="button" 
+              variant="destructive" 
+              onClick={() => setShowDeleteDialog(true)}
+              className="bg-destructive/90 hover:bg-destructive/100 backdrop-blur-xl rounded-xl"
+            >
               Delete Account
             </Button>
-            <Button type="submit" disabled={isSaving}>
+            <Button 
+              type="submit" 
+              disabled={isSaving}
+              className="bg-primary/90 hover:bg-primary/100 backdrop-blur-xl rounded-xl"
+            >
               {isSaving ? (
                 <>
                   <Spinner className="mr-2" />
@@ -678,18 +695,27 @@ const ProfileSettings = () => {
 
       {/* Delete Account Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Account</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="relative overflow-hidden border border-white/20 dark:border-white/10 bg-white/10 dark:bg-black/10 backdrop-blur-xl rounded-3xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/10 dark:from-white/5 dark:to-transparent pointer-events-none rounded-3xl" />
+          <DialogHeader className="relative">
+            <DialogTitle className="text-foreground/90">Delete Account</DialogTitle>
+            <DialogDescription className="text-muted-foreground/70">
               Are you sure you want to delete your account? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+          <DialogFooter className="relative">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDeleteDialog(false)}
+              className="bg-white/10 dark:bg-white/5 backdrop-blur-xl hover:bg-white/20 dark:hover:bg-white/10 border-white/20 dark:border-white/10 rounded-xl"
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteAccount}>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteAccount}
+              className="bg-destructive/90 hover:bg-destructive/100 backdrop-blur-xl rounded-xl"
+            >
               Delete Account
             </Button>
           </DialogFooter>

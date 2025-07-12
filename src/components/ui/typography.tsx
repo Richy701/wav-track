@@ -5,17 +5,17 @@ import React from 'react'
 const typographyVariants = cva('', {
   variants: {
     variant: {
-      h1: 'text-fluid-2xl font-display font-bold tracking-tight mb-4',
-      h2: 'text-fluid-xl font-display font-semibold tracking-tight mb-3',
-      h3: 'text-fluid-lg font-display font-medium tracking-tight mb-2',
-      h4: 'text-fluid-base font-display font-medium tracking-tight mb-2',
-      p: 'text-fluid-base leading-relaxed mb-4',
-      lead: 'text-fluid-lg text-muted-foreground',
-      large: 'text-lg font-semibold',
-      small: 'text-sm font-medium leading-none',
-      muted: 'text-sm text-muted-foreground',
+      h1: 'text-fluid-2xl font-display font-bold tracking-tight mb-4 text-zinc-900 dark:text-white',
+      h2: 'text-fluid-xl font-display font-semibold tracking-tight mb-3 text-zinc-900 dark:text-white',
+      h3: 'text-fluid-lg font-display font-medium tracking-tight mb-2 text-zinc-900 dark:text-white',
+      h4: 'text-fluid-base font-display font-medium tracking-tight mb-2 text-zinc-900 dark:text-white',
+      p: 'text-fluid-base leading-relaxed mb-4 text-zinc-800 dark:text-zinc-200',
+      lead: 'text-fluid-lg text-zinc-600 dark:text-zinc-300',
+      large: 'text-lg font-semibold text-zinc-900 dark:text-white',
+      small: 'text-sm font-medium leading-none text-zinc-700 dark:text-zinc-300',
+      muted: 'text-sm text-zinc-600 dark:text-zinc-400',
       gradient:
-        'bg-gradient-to-r from-primary via-accent to-primary/80 bg-clip-text text-transparent',
+        'bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 dark:from-white dark:via-zinc-300 dark:to-white bg-clip-text text-transparent',
     },
     weight: {
       light: 'font-light',
@@ -57,20 +57,14 @@ export function Typography({
   weight,
   align,
   wrap,
-  as,
-  children,
+  as: Tag = 'p',
   ...props
 }: TypographyProps) {
-  const Tag = (as ||
-    (variant?.toString().startsWith('h') ? variant.toString() : 'p')) as ValidElements
-
-  return React.createElement(
-    Tag,
-    {
-      className: cn(typographyVariants({ variant, weight, align, wrap }), className),
-      ...props,
-    },
-    children
+  return (
+    <Tag
+      className={cn(typographyVariants({ variant, weight, align, wrap, className }))}
+      {...props}
+    />
   )
 }
 

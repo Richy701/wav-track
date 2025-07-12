@@ -460,7 +460,7 @@ export default function Timer() {
   }, [mode]) // Reset interval when mode changes
 
   return (
-    <div className="bg-card rounded-xl p-3 animate-fade-in theme-transition h-[480px] flex flex-col relative z-10 -mt-1 shadow-sm">
+    <div className="bg-card rounded-xl p-3 animate-fade-in theme-transition h-[480px] min-h-[480px] max-h-[480px] flex flex-col relative z-10 -mt-1 shadow-sm" style={{ height: '480px', minHeight: '480px', maxHeight: '480px' }}>
       {/* Show audio error if exists */}
       {audioError && (
         <div className="mb-2 p-2 bg-destructive/10 text-destructive text-sm rounded-md">

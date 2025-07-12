@@ -73,7 +73,7 @@ const UserAvatar = () => {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => logout?.()}
-          className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+          className="text-red-600 hover:bg-red-100 focus:text-red-600 dark:text-red-400 dark:hover:bg-red-950/20 dark:focus:text-red-400"
         >
           <ArrowRightSolid className="mr-2 h-4 w-4" />
           <span>Log out</span>

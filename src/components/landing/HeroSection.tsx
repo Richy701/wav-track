@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 import { fadeInUp } from "@/lib/animations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,8 +29,8 @@ export default function HeroSection({ onWaitlistSubmit }: HeroSectionProps) {
       // Show toast notification with Sonner
       toast.success("You're on the waitlist!", {
         description: "We'll keep you posted as things roll out.",
-        icon: <CheckCircle className="text-purple-500" />,
-        className: "bg-white text-black dark:bg-zinc-900 dark:text-white border border-purple-500 shadow-lg rounded-xl px-4 py-3",
+        icon: <CheckCircle className="text-yellow-600 dark:text-purple-500" />,
+        className: "bg-[#FAF9F6] text-neutral-800 dark:bg-zinc-900 dark:text-white border border-yellow-200 dark:border-purple-500 shadow-lg rounded-xl px-4 py-3",
         duration: 4000,
       });
       
@@ -47,7 +46,7 @@ export default function HeroSection({ onWaitlistSubmit }: HeroSectionProps) {
     } catch (error) {
       toast.error("Something went wrong", {
         description: "Please try again later.",
-        className: "bg-white text-black dark:bg-zinc-900 dark:text-white border border-red-500 shadow-lg rounded-xl px-4 py-3",
+        className: "bg-[#FAF9F6] text-neutral-800 dark:bg-zinc-900 dark:text-white border border-red-200 dark:border-red-500 shadow-lg rounded-xl px-4 py-3",
       });
     } finally {
       setIsLoading(false);
@@ -55,62 +54,53 @@ export default function HeroSection({ onWaitlistSubmit }: HeroSectionProps) {
   };
 
   return (
-    <section className="relative isolate overflow-hidden">
-      {/* Gradient background with blur effects */}
-      <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80" aria-hidden="true">
-        <div 
-          className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]" 
-          style={{ clipPath: "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" }}
-        ></div>
-      </div>
-      <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
-        <motion.div 
-          className="text-center"
-          initial="initial"
-          animate="animate"
-          variants={fadeInUp}
-        >
-          <h1 className="text-5xl font-semibold tracking-tight text-balance text-gray-900 dark:text-white sm:text-7xl">Welcome to the future of music production tracking</h1>
-          <p className="mt-8 text-lg font-medium text-pretty text-gray-500 dark:text-gray-400 sm:text-xl/8">Your creative rhythm. Your data-powered music companion.</p>
-          <p className="mt-4 text-base font-medium text-pretty text-gray-500 dark:text-gray-400 sm:text-lg/8">WavTrack helps producers, artists, and hobbyists track sessions, hit creative goals, and stay inspired.</p>
-          
-          <form onSubmit={handleWaitlistSubmit} className="flex w-full max-w-md gap-2 mt-10 mx-auto">
-            <Input
-              ref={emailInputRef}
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 h-12 text-base bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl px-4 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              required
-            />
-            <Button 
-              type="submit" 
-              className="h-12 px-6 bg-gradient-to-r from-[#8257E5] to-[#B490FF] hover:from-[#8257E5]/90 hover:to-[#B490FF]/90 text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/20"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <Spinner className="h-4 w-4" />
-                  <span>Joining...</span>
-                </div>
-              ) : (
-                "Join Waitlist"
-              )}
-            </Button>
-          </form>
-          
-          <div className="mt-6 text-sm text-gray-500 dark:text-gray-400">
-            Join 500+ producers already on the waitlist
-          </div>
-        </motion.div>
-      </div>
-      <div className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]" aria-hidden="true">
-        <div 
-          className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]" 
-          style={{ clipPath: "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" }}
-        ></div>
-      </div>
-    </section>
+    <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
+      <motion.div 
+        className="text-center"
+        initial="initial"
+        animate="animate"
+        variants={fadeInUp}
+      >
+        <h1 className="text-5xl font-semibold tracking-tight text-balance text-neutral-800 dark:text-foreground sm:text-7xl">
+          Welcome to the future of music production tracking
+        </h1>
+        <p className="mt-8 text-lg font-medium text-pretty text-neutral-600 dark:text-muted-foreground sm:text-xl/8">
+          Your creative rhythm. Your data-powered music companion.
+        </p>
+        <p className="mt-4 text-base font-medium text-pretty text-neutral-600 dark:text-muted-foreground sm:text-lg/8">
+          WavTrack helps producers, artists, and hobbyists track sessions, hit creative goals, and stay inspired.
+        </p>
+        
+        <form onSubmit={handleWaitlistSubmit} className="flex w-full max-w-md gap-2 mt-10 mx-auto">
+          <Input
+            ref={emailInputRef}
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="flex-1 h-12 text-base border border-neutral-200 rounded-xl px-4 focus:ring-2 focus:ring-yellow-200 dark:focus:ring-purple-500 focus:border-transparent bg-white dark:bg-background text-neutral-800 dark:text-foreground"
+            required
+          />
+          <Button 
+            type="submit" 
+            className="h-12 px-6 bg-yellow-100 hover:bg-yellow-200 dark:bg-gradient-to-r dark:from-[#8257E5] dark:to-[#B490FF] dark:hover:from-[#8257E5]/90 dark:hover:to-[#B490FF]/90 text-yellow-900 dark:text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:shadow-yellow-500/20 dark:hover:shadow-purple-500/20"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <Spinner className="h-4 w-4" />
+                <span>Joining...</span>
+              </div>
+            ) : (
+              "Join Waitlist"
+            )}
+          </Button>
+        </form>
+        
+        <div className="mt-6 text-sm text-neutral-500 dark:text-muted-foreground">
+          Join 500+ producers already on the waitlist
+        </div>
+      </motion.div>
+    </div>
   );
 } 

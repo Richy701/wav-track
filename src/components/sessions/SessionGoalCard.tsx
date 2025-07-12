@@ -8,7 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/components/ui/use-toast'
 import { Database } from '@/integrations/supabase/types'
-import { AddSessionGoalModal } from './AddSessionGoalModal'
+import { NewSessionGoalForm } from './NewSessionGoalForm'
 
 type Goal = Database['public']['Tables']['session_goals']['Row']
 
@@ -160,6 +160,10 @@ export const SessionGoalCard: React.FC = () => {
     )
   }
 
+  if (!activeGoal || isAddingGoal) {
+    return <NewSessionGoalForm onSubmit={handleCreateGoal} />
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -172,99 +176,52 @@ export const SessionGoalCard: React.FC = () => {
           <Target className="w-5 h-5 text-orange-400" />
           <h3 className="text-lg font-medium">Session Goal</h3>
         </div>
-        {!activeGoal && !isAddingGoal && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/10"
-            onClick={() => setIsAddingGoal(true)}
-          >
-            <Plus className="w-3 h-3 mr-1" />
-            Add Goal
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-xs text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/10"
+          onClick={() => setIsAddingGoal(true)}
+        >
+          <Plus className="w-3 h-3 mr-1" />
+          Add Goal
+        </Button>
       </div>
 
-      <AnimatePresence mode="wait">
-        {activeGoal ? (
-          <motion.div
-            key="active-goal"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            <div className="flex items-center space-x-2 mb-2">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400">
-                {activeGoal.status === 'completed' ? 'Completed' : 'In Progress'}
-              </span>
-              <span className="text-xs text-white/50">
-                {formatDistanceToNow(new Date(activeGoal.created_at), { addSuffix: true })}
-              </span>
-            </div>
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2 mb-2">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400">
+            {activeGoal.status === 'completed' ? 'Completed' : 'In Progress'}
+          </span>
+          <span className="text-xs text-neutral-500">
+            {formatDistanceToNow(new Date(activeGoal.created_at), { addSuffix: true })}
+          </span>
+        </div>
 
-            <div className="space-y-3">
-              <p className="text-sm text-white/70 font-medium">
-                {activeGoal.goal_text}
-              </p>
+        <div>
+          <h4 className="text-base font-medium mb-2">{activeGoal.goal_text}</h4>
+          {activeGoal.description && (
+            <p className="text-sm text-neutral-400">{activeGoal.description}</p>
+          )}
+        </div>
 
-              {activeGoal.description && (
-                <p className="text-sm text-white/50">
-                  {activeGoal.description}
-                </p>
-              )}
-
-              <div className="flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-orange-400/70" />
-                <span className="text-xs text-white/50">
-                  {activeGoal.expected_duration_minutes > 0 
-                    ? `${activeGoal.expected_duration_minutes} min`
-                    : 'No duration set'}
-                </span>
-              </div>
-            </div>
-
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2 text-sm text-neutral-400">
+            <Clock className="w-4 h-4" />
+            <span>{activeGoal.expected_duration_minutes} minutes</span>
+          </div>
+          {activeGoal.status !== 'completed' && (
             <Button
+              variant="ghost"
+              size="sm"
+              className="text-emerald-400/70 hover:text-emerald-400 hover:bg-emerald-500/10"
               onClick={() => handleComplete(activeGoal.id)}
-              className={cn(
-                "w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white",
-                "transition-colors duration-200",
-                "flex items-center justify-center space-x-2",
-                "rounded-lg py-2"
-              )}
             >
-              <Check className="w-4 h-4" />
-              <span>Mark Complete</span>
+              <Check className="w-3 h-3 mr-1" />
+              Complete
             </Button>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="empty-state"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="flex flex-col items-center justify-center text-center py-8"
-          >
-            <Target className="w-8 h-8 text-orange-400/70 mb-4" />
-            <p className="text-sm text-white/70 mb-2">No active session goal</p>
-            <p className="text-xs text-white/50 mb-4">Add a goal to get started</p>
-            <Button
-              onClick={() => setIsAddingGoal(true)}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Goal
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AddSessionGoalModal
-        isOpen={isAddingGoal}
-        onClose={() => setIsAddingGoal(false)}
-        onSubmit={handleCreateGoal}
-      />
+          )}
+        </div>
+      </div>
     </motion.div>
   )
 } 

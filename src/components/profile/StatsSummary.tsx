@@ -1,27 +1,142 @@
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useMemo, useState, useEffect, memo } from 'react'
 import { MusicNote, CheckCircle, ChartLine, Lightning } from '@phosphor-icons/react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProjects } from '@/hooks/useProjects'
+import { useAchievements } from '@/hooks/useAchievements'
 import { cn } from '@/lib/utils'
-import { getTotalSessionTime } from '@/lib/data'
+import { getTotalBeatsInTimeRange, getTotalSessionTime } from '@/lib/data'
+import { motion } from 'framer-motion'
+import { 
+  Trophy,
+  Clock,
+  Target,
+  ChartLineUp,
+  Star,
+  Crown
+} from '@phosphor-icons/react'
+
+// Add types for StatCard props
+type Stat = {
+  title: string;
+  value: string | number;
+  subtitle: string;
+  type: string;
+  trend: string;
+};
+type Style = {
+  icon: React.ReactNode;
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.3
+    }
+  }
+}
+
+const statStyles = {
+  beats: {
+    gradient: 'from-violet-400 to-violet-600',
+    icon: <MusicNote className="h-5 w-5" weight="fill" />,
+    ring: 'ring-violet-400/20',
+    shadow: 'shadow-violet-400/20'
+  },
+  streak: {
+    gradient: 'from-orange-400 to-orange-600',
+    icon: <Lightning className="h-5 w-5" weight="fill" />,
+    ring: 'ring-orange-400/20',
+    shadow: 'shadow-orange-400/20'
+  },
+  time: {
+    gradient: 'from-blue-400 to-blue-600',
+    icon: <Clock className="h-5 w-5" weight="fill" />,
+    ring: 'ring-blue-400/20',
+    shadow: 'shadow-blue-400/20'
+  },
+  goals: {
+    gradient: 'from-emerald-400 to-emerald-600',
+    icon: <Target className="h-5 w-5" weight="fill" />,
+    ring: 'ring-emerald-400/20',
+    shadow: 'shadow-emerald-400/20'
+  },
+  progress: {
+    gradient: 'from-fuchsia-400 to-pink-600',
+    icon: <ChartLineUp className="h-5 w-5" weight="fill" />,
+    ring: 'ring-fuchsia-400/20',
+    shadow: 'shadow-fuchsia-400/20'
+  },
+  achievements: {
+    gradient: 'from-amber-400 to-yellow-600',
+    icon: <Trophy className="h-5 w-5" weight="fill" />,
+    ring: 'ring-amber-400/20',
+    shadow: 'shadow-amber-400/20'
+  }
+}
+
+// Memoized StatCard for performance
+const StatCard = memo(function StatCard({ stat, style, onClick }: { stat: Stat; style: Style; onClick: () => void }) {
+  return (
+    <motion.button
+      whileHover={{ scale: 1.04, boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}
+      className={cn(
+        "relative p-4 h-full rounded-3xl overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-md w-full text-left group focus:outline-none focus:ring-2 transition",
+      )}
+      onClick={onClick}
+      aria-label={`View details for ${stat.title}`}
+      type="button"
+    >
+      <div className={cn(
+        "p-2 rounded-xl mb-3 w-fit",
+        stat.type === 'beats' && "bg-violet-100 text-violet-600 dark:bg-violet-800 dark:text-violet-200",
+        stat.type === 'streak' && "bg-orange-100 text-orange-600 dark:bg-orange-800 dark:text-orange-200",
+        stat.type === 'time' && "bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-200",
+        stat.type === 'goals' && "bg-emerald-100 text-emerald-600 dark:bg-emerald-800 dark:text-emerald-200",
+        stat.type === 'progress' && "bg-fuchsia-100 text-fuchsia-600 dark:bg-fuchsia-800 dark:text-fuchsia-200",
+        stat.type === 'achievements' && "bg-amber-100 text-amber-600 dark:bg-amber-800 dark:text-amber-200"
+      )}>
+        {style.icon}
+      </div>
+      <h3 className="text-base font-bold text-zinc-900 dark:text-white mb-0.5">{stat.title}</h3>
+      <motion.p
+        className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight mb-1"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {stat.value}
+      </motion.p>
+      <p className="text-xs text-zinc-700 dark:text-white/70 mb-3">{stat.subtitle}</p>
+      {/* Progress bar or other details can go here */}
+      <div className="mt-3 pt-3 text-xs border-t border-zinc-200 dark:border-white/10 text-zinc-700 dark:text-white/80">
+        {stat.trend}
+      </div>
+      {/* Placeholder for modal/drawer expansion */}
+    </motion.button>
+  );
+});
 
 export function StatsSummary() {
   const { profile } = useAuth()
   const { allProjects } = useProjects()
+  const { achievements } = useAchievements()
+  const [monthlyBeats, setMonthlyBeats] = useState(0)
+  const [lastMonthBeats, setLastMonthBeats] = useState(0)
   const [totalSessionTime, setTotalSessionTime] = useState(0)
-
-  // Fetch total session time
-  useEffect(() => {
-    const fetchSessionTime = async () => {
-      try {
-        const time = await getTotalSessionTime()
-        setTotalSessionTime(time)
-      } catch (error) {
-        console.error('Error fetching session time:', error)
-      }
-    }
-    fetchSessionTime()
-  }, [])
+  const [lastMonthSessionTime, setLastMonthSessionTime] = useState(0)
 
   // Filter out soft-deleted projects and calculate stats
   const activeProjects = useMemo(() => 
@@ -35,80 +150,107 @@ export function StatsSummary() {
     ? Math.round((completedProjects / activeProjects.length) * 100) 
     : 0
 
-  // Calculate productivity score
-  const productivityScore = useMemo(() => {
-    if (activeProjects.length === 0) return 0
+  // Fetch monthly beats and session time
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Get current month's beats
+        const thisMonth = await getTotalBeatsInTimeRange('month')
+        setMonthlyBeats(thisMonth)
 
-    // Base score from total beats (max 50 points)
-    const beatsScore = Math.min(50, Math.round((totalBeats / 20) * 50))
+        // Get last month's beats
+        const lastMonth = await getTotalBeatsInTimeRange('month') // TODO: Add support for previous month
+        setLastMonthBeats(lastMonth)
 
-    // Score from completed projects (max 30 points)
-    const completionScore = Math.min(30, completedProjects * 5)
+        // Get session times
+        const totalTime = await getTotalSessionTime()
+        setTotalSessionTime(totalTime)
 
-    // Score from active sessions (max 20 points)
-    const sessionScore = Math.min(20, Math.round(totalSessionTime / 60 / 10) * 20)
+        // TODO: Add support for last month's session time
+        setLastMonthSessionTime(0)
+      } catch (error) {
+        console.error('Error fetching stats:', error)
+      }
+    }
+    fetchData()
+  }, [])
 
-    // Total score (max 100)
-    return beatsScore + completionScore + sessionScore
-  }, [activeProjects.length, totalBeats, completedProjects, totalSessionTime])
+  // Calculate unlocked achievements
+  const unlockedAchievements = useMemo(() => {
+    return achievements.filter(a => a.unlocked_at).length
+  }, [achievements])
 
   const stats = [
     {
-      title: 'Productivity Score',
-      value: `${productivityScore}%`,
-      subtitle: 'Based on beats and completed projects',
-      icon: <ChartLine weight="fill" className="w-4 h-4 text-violet-500 dark:text-violet-400" />,
-      hover: "hover:border-violet-500 dark:hover:border-violet-400"
-    },
-    {
       title: 'Total Beats',
       value: totalBeats.toString(),
-      subtitle: 'Across all projects',
-      icon: <MusicNote weight="fill" className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />,
-      hover: "hover:border-indigo-500 dark:hover:border-indigo-400"
+      subtitle: `${monthlyBeats} beats this month`,
+      type: 'beats',
+      trend: `${monthlyBeats > lastMonthBeats ? '+' : ''}${monthlyBeats - lastMonthBeats} from last month`
     },
     {
-      title: 'Completed Projects',
-      value: completedProjects.toString(),
-      subtitle: 'Successfully finished',
-      icon: <CheckCircle weight="fill" className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />,
-      hover: "hover:border-emerald-500 dark:hover:border-emerald-400"
+      title: 'Current Streak',
+      value: profile?.current_streak || '0',
+      subtitle: `Best: ${profile?.best_streak || '0'} days`,
+      type: 'streak',
+      trend: (profile?.current_streak || 0) >= (profile?.best_streak || 0) ? 'On track for a new record!' : 'Keep it going!'
     },
     {
-      title: 'Completion Rate',
+      title: 'Studio Time',
+      value: `${Math.round(totalSessionTime / 60)}h`,
+      subtitle: 'This month',
+      type: 'time',
+      trend: `${totalSessionTime > lastMonthSessionTime ? '+' : ''}${Math.round((totalSessionTime - lastMonthSessionTime) / 60)}h from last month`
+    },
+    {
+      title: 'Goals Completed',
+      value: `${completedProjects}/${totalBeats}`,
+      subtitle: 'Completion rate',
+      type: 'goals',
+      trend: `${completionRate}% completion rate`
+    },
+    {
+      title: 'Progress',
       value: `${completionRate}%`,
-      subtitle: 'Projects completed',
-      icon: <Lightning weight="fill" className="w-4 h-4 text-rose-500 dark:text-rose-400" />,
-      hover: "hover:border-rose-500 dark:hover:border-rose-400"
+      subtitle: 'Completion rate',
+      type: 'progress',
+      trend: `${completedProjects} of ${totalBeats} beats completed`
+    },
+    {
+      title: 'Achievements',
+      value: `${unlockedAchievements}/${achievements.length}`,
+      subtitle: 'Total unlocked',
+      type: 'achievements',
+      trend: `${achievements.length - unlockedAchievements} more to unlock`
     }
   ]
 
   return (
-    <section className="w-full max-w-5xl mx-auto mt-10 px-4">
-      <h2 className="text-xl font-semibold mb-6 text-foreground/90">Progress Overview</h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {stats.map(({ title, value, subtitle, icon, hover }) => (
-          <div
-            key={title}
-            className={cn(
-              "relative flex flex-col justify-between",
-              "bg-muted/20 border border-border rounded-xl p-5",
-              "transition-all duration-300 group hover:shadow-md",
-              hover
-            )}
-          >
-            <div className="flex justify-between items-start">
-              <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
-              <div className="bg-muted p-1.5 rounded-md group-hover:scale-105 transition-transform">
-                {icon}
-              </div>
-            </div>
-            <p className="text-2xl font-bold mt-2 text-foreground">{value}</p>
-            <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
-          </div>
-        ))}
+    <motion.section 
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="py-8 dark:bg-zinc-950/50"
+    >
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-zinc-900 dark:text-white mb-8">Progress Overview</h2>
       </div>
-    </section>
+      <motion.div 
+        variants={containerVariants}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch"
+      >
+        {stats.map((stat) => {
+          const style = statStyles[stat.type as keyof typeof statStyles];
+          return (
+            <StatCard
+              key={stat.title}
+              stat={stat}
+              style={style}
+              onClick={() => {/* Placeholder for modal/drawer expansion */}}
+            />
+          );
+        })}
+      </motion.div>
+    </motion.section>
   )
 }

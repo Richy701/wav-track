@@ -1,12 +1,12 @@
 import React, { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Upload, Loader2, CheckCircle2, Music2, Sparkles } from 'lucide-react'
+import { Loader2, Music2, Sparkles } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { analyzeAudioWithSpotify, updateProjectWithAnalysis } from '@/lib/services/spotifyAnalysis'
+import { analyzeAudioWithSpotify } from '@/lib/services/spotifyAnalysis'
+import { FileUpload } from '@/components/ui/file-upload'
 
 interface AudioUploaderProps {
   onUploadComplete: (url: string, fileName: string) => void
@@ -17,13 +17,64 @@ interface AudioUploaderProps {
 export function AudioUploader({ onUploadComplete, projectId, className }: AudioUploaderProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [uploadedFile, setUploadedFile] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [currentFile, setCurrentFile] = useState<string | null>(null)
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleFileChange = async (files: File[]) => {
+    // If files is empty, it means the file was deleted
+    if (files.length === 0) {
+      if (currentFile && projectId) {
+        try {
+          // Delete from Supabase storage
+          const { error: deleteError } = await supabase.storage
+            .from('project-audio')
+            .remove([currentFile])
+
+          if (deleteError) {
+            console.error('Error deleting file:', deleteError)
+            toast.error('Failed to delete file', {
+              description: 'The file could not be deleted from storage.'
+            })
+            return
+          }
+
+          // Update project to remove audio URL
+          if (projectId) {
+            const { error: updateError } = await supabase
+              .from('projects')
+              .update({
+                audio_url: null,
+                audio_filename: null,
+                audio_analyzed: false,
+                audio_duration: null,
+                audio_loudness: null,
+                last_modified: new Date().toISOString(),
+              })
+              .eq('id', projectId)
+
+            if (updateError) {
+              console.error('Failed to update project:', updateError)
+              toast.error('Failed to update project', {
+                description: 'The project could not be updated.'
+              })
+              return
+            }
+          }
+
+          setCurrentFile(null)
+          onUploadComplete('', '')
+          toast.success('File deleted successfully')
+        } catch (error) {
+          console.error('Error during file deletion:', error)
+          toast.error('Failed to delete file', {
+            description: 'An unexpected error occurred.'
+          })
+        }
+      }
+      return
+    }
+
+    const file = files[0]
     if (!file) return
 
     console.log('File selected:', {
@@ -37,6 +88,9 @@ export function AudioUploader({ onUploadComplete, projectId, className }: AudioU
     if (!file.type.startsWith('audio/')) {
       console.error('Invalid file type:', file.type)
       setError('Please select an audio file')
+      toast.error('Invalid file type', {
+        description: 'Please select an audio file'
+      })
       return
     }
 
@@ -44,14 +98,15 @@ export function AudioUploader({ onUploadComplete, projectId, className }: AudioU
     if (file.size > 50 * 1024 * 1024) {
       console.error('File too large:', file.size)
       setError('File size must be less than 50MB')
+      toast.error('File too large', {
+        description: 'File size must be less than 50MB'
+      })
       return
     }
 
     try {
       setIsUploading(true)
       setError(null)
-      setProgress(0)
-      setUploadedFile(null)
 
       // Get the current user's ID
       const { data: { user } } = await supabase.auth.getUser()
@@ -66,6 +121,17 @@ export function AudioUploader({ onUploadComplete, projectId, className }: AudioU
       const fileName = `${user.id}/${timestamp}-${randomString}.${fileExt}`
 
       console.log('Starting upload to Supabase storage...')
+
+      // Delete old file if it exists
+      if (currentFile) {
+        const { error: deleteError } = await supabase.storage
+          .from('project-audio')
+          .remove([currentFile])
+
+        if (deleteError) {
+          console.error('Error deleting old file:', deleteError)
+        }
+      }
 
       // Upload to Supabase Storage with progress tracking
       const { error: uploadError, data } = await supabase.storage
@@ -94,7 +160,7 @@ export function AudioUploader({ onUploadComplete, projectId, className }: AudioU
         throw new Error('Failed to get public URL')
       }
 
-      setUploadedFile(file.name)
+      setCurrentFile(fileName)
       onUploadComplete(publicUrl, file.name)
 
       // If we have a project ID, trigger audio analysis
@@ -157,64 +223,30 @@ export function AudioUploader({ onUploadComplete, projectId, className }: AudioU
       })
     } finally {
       setIsUploading(false)
-      setProgress(0)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
     }
   }
 
   return (
     <div className={cn('space-y-4', className)}>
-      <Label htmlFor="audio-upload" className="text-sm font-medium">
-        Upload Audio File
-      </Label>
       <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-4">
-          <Input
-            id="audio-upload"
-            type="file"
-            accept="audio/mpeg"
-            onChange={handleFileChange}
-            disabled={isUploading || isAnalyzing}
-            ref={fileInputRef}
-            className="hidden"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading || isAnalyzing}
-            className="w-full"
-          >
-            {isUploading ? (
+        {(isUploading || isAnalyzing) && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            {isUploading && (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Uploading...
-              </>
-            ) : isAnalyzing ? (
-              <>
-                <Sparkles className="mr-2 h-4 w-4 animate-pulse" />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <Upload className="mr-2 h-4 w-4" />
-                Choose MP3 File
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Uploading...</span>
               </>
             )}
-          </Button>
-        </div>
-
-        {/* Upload Progress Bar */}
-        {isUploading && (
-          <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-            <div
-              className="bg-primary h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
+            {isAnalyzing && (
+              <>
+                <Sparkles className="h-4 w-4 animate-pulse" />
+                <span>Analyzing audio...</span>
+              </>
+            )}
           </div>
         )}
+        
+        <FileUpload onChange={handleFileChange} />
       </div>
     </div>
   )

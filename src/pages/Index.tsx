@@ -206,7 +206,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-background/50 to-background flex flex-col overflow-x-hidden">
       <Header />
 
       <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-10 flex-1">
@@ -218,9 +218,13 @@ const Index = () => {
               beatActivities={beatActivities}
             />
           </div>
-          <div className="grid grid-cols-1 gap-6">
-            <Timer />
-            <SessionsOverview />
+          <div className="grid grid-cols-1 gap-6 h-fit">
+            <div className="h-[480px]">
+              <Timer />
+            </div>
+            <div className="h-[580px]">
+              <SessionsOverview />
+            </div>
           </div>
         </div>
 

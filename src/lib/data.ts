@@ -672,7 +672,15 @@ export const getTotalSessionTime = async (): Promise<number> => {
       throw error
     }
 
-    return data ? data.reduce((total, session) => total + session.duration, 0) : 0
+    const totalTime = data ? data.reduce((total, session) => total + session.duration, 0) : 0
+
+    // If no real data found, return 0
+    if (totalTime === 0) {
+      console.log('No real session data found, returning 0')
+      return 0
+    }
+
+    return totalTime
   } catch (error) {
     console.error('Error in getTotalSessionTime:', error)
     throw error
@@ -712,7 +720,9 @@ export const getProjectsByStatus = async (status: Project['status']): Promise<Pr
 
     if (!data || data.length === 0) {
       console.log(`No ${status} projects found`)
-      return []
+      
+      // Return projects if found, otherwise empty array
+      return projects
     }
 
     console.log(`Found ${data.length} ${status} projects:`, 
@@ -832,7 +842,15 @@ export const getBeatsCreatedByProject = async (projectId: string): Promise<numbe
     }
 
     // Sum up all the counts
-    return data?.reduce((total, activity) => total + (activity.count || 0), 0) || 0
+    const totalBeats = data?.reduce((total, activity) => total + (activity.count || 0), 0) || 0
+
+    // If no real data found, return 0
+    if (totalBeats === 0) {
+      console.log('No real project beat data found, returning 0')
+      return 0
+    }
+
+    return totalBeats
   } catch (error) {
     console.error('Error in getBeatsCreatedByProject:', error)
     return 0
@@ -1058,6 +1076,12 @@ export const getTotalBeatsInTimeRange = async (
       activityCount: data?.length || 0,
     })
 
+    // If no real data found, return 0
+    if (totalBeats === 0) {
+      console.log('No real data found, returning 0')
+      return 0
+    }
+
     return totalBeats
   } catch (error) {
     console.error('Error in getTotalBeatsInTimeRange:', error)
@@ -1088,7 +1112,7 @@ export const getBeatsDataForChart = async (
     } = await supabase.auth.getUser()
 
     if (!user) {
-      console.log('No user found when fetching beat data')
+      console.log('No user found when fetching beat data, returning empty array')
       return []
     }
 
@@ -1120,6 +1144,8 @@ export const getBeatsDataForChart = async (
       hasProjectFilter: !!projectId,
       projectId,
     })
+
+
 
     switch (timeRange) {
       case 'month': {
@@ -1382,6 +1408,12 @@ export const getBeatsDataForChart = async (
       dataPoints: data.length,
       data: data,
     })
+
+    // If no real data found, return empty array
+    if (data.length === 0) {
+      console.log('No real data found, returning empty array')
+      return []
+    }
 
     return data
   } catch (error) {

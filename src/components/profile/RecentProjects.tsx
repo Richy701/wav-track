@@ -4,12 +4,6 @@ import {
   Clock,
   Calendar,
   ClockCounterClockwise,
-  Funnel,
-  ArrowsDownUp,
-  DotsThreeVertical,
-  PencilSimple,
-  Trash,
-  ArrowClockwise,
   MusicNote,
   ChartLine,
   CheckCircle,
@@ -19,7 +13,6 @@ import {
   Sparkle,
 } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { useProjects } from '@/hooks/useProjects'
 import {
   formatDistanceToNowStrict,
@@ -31,19 +24,10 @@ import {
   isSameDay,
 } from 'date-fns'
 import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Project } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
-
-const filters = ['All', 'In Progress', 'Completed']
-const sortOptions = ['Newest', 'Oldest', 'Most Progress', 'Least Progress']
+import { FilterBar } from '@/components/ui/filter-bar'
 
 function formatTimeAgo(date: Date): string {
   const now = new Date()
@@ -184,8 +168,8 @@ export function RecentProjects() {
     handlePageChange,
     projectsPerPage
   } = useProjects()
-  const [activeFilter, setActiveFilter] = useState('All')
-  const [sortBy, setSortBy] = useState('Newest')
+  const [filter, setFilter] = useState<string>('All')
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name" | "status">("newest")
   const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   const productivityData = getProjectActivityData(projects)
@@ -194,22 +178,20 @@ export function RecentProjects() {
 
   // Filter and sort projects
   const filteredProjects = projects.filter(project => {
-    if (activeFilter === 'All') return true
-    if (activeFilter === 'In Progress') return project.status === 'in-progress'
-    if (activeFilter === 'Completed') return project.status === 'completed'
-    return true
+    if (filter === 'All') return true
+    return project.status.toLowerCase() === filter.toLowerCase()
   })
 
   const sortedProjects = [...filteredProjects].sort((a, b) => {
     switch (sortBy) {
-      case 'Newest':
+      case 'newest':
         return new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
-      case 'Oldest':
+      case 'oldest':
         return new Date(a.lastModified).getTime() - new Date(b.lastModified).getTime()
-      case 'Most Progress':
+      case 'name':
+        return a.title.localeCompare(b.title)
+      case 'status':
         return (b.completionPercentage || 0) - (a.completionPercentage || 0)
-      case 'Least Progress':
-        return (a.completionPercentage || 0) - (b.completionPercentage || 0)
       default:
         return 0
     }
@@ -223,46 +205,12 @@ export function RecentProjects() {
           <h2 className="text-xl font-semibold tracking-tight">Recent Projects</h2>
           <p className="text-sm text-muted-foreground">Your latest production work</p>
         </div>
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Funnel className="h-4 w-4" />
-                Filter
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {filters.map(filter => (
-                <DropdownMenuItem
-                  key={filter}
-                  onClick={() => setActiveFilter(filter)}
-                  className={activeFilter === filter ? 'bg-accent' : ''}
-                >
-                  {filter}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <ArrowsDownUp className="h-4 w-4" />
-                Sort
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {sortOptions.map(option => (
-                <DropdownMenuItem
-                  key={option}
-                  onClick={() => setSortBy(option)}
-                  className={sortBy === option ? 'bg-accent' : ''}
-                >
-                  {option}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <FilterBar
+          status={filter}
+          onStatusChange={setFilter}
+          sortOrder={sortBy}
+          onSortChange={setSortBy}
+        />
       </div>
 
       {/* Projects Grid */}

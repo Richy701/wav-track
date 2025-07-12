@@ -1,8 +1,15 @@
+import { MonthlyBreakdownPreview } from '@/components/dashboard/MonthlyBreakdownPreview'
+
 export default function DashboardPage() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 p-6">
       <h1 className="text-2xl font-bold">Dashboard</h1>
-      <p>Welcome to your dashboard. You should see the feedback button in the top navigation bar.</p>
+      <div className="grid gap-6 md:grid-cols-2">
+        <MonthlyBreakdownPreview 
+          monthlyData={[]}
+          onExport={() => alert('Exporting stats...')}
+        />
+      </div>
     </div>
   )
 } 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { imageOptimization } from '@/lib/animations'
@@ -12,7 +12,7 @@ interface OptimizedImageProps {
   priority?: boolean
 }
 
-export const OptimizedImage = ({
+export const OptimizedImage = memo(({
   src,
   alt,
   width,
@@ -33,15 +33,6 @@ export const OptimizedImage = ({
     }
   }, [src, priority])
 
-  const imageVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: { 
-      opacity: 1, 
-      scale: 1,
-      transition: { duration: 0.3 }
-    }
-  }
-
   return (
     <div className={cn('relative overflow-hidden', className)}>
       {/* Blur placeholder */}
@@ -51,7 +42,11 @@ export const OptimizedImage = ({
             className="absolute inset-0 bg-gray-200 dark:bg-gray-800"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              willChange: 'opacity',
+              backfaceVisibility: 'hidden'
+            }}
           />
         )}
       </AnimatePresence>
@@ -66,10 +61,14 @@ export const OptimizedImage = ({
           'w-full h-full object-cover',
           !isLoaded && 'opacity-0'
         )}
-        variants={imageVariants}
-        initial="hidden"
-        animate="visible"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ 
+          opacity: isLoaded ? 1 : 0,
+          scale: isLoaded ? 1 : 0.95,
+          transition: { duration: 0.2 }
+        }}
         loading={priority ? 'eager' : 'lazy'}
+        decoding={priority ? 'sync' : 'async'}
         onLoad={() => setIsLoaded(true)}
         onError={() => setIsError(true)}
         style={{
@@ -87,4 +86,6 @@ export const OptimizedImage = ({
       )}
     </div>
   )
-}
+}, (prevProps, nextProps) => {
+  return prevProps.src === nextProps.src && prevProps.priority === nextProps.priority
+})

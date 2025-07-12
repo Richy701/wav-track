@@ -18,31 +18,7 @@ export default function Register() {
     navigate('/dashboard')
   }
 
-  // Sample data for different time ranges
-  const chartData = {
-    day: {
-      labels: ['12am', '4am', '8am', '12pm', '4pm', '8pm', '11pm'],
-      values: [0, 1, 2, 3, 2, 1, 0],
-      total: 9,
-    },
-    week: {
-      labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
-      values: [2, 4, 3, 5, 1, 2, 1],
-      total: 18,
-    },
-    month: {
-      labels: ['W1', 'W2', 'W3', 'W4'],
-      values: [12, 15, 18, 14],
-      total: 59,
-    },
-    year: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      values: [8, 6, 12, 9, 15, 11, 13, 10, 14, 12, 9, 7],
-      total: 126,
-    },
-  }
 
-  const currentData = chartData[timeRange]
 
   // Calculate max value for scaling
   const maxValue = Math.max(...currentData.values)
@@ -151,7 +127,7 @@ export default function Register() {
                   <Icons.trophy className="h-5 w-5 text-white/80" />
                 </div>
                 <span className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">
-                  {currentData.total}
+                  0
                 </span>
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -172,15 +148,15 @@ export default function Register() {
                       : 'grid-cols-7'
                 }`}
               >
-                {currentData.values.map((value, i) => (
+                {[0, 0, 0, 0, 0, 0, 0].map((value, i) => (
                   <div key={i} className="relative h-full group">
                     <div className={cn(styles.chartBar, getHeightClass(value))}>
                       <div
                         className={cn(
                           styles.chartBarInner,
-                          i === currentData.values.length - 1 && styles.chartBarLatest,
-                          i === currentData.values.length - 2 && styles.chartBarSecondLatest,
-                          i < currentData.values.length - 2 && styles.chartBarDefault,
+                          i === 6 && styles.chartBarLatest,
+                          i === 5 && styles.chartBarSecondLatest,
+                          i < 5 && styles.chartBarDefault,
                           'group-hover:' + styles.chartBarHover
                         )}
                       />
@@ -193,7 +169,7 @@ export default function Register() {
                     >
                       {value} {value === 1 ? 'beat' : 'beats'}
                     </div>
-                    <div className={styles.label}>{currentData.labels[i]}</div>
+                    <div className={styles.label}>{['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}</div>
                   </div>
                 ))}
               </div>
@@ -213,7 +189,7 @@ export default function Register() {
                     : timeRange === 'month'
                       ? 'This month'
                       : '2024'}{' '}
-                • Total: {currentData.total}
+                • Total: 0
               </div>
             </div>
           </div>

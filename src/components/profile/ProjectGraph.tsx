@@ -180,9 +180,9 @@ export function ProjectGraph() {
 
   if (error) {
     return (
-      <Card>
+      <Card className="bg-white dark:bg-background/30 backdrop-blur-xl border-border/10 shadow-xl">
         <CardContent className="pt-6">
-          <div className="h-[200px] w-full flex items-center justify-center text-destructive">
+          <div className="h-[200px] w-full flex items-center justify-center text-destructive/80">
             <p>Error loading activity data</p>
           </div>
         </CardContent>
@@ -191,21 +191,21 @@ export function ProjectGraph() {
   }
 
   return (
-    <Card>
+    <Card className="bg-white dark:bg-background/30 backdrop-blur-xl border-border/10 shadow-xl">
       <CardContent className="pt-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="font-medium">Recent Activity</h3>
-            <p className="text-sm text-muted-foreground">Your project activity over the last week</p>
+            <h3 className="font-medium text-foreground/90">Recent Activity</h3>
+            <p className="text-sm text-muted-foreground/80">Your beat activity over the last week</p>
           </div>
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-violet-500" />
-              <span className="text-muted-foreground">Beats</span>
+              <div className="h-2 w-2 rounded-full bg-violet-500/80 shadow-sm shadow-violet-500/20" />
+              <span className="text-muted-foreground/80">Beats</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span className="text-muted-foreground">Completed</span>
+              <div className="h-2 w-2 rounded-full bg-emerald-500/80 shadow-sm shadow-emerald-500/20" />
+              <span className="text-muted-foreground/80">Completed</span>
             </div>
           </div>
         </div>

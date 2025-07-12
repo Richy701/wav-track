@@ -207,17 +207,10 @@ export function AchievementProgress() {
   }, [achievements, loading])
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mb-8 p-6 rounded-2xl bg-background border border-border shadow-sm"
-    >
-      {/* Header */}
+    <div className="mb-8 p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">
-            Achievement Progress
-          </h2>
+          <h2 className="text-2xl font-bold text-foreground">Achievement Progress</h2>
           <p className="text-sm text-muted-foreground mt-1">
             {loading ? (
               <span className="inline-flex items-center gap-2">
@@ -234,11 +227,7 @@ export function AchievementProgress() {
             )}
           </p>
         </div>
-        <Badge variant="secondary" className={cn(
-          "px-3 py-1.5 text-sm",
-          "bg-purple-600/20 text-purple-600 dark:bg-purple-400/10 dark:text-purple-100",
-          "border border-purple-500/20"
-        )}>
+        <Badge className="inline-flex items-center rounded-full font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-secondary/80 px-3 py-1.5 text-sm bg-purple-600/20 text-purple-600 dark:bg-purple-400/10 dark:text-purple-100 border border-purple-500/20">
           {loading ? (
             <span className="inline-flex items-center gap-2">
               <Spinner className="h-4 w-4" />
@@ -251,23 +240,17 @@ export function AchievementProgress() {
           )}
         </Badge>
       </div>
-
-      {/* Main Progress Bar */}
       <div className="relative h-2 rounded-full bg-muted dark:bg-muted/50 mb-6 overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${stats.total.percentage}%` }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className={cn(
-            "absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500 to-violet-600",
-            loading && "animate-pulse"
-          )}
+          className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500 to-violet-600"
+          style={{ width: `${stats.total.percentage}%` }}
         />
       </div>
-
       <div className="grid sm:grid-cols-2 gap-8">
-        {/* Categories */}
-        <div className="p-4 rounded-xl bg-muted/50 dark:bg-muted/20 border border-border">
+        <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700">
           <h3 className="text-lg font-semibold mb-4 text-foreground">Categories</h3>
           <div className="space-y-5">
             {(Object.entries(categoryStyles) as [Category, typeof categoryStyles[Category]][]).map(([category, style]) => (
@@ -275,12 +258,9 @@ export function AchievementProgress() {
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                     <div className={cn(
-                      "p-1.5 rounded-lg",
-                      "bg-gradient-to-br",
+                      "p-1.5 rounded-lg bg-gradient-to-br",
                       style.gradient,
-                      "text-white",
-                      "transition-transform duration-200",
-                      "hover:scale-110"
+                      "text-white transition-transform duration-200 hover:scale-110"
                     )}>
                       {style.icon}
                     </div>
@@ -308,18 +288,16 @@ export function AchievementProgress() {
                     className={cn(
                       "h-full bg-gradient-to-r",
                       style.gradient,
-                      "transition-all duration-500",
-                      loading && "animate-pulse"
+                      "transition-all duration-500"
                     )}
+                    style={{ width: `${stats.category[category].percentage}%` }}
                   />
                 </div>
               </div>
             ))}
           </div>
         </div>
-
-        {/* Tiers */}
-        <div className="p-4 rounded-xl bg-muted/50 dark:bg-muted/20 border border-border">
+        <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700">
           <h3 className="text-lg font-semibold mb-4 text-foreground">Tiers</h3>
           <div className="space-y-5">
             {(Object.entries(tierStyles) as [Tier, typeof tierStyles[Tier]][]).map(([tier, style]) => (
@@ -327,12 +305,9 @@ export function AchievementProgress() {
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                     <div className={cn(
-                      "p-1.5 rounded-lg",
-                      "bg-gradient-to-br",
+                      "p-1.5 rounded-lg bg-gradient-to-br",
                       style.gradient,
-                      "text-white",
-                      "transition-transform duration-200",
-                      "hover:scale-110"
+                      "text-white transition-transform duration-200 hover:scale-110"
                     )}>
                       {style.icon}
                     </div>
@@ -360,9 +335,9 @@ export function AchievementProgress() {
                     className={cn(
                       "h-full bg-gradient-to-r",
                       style.gradient,
-                      "transition-all duration-500",
-                      loading && "animate-pulse"
+                      "transition-all duration-500"
                     )}
+                    style={{ width: `${stats.tier[tier].percentage}%` }}
                   />
                 </div>
               </div>
@@ -370,6 +345,6 @@ export function AchievementProgress() {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 } 

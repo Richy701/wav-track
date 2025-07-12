@@ -39,6 +39,7 @@ import { SortableProjectCard } from '@/components/project/SortableProjectCard'
 import { Loading } from '@/components/ui/loading'
 import { useQueryClient } from '@tanstack/react-query'
 import { EmptyState } from './EmptyState'
+import { FilterBar } from '@/components/ui/filter-bar'
 
 interface ProjectListProps {
   title?: string
@@ -70,8 +71,8 @@ const ProjectList: React.FC<ProjectListProps> = ({
     handlePageChange,
     projectsPerPage
   } = useProjects()
-  const [filter, setFilter] = useState<Project['status'] | 'all'>('all')
-  const [sortBy, setSortBy] = useState<SortOption>('newest')
+  const [filter, setFilter] = useState<string>('All')
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name" | "status">("newest")
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
 
@@ -195,7 +196,7 @@ const ProjectList: React.FC<ProjectListProps> = ({
   const filteredAndSortedProjects = useMemo(() => {
     // First filter
     const filtered =
-      filter === 'all' ? projects : projects.filter(project => project.status === filter)
+      filter === 'All' ? projects : projects.filter(project => project.status.toLowerCase() === filter.toLowerCase())
 
     // Then sort
     return [...filtered].sort((a, b) => {
@@ -206,8 +207,8 @@ const ProjectList: React.FC<ProjectListProps> = ({
           return new Date(a.dateCreated).getTime() - new Date(b.dateCreated).getTime()
         case 'name':
           return a.title.localeCompare(b.title)
-        case 'completion':
-          return b.completionPercentage - a.completionPercentage
+        case 'status':
+          return (b.completionPercentage || 0) - (a.completionPercentage || 0)
         default:
           return 0
       }
@@ -257,61 +258,13 @@ const ProjectList: React.FC<ProjectListProps> = ({
           <p className="text-sm text-muted-foreground">Track and manage your production work</p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="bg-card rounded-lg p-1 flex shadow-sm">
-            {statuses.map(status => (
-              <button
-                key={status.value}
-                onClick={() => setFilter(status.value)}
-                className={cn(
-                  'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
-                  filter === status.value
-                    ? status.className
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {status.label}
-              </button>
-            ))}
-          </div>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                {currentSortDisplay.icon}
-                {currentSortDisplay.text}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setSortBy('newest')}>
-                <Clock className="mr-2 h-4 w-4" weight="bold" />
-                Newest First
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy('oldest')}>
-                <Clock className="mr-2 h-4 w-4" weight="bold" />
-                Oldest First
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy('name')}>
-                <ArrowsDownUp className="mr-2 h-4 w-4" weight="bold" />
-                Name (A-Z)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy('completion')}>
-                <ArrowsVertical className="mr-2 h-4 w-4" weight="bold" />
-                Completion (High-Low)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => setIsClearDialogOpen(true)}
-          >
-            <Trash className="h-4 w-4" />
-          </Button>
-        </div>
+        <FilterBar
+          status={filter}
+          onStatusChange={setFilter}
+          sortOrder={sortBy}
+          onSortChange={setSortBy}
+          onDelete={() => setIsClearDialogOpen(true)}
+        />
       </div>
 
       {/* Project Grid */}

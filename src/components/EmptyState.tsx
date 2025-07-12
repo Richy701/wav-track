@@ -1,15 +1,21 @@
-import { Button } from './ui/button'
-import { supabase } from '@/lib/supabase'
-import { toast } from 'sonner'
-import { useAuth } from '@/contexts/AuthContext'
+import { ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
-export function EmptyState() {
-  const { user } = useAuth()
+interface EmptyStateProps {
+  title: string
+  description: string
+  icon: ReactNode
+  className?: string
+}
 
+export function EmptyState({ title, description, icon, className }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center p-8 text-center">
-      <h3 className="text-lg font-semibold mb-2">No projects yet</h3>
-      <p className="text-muted-foreground mb-4">Create your first project to get started.</p>
+    <div className={cn('text-center', className)}>
+      <div className="inline-flex p-3 rounded-full bg-white/5 mb-4">
+        {icon}
+      </div>
+      <h3 className="text-xl font-semibold mb-2 text-white/90">{title}</h3>
+      <p className="text-base text-white/70">{description}</p>
     </div>
   )
 }

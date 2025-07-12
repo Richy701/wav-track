@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import {
   ChartLineUp,
   PencilSimple,
@@ -18,7 +18,7 @@ import {
   ChartBar as BarChartIcon,
   ChartLine as LineChartIcon,
 } from '@phosphor-icons/react'
-import { StatCard } from './stats/StatCard'
+
 import { BeatsChart } from './stats/BeatsChart'
 import { BeatBarChart } from './stats/BeatBarChart'
 import { TimeRangeSelector } from './stats/TimeRangeSelector'
@@ -30,10 +30,12 @@ import { Button } from './ui/button'
 import { toast } from 'sonner'
 import { Badge } from './ui/badge'
 import { useProjects } from '@/hooks/useProjects'
-import { TrendingUp, TrendingDown } from 'lucide-react'
 import { BarChart, LineChart } from 'lucide-react'
 import { MonthlyBreakdownDialog } from './stats/MonthlyBreakdownDialog'
 import { YearInReviewDialog } from './stats/YearInReviewDialog'
+import { BeatsStar } from './icons/BeatsStar'
+import { Music } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 
 interface StatsProps {
   sessions: Session[]
@@ -53,6 +55,39 @@ interface YearInReview {
     studioTime: number
   }[]
   topGenres: string[]
+  beatGoal: number
+  topGenre?: string
+}
+
+// Tooltip helper functions
+const getTooltipTitle = (title: string) => {
+  switch (title) {
+    case 'Productivity Score':
+      return 'Productivity Score'
+    case 'Total Beats':
+      return 'Total Beats Created'
+    case 'Completed Projects':
+      return 'Completed Projects'
+    case 'Completion Rate':
+      return 'Project Completion Rate'
+    default:
+      return title
+  }
+}
+
+const getDefaultTooltip = (title: string) => {
+  switch (title) {
+    case 'Productivity Score':
+      return 'Your overall productivity score based on beats created and projects completed. This metric helps you track your progress and stay motivated.'
+    case 'Total Beats':
+      return 'The total number of beats you have created across all your projects. This includes both finished and in-progress beats.'
+    case 'Completed Projects':
+      return 'The number of projects you have successfully finished. This shows your ability to see projects through to completion.'
+    case 'Completion Rate':
+      return 'The percentage of projects you have completed compared to the total number of projects you have started.'
+    default:
+      return 'Click to learn more about this metric.'
+  }
 }
 
 export default function Stats({ sessions, selectedProject, beatActivities }: StatsProps) {
@@ -183,7 +218,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
       id: 'ten_beats',
       title: 'Beat Master',
       description: 'Created 10+ beats',
-      icon: <Trophy className="h-4 w-4 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-600" weight="fill" />,
+      icon: <Trophy className="h-4 w-4" weight="fill" />,
       unlocked: totalBeatsCreated >= 10,
       count: totalBeatsCreated,
       color: 'from-indigo-500 to-violet-500',
@@ -287,8 +322,8 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
       // Calculate completed projects
       yearProjects.filter(p => p.status === 'completed').length,
       
-      // Calculate studio time
-      yearSessions.reduce((total, session) => total + session.duration, 0),
+      // Calculate studio time (convert minutes to hours)
+      yearSessions.reduce((total, session) => total + (session.duration || 0), 0) / 60,
       
       // Calculate monthly stats
       Promise.all(
@@ -338,10 +373,12 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
       year: currentYear,
       totalBeats: yearBeats,
       completedProjects: yearCompleted,
-      studioTime: `${Math.floor(yearStudioTime / 60)} hours`,
+      studioTime: `${Math.floor(yearStudioTime)}h`, // Format as "Xh"
       monthlyStats,
       topGenres,
-    }
+      beatGoal: 100, // Default goal
+      topGenre: topGenres[0] || 'Uncategorized'
+    } as YearInReview
   }, [projects, sessions])
 
   // Pre-calculate year in review data when projects or sessions change
@@ -421,23 +458,40 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
     setShowYearInReview(true)
   }
 
+  // Add mouse tracking for the Year in Review button
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const button = e.currentTarget;
+    const rect = button.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    button.style.setProperty('--mouse-x', `${x}px`);
+    button.style.setProperty('--mouse-y', `${y}px`);
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6 animate-fade-in">
-      <div className="bg-card rounded-lg p-3 sm:p-4 lg:p-6 lg:col-span-3 overflow-hidden flex flex-col">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+      <div className="rounded-lg p-3 sm:p-4 lg:p-6 lg:col-span-3 overflow-hidden flex flex-col bg-white dark:bg-[rgb(12,13,13)]">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-8 mb-4">
           {/* Stat Block */}
           <div className="flex flex-col items-start gap-2 font-sans">
-            <div className="bg-muted rounded-md p-2">
-              <Trophy className="h-4 w-4 text-foreground" />
-            </div>
-
             <div className="flex items-center gap-1">
               <span className="text-3xl font-bold leading-none">{totalBeatsInPeriod}</span>
               {totalBeatsInPeriod > 0 ? (
-                <TrendingUp className="h-4 w-4 text-green-500" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-4 w-4 text-green-500"
+                >
+                  <line x1="12" y1="19" x2="12" y2="5" />
+                  <polyline points="5 12 12 5 19 12" />
+                </svg>
               ) : null}
             </div>
-
             <span className="text-sm text-muted-foreground">beats this {timeRange}</span>
             <span className="text-sm font-semibold text-foreground">Total Beats</span>
           </div>
@@ -449,60 +503,61 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
           </div>
         </div>
 
-        <div className="flex justify-between items-center mt-3 mb-1">
-          <div className="flex items-center gap-2 bg-muted p-1 rounded-md">
-            <button
-              onClick={() => setChartType('bar')}
-              aria-label="Switch to bar chart view"
-              className={cn(
-                "p-2 rounded-md transition-colors",
-                chartType === 'bar'
-                  ? "bg-violet-500/15 text-violet-500"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <BarChart className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setChartType('line')}
-              aria-label="Switch to line chart view"
-              className={cn(
-                "p-2 rounded-md transition-colors",
-                chartType === 'line'
-                  ? "bg-violet-500/15 text-violet-500"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <LineChart className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="flex gap-2">
-            {["Day", "Week", "Year"].map((range) => (
+        <div className="rounded-2xl shadow-lg border border-card/30 p-4 mb-6 bg-white dark:bg-[rgb(12,13,13)]">
+          <div className="flex justify-between items-center mb-3">
+            {/* Chart Type Toggle */}
+            <div className="flex items-center gap-2 p-1 rounded-full bg-zinc-900/80 border border-zinc-700 shadow-sm">
               <button
-                key={range}
-                onClick={() => setTimeRange(range.toLowerCase() as 'day' | 'week' | 'year')}
+                onClick={() => setChartType('bar')}
+                aria-label="Switch to bar chart view"
                 className={cn(
-                  "px-3 py-1.5 text-sm rounded-md font-medium transition-colors duration-150",
-                  timeRange === range.toLowerCase()
-                    ? "bg-violet-500/15 text-violet-500 shadow-sm"
-                    : "text-muted-foreground hover:bg-violet-500/7 hover:text-violet-500"
+                  "p-1 rounded-full transition-all duration-200 flex items-center justify-center",
+                  chartType === 'bar'
+                    ? "bg-violet-700/80 text-white"
+                    : "hover:bg-zinc-800 text-zinc-400 hover:text-violet-400"
                 )}
               >
-                {range}
+                <BarChart className="h-5 w-5" />
               </button>
-            ))}
+              <button
+                onClick={() => setChartType('line')}
+                aria-label="Switch to line chart view"
+                className={cn(
+                  "p-1 rounded-full transition-all duration-200 flex items-center justify-center",
+                  chartType === 'line'
+                    ? "bg-violet-700/80 text-white"
+                    : "hover:bg-zinc-800 text-zinc-400 hover:text-violet-400"
+                )}
+              >
+                <LineChart className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex gap-2">
+              {["Day", "Week", "Year"].map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setTimeRange(range.toLowerCase() as 'day' | 'week' | 'year')}
+                  className={cn(
+                    "px-3 py-1.5 text-sm rounded-full font-medium transition-colors duration-150",
+                    timeRange === range.toLowerCase()
+                      ? "bg-violet-500/15 text-violet-500 shadow-sm"
+                      : "text-muted-foreground hover:bg-violet-500/7 hover:text-violet-500"
+                  )}
+                >
+                  {range}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-
-        <div className="w-full overflow-x-auto flex-grow">
-          <div className="h-[300px]">
-            <BeatBarChart
-              projects={projects}
-              selectedProject={selectedProject}
-              timeRange={timeRange}
-              chartType={chartType}
-            />
+          <div className="w-full overflow-x-auto flex-grow">
+            <div className="h-[380px]">
+              <BeatBarChart
+                projects={projects}
+                selectedProject={selectedProject}
+                timeRange={timeRange}
+                chartType={chartType}
+              />
+            </div>
           </div>
         </div>
 
@@ -542,7 +597,12 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
                         : 'bg-muted text-muted-foreground'
                     )}
                   >
-                    {achievement.icon}
+                    {React.cloneElement(achievement.icon, {
+                      className: cn(
+                        'h-4 w-4',
+                        achievement.unlocked ? 'text-white' : 'text-muted-foreground'
+                      )
+                    })}
                   </div>
                   <div className="text-center relative z-10">
                     <p
@@ -581,106 +641,218 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
         {/* Export/Share Section */}
         <div className="mt-4 pt-3 border-t">
           <h4 className="font-medium text-xs text-muted-foreground mb-3">Share Your Progress</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <button
               onClick={handleShareStats}
-              className="h-[140px] p-4 rounded-xl bg-gradient-to-br from-violet-500/10 via-purple-500/15 to-fuchsia-500/20 border border-violet-500/20 hover:from-violet-500/20 hover:via-purple-500/25 hover:to-fuchsia-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-center w-full group relative overflow-hidden"
+              className="h-[140px] w-full rounded-xl border bg-white/5 dark:bg-black/20 backdrop-blur-[2px] overflow-hidden text-balance bg-gradient-to-b from-primary/10 via-primary/5 to-transparent border-primary/10 transition-all duration-500 hover:-translate-y-1 hover:from-primary/20 hover:via-primary/10 hover:to-transparent group relative focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 focus:ring-violet-500/40 dark:focus:ring-violet-500/40"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/0 via-purple-500/0 to-fuchsia-500/0 group-hover:from-violet-500/5 group-hover:via-purple-500/10 group-hover:to-fuchsia-500/15 transition-all duration-500" />
-              <div className="relative flex flex-col items-center gap-3">
-                <div className="p-2 rounded-lg bg-violet-500/10 group-hover:bg-violet-500/20 group-hover:scale-110 transition-all duration-300">
-                  <ShareNetwork className="h-5 w-5 text-violet-600" />
+              <div className="relative z-10 h-full flex flex-col items-center justify-center text-center p-3 space-y-2 sm:space-y-3">
+                <div className="rounded-lg p-2 bg-white/10 dark:bg-black/20 ring-1 ring-black/5 dark:ring-white/5 transition-transform duration-500 group-hover:scale-110 text-primary">
+                  <ShareNetwork className="h-5 w-5" weight="fill" />
                 </div>
-                <div className="space-y-1">
-                  <h5 className="text-sm font-semibold text-violet-900 dark:text-violet-100">
-                    Share Progress
-                  </h5>
-                  <p className="text-xs text-violet-600/70 dark:text-violet-300/70">
-                    Share your achievements
-                  </p>
+                <div className="space-y-1 max-w-[200px]">
+                  <h3 className="text-base font-semibold leading-tight tracking-tight text-primary-900 dark:text-primary-100">Share Progress</h3>
+                  <p className="text-xs leading-snug text-primary-700/70 dark:text-primary-300/70">Share your achievements</p>
                 </div>
               </div>
             </button>
 
             <button
               onClick={handleMonthlyBreakdown}
-              className="h-[140px] p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 via-teal-500/15 to-cyan-500/20 border border-emerald-500/20 hover:from-emerald-500/20 hover:via-teal-500/25 hover:to-cyan-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-center w-full group relative overflow-hidden"
+              className="h-[140px] w-full rounded-xl border bg-white/5 dark:bg-black/20 backdrop-blur-[2px] overflow-hidden text-balance bg-gradient-to-b from-violet-500/10 via-violet-500/5 to-transparent border-violet-500/10 transition-all duration-500 hover:-translate-y-1 hover:from-violet-500/20 hover:via-violet-500/10 hover:to-transparent group relative focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 focus:ring-violet-500/40 dark:focus:ring-violet-500/40"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 via-teal-500/0 to-cyan-500/0 group-hover:from-emerald-500/5 group-hover:via-teal-500/10 group-hover:to-cyan-500/15 transition-all duration-500" />
-              <div className="relative flex flex-col items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-500/10 group-hover:bg-emerald-500/20 group-hover:scale-110 transition-all duration-300">
-                  <Calendar className="h-5 w-5 text-emerald-600" />
+              <div className="relative z-10 h-full flex flex-col items-center justify-center text-center p-3 space-y-2 sm:space-y-3">
+                <div className="rounded-lg p-2 bg-white/10 dark:bg-black/20 ring-1 ring-black/5 dark:ring-white/5 transition-transform duration-500 group-hover:scale-110 text-violet-500">
+                  <Calendar className="h-5 w-5" weight="fill" />
                 </div>
-                <div className="space-y-1">
-                  <h5 className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">
-                    Monthly Breakdown
-                  </h5>
-                  <p className="text-xs text-emerald-600/70 dark:text-emerald-300/70">
-                    Track monthly progress
-                  </p>
+                <div className="space-y-1 max-w-[200px]">
+                  <h3 className="text-base font-semibold leading-tight tracking-tight text-violet-900 dark:text-violet-100">Monthly Breakdown</h3>
+                  <p className="text-xs leading-snug text-violet-700/70 dark:text-violet-300/70">Track monthly progress</p>
                 </div>
               </div>
             </button>
 
             <button
               onClick={handleYearInReview}
-              className="h-[140px] p-4 rounded-xl bg-gradient-to-br from-rose-500/10 via-pink-500/15 to-fuchsia-500/20 border border-rose-500/20 hover:from-rose-500/20 hover:via-pink-500/25 hover:to-fuchsia-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-center w-full group relative overflow-hidden"
+              onMouseMove={handleMouseMove}
+              className="h-[140px] w-full rounded-xl border bg-white/5 dark:bg-black/20 backdrop-blur-[2px] overflow-hidden text-balance bg-gradient-to-b from-rose-500/10 via-rose-500/5 to-transparent border-rose-500/10 transition-all duration-500 hover:-translate-y-1 hover:from-rose-500/20 hover:via-rose-500/10 hover:to-transparent group relative focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 focus:ring-violet-500/40 dark:focus:ring-violet-500/40"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-rose-500/0 via-pink-500/0 to-fuchsia-500/0 group-hover:from-rose-500/5 group-hover:via-pink-500/10 group-hover:to-fuchsia-500/15 transition-all duration-500" />
-              <div className="relative flex flex-col items-center gap-3">
-                <div className="p-2 rounded-lg bg-rose-500/10 group-hover:bg-rose-500/20 group-hover:scale-110 transition-all duration-300">
-                  <FileXls className="h-5 w-5 text-rose-600" />
+              <div className="relative z-10 h-full flex flex-col items-center justify-center text-center p-3 space-y-2 sm:space-y-3">
+                <div className="rounded-lg p-2 bg-white/10 dark:bg-black/20 ring-1 ring-black/5 dark:ring-white/5 transition-transform duration-500 group-hover:scale-110 text-rose-500">
+                  <FileXls className="h-5 w-5" />
                 </div>
-                <div className="space-y-1">
-                  <h5 className="text-sm font-semibold text-rose-900 dark:text-rose-100">
+                <div className="space-y-1 max-w-[200px]">
+                  <h3 className="text-base font-semibold leading-tight tracking-tight text-rose-900 dark:text-rose-100">
                     Year in Review
-                  </h5>
-                  <p className="text-xs text-rose-600/70 dark:text-rose-300/70">
+                  </h3>
+                  <p className="text-xs leading-snug text-rose-700/70 dark:text-rose-300/70">
                     Download yearly stats
                   </p>
                 </div>
               </div>
+              <div
+                className="absolute inset-0 z-0 bg-gradient-to-br from-transparent via-transparent to-transparent transition-opacity duration-500 opacity-0 group-hover:opacity-100 pointer-events-none"
+                style={{
+                  background: `radial-gradient(
+                    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+                    rgba(244, 63, 94, 0.05),
+                    transparent 40%
+                  )`,
+                }}
+              />
             </button>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
-        <StatCard
-          title="Productivity Score"
-          value={`${productivityScore}%`}
-          icon={<ChartLineUp className="w-3 h-3" />}
-          description="Based on beats and completed projects"
-          trend={0}
-          className="bg-card/50"
-        />
+        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-card border border-border">
+          <div className="flex justify-between items-start mb-3 sm:mb-4">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <h3 className="font-medium text-sm sm:text-base cursor-help">Productivity Score</h3>
+                </TooltipTrigger>
+                <TooltipContent 
+                  className="max-w-[300px]"
+                  sideOffset={5}
+                >
+                  <div className="space-y-3">
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2 pb-2 border-b border-zinc-200 dark:border-zinc-800">
+                      {getTooltipTitle('Productivity Score')}
+                    </p>
+                    <div
+                      className="text-zinc-700 dark:text-zinc-300 space-y-2.5 leading-relaxed"
+                      style={{ whiteSpace: 'pre-line' }}
+                    >
+                      {getDefaultTooltip('Productivity Score')}
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-background flex items-center justify-center">
+              <ChartLineUp className="w-3 h-3" />
+            </div>
+          </div>
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">{productivityScore}%</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Based on beats and completed projects</p>
+            </div>
+          </div>
+        </div>
 
-        <StatCard
-          title="Total Beats"
-          value={totalBeatsCreated.toString()}
-          icon={<MusicNote className="w-3 h-3" />}
-          description="Across all projects"
-          trend={0}
-          className="bg-card/50"
-        />
+        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-card border border-border">
+          <div className="flex justify-between items-start mb-3 sm:mb-4">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <h3 className="font-medium text-sm sm:text-base cursor-help">Total Beats</h3>
+                </TooltipTrigger>
+                <TooltipContent 
+                  className="max-w-[300px]"
+                  sideOffset={5}
+                >
+                  <div className="space-y-3">
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2 pb-2 border-b border-zinc-200 dark:border-zinc-800">
+                      {getTooltipTitle('Total Beats')}
+                    </p>
+                    <div
+                      className="text-zinc-700 dark:text-zinc-300 space-y-2.5 leading-relaxed"
+                      style={{ whiteSpace: 'pre-line' }}
+                    >
+                      {getDefaultTooltip('Total Beats')}
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-background flex items-center justify-center">
+              <MusicNote className="w-3 h-3" />
+            </div>
+          </div>
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">{totalBeatsCreated}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Across all projects</p>
+            </div>
+          </div>
+        </div>
 
-        <StatCard
-          title="Completed Projects"
-          value={completedProjects.toString()}
-          icon={<CheckCircle className="w-3 h-3" weight="fill" />}
-          description="Successfully finished"
-          trend={0}
-          className="bg-card/50"
-        />
+        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-card border border-border">
+          <div className="flex justify-between items-start mb-3 sm:mb-4">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <h3 className="font-medium text-sm sm:text-base cursor-help">Completed Projects</h3>
+                </TooltipTrigger>
+                <TooltipContent 
+                  className="max-w-[300px]"
+                  sideOffset={5}
+                >
+                  <div className="space-y-3">
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2 pb-2 border-b border-zinc-200 dark:border-zinc-800">
+                      {getTooltipTitle('Completed Projects')}
+                    </p>
+                    <div
+                      className="text-zinc-700 dark:text-zinc-300 space-y-2.5 leading-relaxed"
+                      style={{ whiteSpace: 'pre-line' }}
+                    >
+                      {getDefaultTooltip('Completed Projects')}
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-background flex items-center justify-center">
+              <CheckCircle className="w-3 h-3" weight="fill" />
+            </div>
+          </div>
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">{completedProjects}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Successfully finished</p>
+            </div>
+          </div>
+        </div>
 
-        <StatCard
-          title="Completion Rate"
-          value={`${projects.length > 0 ? Math.round((completedProjects / projects.length) * 100) : 0}%`}
-          icon={<Target className="w-3 h-3" weight="fill" />}
-          description="Projects completed"
-          trend={0}
-          className="bg-card/50"
-        />
+        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-card border border-border">
+          <div className="flex justify-between items-start mb-3 sm:mb-4">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <h3 className="font-medium text-sm sm:text-base cursor-help">Completion Rate</h3>
+                </TooltipTrigger>
+                <TooltipContent 
+                  className="max-w-[300px]"
+                  sideOffset={5}
+                >
+                  <div className="space-y-3">
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2 pb-2 border-b border-zinc-200 dark:border-zinc-800">
+                      {getTooltipTitle('Completion Rate')}
+                    </p>
+                    <div
+                      className="text-zinc-700 dark:text-zinc-300 space-y-2.5 leading-relaxed"
+                      style={{ whiteSpace: 'pre-line' }}
+                    >
+                      {getDefaultTooltip('Completion Rate')}
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-background flex items-center justify-center">
+              <Target className="w-3 h-3" weight="fill" />
+            </div>
+          </div>
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">{projects.length > 0 ? Math.round((completedProjects / projects.length) * 100) : 0}%</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Projects completed</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Add Dialog Components */}
@@ -691,13 +863,17 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
         selectedProject={selectedProject}
       />
 
-      <YearInReviewDialog
-        isOpen={showYearInReview}
-        onOpenChange={setShowYearInReview}
-        yearInReview={yearInReview}
-        onExport={handleExportCSV}
-        isLoading={isGeneratingReview}
-      />
+      {yearInReview && (
+        <YearInReviewDialog
+          isOpen={showYearInReview}
+          onOpenChange={setShowYearInReview}
+          yearInReview={yearInReview}
+          onExport={handleExportCSV}
+          isLoading={isGeneratingReview}
+          title={`${yearInReview.year} Year in Review`}
+          description="Your production journey this year"
+        />
+      )}
     </div>
   )
 }

@@ -21,7 +21,7 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
+    --input: 240 5.9% 70%;
     --ring: 240 5.9% 10%;
     --radius: 0.5rem;
   }
@@ -49,6 +49,17 @@
   }
 }
 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    /* Use a pure white background for light mode */
+    @apply bg-white text-zinc-900 dark:bg-zinc-900 dark:text-white;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
 @layer utilities {
   .animate-gradient-slow {
     animation: gradient 8s ease-in-out infinite;
@@ -59,19 +70,49 @@
   }
 
   .card-glow {
-    @apply rounded-2xl bg-[#1C1129] shadow-inner shadow-black/20 shadow-md shadow-black/10;
+    /* Solid white card, stronger border, visible shadow */
+    @apply rounded-2xl bg-white shadow-lg shadow-black/5 border border-zinc-300 dark:bg-[#1C1129] dark:shadow-black/20 dark:border-zinc-800/50;
   }
 
   .card-glass {
-    @apply rounded-2xl 
-           bg-white/60 dark:bg-zinc-800/60 
-           backdrop-blur-xl 
-           border border-zinc-200/50 dark:border-zinc-800/50 
-           shadow-inner shadow-black/20 shadow-md shadow-black/10
-           before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br
-           before:from-white/30 before:to-transparent 
-           dark:before:from-white/40 dark:before:to-transparent
-           before:pointer-events-none before:z-0;
+    /* Remove glass/opacity in light mode, keep solid white */
+    @apply rounded-2xl bg-white border border-zinc-300 shadow-lg shadow-black/5 dark:bg-zinc-800/60 dark:border-zinc-800/50 dark:shadow-black/20;
+  }
+
+  .bg-glass-gradient {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.95),
+      rgba(255, 255, 255, 0.9) 25%,
+      rgba(255, 255, 255, 0.85) 50%,
+      rgba(255, 255, 255, 0.9) 75%,
+      rgba(255, 255, 255, 0.95)
+    );
+  }
+
+  .glass-effect {
+    /* Remove glass/opacity in light mode */
+    @apply bg-white dark:bg-black/30;
+  }
+
+  .glass-border {
+    @apply border border-zinc-200 dark:border-white/10;
+  }
+
+  .glass-hover {
+    @apply hover:bg-zinc-50 dark:hover:bg-white/[0.12] transition-colors duration-300;
+  }
+
+  .glass-card {
+    @apply glass-effect glass-border rounded-xl;
+  }
+
+  .glass-glow {
+    @apply before:absolute before:inset-0 before:rounded-xl 
+           before:bg-gradient-to-b before:from-white/50 before:to-white/30 
+           dark:before:from-white/20 dark:before:to-transparent 
+           before:opacity-0 hover:before:opacity-100 before:transition-opacity 
+           before:duration-300 before:pointer-events-none;
   }
 }
 

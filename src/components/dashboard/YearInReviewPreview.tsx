@@ -1,176 +1,185 @@
-import { memo } from 'react'
-import { Calendar, Music, CheckCircle, Clock } from 'lucide-react'
-import { StatCard } from '../ui/stat-card'
+import { memo, useState } from 'react'
+import { Music, Clock, ChevronRight, Sparkles, BarChart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
+import { LiquidCard } from '@/components/ui/liquid-glass-card'
+import { EmptyState } from '@/components/EmptyState'
+import { Button } from '@/components/ui/button'
 
 interface YearInReviewPreviewProps {
   totalBeats: number
-  completedProjects: number
-  averageBPM: number
+  studioTime: number | string
   isLoading?: boolean
   onExport: () => void
   className?: string
+  topGenre?: string
+  title?: string
+  description?: string
 }
 
 export const YearInReviewPreview = memo(function YearInReviewPreview({
   totalBeats,
-  completedProjects,
-  averageBPM,
+  studioTime,
   isLoading = false,
   onExport,
-  className
+  className,
+  topGenre,
+  title = "Beat Creation",
+  description = "Track your beat making progress"
 }: YearInReviewPreviewProps) {
-  // Motivational lyrics that can be displayed
-  const motivationalLyrics = [
-    "A year of beats, a year of growth",
-    "Every track tells your story",
-    "From January to December, your sound evolved",
-    "Your year in music, your legacy"
-  ]
-  
-  // Randomly select a lyric
-  const randomLyric = motivationalLyrics[Math.floor(Math.random() * motivationalLyrics.length)]
+  const [isHovered, setIsHovered] = useState(false)
+
+  const formatStudioTime = (time: number | string) => {
+    if (typeof time === 'string') {
+      // If it's already a formatted string, just return it
+      return time
+    }
+    // If it's a number (hours), format it
+    if (time === 0) return '0h'
+    if (time < 1) return '<1h'
+    return `${Math.floor(time)}h`
+  }
 
   if (isLoading) {
     return (
-      <div className={cn(
-        'relative h-auto w-full rounded-xl overflow-hidden',
-        'bg-white/5 dark:bg-black/20 backdrop-blur-md',
-        'border border-white/10 dark:border-white/5',
-        'shadow-lg shadow-black/5 dark:shadow-black/10',
-        'animate-pulse',
-        className
-      )}>
+      <LiquidCard className={cn('w-full min-h-[280px] animate-pulse', className)}>
         <div className="p-6">
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start mb-4">
             <div className="space-y-2">
               <div className="h-6 w-32 bg-white/10 rounded"></div>
               <div className="h-4 w-48 bg-white/10 rounded"></div>
             </div>
-            <div className="h-10 w-10 bg-white/10 rounded-xl"></div>
           </div>
-          <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-2 gap-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-center space-x-3 p-3 rounded-lg bg-white/5">
                 <div className="h-9 w-9 bg-white/10 rounded-lg"></div>
                 <div className="space-y-2">
                   <div className="h-3 w-16 bg-white/10 rounded"></div>
-                  <div className="h-6 w-12 bg-white/10 rounded"></div>
+                  <div className="h-5 w-12 bg-white/10 rounded"></div>
                 </div>
               </div>
             ))}
           </div>
-          <div className="h-4 w-full bg-white/10 rounded mb-2"></div>
-          <div className="h-2 w-full bg-white/10 rounded"></div>
         </div>
-      </div>
+      </LiquidCard>
     )
   }
 
+  const hasNoActivity = totalBeats === 0 && studioTime === 0
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
       className={cn('relative', className)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <div
-        className={cn(
-          'relative h-auto w-full rounded-xl overflow-hidden',
-          'bg-white/5 dark:bg-black/20 backdrop-blur-md',
-          'border border-white/10 dark:border-white/5',
-          'shadow-lg shadow-black/5 dark:shadow-black/10',
-          'transition-all duration-300 ease-out',
-          'hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1',
-          'after:absolute after:inset-0 after:rounded-xl after:ring-1 after:ring-inset after:ring-white/10',
-          'cursor-pointer',
-          'group'
-        )}
-        onClick={onExport}
-      >
-        {/* WavTrack Logo Watermark */}
-        <div className="absolute top-4 left-4 opacity-10">
-          <div className="text-xl font-bold tracking-tight bg-gradient-to-br from-primary to-accent bg-clip-text text-transparent">
-            WavTrack
+      <LiquidCard className="w-full min-h-[320px] cursor-pointer transition-transform duration-300 hover:scale-[1.02]">
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-transparent to-pink-500/20 opacity-50" />
+          
+          <div className="flex flex-col p-6 relative z-10">
+            {/* Header */}
+            <div className="flex items-start justify-between mb-6">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-semibold bg-gradient-to-r from-amber-200 via-yellow-200 to-amber-200 bg-clip-text text-transparent">
+                    {title}
+                  </h3>
+                  <Sparkles className="w-4 h-4 text-amber-400/80" />
+                </div>
+                <p className="text-sm font-medium text-white/80 leading-relaxed">
+                  {description}
+                </p>
+              </div>
+              <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400/90 ring-1 ring-amber-500/20">
+                <BarChart className="h-6 w-6" />
+              </div>
+            </div>
+            
+            {hasNoActivity ? (
+              <div className="flex flex-col items-center justify-center py-8">
+                <EmptyState
+                  title="No Activity Yet"
+                  description="Start creating beats to see your progress stats"
+                  icon={<Music className="w-12 h-12 text-violet-400" />}
+                  className="max-w-sm mx-auto"
+                />
+              </div>
+            ) : (
+              /* Stats Grid */
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                {/* Total Beats */}
+                <motion.div 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: 0.1 }}
+                  className="flex items-center space-x-3 p-3 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05]"
+                >
+                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+                    <Music className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-medium text-white/90">Total Beats</p>
+                    <p className="text-lg font-bold text-amber-300">
+                      {totalBeats}
+                    </p>
+                  </div>
+                </motion.div>
+                
+                {/* Studio Time */}
+                <motion.div 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: 0.2 }}
+                  className="flex items-center space-x-3 p-3 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05]"
+                >
+                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+                    <Clock className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-medium text-white/90">Studio Time</p>
+                    <p className="text-lg font-bold text-amber-300">
+                      {formatStudioTime(studioTime)}
+                    </p>
+                  </div>
+                </motion.div>
+
+                {/* Top Genre */}
+                <motion.div 
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: 0.3 }}
+                  className="flex items-center space-x-3 p-3 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05]"
+                >
+                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+                    <Music className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-medium text-white/90">Top Genre</p>
+                    <p className="text-lg font-bold text-amber-300 truncate max-w-[120px]">
+                      {topGenre || 'None'}
+                    </p>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+
+            {/* Export Button */}
+            <div className="absolute bottom-0 left-0 w-full rounded-b-md bg-gradient-to-t from-black/80 to-transparent p-6">
+              <Button 
+                onClick={onExport}
+                className="w-full bg-white/10 hover:bg-white/20 text-white border-white/20"
+              >
+                Export {title}
+              </Button>
+            </div>
           </div>
         </div>
-        
-        <div className="flex flex-col p-6 relative z-10">
-          <div className="flex items-start justify-between mb-4">
-            <div className="space-y-1.5">
-              <h3 className="text-lg font-bold text-zinc-100/90 dark:text-zinc-200/90">Year in Review</h3>
-              <p className="text-sm font-medium text-zinc-400/90 dark:text-zinc-400/80 leading-relaxed">
-                Your annual music production journey
-              </p>
-            </div>
-            <div className="p-2.5 rounded-xl bg-white/5 dark:bg-black/20 text-primary/90 ring-1 ring-white/10 dark:ring-white/5 backdrop-blur-sm">
-              <Calendar className="h-6 w-6" />
-            </div>
-          </div>
-          
-          {/* Progress Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <motion.div 
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              className="flex items-center space-x-3 p-3 rounded-lg bg-white/5 dark:bg-black/20 backdrop-blur-sm"
-            >
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                <Music className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-zinc-400/80">Total Beats</p>
-                <p className="text-xl font-bold text-zinc-100">{totalBeats}</p>
-              </div>
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-              className="flex items-center space-x-3 p-3 rounded-lg bg-white/5 dark:bg-black/20 backdrop-blur-sm"
-            >
-              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
-                <CheckCircle className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-zinc-400/80">Completed</p>
-                <p className="text-xl font-bold text-zinc-100">{completedProjects}</p>
-              </div>
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-              className="flex items-center space-x-3 p-3 rounded-lg bg-white/5 dark:bg-black/20 backdrop-blur-sm"
-            >
-              <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500">
-                <Clock className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-zinc-400/80">Avg BPM</p>
-                <p className="text-xl font-bold text-zinc-100">{averageBPM}</p>
-              </div>
-            </motion.div>
-          </div>
-          
-          {/* Motivational Lyric */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="text-center py-2 italic text-sm text-zinc-400/80 border-t border-white/5 dark:border-white/5"
-          >
-            "{randomLyric}"
-          </motion.div>
-        </div>
-        
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-60" />
-      </div>
+      </LiquidCard>
     </motion.div>
   )
 })

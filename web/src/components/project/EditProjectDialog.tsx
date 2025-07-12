@@ -46,6 +46,7 @@ import { Separator } from '@/components/ui/separator'
 import { AudioUploader } from '@/components/audio/AudioUploader'
 import { analyzeAudioWithSpotify } from '@/lib/services/spotifyAnalysis'
 import { cn } from '@/lib/utils'
+import React from 'react'
 
 interface EditProjectDialogProps {
   project: Project
@@ -98,7 +99,7 @@ export default function EditProjectDialog({
         completionPercentage: suggestedCompletion,
       }))
     }
-  }, [formData.status])
+  }, [formData.status, statusToCompletion])
 
   // Genre options
   const genreOptions = [

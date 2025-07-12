@@ -337,19 +337,19 @@ export default function ProjectCard({
                 <div
                   className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                     localProject.status === 'completed'
-                      ? 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400'
+                      ? 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400'
                       : localProject.status === 'mastering'
-                        ? 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400'
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400'
                         : localProject.status === 'mixing'
-                          ? 'bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400'
+                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-400'
                           : localProject.status === 'in-progress'
-                            ? 'bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400'
-                            : 'bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400'
+                            ? 'bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-400'
+                            : 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400'
                   }`}
                 >
                   {localProject.status.replace('-', ' ')}
                 </div>
-                <div className="text-xs font-medium tabular-nums text-muted-foreground">
+                <div className="text-xs font-medium tabular-nums text-zinc-600 dark:text-zinc-400">
                   {localProject.completionPercentage}%
                 </div>
               </div>

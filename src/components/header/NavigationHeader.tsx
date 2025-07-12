@@ -29,10 +29,10 @@ export default function NavigationHeader() {
           </button>
         </div>
         <div className="hidden lg:flex lg:gap-x-12">
-          <Link to="/features" className="text-sm/6 font-semibold text-gray-900 dark:text-white">Product</Link>
-          <Link to="/features" className="text-sm/6 font-semibold text-gray-900 dark:text-white">Features</Link>
-          <Link to="/marketplace" className="text-sm/6 font-semibold text-gray-900 dark:text-white">Marketplace</Link>
-          <Link to="/about" className="text-sm/6 font-semibold text-gray-900 dark:text-white">Company</Link>
+          <Link to="/features" className="text-sm/6 font-semibold text-gray-900 dark:text-white px-3 py-2 rounded-md transition hover:bg-zinc-100 dark:hover:bg-zinc-800">Product</Link>
+          <Link to="/features" className="text-sm/6 font-semibold text-gray-900 dark:text-white px-3 py-2 rounded-md transition hover:bg-zinc-100 dark:hover:bg-zinc-800">Features</Link>
+          <Link to="/marketplace" className="text-sm/6 font-semibold text-gray-900 dark:text-white px-3 py-2 rounded-md transition hover:bg-zinc-100 dark:hover:bg-zinc-800">Marketplace</Link>
+          <Link to="/about" className="text-sm/6 font-semibold text-gray-900 dark:text-white px-3 py-2 rounded-md transition hover:bg-zinc-100 dark:hover:bg-zinc-800">Company</Link>
         </div>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           <Link to="/login" className="text-sm/6 font-semibold text-gray-900 dark:text-white">

@@ -147,17 +147,17 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background/50 to-background">
       <Header />
-      <main className="min-h-screen bg-background/50 pt-20">
+      <main className="min-h-screen bg-white dark:bg-background pt-20">
         {/* Profile Header */}
         <motion.div 
-          className="border-b border-muted"
+          className="border-b border-border/10 bg-white dark:bg-background/30 backdrop-blur-xl"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="max-w-6xl mx-auto px-4 md:px-8 py-6">
+          <div className="max-w-6xl mx-auto px-4 md:px-8 py-8">
             <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
               {/* Avatar with Upload Button */}
               <motion.div 
@@ -166,9 +166,9 @@ const Profile = () => {
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <Avatar className="w-24 h-24 border-2 border-muted shadow-sm">
+                <Avatar className="w-24 h-24 border-2 border-border/20 shadow-xl ring-2 ring-background/50">
                   {imageLoading && !imageError && (
-                    <div className="h-full w-full flex items-center justify-center bg-muted">
+                    <div className="h-full w-full flex items-center justify-center bg-muted/20 backdrop-blur-sm">
                       <Spinner className="h-6 w-6" />
                     </div>
                   )}
@@ -179,12 +179,12 @@ const Profile = () => {
                     />
                   )}
                   {(imageError || !cachedImage) && (
-                    <AvatarFallback className="text-xl">{getInitials()}</AvatarFallback>
+                    <AvatarFallback className="text-xl bg-primary/5 backdrop-blur-sm">{getInitials()}</AvatarFallback>
                   )}
                 </Avatar>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  className="absolute inset-0 flex items-center justify-center bg-background/40 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 border border-border/20"
                   aria-label="Upload profile picture"
                   title="Upload profile picture"
                 >
@@ -209,17 +209,20 @@ const Profile = () => {
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <div className="space-y-1">
-                    <div className="inline-flex items-baseline space-x-2">
-                      <h2 className="text-foreground text-xl font-bold leading-none">
+                  <div className="space-y-2">
+                    <div className="inline-flex items-baseline space-x-3">
+                      <h2 className="text-foreground text-2xl font-bold leading-none">
                         {profile?.name || 'Producer Name'}
                       </h2>
-                      <span className="text-muted-foreground text-base leading-none">
+                      <span className="text-muted-foreground/80 text-base leading-none px-2 py-1 rounded-full bg-muted/20 backdrop-blur-sm">
                         @{profile?.artist_name || 'artist'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>Member since {new Date().getFullYear()}</span>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-muted-foreground/80 px-2 py-1 rounded-full bg-muted/20 backdrop-blur-sm flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Member since {new Date().getFullYear()}
+                      </span>
                     </div>
                   </div>
                   <motion.div 
@@ -230,7 +233,7 @@ const Profile = () => {
                   >
                     <Button
                       variant="outline"
-                      className="w-full sm:w-auto"
+                      className="w-full sm:w-auto bg-background/50 backdrop-blur-sm border-border/20 hover:bg-background/80"
                       onClick={() => navigate('/profile/settings')}
                     >
                       <Gear className="h-4 w-4 mr-2" />
@@ -238,7 +241,7 @@ const Profile = () => {
                     </Button>
                     <Button
                       variant="destructive"
-                      className="w-full sm:w-auto"
+                      className="w-full sm:w-auto bg-destructive/10 backdrop-blur-sm hover:bg-destructive/20"
                       onClick={handleLogout}
                     >
                       <SignOut className="h-4 w-4 mr-2" />

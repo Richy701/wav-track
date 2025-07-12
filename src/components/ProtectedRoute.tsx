@@ -2,6 +2,7 @@ import React, { memo, useCallback, useEffect } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
+import { Spinner } from '@/components/ui/spinner'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -11,7 +12,11 @@ interface ProtectedRouteProps {
 const LoadingSpinner = memo(() => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+      <Spinner 
+        variant="circle-filled" 
+        size={48}
+        className="text-primary mb-4"
+      />
       <p className="text-sm text-muted-foreground">Loading...</p>
     </div>
   )

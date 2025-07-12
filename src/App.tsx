@@ -30,18 +30,18 @@ import { DirectionProvider } from './components/providers/DirectionProvider'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes (renamed from cacheTime in v5)
+      staleTime: 1000 * 60 * 2, // 2 minutes
+      gcTime: 1000 * 60 * 10, // 10 minutes
       refetchOnWindowFocus: false,
       retry: 1,
-      refetchOnMount: false,
+      refetchOnMount: "always",
       refetchOnReconnect: false,
       refetchInterval: false,
-      throwOnError: true, // renamed from useErrorBoundary in v5
+      throwOnError: true,
     },
     mutations: {
       retry: 1,
-      throwOnError: true, // renamed from useErrorBoundary in v5
+      throwOnError: true,
     },
   },
 })
@@ -79,6 +79,9 @@ const Callback = lazyWithPreload(() => import('./pages/auth/Callback'))
 const ProjectDetail = lazyWithPreload(() => import('./pages/ProjectDetail'))
 const LandingPage = lazyWithPreload(() => import('./pages/LandingPage'))
 const Achievements = lazyWithPreload(() => import('./pages/Achievements'))
+const PrivacyPolicy = lazyWithPreload(() => import('./pages/PrivacyPolicy'))
+const TermsOfService = lazyWithPreload(() => import('./pages/TermsOfService'))
+const GalleryTest = lazyWithPreload(() => import('./pages/GalleryTest'))
 
 // Preload components on hover
 const preloadComponent = (component: React.LazyExoticComponent<React.ComponentType<Record<string, unknown>>> & { preload: () => Promise<{ default: React.ComponentType<Record<string, unknown>> }> }) => {
@@ -211,6 +214,30 @@ const router = createBrowserRouter(
               <Achievements />
             </Suspense>
           </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/privacy-policy"
+        element={
+          <Suspense fallback={<LoadingScreen message="Loading privacy policy..." />}>
+            <PrivacyPolicy />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/terms-of-service"
+        element={
+          <Suspense fallback={<LoadingScreen message="Loading terms of service..." />}>
+            <TermsOfService />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/gallery-test"
+        element={
+          <Suspense fallback={<LoadingScreen message="Loading gallery..." />}>
+            <GalleryTest />
+          </Suspense>
         }
       />
     </Route>

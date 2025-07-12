@@ -117,12 +117,16 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
     setIsLoading(true)
     setError(null)
     try {
+      console.log('BeatBarChart: Fetching data for:', { timeRange, selectedProjectId: selectedProject?.id })
       const data = await getBeatsDataForChart(timeRange, selectedProject?.id)
+      console.log('BeatBarChart: Received data:', data)
+      
       // Add opacity for zero values
       const processedData = data.map(item => ({
         ...item,
         opacity: item.value === 0 ? 0.2 : 1
       }))
+      console.log('BeatBarChart: Processed data:', processedData)
       setBeatsData(processedData)
     } catch (error) {
       console.error('Error fetching beats data:', error)
@@ -178,7 +182,7 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
 
   if (isLoading) {
     return (
-      <Card className={cn("w-full", className)}>
+      <Card className={cn("w-full bg-transparent", className)}>
         <CardContent className="p-0">
           <div className="h-[300px] w-full flex items-center justify-center">
             <Spinner className="h-8 w-8" />
@@ -190,7 +194,7 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
 
   if (error) {
     return (
-      <Card className={cn("w-full", className)}>
+      <Card className={cn("w-full bg-transparent", className)}>
         <CardContent className="p-0">
           <div className="h-[300px] w-full flex items-center justify-center text-destructive">
             <p>Error loading beat data</p>
@@ -201,8 +205,9 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
   }
 
   if (beatsData.length === 0) {
+    console.log('BeatBarChart: No data available, showing empty state')
     return (
-      <Card className={cn("w-full", className)}>
+      <Card className={cn("w-full bg-transparent", className)}>
         <CardContent className="p-0">
           <div className="h-[300px] w-full flex items-center justify-center text-muted-foreground">
             <p>No beat data available</p>
@@ -212,107 +217,118 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
     )
   }
 
+  console.log('BeatBarChart: Rendering with data:', {
+    beatsDataLength: beatsData.length,
+    beatsData,
+    timeRange,
+    chartType
+  })
+
+
+
   return (
-    <Card className={cn("w-full", className)}>
-      <CardContent className="p-0">
-        <div className="w-full overflow-x-auto">
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              {chartType === 'bar' ? (
-                <BarChart
-                  data={beatsData}
-                  margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
+    <div className="card-glass relative w-full rounded-2xl shadow-lg border border-card/30 p-4 mb-6 bg-white dark:bg-[rgb(12,13,13)]">
+      {/* Controls row (toggle, time range) - keep as is if present, or add here if not */}
+      {/* Chart area */}
+      <div className="p-0 w-full overflow-x-auto flex-grow">
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height={300}>
+            {chartType === 'bar' ? (
+              <BarChart
+                data={beatsData}
+                margin={{ top: 50, right: 10, left: 10, bottom: 40 }}
+              >
+                <XAxis
+                  dataKey="label"
+                  stroke="currentColor"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={formatLabel}
+                  tickMargin={10}
+                />
+                <YAxis
+                  stroke="currentColor"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value) => `${value}`}
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  content={<ChartTooltipContent />}
+                  cursor={{ fill: 'transparent' }}
+                />
+                <Bar
+                  dataKey="value"
+                  fill={chartConfig.value.color}
+                  radius={[8, 8, 0, 0]}
+                  isAnimationActive={true}
+                  animationDuration={500}
+                  animationBegin={0}
+                  maxBarSize={40}
                 >
-                  <XAxis
-                    dataKey="label"
-                    stroke="currentColor"
-                    fontSize={11}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={formatLabel}
-                    tickMargin={10}
-                  />
-                  <YAxis
-                    stroke="currentColor"
-                    fontSize={11}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value) => `${value}`}
-                    allowDecimals={false}
-                  />
-                  <Tooltip
-                    content={<ChartTooltipContent />}
-                    cursor={{ fill: 'transparent' }}
-                  />
-                  <Bar
+                  <LabelList
                     dataKey="value"
-                    fill={chartConfig.value.color}
-                    radius={[8, 8, 0, 0]}
-                    isAnimationActive={true}
-                    animationDuration={500}
-                    animationBegin={0}
-                  >
-                    <LabelList
-                      dataKey="value"
-                      position="top"
-                      offset={12}
-                      className="fill-foreground transition-all duration-300 ease-out"
-                      fontSize={11}
-                      formatter={(value) => (value === 0 ? "" : value)}
-                    />
-                  </Bar>
-                </BarChart>
-              ) : (
-                <LineChart
-                  data={beatsData}
-                  margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
-                >
-                  <XAxis
-                    dataKey="label"
-                    stroke="currentColor"
-                    fontSize={11}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={formatLabel}
-                    tickMargin={10}
+                    position="top"
+                    offset={6}
+                    className="fill-foreground"
+                    fontSize={10}
+                    formatter={(value) => (value === 0 ? "" : value)}
                   />
-                  <YAxis
-                    stroke="currentColor"
-                    fontSize={11}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value) => `${value}`}
-                    allowDecimals={false}
-                  />
-                  <Tooltip
-                    content={<ChartTooltipContent />}
-                    cursor={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke={chartConfig.value.color}
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{
-                      r: 4,
-                      fill: chartConfig.value.color,
-                      stroke: "white",
-                      strokeWidth: 2,
-                    }}
-                  />
-                </LineChart>
-              )}
-            </ResponsiveContainer>
-          </div>
+                </Bar>
+              </BarChart>
+            ) : (
+              <LineChart
+                data={beatsData}
+                margin={{ top: 50, right: 10, left: 10, bottom: 40 }}
+              >
+                <XAxis
+                  dataKey="label"
+                  stroke="currentColor"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={formatLabel}
+                  tickMargin={10}
+                />
+                <YAxis
+                  stroke="currentColor"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value) => `${value}`}
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  content={<ChartTooltipContent />}
+                  cursor={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke={chartConfig.value.color}
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{
+                    r: 4,
+                    fill: chartConfig.value.color,
+                    stroke: "white",
+                    strokeWidth: 2,
+                  }}
+                />
+              </LineChart>
+            )}
+          </ResponsiveContainer>
         </div>
-      </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm pt-2">
+      </div>
+      {/* Footer (trend, description) */}
+      <div className="flex p-6 flex-col items-start gap-2 text-sm pt-2">
         {trendInfo.showTrend && (
           <div className="flex gap-2 font-medium leading-none">
             {trendInfo.percentage > 0 ? (
               <>
-                Trending up by {trendInfo.percentage.toFixed(1)}% this period 
+                Trending up by {trendInfo.percentage.toFixed(1)}% this period
                 <TrendUp className="h-4 w-4 text-emerald-500" />
               </>
             ) : (
@@ -326,8 +342,8 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
         <div className="leading-none text-muted-foreground text-xs mt-2">
           Showing total beats created for the last {timeframeLabel}
         </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   )
 })
 

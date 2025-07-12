@@ -7,10 +7,12 @@ import { Button } from '@/components/ui/button'
 import { Plus } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import CreateProjectDialog from '@/components/project/CreateProjectDialog'
 
 export default function ProjectsPage() {
   const { projects, isLoading, error } = useProjects()
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false)
   const navigate = useNavigate()
 
   const handleProjectSelect = (project: Project) => {
@@ -63,7 +65,7 @@ export default function ProjectsPage() {
             </p>
           </div>
           <Button
-            onClick={() => navigate('/project/new')}
+            onClick={() => setIsCreateProjectOpen(true)}
             className="w-full sm:w-auto"
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -83,6 +85,12 @@ export default function ProjectsPage() {
             />
           ))}
         </DashboardLayout>
+
+        <CreateProjectDialog
+          isOpen={isCreateProjectOpen}
+          onOpenChange={setIsCreateProjectOpen}
+          projectsCount={projects?.length || 0}
+        />
       </motion.div>
     </div>
   )

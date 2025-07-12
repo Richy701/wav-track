@@ -235,7 +235,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
           </button>
         </div>
       </div>
-      <div className="mt-4 md:mt-6 h-[200px] sm:h-[250px] md:h-[300px] w-full relative group overflow-hidden">
+      <div className="mt-4 md:mt-6 w-full relative group overflow-visible">
         <style>
           {`
             .recharts-bar-rectangle {

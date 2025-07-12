@@ -262,7 +262,7 @@ This repository contains fixes for database structure issues in the Wav Track ap
 2. Navigate to the SQL Editor
 3. Copy and paste the contents of each migration file in the following order:
    - `supabase/migrations/20240403000000_fix_database_structure.sql`
-   - `supabase/migrations/20240403000001_insert_test_data.sql`
+   
    - `supabase/migrations/20240403000002_fix_session_goals_relationship.sql`
 
 ### 2. Update Code

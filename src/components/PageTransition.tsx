@@ -1,84 +1,61 @@
+import { useRef, useEffect, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ReactNode, useRef, useEffect } from 'react'
 
 interface PageTransitionProps {
-  children: ReactNode
+  children: React.ReactNode
 }
 
 const pageVariants = {
-  initial: {
-    opacity: 0,
-    y: 20,
-  },
-  animate: {
-    opacity: 1,
+  initial: { opacity: 0, y: 10 },
+  animate: { 
+    opacity: 1, 
     y: 0,
     transition: {
-      duration: 0.3,
-      ease: 'easeOut',
-    },
+      duration: 0.2,
+      ease: 'easeOut'
+    }
   },
-  exit: {
-    opacity: 0,
-    y: -20,
+  exit: { 
+    opacity: 0, 
+    y: -10,
     transition: {
       duration: 0.2,
-      ease: 'easeIn',
-    },
-  },
+      ease: 'easeIn'
+    }
+  }
 }
 
-export default function PageTransition({ children }: PageTransitionProps) {
+const PageTransitionInner = ({ children }: PageTransitionProps) => {
   const isMountedRef = useRef(true)
-  const transitionStateRef = useRef<'entering' | 'exiting' | 'idle'>('idle')
+  const transitionStateRef = useRef<'idle' | 'entering' | 'exiting'>('idle')
 
-  // Track component mount state
   useEffect(() => {
-    console.log('[Debug] PageTransition mounted')
     isMountedRef.current = true
     return () => {
-      console.log('[Debug] PageTransition unmounting')
       isMountedRef.current = false
     }
   }, [])
 
   const handleBeforeAnimate = () => {
-    if (!isMountedRef.current) {
-      console.log('[Debug] Skipping page transition - component unmounted')
-      return
-    }
+    if (!isMountedRef.current) return
+    transitionStateRef.current = 'entering'
   }
 
   return (
-    <AnimatePresence mode="wait" onExitComplete={() => {
-      console.log('[Debug] All exit animations completed')
-      if (!isMountedRef.current) {
-        console.log('[Debug] Component unmounted during exit animation')
-      }
-    }}>
+    <AnimatePresence mode="wait">
       {isMountedRef.current && (
         <motion.div
           key="page-transition"
           initial="initial"
-          animate={isMountedRef.current ? "animate" : "initial"}
+          animate="animate"
           exit="exit"
           variants={pageVariants}
           className="min-h-screen w-full"
-          onAnimationStart={() => {
-            console.log('[Debug] Page transition animation starting')
-            transitionStateRef.current = 'entering'
-          }}
-          onAnimationComplete={() => {
-            if (transitionStateRef.current === 'entering') {
-              console.log('[Debug] Page transition enter animation completed')
-            } else if (transitionStateRef.current === 'exiting') {
-              console.log('[Debug] Page transition exit animation completed')
-            }
-            transitionStateRef.current = 'idle'
-          }}
-          onBeforeLayoutMeasure={() => {
-            console.log('[Debug] Measuring page layout before transition')
-            handleBeforeAnimate()
+          onBeforeAnimate={handleBeforeAnimate}
+          style={{
+            willChange: 'transform, opacity',
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden'
           }}
         >
           {children}
@@ -87,3 +64,5 @@ export default function PageTransition({ children }: PageTransitionProps) {
     </AnimatePresence>
   )
 }
+
+export default memo(PageTransitionInner)

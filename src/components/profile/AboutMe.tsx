@@ -6,6 +6,9 @@ import {
   MusicNotes,
   ShareNetwork,
   Envelope,
+  User,
+  MusicNote,
+  Link,
 } from '@phosphor-icons/react'
 import { useAuth } from '@/contexts/AuthContext'
 import XLogo from '@/components/XLogo'
@@ -18,6 +21,8 @@ import {
   BitwigIcon,
   ReaperIcon,
 } from '@/components/DawIcons'
+import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 
 const InstagramLogo = () => (
   <svg
@@ -97,83 +102,119 @@ export function AboutMe() {
   ]
 
   return (
-    <Card>
+    <Card className="bg-white dark:bg-background border border-zinc-300 dark:border-input shadow-2xl rounded-2xl">
       <CardHeader>
-        <CardTitle className="text-lg">About Me</CardTitle>
+        <CardTitle className="text-lg font-semibold">About Me</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <p className="text-muted-foreground break-words">
+      <CardContent className="space-y-6">
+        {/* Bio Section */}
+        <div className="relative border-b border-zinc-200 dark:border-white/10 pb-6">
+          <div className="absolute -left-6 top-0 bottom-6 w-[2px] bg-gradient-to-b from-white/5 via-white/10 to-transparent" />
+          <h4 className="font-medium mb-4 flex items-center gap-2 text-foreground/90">
+            <User className="h-4 w-4 text-muted-foreground" />
+            Bio
+          </h4>
+          <p className="text-muted-foreground/80 break-words text-base font-normal leading-relaxed tracking-wide">
             {profile?.bio ||
               'Add a bio to tell others about yourself and your music production journey.'}
           </p>
         </div>
 
         {/* Equipment Section */}
-        <div>
-          <h4 className="font-medium mb-3 flex items-center gap-2">
+        <div className="relative border-b border-zinc-200 dark:border-white/10 pb-6">
+          <div className="absolute -left-6 top-0 bottom-6 w-[2px] bg-gradient-to-b from-white/5 via-white/10 to-transparent" />
+          <h4 className="font-medium mb-4 flex items-center gap-2 text-foreground/90">
             <Gear className="h-4 w-4 text-muted-foreground" />
             Equipment & Tools
           </h4>
-          <div className="grid gap-2">
+          <div className="grid gap-3">
             {producerInfo.equipment.map((item, index) => (
-              <div
+              <motion.div
                 key={index}
-                className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="group flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-muted/10 border border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-muted/20 transition-all duration-300 hover:shadow-lg hover:shadow-white/5"
               >
-                <div className="flex items-center gap-2">
-                  {item.icon}
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-background/50 backdrop-blur-sm group-hover:bg-background/70 transition-colors">
+                    {item.icon}
+                  </div>
                   <span className="text-sm font-medium">{item.name}</span>
                 </div>
-                <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                <span className="text-sm text-muted-foreground/80 truncate max-w-[150px] group-hover:text-foreground/90 transition-colors">
                   {item.value}
                 </span>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
 
         {/* Genres Section */}
-        <div>
-          <h4 className="font-medium mb-3 flex items-center gap-2">
-            <MusicNotes className="h-4 w-4 text-muted-foreground" />
+        <div className="relative border-b border-zinc-200 dark:border-white/10 pb-6">
+          <div className="absolute -left-6 top-0 bottom-6 w-[2px] bg-gradient-to-b from-white/5 via-white/10 to-transparent" />
+          <h4 className="font-medium mb-4 flex items-center gap-2 text-foreground/90">
+            <MusicNote className="h-4 w-4 text-muted-foreground" />
             Genres
           </h4>
           <div className="flex flex-wrap gap-2">
-            {(Array.isArray(producerInfo.genres) ? producerInfo.genres : []).map((genre, index) => (
-              <Badge key={index} variant="secondary">
-                {genre}
-              </Badge>
-            ))}
-            {producerInfo.genres.length === 0 && (
-              <span className="text-sm text-muted-foreground">No genres added yet</span>
+            {producerInfo.genres.length > 0 ? (
+              producerInfo.genres.map((genre, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Badge
+                    variant="secondary"
+                    className="bg-muted/10 hover:bg-muted/20 text-foreground/80 border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-sm hover:shadow-white/5"
+                  >
+                    {genre}
+                  </Badge>
+                </motion.div>
+              ))
+            ) : (
+              <span className="text-sm text-muted-foreground/80">Add your favorite genres</span>
             )}
           </div>
         </div>
 
-        {/* Social Links */}
-        <div>
-          <h4 className="font-medium mb-3 flex items-center gap-2">
-            <ShareNetwork className="h-4 w-4 text-muted-foreground" />
-            Connect & Share
+        {/* Social Links Section */}
+        <div className="relative">
+          <div className="absolute -left-6 top-0 bottom-0 w-[2px] bg-gradient-to-b from-white/5 via-white/10 to-transparent" />
+          <h4 className="font-medium mb-4 flex items-center gap-2 text-foreground/90">
+            <Link className="h-4 w-4 text-muted-foreground" />
+            Social Links
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid gap-3">
             {socialLinks.map((link, index) => (
-              <a
+              <motion.div
                 key={index}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="group flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-muted/10 border border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-muted/20 transition-all duration-300 hover:shadow-lg hover:shadow-white/5"
               >
-                <div className={`rounded-full p-2 ${link.className} shrink-0`}>{link.icon}</div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium truncate">{link.name}</div>
-                  <div className="text-sm text-muted-foreground truncate break-all">
-                    {link.username}
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-background/50 backdrop-blur-sm group-hover:bg-background/70 transition-colors">
+                    {link.icon}
                   </div>
+                  <span className="text-sm font-medium">{link.name}</span>
                 </div>
-              </a>
+                {link.href ? (
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary/80 hover:text-primary truncate max-w-[150px] transition-colors"
+                  >
+                    {link.username || link.href}
+                  </a>
+                ) : (
+                  <span className="text-sm text-muted-foreground/80 group-hover:text-foreground/90 transition-colors">Not connected</span>
+                )}
+              </motion.div>
             ))}
           </div>
         </div>

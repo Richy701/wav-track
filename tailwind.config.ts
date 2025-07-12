@@ -41,6 +41,9 @@ const config = {
 			'2xl': '1536px',
 		},
 		extend: {
+			maxWidth: {
+				container: "1280px",
+			},
 			fontFamily: {
 				sans: ['Outfit', 'sans-serif'],
 				heading: ['Clash Display', 'sans-serif'],
@@ -154,6 +157,22 @@ const config = {
 					'0%': { width: '0%' },
 					'100%': { width: '100%' },
 				},
+				marquee: {
+					from: { transform: 'translateX(0)' },
+					to: { transform: 'translateX(calc(-33.33% - 16px))' }
+				},
+				grid: {
+					'0%': { transform: 'translateY(0)' },
+					'100%': { transform: 'translateY(calc(var(--cell-size) * -1))' }
+				},
+				'star-movement-bottom': {
+					'0%': { transform: 'translate(0%, 0%)', opacity: '1' },
+					'100%': { transform: 'translate(-100%, 0%)', opacity: '0' },
+				},
+				'star-movement-top': {
+					'0%': { transform: 'translate(0%, 0%)', opacity: '1' },
+					'100%': { transform: 'translate(100%, 0%)', opacity: '0' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -164,6 +183,15 @@ const config = {
 				'slide-in': 'slide-in 0.3s ease-out',
 				'pulse-subtle': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
 				'progress': 'progress 2s linear infinite',
+				'marquee': 'marquee 30s linear infinite',
+				'grid': 'grid 20s linear infinite',
+				'star-movement-bottom': 'star-movement-bottom linear infinite alternate',
+				'star-movement-top': 'star-movement-top linear infinite alternate',
+			},
+			utilities: {
+				'.pause': {
+					'animation-play-state': 'paused',
+				},
 			}
 		}
 	},
