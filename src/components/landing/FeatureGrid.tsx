@@ -73,20 +73,20 @@ function FeatureCard({ feature, index }: { feature: FeatureCard; index: number }
         y: -4,
         transition: { duration: 0.2 }
       }}
-      className="group"
+      className="group w-full"
     >
       <div className="bg-muted/10 rounded-2xl shadow-md overflow-hidden border border-border/50 hover:border-border transition-all duration-300 hover:shadow-lg hover:shadow-[#8257E5]/10">
         <div className="relative overflow-hidden">
           {/* Loading skeleton */}
           {!imageLoaded && (
-            <div className="w-full aspect-[4/3] bg-muted animate-pulse" />
+            <div className="w-full aspect-[16/9] bg-muted animate-pulse" />
           )}
           
           <img 
             src={feature.image} 
             alt={feature.alt} 
             className={cn(
-              "w-full h-auto object-cover aspect-[4/3] transition-all duration-300 group-hover:scale-105",
+              "w-full h-auto object-cover aspect-[16/9] transition-all duration-300 group-hover:scale-105",
               imageLoaded ? "opacity-100" : "opacity-0"
             )}
             loading="lazy"
@@ -100,11 +100,11 @@ function FeatureCard({ feature, index }: { feature: FeatureCard; index: number }
           <div className="absolute inset-0 bg-gradient-to-r from-[#8257E5]/20 to-[#B490FF]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
         
-        <div className="p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2 group-hover:text-[#8257E5] transition-colors duration-300">
+        <div className="p-4 sm:p-6 lg:p-8">
+          <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground mb-3 group-hover:text-[#8257E5] transition-colors duration-300">
             {feature.title}
           </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground leading-relaxed">
             {feature.description}
           </p>
         </div>
@@ -123,19 +123,19 @@ export default function FeatureGrid() {
         viewport={{ once: true, amount: 0.3 }}
         variants={fadeInUp}
       >
-        <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 text-foreground">
           Everything You Need to{" "}
           <span className="bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent">
             Level Up
           </span>
         </h2>
-        <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto">
           Powerful tools designed specifically for music producers to track, analyze, and improve their workflow.
         </p>
       </motion.div>
 
       <motion.div 
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+        className="flex flex-col space-y-8 sm:space-y-12"
         variants={staggerContainer}
         initial="initial"
         whileInView="animate"
@@ -148,16 +148,16 @@ export default function FeatureGrid() {
 
       {/* Call to action */}
       <motion.div 
-        className="text-center mt-12"
+        className="text-center mt-16 sm:mt-20"
         initial="initial"
         whileInView="animate"
         viewport={{ once: true, amount: 0.3 }}
         variants={fadeInUp}
       >
-        <p className="text-muted-foreground mb-4 text-sm sm:text-base">
+        <p className="text-muted-foreground mb-6 text-sm sm:text-base lg:text-lg">
           Ready to transform your music production workflow?
         </p>
-        <button className="bg-gradient-to-r from-[#8257E5] to-[#B490FF] text-white px-6 sm:px-8 py-3 rounded-xl font-medium hover:from-[#8257E5]/90 hover:to-[#B490FF]/90 transition-all duration-200 hover:shadow-lg hover:shadow-[#8257E5]/25 text-sm sm:text-base">
+        <button className="bg-gradient-to-r from-[#8257E5] to-[#B490FF] text-white px-8 sm:px-10 py-4 rounded-xl font-medium hover:from-[#8257E5]/90 hover:to-[#B490FF]/90 transition-all duration-200 hover:shadow-lg hover:shadow-[#8257E5]/25 text-base sm:text-lg">
           Get Started Today
         </button>
       </motion.div>

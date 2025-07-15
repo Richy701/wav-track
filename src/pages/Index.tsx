@@ -211,24 +211,24 @@ const Index = () => {
 
       <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-10 flex-1">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10 md:mb-12 lg:items-start">
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 min-w-0">
             <Stats
               sessions={sessions}
               selectedProject={selectedProject}
               beatActivities={beatActivities}
             />
           </div>
-          <div className="grid grid-cols-1 gap-6 h-fit">
-            <div className="h-[480px]">
+          <div className="grid grid-cols-1 gap-6 h-fit min-w-0">
+            <div className="h-[480px] min-w-0">
               <Timer />
             </div>
-            <div className="h-[580px]">
+            <div className="h-[580px] min-w-0">
               <SessionsOverview />
             </div>
           </div>
         </div>
 
-        <div className="mb-12 overflow-x-hidden">
+        <div className="mb-12 overflow-x-hidden min-w-0">
           <ProjectList
             projectList={projects || []}
             isLoading={isLoading}

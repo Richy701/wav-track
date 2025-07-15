@@ -235,7 +235,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
           </button>
         </div>
       </div>
-      <div className="mt-4 md:mt-6 w-full relative group overflow-visible">
+      <div className="mt-4 md:mt-6 w-full relative group overflow-visible min-w-0">
         <style>
           {`
             .recharts-bar-rectangle {
@@ -330,7 +330,7 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
             }
           `}
         </style>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" className="min-w-0">
           {chartView === 'bar' ? (
             <BarChart
               data={beatsData}

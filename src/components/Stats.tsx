@@ -604,22 +604,22 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
                       )
                     })}
                   </div>
-                  <div className="text-center relative z-10">
+                  <div className="text-center relative z-10 min-w-0 w-full px-1">
                     <p
                       className={cn(
-                        'text-[11px] sm:text-xs font-medium',
+                        'text-[11px] sm:text-xs font-medium truncate',
                         achievement.unlocked ? 'text-foreground' : 'text-muted-foreground'
                       )}
                     >
                       {achievement.title}
                     </p>
-                    <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5">
+                    <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 text-wrap leading-tight">
                       {achievement.description}
                     </p>
                     {achievement.unlocked && (
                       <p
                         className={cn(
-                          'text-[10px] sm:text-[11px] mt-0.5 font-medium',
+                          'text-[10px] sm:text-[11px] mt-0.5 font-medium truncate',
                           achievement.color.includes('amber')
                             ? 'text-amber-600'
                             : achievement.color.includes('indigo')
@@ -641,7 +641,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
         {/* Export/Share Section */}
         <div className="mt-4 pt-3 border-t">
           <h4 className="font-medium text-xs text-muted-foreground mb-3">Share Your Progress</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <button
               onClick={handleShareStats}
               className="h-[140px] w-full rounded-xl border bg-white/5 dark:bg-black/20 backdrop-blur-[2px] overflow-hidden text-balance bg-gradient-to-b from-primary/10 via-primary/5 to-transparent border-primary/10 transition-all duration-500 hover:-translate-y-1 hover:from-primary/20 hover:via-primary/10 hover:to-transparent group relative focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 focus:ring-violet-500/40 dark:focus:ring-violet-500/40"
@@ -650,9 +650,9 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
                 <div className="rounded-lg p-2 bg-white/10 dark:bg-black/20 ring-1 ring-black/5 dark:ring-white/5 transition-transform duration-500 group-hover:scale-110 text-primary">
                   <ShareNetwork className="h-5 w-5" weight="fill" />
                 </div>
-                <div className="space-y-1 max-w-[200px]">
-                  <h3 className="text-base font-semibold leading-tight tracking-tight text-primary-900 dark:text-primary-100">Share Progress</h3>
-                  <p className="text-xs leading-snug text-primary-700/70 dark:text-primary-300/70">Share your achievements</p>
+                <div className="space-y-1 max-w-[200px] min-w-0">
+                  <h3 className="text-base font-semibold leading-tight tracking-tight text-primary-900 dark:text-primary-100 truncate">Share Progress</h3>
+                  <p className="text-xs leading-snug text-primary-700/70 dark:text-primary-300/70 text-wrap">Share your achievements</p>
                 </div>
               </div>
             </button>
@@ -665,9 +665,9 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
                 <div className="rounded-lg p-2 bg-white/10 dark:bg-black/20 ring-1 ring-black/5 dark:ring-white/5 transition-transform duration-500 group-hover:scale-110 text-violet-500">
                   <Calendar className="h-5 w-5" weight="fill" />
                 </div>
-                <div className="space-y-1 max-w-[200px]">
-                  <h3 className="text-base font-semibold leading-tight tracking-tight text-violet-900 dark:text-violet-100">Monthly Breakdown</h3>
-                  <p className="text-xs leading-snug text-violet-700/70 dark:text-violet-300/70">Track monthly progress</p>
+                <div className="space-y-1 max-w-[200px] min-w-0">
+                  <h3 className="text-base font-semibold leading-tight tracking-tight text-violet-900 dark:text-violet-100 truncate">Monthly Breakdown</h3>
+                  <p className="text-xs leading-snug text-violet-700/70 dark:text-violet-300/70 text-wrap">Track monthly progress</p>
                 </div>
               </div>
             </button>
@@ -681,11 +681,11 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
                 <div className="rounded-lg p-2 bg-white/10 dark:bg-black/20 ring-1 ring-black/5 dark:ring-white/5 transition-transform duration-500 group-hover:scale-110 text-rose-500">
                   <FileXls className="h-5 w-5" />
                 </div>
-                <div className="space-y-1 max-w-[200px]">
-                  <h3 className="text-base font-semibold leading-tight tracking-tight text-rose-900 dark:text-rose-100">
+                <div className="space-y-1 max-w-[200px] min-w-0">
+                  <h3 className="text-base font-semibold leading-tight tracking-tight text-rose-900 dark:text-rose-100 truncate">
                     Year in Review
                   </h3>
-                  <p className="text-xs leading-snug text-rose-700/70 dark:text-rose-300/70">
+                  <p className="text-xs leading-snug text-rose-700/70 dark:text-rose-300/70 text-wrap">
                     Download yearly stats
                   </p>
                 </div>

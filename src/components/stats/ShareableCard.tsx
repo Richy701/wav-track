@@ -180,13 +180,24 @@ export function ShareableCard({ title, description, stats }: ShareableCardProps)
 
                     {/* Value */}
                     <motion.div 
-                      className="text-4xl font-bold tracking-tight text-white"
+                      className={cn(
+                        stat.label === 'Top Genre'
+                          ? 'text-[36px] sm:text-3xl font-bold tracking-tight text-white break-words whitespace-normal leading-tight'
+                          : 'text-4xl font-bold tracking-tight text-white'
+                      )}
                       animate={{
                         scale: hoveredIndex === index ? 1.02 : 1
                       }}
                       transition={{ duration: 0.2 }}
                     >
-                      {stat.value}
+                      {stat.label === 'Top Genre' && stat.value === 'Uncategorized' ? (
+                        <>
+                          <span className="inline sm:hidden"></span>
+                          <span className="hidden sm:inline">Uncategorized</span>
+                        </>
+                      ) : (
+                        stat.value
+                      )}
                     </motion.div>
                   </div>
                 </motion.div>

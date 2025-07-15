@@ -31,7 +31,8 @@ export function TabsPill({
     <div
       className={cn(
         "relative flex items-center gap-1 p-1 rounded-lg bg-muted/50",
-        "overflow-x-auto scrollbar-none snap-x snap-mandatory",
+        "overflow-x-auto scrollbar-none snap-x snap-mandatory w-full max-w-full flex-nowrap",
+        "ml-2 sm:ml-0",
         className
       )}
     >
@@ -42,7 +43,7 @@ export function TabsPill({
             key={option}
             onClick={() => handleValueChange(option)}
             className={cn(
-              "relative px-3 py-1.5 text-sm font-medium rounded-md whitespace-nowrap",
+              "relative px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm font-medium rounded-md whitespace-nowrap",
               "transition-colors duration-200 snap-start",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
               "disabled:opacity-50 disabled:cursor-not-allowed",

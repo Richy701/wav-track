@@ -51,7 +51,7 @@ export function Footer({
           >
             {logo}
           </Link>
-          <ul className="flex list-none mt-4 md:mt-0 space-x-3">
+          <ul className="flex list-none mt-4 md:mt-0 space-x-3 flex-wrap">
             {socialLinks.map((link, i) => (
               <li key={i}>
                 <Button

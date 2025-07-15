@@ -111,22 +111,22 @@ export const YearInReviewPreview = memo(function YearInReviewPreview({
               </div>
             ) : (
               /* Stats Grid */
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 w-full overflow-hidden mb-6 min-w-0">
                 {/* Total Beats */}
                 <motion.div 
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, delay: 0.1 }}
-                  className="flex items-center space-x-3 p-3 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05]"
+                  className="flex items-center space-x-3 p-3 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05] min-w-0 truncate text-wrap overflow-hidden"
                 >
-                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 flex-shrink-0">
                     <Music className="h-4 w-4" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-medium text-white/90">Total Beats</p>
-                    <p className="text-lg font-bold text-amber-300">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-medium text-white/90 truncate">Total Beats</p>
+                    <div className="text-4xl font-bold tracking-tight text-white">
                       {totalBeats}
-                    </p>
+                    </div>
                   </div>
                 </motion.div>
                 
@@ -135,16 +135,16 @@ export const YearInReviewPreview = memo(function YearInReviewPreview({
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, delay: 0.2 }}
-                  className="flex items-center space-x-3 p-3 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05]"
+                  className="flex items-center space-x-3 p-3 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05] min-w-0 truncate text-wrap overflow-hidden"
                 >
-                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 flex-shrink-0">
                     <Clock className="h-4 w-4" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-medium text-white/90">Studio Time</p>
-                    <p className="text-lg font-bold text-amber-300">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-medium text-white/90 truncate">Studio Time</p>
+                    <div className="text-4xl font-bold tracking-tight text-white">
                       {formatStudioTime(studioTime)}
-                    </p>
+                    </div>
                   </div>
                 </motion.div>
 
@@ -153,15 +153,25 @@ export const YearInReviewPreview = memo(function YearInReviewPreview({
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, delay: 0.3 }}
-                  className="flex items-center space-x-3 p-3 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05]"
+                  className="flex items-center space-x-3 p-3 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05] min-w-0 truncate text-wrap overflow-hidden"
                 >
-                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 flex-shrink-0">
                     <Music className="h-4 w-4" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-medium text-white/90">Top Genre</p>
-                    <p className="text-lg font-bold text-amber-300 truncate max-w-[120px]">
-                      {topGenre || 'None'}
+                  <div className="min-w-0 flex-1 overflow-hidden">
+                    <p className="text-[10px] font-medium text-white/90 truncate">Top Genre</p>
+                    <p
+                      className="text-[10px] sm:text-[12px] font-bold tracking-tight text-white truncate w-full max-w-[90vw] break-words"
+                      title={topGenre === 'Uncategorized' ? 'Uncategorized' : topGenre || 'None'}
+                    >
+                      {topGenre === 'Uncategorized' ? (
+                        <>
+                          <span className="inline sm:hidden">Other</span>
+                          <span className="hidden sm:inline">Uncategorized</span>
+                        </>
+                      ) : (
+                        topGenre || 'None'
+                      )}
                     </p>
                   </div>
                 </motion.div>

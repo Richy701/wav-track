@@ -99,21 +99,44 @@ export const MonthlyBreakdownPreview = memo(function MonthlyBreakdownPreview({
                 <BarChart className="h-6 w-6" />
               </div>
             </div>
+
+            {/* Tablist */}
+            <div
+              role="tablist"
+              className="h-10 p-1 gap-0.5 text-sm grid w-full grid-cols-2 mb-6 bg-black/20 border border-white/10 rounded-md items-center justify-center sm:h-8 sm:p-0.5 sm:text-xs"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected="true"
+                className="inline-flex items-center justify-center min-w-0 w-full whitespace-nowrap rounded-sm px-2 py-0 text-sm font-medium sm:py-0.5 sm:text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm data-[state=active]:bg-white/5 data-[state=active]:text-white transition-colors relative z-10"
+              >
+                Chart View
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected="false"
+                className="inline-flex items-center justify-center min-w-0 w-full whitespace-nowrap rounded-sm px-2 py-0 text-sm font-medium sm:py-0.5 sm:text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm data-[state=active]:bg-white/5 data-[state=active]:text-white transition-colors relative z-10"
+              >
+                Share Stats
+              </button>
+            </div>
             
             {/* Progress Stats */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 }}
-                className="flex items-center space-x-3 p-4 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05]"
+                className="flex items-center space-x-3 p-4 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05] min-w-0"
               >
-                <div className="p-2.5 rounded-lg bg-purple-500/10 text-purple-400">
+                <div className="p-2.5 rounded-lg bg-purple-500/10 text-purple-400 flex-shrink-0">
                   <Music className="h-5 w-5" />
                 </div>
-                <div>
-                  <p className="text-xs font-medium text-zinc-400/80">Total Beats</p>
-                  <p className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-zinc-400/80 truncate">Total Beats</p>
+                  <p className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent truncate">
                     {totalBeats}
                   </p>
                 </div>
@@ -123,10 +146,10 @@ export const MonthlyBreakdownPreview = memo(function MonthlyBreakdownPreview({
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4, delay: 0.2 }}
-                className="flex items-center space-x-3 p-4 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05]"
+                className="flex items-center space-x-3 p-4 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05] min-w-0"
               >
                 <div className={cn(
-                  'p-2.5 rounded-lg',
+                  'p-2.5 rounded-lg flex-shrink-0',
                   isPositiveTrend ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
                 )}>
                   {isPositiveTrend ? (
@@ -147,10 +170,10 @@ export const MonthlyBreakdownPreview = memo(function MonthlyBreakdownPreview({
                     <TrendingDown className="h-5 w-5" />
                   )}
                 </div>
-                <div>
-                  <p className="text-xs font-medium text-zinc-400/80">Monthly Trend</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-zinc-400/80 truncate">Monthly Trend</p>
                   <p className={cn(
-                    'text-2xl font-bold',
+                    'text-2xl font-bold truncate',
                     isPositiveTrend ? 'text-emerald-400' : 'text-rose-400'
                   )}>
                     {isPositiveTrend ? '+' : ''}{Math.abs(Math.round(trend))}%

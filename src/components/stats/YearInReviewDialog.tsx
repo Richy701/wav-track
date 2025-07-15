@@ -132,16 +132,16 @@ export function YearInReviewDialog({
             {/* Tabs Section */}
             <div className="p-6">
               <Tabs defaultValue="card" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6 bg-black/20 border border-white/10">
+                <TabsList className="h-12 p-1.5 gap-1 text-base grid w-full grid-cols-2 mb-6 bg-black/20 border border-white/10 rounded-md items-center justify-center sm:h-10 sm:p-1 sm:text-sm">
                   <TabsTrigger 
                     value="card" 
-                    className="data-[state=active]:bg-white/5 data-[state=active]:text-white transition-colors relative z-10"
+                    className="inline-flex items-center justify-center min-w-0 w-full whitespace-nowrap rounded-sm px-3 py-0 text-base font-medium sm:py-1.5 sm:text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm data-[state=active]:bg-white/5 data-[state=active]:text-white transition-colors relative z-10"
                   >
                     Card View
                   </TabsTrigger>
                   <TabsTrigger 
                     value="chart"
-                    className="data-[state=active]:bg-white/5 data-[state=active]:text-white transition-colors relative z-10"
+                    className="inline-flex items-center justify-center min-w-0 w-full whitespace-nowrap rounded-sm px-3 py-0 text-base font-medium sm:py-1.5 sm:text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm data-[state=active]:bg-white/5 data-[state=active]:text-white transition-colors relative z-10"
                   >
                     Stats View
                   </TabsTrigger>
@@ -284,12 +284,34 @@ export function YearInReviewDialog({
                           </div>
                         </div>
 
-                        {/* Legend */}
-                        <div className="flex-1 grid grid-cols-2 gap-3">
+                        {/* Mobile: Vertical List */}
+                        <div className="flex flex-col gap-2 sm:hidden">
+                          {yearInReview.monthlyStats.slice(-6).map((month, i) => (
+                            <div
+                              key={i}
+                              className={cn(
+                                "flex items-center gap-3 p-3 rounded-lg border border-white/10",
+                                i % 2 === 0
+                                  ? "bg-gradient-to-r from-violet-500/10 to-fuchsia-500/5"
+                                  : "bg-gradient-to-r from-fuchsia-500/10 to-violet-500/5"
+                              )}
+                            >
+                              <span className="text-xs font-bold w-12 text-violet-400">{month.month}</span>
+                              <span className={cn(
+                                "text-lg font-bold w-8 text-center",
+                                i % 2 === 0 ? "text-violet-400" : "text-fuchsia-400"
+                              )}>{month.beats}</span>
+                              <span className="text-xs text-zinc-400 flex-1">beats created</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Desktop: Grid */}
+                        <div className="hidden sm:grid flex-1 grid-cols-2 gap-3">
                           {yearInReview.monthlyStats.slice(-6).map((month, i) => (
                             <motion.div
                               key={i}
-                              className="relative group"
+                              className="relative group min-w-0 overflow-hidden"
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.4, delay: i * 0.1 }}
@@ -298,7 +320,7 @@ export function YearInReviewDialog({
                               <div className="absolute inset-0 bg-gradient-to-r from-violet-500/0 via-violet-500/5 to-fuchsia-500/0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                               
                               {/* Card content */}
-                              <div className="relative flex items-start gap-3 p-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.05] border border-white/5 transition-all duration-200 group-hover:border-violet-500/20">
+                              <div className="relative flex items-start gap-3 p-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.05] border border-white/5 transition-all duration-200 group-hover:border-violet-500/20 min-w-0 overflow-hidden">
                                 {/* Accent line */}
                                 <div className="absolute left-0 top-0 bottom-0 w-[2px] rounded-full bg-gradient-to-b from-violet-500/50 to-fuchsia-500/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                                 
@@ -329,18 +351,18 @@ export function YearInReviewDialog({
                                   </div>
                                 </div>
 
-                                <div className="flex-1">
+                                <div className="flex-1 min-w-0 overflow-hidden">
                                   {/* Month name */}
-                                  <div className="text-[11px] font-medium text-zinc-400 group-hover:text-violet-200 transition-colors duration-200 uppercase tracking-wider mb-0.5">
+                                  <div className="text-[10px] sm:text-xs font-medium text-zinc-400 group-hover:text-violet-200 transition-colors duration-200 uppercase tracking-wider mb-0.5 truncate">
                                     {month.month}
                                   </div>
                                   
                                   {/* Beat count */}
-                                  <div className="flex items-baseline gap-1.5">
-                                    <span className="text-base font-semibold text-white/90 group-hover:text-white transition-colors duration-200">
+                                  <div className="flex items-baseline gap-1.5 min-w-0 overflow-hidden">
+                                    <span className="text-base sm:text-lg font-semibold text-white/90 group-hover:text-white transition-colors duration-200 truncate">
                                       {month.beats}
                                     </span>
-                                    <span className="text-[10px] font-medium text-zinc-500 group-hover:text-zinc-300 transition-colors duration-200">
+                                    <span className="text-[10px] sm:text-xs font-medium text-zinc-500 group-hover:text-zinc-300 transition-colors duration-200 truncate">
                                       beats created
                                     </span>
                                   </div>

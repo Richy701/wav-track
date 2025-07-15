@@ -233,9 +233,9 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
     <div className="card-glass relative w-full rounded-2xl shadow-lg border border-card/30 p-4 mb-6 bg-white dark:bg-[rgb(12,13,13)]">
       {/* Controls row (toggle, time range) - keep as is if present, or add here if not */}
       {/* Chart area */}
-      <div className="p-0 w-full flex-grow">
-        <div className="h-[400px] w-full">
-          <ResponsiveContainer width="100%" height={400}>
+      <div className="p-0 w-full flex-grow min-w-0">
+        <div className="h-[400px] w-full min-w-0">
+          <ResponsiveContainer width="100%" height={400} className="min-w-0">
             {chartType === 'bar' ? (
               <BarChart
                 data={beatsData}
