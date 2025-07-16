@@ -47,7 +47,7 @@ const BaseLayoutInner = ({
   )
 
   return (
-    <div className="flex min-h-screen flex-col bg-white dark:from-background dark:to-background/95">
+    <div className="flex min-h-screen flex-col bg-background dark:bg-background">
       {/* Subtle grid pattern overlay */}
       <div className="pointer-events-none fixed inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] dark:bg-[url('/grid-dark.svg')]" />
       

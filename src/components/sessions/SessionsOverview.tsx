@@ -254,7 +254,7 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
       exit={{ opacity: 0, y: -20 }}
       className={cn(
         "relative overflow-hidden rounded-lg p-3 pb-0",
-        "bg-gradient-to-b from-muted/5 to-muted/10 dark:from-muted/10 dark:to-muted/20",
+        "light:bg-white dark:bg-gradient-to-b dark:from-muted/10 dark:to-muted/20",
         "border border-border/50 shadow-lg",
         "h-[580px]",
         "hover:scale-[1.002] hover:shadow-xl transition-all duration-300 ease-in-out",

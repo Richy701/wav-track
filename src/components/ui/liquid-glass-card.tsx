@@ -89,12 +89,7 @@ const LiquidCard = React.memo(function LiquidCard({
     <div
       className={cn(
         'group relative overflow-hidden rounded-xl',
-        // Light mode: solid card background for clarity
-        'bg-white',
-        // Dark mode: subtle solid background for contrast
-        'dark:bg-zinc-900/80',
-        'border border-zinc-200 dark:border-white/[0.12]',
-        'shadow-lg',
+        'bg-white/10 backdrop-blur-lg border border-white/10 shadow-lg',
         className
       )}
       {...props}

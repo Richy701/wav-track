@@ -33,7 +33,7 @@ export function AISuggestions({
               'absolute right-3 top-1/2 -translate-y-1/2',
               'text-orange-500 hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-300',
               'hover:bg-orange-100/80 dark:hover:bg-orange-500/10',
-              'transition-colors duration-200'
+              'duration-200'
             )}
           >
             <Sparkles className="h-4 w-4" />
@@ -109,7 +109,7 @@ export function AISuggestions({
                         'border border-orange-200/50 dark:border-orange-500/20',
                         'hover:bg-orange-100/80 dark:hover:bg-orange-500/20',
                         'hover:border-orange-300/50 dark:hover:border-orange-500/30',
-                        'transition-colors duration-200'
+                        'duration-200'
                       )}
                     >
                       <div className="flex items-start justify-between">

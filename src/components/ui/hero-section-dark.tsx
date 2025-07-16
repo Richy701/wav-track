@@ -163,7 +163,7 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
                 </div>
               </div>
               <div className="mt-6 text-sm text-muted-foreground">
-                Join 500+ producers already on the waitlist
+                Join the growing community of producers on the waitlist
               </div>
             </div>
           </div>

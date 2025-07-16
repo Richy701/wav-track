@@ -72,7 +72,7 @@ export function SessionStatsCard({ stats, className }: SessionStatsCardProps) {
       ]}
       className={cn(
         "rounded-xl p-6 sm:p-8 h-full",
-        "bg-gradient-to-br from-purple-500/5 to-violet-500/5",
+        "bg-white dark:bg-gradient-to-br dark:from-purple-500/5 dark:to-violet-500/5",
         "hover:from-purple-500/10 hover:to-violet-500/10",
         "border-purple-500/20 hover:border-purple-500/30",
         "transition-all duration-300",

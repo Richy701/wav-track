@@ -284,7 +284,7 @@ export default function ProjectCard({
     <div className="project-card-container">
       <div
         className={cn(
-          'group relative bg-card rounded-xl overflow-hidden w-full',
+          'group relative light:bg-white dark:bg-card rounded-xl overflow-hidden w-full',
           isHovered ? 'shadow-lg transform -translate-y-1' : 'shadow hover:shadow-md',
           'border border-border/50 hover:border-primary/20',
           isSelected && 'ring-2 ring-primary'
@@ -302,7 +302,7 @@ export default function ProjectCard({
                 <TooltipTrigger asChild>
                   <button
                     className={cn(
-                      'w-12 h-12 rounded-full transition-all duration-300',
+                      'w-12 h-12 rounded-full duration-300',
                       'flex items-center justify-center',
                       'focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2 focus:ring-offset-background',
                       'transform hover:scale-105 active:scale-95',
@@ -435,7 +435,7 @@ export default function ProjectCard({
               </div>
               <div className="h-1.5 rounded-full bg-muted/50 overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${
+                  className={`h-full rounded-full duration-500 ${
                     (localProject.completionPercentage ?? 0) === 100
                       ? 'bg-gradient-to-r from-green-500 to-emerald-500'
                       : (localProject.completionPercentage ?? 0) >= 75

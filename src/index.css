@@ -57,7 +57,7 @@
     /* Light mode - Base colors */
     --bg: hsl(240 4.8% 95.9%); /* Tailwind bg-zinc-50 */
     --text: hsl(222.2 84% 4.9%); /* High contrast dark */
-    --background: 240 4.8% 95.9%;
+    --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
 
     /* Card and UI elements */
@@ -821,6 +821,11 @@
 
 html {
   font-family: 'Outfit', sans-serif;
+}
+
+html.dark *, html.light * {
+  transition-property: none !important;
+  transition: none !important;
 }
 
 /* Custom styles */

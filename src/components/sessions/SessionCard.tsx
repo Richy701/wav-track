@@ -127,7 +127,7 @@ export function SessionCard({ track, onComplete, onEdit, onPlay, onPause }: Sess
       exit={{ opacity: 0, y: -20 }}
       className={cn(
         "relative overflow-hidden rounded-lg",
-        "bg-gradient-to-b from-background/90 to-background/70 dark:from-background/20 dark:to-background/5",
+        "bg-white dark:bg-gradient-to-b dark:from-background/20 dark:to-background/5",
         "border border-border/40 dark:border-border/20",
         "shadow-sm dark:shadow-none",
         "transition-all duration-200",

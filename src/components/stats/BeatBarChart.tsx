@@ -231,7 +231,7 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
 
 
   return (
-    <div className="card-glass relative w-full rounded-2xl shadow-lg border border-card/30 p-4 mb-6 bg-white dark:bg-[rgb(12,13,13)]">
+    <div className="card-glass relative w-full rounded-2xl border border-white/10 p-4 mb-6 bg-white/10 backdrop-blur-lg dark:bg-[rgb(12,13,13)] dark:backdrop-blur-none">
       {/* Controls row (toggle, time range) - keep as is if present, or add here if not */}
       {/* Chart area */}
       <div className="p-0 w-full flex-grow min-w-0">

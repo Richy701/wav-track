@@ -470,21 +470,23 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6 animate-fade-in">
-      <div className="rounded-lg p-3 sm:p-4 lg:p-6 lg:col-span-3 overflow-hidden flex flex-col bg-white dark:bg-[rgb(12,13,13)]">
+      <div className="rounded-lg p-3 sm:p-4 lg:p-6 lg:col-span-3 overflow-hidden flex flex-col bg-white dark:bg-[rgb(12,13,13)] border border-border shadow-lg">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-8 mb-4">
           {/* Stat Block */}
           <div className="flex flex-col items-start gap-2 font-sans">
             <div className="flex items-center gap-1">
               <span className="text-3xl font-bold leading-none">{totalBeatsInPeriod}</span>
               {totalBeatsInPeriod > 0 ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-green-500 dark:text-green-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
-                </svg>
+                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-green-100 dark:bg-green-600/20">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-green-600 dark:text-green-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
+                  </svg>
+                </span>
               ) : null}
             </div>
             <span className="text-sm text-muted-foreground">beats this {timeRange}</span>
@@ -498,7 +500,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
           </div>
         </div>
 
-        <div className="rounded-2xl shadow-lg border border-card/30 p-4 mb-6 bg-white dark:bg-[rgb(12,13,13)]">
+        <div className="rounded-2xl border border-card/30 p-4 mb-6 bg-white dark:bg-[rgb(12,13,13)]">
           <div className="flex justify-between items-center mb-3">
             {/* Chart Type Toggle */}
             <div className="flex items-center gap-2 p-1 rounded-full bg-zinc-900/80 border border-zinc-700 shadow-sm">
@@ -506,7 +508,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
                 onClick={() => setChartType('bar')}
                 aria-label="Switch to bar chart view"
                 className={cn(
-                  "p-1 rounded-full transition-all duration-200 flex items-center justify-center",
+                  "p-1 rounded-full duration-200 flex items-center justify-center",
                   chartType === 'bar'
                     ? "bg-violet-700/80 text-white"
                     : "hover:bg-zinc-800 text-zinc-400 hover:text-violet-400"
@@ -518,7 +520,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
                 onClick={() => setChartType('line')}
                 aria-label="Switch to line chart view"
                 className={cn(
-                  "p-1 rounded-full transition-all duration-200 flex items-center justify-center",
+                  "p-1 rounded-full duration-200 flex items-center justify-center",
                   chartType === 'line'
                     ? "bg-violet-700/80 text-white"
                     : "hover:bg-zinc-800 text-zinc-400 hover:text-violet-400"
@@ -533,7 +535,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
                   key={range}
                   onClick={() => setTimeRange(range.toLowerCase() as 'day' | 'week' | 'year')}
                   className={cn(
-                    "px-3 py-1.5 text-sm rounded-full font-medium transition-colors duration-150",
+                    "px-3 py-1.5 text-sm rounded-full font-medium duration-150",
                     timeRange === range.toLowerCase()
                       ? "bg-violet-500/15 text-violet-500 shadow-sm"
                       : "text-muted-foreground hover:bg-violet-500/7 hover:text-violet-500"
@@ -566,7 +568,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
               <div
                 key={achievement.id}
                 className={cn(
-                  'flex flex-col items-center p-2 sm:p-3 lg:p-4 rounded-lg transition-all aspect-square group relative isolate',
+                  'flex flex-col items-center p-2 sm:p-3 lg:p-4 rounded-lg aspect-square group relative isolate',
                   achievement.unlocked
                     ? `bg-gradient-to-br from-primary/5 via-transparent to-transparent hover:from-primary/10 hover:via-primary/5 hover:to-transparent hover:scale-[1.02] hover:shadow-lg ${achievement.borderColor}`
                     : 'bg-muted/30 opacity-50 hover:opacity-60 border border-muted-foreground/10'
@@ -586,7 +588,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
                 <div className="flex-1 flex flex-col items-center justify-center w-full relative">
                   <div
                     className={cn(
-                      'p-2 sm:p-2.5 rounded-full mb-2 sm:mb-3 flex items-center justify-center transition-all duration-300',
+                      'p-2 sm:p-2.5 rounded-full mb-2 sm:mb-3 flex items-center justify-center duration-300',
                       achievement.unlocked
                         ? `bg-gradient-to-br ${achievement.color} text-white group-hover:scale-110 group-hover:shadow-md shadow-sm`
                         : 'bg-muted text-muted-foreground'
@@ -701,7 +703,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
-        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-card border border-border">
+        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-white dark:bg-card border border-border">
           <div className="flex justify-between items-start mb-3 sm:mb-4">
             <TooltipProvider>
               <Tooltip>
@@ -738,7 +740,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
           </div>
         </div>
 
-        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-card border border-border">
+        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-white dark:bg-card border border-border">
           <div className="flex justify-between items-start mb-3 sm:mb-4">
             <TooltipProvider>
               <Tooltip>
@@ -775,7 +777,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
           </div>
         </div>
 
-        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-card border border-border">
+        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-white dark:bg-card border border-border">
           <div className="flex justify-between items-start mb-3 sm:mb-4">
             <TooltipProvider>
               <Tooltip>
@@ -812,7 +814,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
           </div>
         </div>
 
-        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-card border border-border">
+        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-white dark:bg-card border border-border">
           <div className="flex justify-between items-start mb-3 sm:mb-4">
             <TooltipProvider>
               <Tooltip>

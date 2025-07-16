@@ -34,7 +34,7 @@ const Footer = () => {
         { href: "/sessions", label: "Sessions" },
         { href: "/achievements", label: "Achievements" },
         { href: "/profile", label: "Profile" },
-        { href: "/settings", label: "Settings" },
+        { href: "/profile/settings", label: "Settings" },
       ]}
       legalLinks={[
         { href: "/privacy-policy", label: "Privacy Policy" },

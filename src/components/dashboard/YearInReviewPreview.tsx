@@ -77,9 +77,9 @@ export const YearInReviewPreview = memo(function YearInReviewPreview({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <LiquidCard className="w-full min-h-[320px] cursor-pointer transition-transform duration-300 hover:scale-[1.02]">
+      <LiquidCard className="w-full min-h-[320px] cursor-pointer transition-transform duration-300 hover:scale-[1.02] bg-white border border-zinc-200 dark:bg-zinc-900/80 dark:border-white/10">
         <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-transparent to-pink-500/20 opacity-50" />
+          <div className="absolute inset-0 hidden dark:block bg-gradient-to-br from-purple-500/20 via-transparent to-pink-500/20 opacity-50" />
           
           <div className="flex flex-col p-6 relative z-10">
             {/* Header */}
@@ -117,14 +117,14 @@ export const YearInReviewPreview = memo(function YearInReviewPreview({
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, delay: 0.1 }}
-                  className="flex items-center space-x-3 p-3 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05] min-w-0 truncate text-wrap overflow-hidden"
+                  className="flex items-center space-x-3 p-3 rounded-lg bg-white border border-zinc-200 min-w-0 truncate text-wrap overflow-hidden dark:bg-white/[0.03] dark:backdrop-blur-lg dark:border-white/[0.05]"
                 >
-                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 flex-shrink-0">
+                  <div className="p-2 rounded-lg bg-amber-100 text-amber-500 flex-shrink-0 dark:bg-amber-500/10 dark:text-amber-400">
                     <Music className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-medium text-white/90 truncate">Total Beats</p>
-                    <div className="text-4xl font-bold tracking-tight text-white">
+                    <p className="text-[10px] font-medium text-zinc-500 dark:text-white/90 truncate">Total Beats</p>
+                    <div className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-white">
                       {totalBeats}
                     </div>
                   </div>
@@ -135,14 +135,14 @@ export const YearInReviewPreview = memo(function YearInReviewPreview({
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, delay: 0.2 }}
-                  className="flex items-center space-x-3 p-3 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05] min-w-0 truncate text-wrap overflow-hidden"
+                  className="flex items-center space-x-3 p-3 rounded-lg bg-white border border-zinc-200 min-w-0 truncate text-wrap overflow-hidden dark:bg-white/[0.03] dark:backdrop-blur-lg dark:border-white/[0.05]"
                 >
-                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 flex-shrink-0">
+                  <div className="p-2 rounded-lg bg-amber-100 text-amber-500 flex-shrink-0 dark:bg-amber-500/10 dark:text-amber-400">
                     <Clock className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-medium text-white/90 truncate">Studio Time</p>
-                    <div className="text-4xl font-bold tracking-tight text-white">
+                    <p className="text-[10px] font-medium text-zinc-500 dark:text-white/90 truncate">Studio Time</p>
+                    <div className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-white">
                       {formatStudioTime(studioTime)}
                     </div>
                   </div>
@@ -153,15 +153,15 @@ export const YearInReviewPreview = memo(function YearInReviewPreview({
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, delay: 0.3 }}
-                  className="flex items-center space-x-3 p-3 rounded-lg bg-white/[0.03] backdrop-blur-lg border border-white/[0.05] min-w-0 truncate text-wrap overflow-hidden"
+                  className="flex items-center space-x-3 p-3 rounded-lg bg-white border border-zinc-200 min-w-0 truncate text-wrap overflow-hidden dark:bg-white/[0.03] dark:backdrop-blur-lg dark:border-white/[0.05]"
                 >
-                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 flex-shrink-0">
+                  <div className="p-2 rounded-lg bg-amber-100 text-amber-500 flex-shrink-0 dark:bg-amber-500/10 dark:text-amber-400">
                     <Music className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1 overflow-hidden">
-                    <p className="text-[10px] font-medium text-white/90 truncate">Top Genre</p>
+                    <p className="text-[10px] font-medium text-zinc-500 dark:text-white/90 truncate">Top Genre</p>
                     <p
-                      className="text-[10px] sm:text-[12px] font-bold tracking-tight text-white truncate w-full max-w-[90vw] break-words"
+                      className="text-[10px] sm:text-[12px] font-bold tracking-tight text-zinc-900 dark:text-white truncate w-full max-w-[90vw] break-words"
                       title={topGenre === 'Uncategorized' ? 'Uncategorized' : topGenre || 'None'}
                     >
                       {topGenre === 'Uncategorized' ? (

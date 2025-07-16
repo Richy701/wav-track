@@ -98,7 +98,7 @@ export default function HeroSection({ onWaitlistSubmit }: HeroSectionProps) {
         </form>
         
         <div className="mt-6 text-sm text-neutral-500 dark:text-muted-foreground">
-          Join 500+ producers already on the waitlist
+          Join the growing community of producers on the waitlist
         </div>
       </motion.div>
     </div>

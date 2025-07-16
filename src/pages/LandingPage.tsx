@@ -128,7 +128,7 @@ export default function LandingPage() {
                       https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75 1920w"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 50vw"
               alt="Music Production Interface"
-              className="absolute inset-0 w-full h-full object-cover opacity-100 scale-100 blur-0 grayscale-0 transition-all duration-300"
+              className="absolute inset-0 w-full h-full object-cover opacity-100 scale-100 blur-0 grayscale-0 transition-all duration-300 filter brightness-75"
               loading="eager"
               decoding="sync"
               data-fetchpriority="high"

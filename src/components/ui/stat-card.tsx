@@ -34,7 +34,7 @@ export const StatCard = memo(function StatCard({
       <div
         className={cn(
           'relative h-[160px] w-full rounded-xl',
-          'bg-white/5 dark:bg-black/20 backdrop-blur-md',
+          'bg-white dark:bg-black/20',
           'border border-white/10 dark:border-white/5',
           'shadow-lg shadow-black/5 dark:shadow-black/10',
           'transition-all duration-300 ease-out',

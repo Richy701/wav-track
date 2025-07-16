@@ -166,9 +166,13 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
     const { name, value } = e.target
 
     if (name === 'bpm') {
-      const bpmValue = Number(value)
-      if (!isNaN(bpmValue) && bpmValue > 0 && bpmValue <= 300) {
-        setFormData(prev => ({ ...prev, [name]: bpmValue }))
+      if (value === '') {
+        setFormData(prev => ({ ...prev, [name]: '' }))
+      } else {
+        const bpmValue = Number(value)
+        if (!isNaN(bpmValue) && bpmValue > 0 && bpmValue <= 300) {
+          setFormData(prev => ({ ...prev, [name]: bpmValue }))
+        }
       }
     } else {
       setFormData(prev => ({ ...prev, [name]: value }))
