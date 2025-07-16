@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { BarChart, TrendingDown, Music, Sparkles, ArrowUp } from 'lucide-react'
+import { BarChart, TrendingDown, TrendingUp, Music, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { LiquidCard } from '@/components/ui/liquid-glass-card'
@@ -153,21 +153,13 @@ export const MonthlyBreakdownPreview = memo(function MonthlyBreakdownPreview({
                   isPositiveTrend ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
                 )}>
                   {isPositiveTrend ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="h-5 w-5 text-green-500"
-                    >
-                      <line x1="12" y1="19" x2="12" y2="5" />
-                      <polyline points="5 12 12 5 19 12" />
-                    </svg>
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-600/20">
+                      <TrendingUp className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
+                    </span>
                   ) : (
-                    <TrendingDown className="h-5 w-5" />
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-rose-100 dark:bg-rose-600/20">
+                      <TrendingDown className="h-4 w-4 text-rose-500 dark:text-rose-400" />
+                    </span>
                   )}
                 </div>
                 <div className="min-w-0 flex-1">

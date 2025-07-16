@@ -14,7 +14,8 @@ import {
 import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Project } from '@/lib/types'
-import { TrendUp, TrendDown, ChartBar, ChartLine, Waveform, MusicNote, Disc, Icon } from '@phosphor-icons/react'
+import { TrendingUp, TrendingDown } from 'lucide-react'
+import { ChartBar, ChartLine, Waveform, MusicNote, Disc, Icon } from '@phosphor-icons/react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { getBeatsDataForChart } from '@/lib/data'
 import { Spinner } from '@/components/ui/spinner'
@@ -329,6 +330,26 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
         </div>
       </div>
       {/* Footer (trend, description) */}
+      {trendInfo.showTrend && (
+        <div className="flex items-center gap-1 mt-2 text-xs font-medium">
+          <span className="inline-flex items-center justify-center w-7 h-7">
+            {trendInfo.percentage >= 0 ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-500 dark:text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              // Fallback: use TrendingDown icon in a circle for down trend
+              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-rose-100 dark:bg-rose-600/20">
+                <TrendingDown className="h-4 w-4 text-rose-500 dark:text-rose-400" />
+              </span>
+            )}
+          </span>
+          <span>
+            {trendInfo.percentage >= 0 ? '+' : ''}{trendInfo.percentage.toFixed(1)}%
+          </span>
+          <span className="ml-1 text-muted-foreground">vs previous</span>
+        </div>
+      )}
     </div>
   )
 })

@@ -479,16 +479,11 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
               {totalBeatsInPeriod > 0 ? (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-4 w-4 text-green-500"
+                  className="h-5 w-5 text-green-500 dark:text-green-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
                 >
-                  <line x1="12" y1="19" x2="12" y2="5" />
-                  <polyline points="5 12 12 5 19 12" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
                 </svg>
               ) : null}
             </div>
