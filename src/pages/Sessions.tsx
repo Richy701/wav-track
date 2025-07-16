@@ -2260,7 +2260,7 @@ const Sessions: React.FC = () => {
       variants={pageAnimation}
     >
       <Header />
-      <div className="min-h-screen bg-background/50 pt-16">
+      <div className="min-h-screen bg-background pt-16">
         <div className="max-w-6xl mx-auto px-4 md:px-8 py-6">
           <div className="space-y-6">
             <div className="flex items-center space-x-3">

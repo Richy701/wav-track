@@ -233,7 +233,7 @@ const Profile = () => {
                   >
                     <Button
                       variant="outline"
-                      className="w-full sm:w-auto bg-background/50 backdrop-blur-sm border-border/20 hover:bg-background/80"
+                      className="w-full sm:w-auto bg-white border border-zinc-200 text-zinc-900 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800"
                       onClick={() => navigate('/profile/settings')}
                     >
                       <Gear className="h-4 w-4 mr-2" />
@@ -241,7 +241,7 @@ const Profile = () => {
                     </Button>
                     <Button
                       variant="destructive"
-                      className="w-full sm:w-auto bg-destructive/10 backdrop-blur-sm hover:bg-destructive/20"
+                      className="w-full sm:w-auto bg-red-500 text-white hover:bg-red-600"
                       onClick={handleLogout}
                     >
                       <SignOut className="h-4 w-4 mr-2" />
