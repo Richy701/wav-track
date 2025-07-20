@@ -724,7 +724,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
               <DialogFooter className="mt-8">
                 <Button
                   type="submit"
-                  disabled={isAnalyzing}
+                  disabled={isAnalyzing || isAddingProject}
                   className={cn(
                     'w-full h-10',
                     'bg-primary/90 hover:bg-primary',
@@ -739,6 +739,11 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                     <>
                       <ArrowPathIcon className="mr-2 h-4 w-4 animate-spin" />
                       <span className="font-light">Analyzing...</span>
+                    </>
+                  ) : isAddingProject ? (
+                    <>
+                      <ArrowPathIcon className="mr-2 h-4 w-4 animate-spin" />
+                      <span className="font-light">Creating Project...</span>
                     </>
                   ) : (
                     <>

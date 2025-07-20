@@ -1597,7 +1597,7 @@ const Sessions: React.FC = () => {
   const [user, setUser] = useState<UserType | null>(null)
   const { toast } = useToast()
   const [isWorking, setIsWorking] = useLocalStorage<boolean>('timer-is-working', true)
-  const [isPlaying, setIsPlaying] = useLocalStorage<boolean>('timer-is-playing', false)
+  const [isPlaying, setIsPlaying] = useState<boolean>(false)
   const [timeLeft, setTimeLeft] = useLocalStorage<number>('timer-time-left', 25 * 60)
   const [activeProject, setActiveProject] = useLocalStorage<string | null>('active-project', null)
   const [workDuration, setWorkDuration] = useLocalStorage<number>('timer-work-duration', 25)
@@ -1797,41 +1797,43 @@ const Sessions: React.FC = () => {
 
     if (isPlaying && timeLeft > 0) {
       interval = setInterval(() => {
-        if (timeLeft <= 1) {
-          setIsPlaying(false)
-          if (isWorking) {
-            // Work session completed
-            const newTime = breakDuration * 60
-            setIsWorking(false)
-            setTimeLeft(newTime)
-            new Audio('/notification.mp3').play().catch(() => {})
-            toast({
-              title: "Work Session Complete! 🎉",
-              description: "Time for a break!",
-              duration: 4000,
-            })
+        setTimeLeft(prevTime => {
+          if (prevTime <= 1) {
+            setIsPlaying(false)
+            if (isWorking) {
+              // Work session completed
+              const newTime = breakDuration * 60
+              setIsWorking(false)
+              new Audio('/notification.mp3').play().catch(() => {})
+              toast({
+                title: "Work Session Complete! 🎉",
+                description: "Time for a break!",
+                duration: 4000,
+              })
+              return newTime
+            } else {
+              // Break completed
+              const newTime = workDuration * 60
+              setIsWorking(true)
+              new Audio('/notification.mp3').play().catch(() => {})
+              toast({
+                title: "Break Complete! 💪",
+                description: "Ready to get back to work?",
+                duration: 4000,
+              })
+              return newTime
+            }
           } else {
-            // Break completed
-            const newTime = workDuration * 60
-            setIsWorking(true)
-            setTimeLeft(newTime)
-            new Audio('/notification.mp3').play().catch(() => {})
-            toast({
-              title: "Break Complete! 💪",
-              description: "Ready to get back to work?",
-              duration: 4000,
-            })
+            return prevTime - 1
           }
-        } else {
-          setTimeLeft(timeLeft - 1)
-        }
+        })
       }, 1000)
     }
 
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isPlaying, isWorking, workDuration, breakDuration, toast, timeLeft])
+  }, [isPlaying, isWorking, workDuration, breakDuration, toast, setTimeLeft, setIsPlaying, setIsWorking]) // Added missing dependencies
 
   // Handle mode changes with proper reset
   const handleModeChange = useCallback((working: boolean) => {
@@ -2219,6 +2221,19 @@ const Sessions: React.FC = () => {
     }
     getUser()
   }, [])
+
+  // Sync isPlaying with localStorage
+  useEffect(() => {
+    const savedIsPlaying = localStorage.getItem('timer-is-playing')
+    if (savedIsPlaying !== null) {
+      setIsPlaying(JSON.parse(savedIsPlaying))
+    }
+  }, [])
+
+  // Save isPlaying to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('timer-is-playing', JSON.stringify(isPlaying))
+  }, [isPlaying])
 
   // Add this near the other mutations
   const deleteGoalMutation = useMutation({

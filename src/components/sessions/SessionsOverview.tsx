@@ -37,6 +37,8 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
   const [showAllSessions, setShowAllSessions] = useState(false)
   const [isClearing, setIsClearing] = useState(false)
   const [isSessionActive, setIsSessionActive] = useState(false)
+  const [sessionTimer, setSessionTimer] = useState(0)
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null)
 
   // Fetch sessions and stats
   const fetchSessions = async () => {
@@ -101,6 +103,25 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
     fetchSessions()
   }, [user])
 
+  // Timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null
+
+    if (isSessionActive && sessionStartTime) {
+      interval = setInterval(() => {
+        const now = new Date()
+        const elapsed = Math.floor((now.getTime() - sessionStartTime.getTime()) / 1000)
+        setSessionTimer(elapsed)
+      }, 1000)
+    } else {
+      setSessionTimer(0)
+    }
+
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [isSessionActive, sessionStartTime])
+
   // Set up real-time subscription
   useEffect(() => {
     if (!user) return
@@ -132,6 +153,7 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
     try {
       const newSession = {
         user_id: user.id,
+        project_id: 'default', // Using a default project ID for now
         created_at: new Date().toISOString(),
         status: 'active' as const,
         duration: 1,
@@ -139,11 +161,16 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
         productivity_score: 0
       }
 
-      // Optimistic update
+      // Immediate optimistic update
       const optimisticSession = { ...newSession, id: 'temp-' + Date.now() } as Session
       setActiveSession(optimisticSession)
       setIsSessionActive(true)
+      setSessionStartTime(new Date())
+      setSessionTimer(0)
       setShowGoalInput(false)
+
+      // Force a re-render by updating the sessions list
+      setRecentSessions(prev => [optimisticSession, ...prev])
 
       const { data, error } = await supabase
         .from('sessions')
@@ -155,6 +182,7 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
         // Revert optimistic update on error
         setActiveSession(null)
         setIsSessionActive(false)
+        setRecentSessions(prev => prev.filter(s => s.id !== optimisticSession.id))
         throw error
       }
 
@@ -170,7 +198,7 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
     if (!activeSession) return
 
     try {
-      // Optimistic update
+      // Immediate optimistic update
       const optimisticSessions = recentSessions.map(session => 
         session.id === activeSession.id 
           ? { ...session, status: 'completed' as const, ended_at: new Date().toISOString() }
@@ -179,6 +207,8 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
       setRecentSessions(optimisticSessions)
       setActiveSession(null)
       setIsSessionActive(false)
+      setSessionStartTime(null)
+      setSessionTimer(0)
       setShowReflection(false)
       setReflection({ goalCompleted: false, feedback: '😐' })
 
@@ -215,6 +245,18 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
       setShowGoalInput(false)
       toast.success('Goal saved')
     }
+  }
+
+  // Format timer display
+  const formatTimer = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const secs = seconds % 60
+    
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+    }
+    return `${minutes}:${secs.toString().padStart(2, '0')}`
   }
 
   const handleClearSessions = async () => {
@@ -352,32 +394,57 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
           <AnimatePresence mode="popLayout">
             {recentSessions.length > 0 ? (
               <div className="text-xs text-muted-foreground space-y-0.5">
-                {(showAllSessions ? recentSessions : recentSessions.slice(0, 3)).map((session) => (
-                  <motion.div
-                    key={session.id}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="flex items-center justify-between p-1 rounded-lg bg-muted/5 dark:bg-muted/10 hover:bg-muted/10 dark:hover:bg-muted/20 transition-colors"
-                  >
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-medium">
-                        {session.goal || 'Studio Session'}
-                      </span>
-                      <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                        {formatDistanceToNow(new Date(session.created_at), { addSuffix: true })}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-[10px] font-medium">
-                        {session.duration}m
-                      </span>
-                      <span className="text-[10px] font-medium">
-                        {session.productivity_score}/10
-                      </span>
-                    </div>
-                  </motion.div>
-                ))}
+                {(showAllSessions ? recentSessions : recentSessions.slice(0, 3)).map((session) => {
+                  const isActive = session.status === 'active'
+                  const sessionElapsed = isActive && sessionStartTime 
+                    ? Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000)
+                    : 0
+                  
+                  return (
+                    <motion.div
+                      key={session.id}
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className={cn(
+                        "flex items-center justify-between p-1 rounded-lg transition-colors",
+                        isActive 
+                          ? "bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/20 dark:border-orange-500/30"
+                          : "bg-muted/5 dark:bg-muted/10 hover:bg-muted/10 dark:hover:bg-muted/20"
+                      )}
+                    >
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium">
+                            {session.goal || 'Studio Session'}
+                          </span>
+                          {isActive && (
+                            <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                          )}
+                        </div>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                          {formatDistanceToNow(new Date(session.created_at), { addSuffix: true })}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {isActive ? (
+                          <span className="text-[10px] font-mono font-medium text-orange-600 dark:text-orange-400">
+                            {formatTimer(sessionElapsed)}
+                          </span>
+                        ) : (
+                          <>
+                            <span className="text-[10px] font-medium">
+                              {session.duration}m
+                            </span>
+                            <span className="text-[10px] font-medium">
+                              {session.productivity_score}/10
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </motion.div>
+                  )
+                })}
               </div>
             ) : (
               <div className="flex-1 h-[calc(100%-2rem)]">
@@ -398,6 +465,26 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
             )}
           </AnimatePresence>
         </div>
+
+        {/* Timer Display */}
+        {isSessionActive && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex items-center justify-center p-2 mb-1 rounded-lg bg-gradient-to-r from-orange-500/10 to-red-500/10 dark:from-orange-500/20 dark:to-red-500/20 border border-orange-500/20 dark:border-orange-500/30"
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+              <span className="text-xs font-mono font-medium text-orange-600 dark:text-orange-400">
+                {formatTimer(sessionTimer)}
+              </span>
+              <span className="text-[10px] text-orange-500/70 dark:text-orange-400/70">
+                Recording
+              </span>
+            </div>
+          </motion.div>
+        )}
 
         {/* Action Buttons */}
         {recentSessions.length > 0 && (
