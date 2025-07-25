@@ -30,7 +30,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/landing/HeroSection";
 import { LANDING_PAGE_IMAGES } from "@/config/images";
-import { BentoDemo } from "@/components/ui/bento-demo";
+import MagicBento from "@/components/ui/MagicBento";
 import { HeroSectionDemo } from "@/components/ui/hero-section-demo";
 
 
@@ -137,7 +137,34 @@ export default function LandingPage() {
 
         </div>
 
-        <BentoDemo />
+        <section className="relative py-20">
+          {/* Background grid pattern */}
+          <div className="absolute inset-0 max-md:hidden -z-10 h-[500px] w-full bg-transparent bg-[linear-gradient(to_right,#8257E5_1px,transparent_1px),linear-gradient(to_bottom,#8257E5_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-[0.03] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]"></div>
+          {/* Purple gradient background */}
+          <div className="absolute inset-0 -z-20 bg-gradient-to-b from-purple-500/[0.03] via-transparent to-transparent"></div>
+          <div className="container relative max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <p className="lg:text-lg my-2 text-sm font-light uppercase tracking-widest text-muted-foreground/60">
+                EVERYTHING YOU NEED
+              </p>
+              <h2 className="text-4xl font-semibold tracking-tight text-balance bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/80 dark:from-foreground dark:to-foreground/60">
+                Level Up Your <span className="bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent">Production</span>
+              </h2>
+            </div>
+            <MagicBento 
+              textAutoHide={true}
+              enableStars={false}
+              enableSpotlight={true}
+              enableBorderGlow={true}
+              enableTilt={true}
+              enableMagnetism={true}
+              clickEffect={true}
+              spotlightRadius={300}
+              particleCount={12}
+              glowColor="132, 0, 255"
+            />
+          </div>
+        </section>
         
         {/* Content sections */}
         <div className="relative w-full">

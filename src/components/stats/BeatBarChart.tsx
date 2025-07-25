@@ -150,11 +150,18 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
     const lastValue = beatsData[beatsData.length - 1].value
     const previousValue = beatsData[beatsData.length - 2].value
     
-    // Don't show trend if previous value is 0 or if there's a 100% decrease
-    if (previousValue === 0 || (lastValue === 0 && previousValue > 0)) {
+    // Show -100% if previous > 0 and last is 0 (drop to zero)
+    if (previousValue > 0 && lastValue === 0) {
+      return { showTrend: true, percentage: -100 }
+    }
+    // Hide trend if both are zero
+    if (previousValue === 0 && lastValue === 0) {
       return { showTrend: false, percentage: 0 }
     }
-    
+    // Hide trend if previous is 0 but last is not zero (new activity)
+    if (previousValue === 0) {
+      return { showTrend: false, percentage: 0 }
+    }
     const percentage = ((lastValue - previousValue) / previousValue) * 100
     return { 
       showTrend: true, 
@@ -338,10 +345,9 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
               </svg>
             ) : (
-              // Fallback: use TrendingDown icon in a circle for down trend
-              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-rose-100 dark:bg-rose-600/20">
-                <TrendingDown className="h-4 w-4 text-rose-500 dark:text-rose-400" />
-              </span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-rose-500 dark:text-rose-400" viewBox="0 0 20 20" fill="currentColor" style={{ transform: 'rotate(180deg)' }}>
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-5.293a1 1 0 01-1.414 0L11 11.414V7a1 1 0 10-2 0v4.414l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414z" clipRule="evenodd" />
+              </svg>
             )}
           </span>
           <span>
