@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 import { Project } from '@/lib/types'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { ChartBar, ChartLine, Waveform, MusicNote, Disc, Icon } from '@phosphor-icons/react'
+import { BeatsStar } from '../icons/BeatsStar'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { getBeatsDataForChart } from '@/lib/data'
 import { Spinner } from '@/components/ui/spinner'
@@ -219,7 +220,7 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
       <Card className={cn("w-full bg-transparent", className)}>
         <CardContent className="p-0">
           <div className="h-[400px] w-full flex flex-col items-center justify-center text-muted-foreground">
-            <Disc className="w-10 h-10 mb-3 text-violet-400 opacity-60" />
+            <ChartBar className="w-10 h-10 mb-3 text-violet-400 opacity-60" />
             <p className="text-base font-semibold mb-1">No beat data available</p>
             <p className="text-xs">Start creating beats to see your activity chart!</p>
           </div>
@@ -239,7 +240,6 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
 
   return (
     <div className="card-glass relative w-full rounded-2xl border border-white/10 p-4 mb-6 bg-white/10 backdrop-blur-lg dark:bg-[rgb(12,13,13)] dark:backdrop-blur-none">
-      {/* Controls row (toggle, time range) - keep as is if present, or add here if not */}
       {/* Chart area */}
       <div className="p-0 w-full flex-grow min-w-0">
         <div className="h-[400px] w-full min-w-0">
@@ -337,25 +337,6 @@ export const BeatBarChart: React.FC<BeatBarChartProps> = memo(({
         </div>
       </div>
       {/* Footer (trend, description) */}
-      {trendInfo.showTrend && (
-        <div className="flex items-center gap-1 mt-2 text-xs font-medium">
-          <span className="inline-flex items-center justify-center w-7 h-7">
-            {trendInfo.percentage >= 0 ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-500 dark:text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-rose-500 dark:text-rose-400" viewBox="0 0 20 20" fill="currentColor" style={{ transform: 'rotate(180deg)' }}>
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-5.293a1 1 0 01-1.414 0L11 11.414V7a1 1 0 10-2 0v4.414l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414z" clipRule="evenodd" />
-              </svg>
-            )}
-          </span>
-          <span>
-            {trendInfo.percentage >= 0 ? '+' : ''}{trendInfo.percentage.toFixed(1)}%
-          </span>
-          <span className="ml-1 text-muted-foreground">vs previous</span>
-        </div>
-      )}
     </div>
   )
 })

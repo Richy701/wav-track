@@ -20,6 +20,8 @@ import { Project } from '@/lib/types'
 import { BarChart3, LineChart as LineChartIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { enGB } from 'date-fns/locale'
+import { TrendUp, TrendDown } from '@phosphor-icons/react';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 type ChartView = 'bar' | 'line'
 
@@ -205,6 +207,25 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
 
   return (
     <div className="space-y-4 w-full">
+      {/* Overall beats created number with trend (DASHBOARD CHART HEADER) */}
+      <div className="flex items-center gap-3 mb-2">
+        <span className="text-3xl font-bold text-white">11</span>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-flex items-center gap-1 cursor-pointer">
+                <TrendUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <span className="text-xs font-medium text-green-600 dark:text-green-400">+12.5%</span>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6} className="text-xs">
+              Change vs previous period
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <span className="text-base text-zinc-400 ml-2">beats created this day</span>
+      </div>
+      {/* Chart controls and chart area */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button

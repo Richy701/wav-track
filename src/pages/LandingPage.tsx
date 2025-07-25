@@ -32,6 +32,9 @@ import HeroSection from "@/components/landing/HeroSection";
 import { LANDING_PAGE_IMAGES } from "@/config/images";
 import MagicBento from "@/components/ui/MagicBento";
 import { HeroSectionDemo } from "@/components/ui/hero-section-demo";
+import FeatureShowcase from "@/components/landing/FeatureShowcase";
+import FeatureShowcase2 from "@/components/landing/FeatureShowcase2";
+import FeatureShowcase3 from "@/components/landing/FeatureShowcase3";
 
 
 const fadeInUp: Variants = {
@@ -79,11 +82,19 @@ export default function LandingPage() {
       setTimeout(() => {
         setEmail("");
       }, 3000);
-    } catch (error) {
-      toast.error("Something went wrong", {
-        description: "Please try again later.",
-        className: "bg-white text-black dark:bg-zinc-900 dark:text-white border border-red-500 shadow-lg rounded-xl px-4 py-3",
-      });
+    } catch (error: any) {
+      // Handle specific error cases
+      if (error?.code === 'DUPLICATE_EMAIL' || error?.status === 409) {
+        toast.error("Already on the waitlist!", {
+          description: "This email is already registered. We'll keep you posted!",
+          className: "bg-white text-black dark:bg-zinc-900 dark:text-white border border-purple-500 shadow-lg rounded-xl px-4 py-3",
+        });
+      } else {
+        toast.error("Something went wrong", {
+          description: "Please try again later.",
+          className: "bg-white text-black dark:bg-zinc-900 dark:text-white border border-red-500 shadow-lg rounded-xl px-4 py-3",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -102,7 +113,7 @@ export default function LandingPage() {
       <main className="flex-1">
         <HeroSectionDemo />
         
-        <div className="relative rounded-2xl overflow-hidden aspect-video">
+        <div className="relative rounded-2xl overflow-hidden aspect-video flex items-center justify-center">
           <picture>
             <source
               type="image/avif"
@@ -128,46 +139,44 @@ export default function LandingPage() {
                       https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75 1920w"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 50vw"
               alt="Music Production Interface"
-              className="absolute inset-0 w-full h-full object-cover opacity-100 scale-100 blur-0 grayscale-0 transition-all duration-300 filter brightness-75"
+              className="absolute inset-0 w-full h-full object-cover opacity-60 scale-100 blur-0 grayscale-0 transition-all duration-300 filter brightness-75"
               loading="eager"
               decoding="sync"
               data-fetchpriority="high"
             />
           </picture>
-
-        </div>
-
-        <section className="relative py-20">
-          {/* Background grid pattern */}
-          <div className="absolute inset-0 max-md:hidden -z-10 h-[500px] w-full bg-transparent bg-[linear-gradient(to_right,#8257E5_1px,transparent_1px),linear-gradient(to_bottom,#8257E5_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-[0.03] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]"></div>
-          {/* Purple gradient background */}
-          <div className="absolute inset-0 -z-20 bg-gradient-to-b from-purple-500/[0.03] via-transparent to-transparent"></div>
-          <div className="container relative max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <p className="lg:text-lg my-2 text-sm font-light uppercase tracking-widest text-muted-foreground/60">
+          {/* Overlayed content */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
+            <div className="text-center mb-8 bg-black/40 rounded-xl p-6 backdrop-blur-sm">
+              <p className="lg:text-lg my-2 text-sm font-light uppercase tracking-widest text-muted-foreground/80">
                 EVERYTHING YOU NEED
               </p>
               <h2 className="text-4xl font-semibold tracking-tight text-balance bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/80 dark:from-foreground dark:to-foreground/60">
                 Level Up Your <span className="bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent">Production</span>
               </h2>
             </div>
-            <MagicBento 
-              textAutoHide={true}
-              enableStars={false}
-              enableSpotlight={true}
-              enableBorderGlow={true}
-              enableTilt={true}
-              enableMagnetism={true}
-              clickEffect={true}
-              spotlightRadius={300}
-              particleCount={12}
-              glowColor="132, 0, 255"
-            />
+            <div className="w-full max-w-4xl">
+              <MagicBento 
+                textAutoHide={true}
+                enableStars={false}
+                enableSpotlight={true}
+                enableBorderGlow={true}
+                enableTilt={true}
+                enableMagnetism={true}
+                clickEffect={true}
+                spotlightRadius={300}
+                particleCount={12}
+                glowColor="132, 0, 255"
+              />
+            </div>
           </div>
-        </section>
+        </div>
         
         {/* Content sections */}
         <div className="relative w-full">
+          <FeatureShowcase />
+          <FeatureShowcase2 />
+          <FeatureShowcase3 />
         </div>
       </main>
       <Footer />

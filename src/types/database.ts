@@ -29,7 +29,7 @@ export interface CategoryProgress {
 export interface Session {
   id: string;
   user_id: string;
-  project_id: string;
+  project_id: string | null;
   duration: number;
   created_at: string;
   notes?: string;
@@ -192,7 +192,7 @@ export interface Database {
       };
       sessions: {
         Row: Session;
-        Insert: Omit<Session, 'id' | 'user_id'> & { id?: string; user_id?: string };
+        Insert: Omit<Session, 'id' | 'user_id'> & { id?: string; user_id?: string; project_id?: string | null };
         Update: Partial<Omit<Session, 'id' | 'user_id'>>;
       };
       session_goals: {

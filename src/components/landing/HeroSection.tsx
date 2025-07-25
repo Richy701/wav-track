@@ -43,11 +43,19 @@ export default function HeroSection({ onWaitlistSubmit }: HeroSectionProps) {
       if (onWaitlistSubmit) {
         onWaitlistSubmit();
       }
-    } catch (error) {
-      toast.error("Something went wrong", {
-        description: "Please try again later.",
-        className: "bg-[#FAF9F6] text-neutral-800 dark:bg-zinc-900 dark:text-white border border-red-200 dark:border-red-500 shadow-lg rounded-xl px-4 py-3",
-      });
+    } catch (error: any) {
+      // Handle specific error cases
+      if (error?.code === 'DUPLICATE_EMAIL' || error?.status === 409) {
+        toast.error("Already on the waitlist!", {
+          description: "This email is already registered. We'll keep you posted!",
+          className: "bg-[#FAF9F6] text-neutral-800 dark:bg-zinc-900 dark:text-white border border-yellow-200 dark:border-yellow-500 shadow-lg rounded-xl px-4 py-3",
+        });
+      } else {
+        toast.error("Something went wrong", {
+          description: "Please try again later.",
+          className: "bg-[#FAF9F6] text-neutral-800 dark:bg-zinc-900 dark:text-white border border-red-200 dark:border-red-500 shadow-lg rounded-xl px-4 py-3",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -71,19 +79,19 @@ export default function HeroSection({ onWaitlistSubmit }: HeroSectionProps) {
           WavTrack helps producers, artists, and hobbyists track sessions, hit creative goals, and stay inspired.
         </p>
         
-        <form onSubmit={handleWaitlistSubmit} className="flex w-full max-w-md gap-2 mt-10 mx-auto">
+        <form onSubmit={handleWaitlistSubmit} className="flex flex-col sm:flex-row w-full max-w-md gap-2 mt-10 mx-auto">
           <Input
             ref={emailInputRef}
             type="email"
             placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="flex-1 h-12 text-base border border-neutral-200 rounded-xl px-4 focus:ring-2 focus:ring-yellow-200 dark:focus:ring-purple-500 focus:border-transparent bg-white dark:bg-background text-neutral-800 dark:text-foreground"
+            className="flex-1 h-12 text-base border border-neutral-200 rounded-xl px-4 focus:ring-2 focus:ring-yellow-200 dark:focus:ring-purple-500 focus:border-transparent bg-white dark:bg-background text-neutral-800 dark:text-foreground min-w-0"
             required
           />
           <Button 
             type="submit" 
-            className="h-12 px-6 bg-yellow-100 hover:bg-yellow-200 dark:bg-gradient-to-r dark:from-[#8257E5] dark:to-[#B490FF] dark:hover:from-[#8257E5]/90 dark:hover:to-[#B490FF]/90 text-yellow-900 dark:text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:shadow-yellow-500/20 dark:hover:shadow-purple-500/20"
+            className="h-12 px-6 bg-yellow-100 hover:bg-yellow-200 dark:bg-gradient-to-r dark:from-[#8257E5] dark:to-[#B490FF] dark:hover:from-[#8257E5]/90 dark:hover:to-[#B490FF]/90 text-yellow-900 dark:text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:shadow-yellow-500/20 dark:hover:shadow-purple-500/20 w-full sm:w-auto"
             disabled={isLoading}
           >
             {isLoading ? (

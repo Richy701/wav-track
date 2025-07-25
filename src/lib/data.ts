@@ -1101,6 +1101,8 @@ interface BeatActivityWithProject {
   }
 }
 
+
+
 export const getBeatsDataForChart = async (
   timeRange: 'day' | 'week' | 'month' | 'year',
   projectId?: string | null

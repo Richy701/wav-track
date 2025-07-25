@@ -37,35 +37,10 @@ interface UserContext {
   }[]
 }
 
-const DEFAULT_SUGGESTIONS = [
-  {
-    type: 'tip',
-    content: 'Start your session with a clear goal in mind. Break down complex tasks into smaller, manageable steps.',
-    priority: 'high',
-    category: 'productivity',
-    context: 'planning',
-    tags: ['productivity', 'planning', 'goals']
-  },
-  {
-    type: 'reminder',
-    content: 'Take regular breaks every 25-30 minutes to maintain peak creativity and prevent fatigue.',
-    priority: 'medium',
-    category: 'wellness',
-    context: 'break',
-    tags: ['wellness', 'break', 'productivity']
-  },
-  {
-    type: 'insight',
-    content: 'Morning sessions tend to be most productive. Consider scheduling complex tasks during your peak energy hours.',
-    priority: 'medium',
-    category: 'productivity',
-    context: 'timing',
-    tags: ['productivity', 'timing', 'energy']
-  }
-]
+
 
 export function useAICoach() {
-  const [suggestions, setSuggestions] = useState<AICoachSuggestion[]>(DEFAULT_SUGGESTIONS)
+  const [suggestions, setSuggestions] = useState<AICoachSuggestion[]>([])
   const [userContext, setUserContext] = useState<UserContext>({
     recentGoals: [],
     preferredDuration: 25,
@@ -140,17 +115,17 @@ export function useAICoach() {
     }
 
     if (error || !activityData) {
-      // On error or no data, ensure we have default suggestions
-      setSuggestions(DEFAULT_SUGGESTIONS)
+      // On error or no data, set empty suggestions
+      setSuggestions([])
       return
     }
 
     try {
       const { sessions, preferences, metrics, categoryProgress } = activityData
       
-      // If we have no real data, keep using default suggestions
+      // If we have no real data, set empty suggestions
       if (!sessions?.length && !preferences && !metrics && !categoryProgress?.length) {
-        setSuggestions(DEFAULT_SUGGESTIONS)
+        setSuggestions([])
         return
       }
 
@@ -211,8 +186,8 @@ export function useAICoach() {
       // Generate personalized suggestions based on enhanced context
       const newSuggestions = generateSuggestions(sessions, preferences, metrics, categoryProgress)
       
-      // Combine default and personalized suggestions, ensuring we always have some suggestions
-      const combinedSuggestions = [...newSuggestions, ...DEFAULT_SUGGESTIONS].slice(0, 5)
+      // Use only personalized suggestions
+      const combinedSuggestions = newSuggestions.slice(0, 5)
       
       // Only update suggestions if we have new ones
       if (combinedSuggestions.length > 0) {
@@ -220,8 +195,8 @@ export function useAICoach() {
       }
     } catch (error) {
       console.error('Error processing AI coach data:', error)
-      // Keep using default suggestions on error
-      setSuggestions(DEFAULT_SUGGESTIONS)
+      // Set empty suggestions on error
+      setSuggestions([])
     }
   }, [activityData, isLoading, error])
 

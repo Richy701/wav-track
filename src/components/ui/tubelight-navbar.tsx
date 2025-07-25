@@ -89,7 +89,7 @@ export function TubelightNavbar({
             variant="ghost"
             className={cn(
               "relative cursor-pointer text-sm font-semibold px-4 py-3 rounded-lg transition-colors w-full justify-start",
-              "text-foreground/80 hover:text-[#8257E5] dark:hover:text-[#E4D5FF]",
+              "text-foreground/80 hover:text-[#8257E5] dark:hover:bg-white/10",
               location.pathname === '/' && "bg-[#8257E5]/10 dark:bg-[#8257E5]/20 text-[#8257E5] dark:text-[#E4D5FF]"
             )}
             onClick={() => isMobileMenu ? handleMobileNavigate('/') : handleNavigate('/')}
@@ -109,7 +109,7 @@ export function TubelightNavbar({
                 variant="ghost"
                 className={cn(
                   "relative cursor-pointer text-sm font-semibold px-4 py-3 rounded-lg transition-colors w-full justify-start",
-                  "text-foreground/80 hover:text-[#8257E5] dark:hover:text-[#E4D5FF]",
+                  "text-foreground/80 hover:text-[#8257E5] dark:hover:bg-white/10",
                   isActive && "bg-[#8257E5]/10 dark:bg-[#8257E5]/20 text-[#8257E5] dark:text-[#E4D5FF]"
                 )}
                 onClick={() => isMobileMenu ? handleMobileNavigate(item.url) : handleNavigate(item.url)}
@@ -134,7 +134,7 @@ export function TubelightNavbar({
           variant="ghost"
           className={cn(
             "relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors",
-            "text-foreground/80 hover:text-[#8257E5] dark:hover:text-[#E4D5FF]",
+            "text-foreground/80 hover:text-[#8257E5] dark:hover:bg-white/10",
             location.pathname === '/' && "bg-[#8257E5]/10 dark:bg-[#8257E5]/20 text-[#8257E5] dark:text-[#E4D5FF]"
           )}
           onClick={() => isMobileMenu ? handleMobileNavigate('/') : handleNavigate('/')}
@@ -167,7 +167,7 @@ export function TubelightNavbar({
               variant="ghost"
               className={cn(
                 "relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors",
-                "text-foreground/80 hover:text-[#8257E5] dark:hover:text-[#E4D5FF]",
+                "text-foreground/80 hover:text-[#8257E5] dark:hover:bg-white/10",
                 isActive && "bg-[#8257E5]/10 dark:bg-[#8257E5]/20 text-[#8257E5] dark:text-[#E4D5FF]"
               )}
               onClick={() => isMobileMenu ? handleMobileNavigate(item.url) : handleNavigate(item.url)}

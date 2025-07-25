@@ -103,11 +103,19 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
         if (onWaitlistSubmit) {
           onWaitlistSubmit()
         }
-      } catch (error) {
-        toast.error("Something went wrong", {
-          description: "Please try again later.",
-          className: "bg-white text-black dark:bg-zinc-900 dark:text-white border border-red-500 shadow-lg rounded-xl px-4 py-3",
-        })
+      } catch (error: any) {
+        // Handle specific error cases
+        if (error?.code === 'DUPLICATE_EMAIL' || error?.status === 409) {
+          toast.error("Already on the waitlist!", {
+            description: "This email is already registered. We'll keep you posted!",
+            className: "bg-white text-black dark:bg-zinc-900 dark:text-white border border-purple-500 shadow-lg rounded-xl px-4 py-3",
+          })
+        } else {
+          toast.error("Something went wrong", {
+            description: "Please try again later.",
+            className: "bg-white text-black dark:bg-zinc-900 dark:text-white border border-red-500 shadow-lg rounded-xl px-4 py-3",
+          })
+        }
       } finally {
         setIsLoading(false)
       }

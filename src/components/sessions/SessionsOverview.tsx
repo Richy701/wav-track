@@ -153,7 +153,7 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
     try {
       const newSession = {
         user_id: user.id,
-        project_id: 'default', // Using a default project ID for now
+        project_id: null, // Allow sessions without a project
         created_at: new Date().toISOString(),
         status: 'active' as const,
         duration: 1,
@@ -196,6 +196,12 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
 
   const handleEndSession = async () => {
     if (!activeSession) return
+
+    // Prevent ending a session with a temp id
+    if (typeof activeSession.id === 'string' && activeSession.id.startsWith('temp-')) {
+      toast.error('Please wait for the session to start before stopping.')
+      return
+    }
 
     try {
       // Immediate optimistic update

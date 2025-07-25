@@ -502,8 +502,8 @@ const GlobalSpotlight = ({
 
 const BentoCardGrid = ({ children, gridRef }) => (
   <div
-    className="bento-section grid gap-8 p-3 max-w-full w-full mx-auto select-none relative"
-    style={{ fontSize: "clamp(1.5rem, 1.2rem + 2vw, 2.75rem)" }}
+    className="bento-section grid gap-8 p-3 w-full mx-auto select-none relative"
+    style={{ fontSize: "clamp(1.5rem, 1.2rem + 2vw, 2.75rem)", width: "100%" }}
     ref={gridRef}
   >
     {children}
@@ -564,7 +564,7 @@ const MagicBento = ({
           .card-responsive {
             grid-template-columns: 1fr;
             width: 100%;
-            max-width: none;
+            max-width: 100%;
             margin: 0 auto;
             padding: 0.5rem;
           }
@@ -572,12 +572,14 @@ const MagicBento = ({
           @media (min-width: 600px) {
             .card-responsive {
               grid-template-columns: repeat(2, 1fr);
+              max-width: 1400px;
             }
           }
           
           @media (min-width: 1024px) {
             .card-responsive {
               grid-template-columns: repeat(4, 1fr);
+              max-width: 1600px;
             }
             
             .card-responsive .card:nth-child(3) {

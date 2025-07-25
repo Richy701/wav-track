@@ -2,34 +2,7 @@ import { useCallback, useState } from 'react'
 import { useLocalStorage } from '@/hooks/use-local-storage'
 import { supabase } from '@/lib/supabase'
 
-// Fallback suggestions in case API fails
-const FALLBACK_SUGGESTIONS = [
-  {
-    title: "Mix the chorus",
-    description: "Focus on balancing frequencies and adding effects to the chorus section",
-    duration: 30
-  },
-  {
-    title: "Refine melody",
-    description: "Polish the main melody line and add variations",
-    duration: 25
-  },
-  {
-    title: "Finish intro",
-    description: "Complete the intro section with proper transitions",
-    duration: 20
-  },
-  {
-    title: "Arrange bridge",
-    description: "Structure and arrange the bridge section",
-    duration: 35
-  },
-  {
-    title: "Master drums",
-    description: "Finalize drum mix and add processing",
-    duration: 25
-  }
-]
+
 
 // Debounce utility
 const debounce = <T extends (...args: any[]) => any>(
@@ -100,8 +73,8 @@ export function useAIAssistant({ onSuggestionSelect, onError }: UseAIAssistantPr
     } catch (error) {
       console.error('Error fetching suggestions:', error)
       onError?.(error as Error)
-      // Use fallback suggestions
-      setSuggestions(FALLBACK_SUGGESTIONS)
+      // Set empty suggestions on error
+      setSuggestions([])
     } finally {
       setIsLoading(false)
     }
@@ -140,9 +113,7 @@ export function useAIAssistant({ onSuggestionSelect, onError }: UseAIAssistantPr
     } catch (error) {
       console.error('Error generating goal:', error)
       onError?.(error as Error)
-      // Use a random fallback suggestion
-      const randomSuggestion = FALLBACK_SUGGESTIONS[Math.floor(Math.random() * FALLBACK_SUGGESTIONS.length)]
-      onSuggestionSelect?.(randomSuggestion)
+      // Don't provide fallback suggestions on error
     } finally {
       setIsLoading(false)
     }

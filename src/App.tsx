@@ -81,7 +81,7 @@ const LandingPage = lazyWithPreload(() => import('./pages/LandingPage'))
 const Achievements = lazyWithPreload(() => import('./pages/Achievements'))
 const PrivacyPolicy = lazyWithPreload(() => import('./pages/PrivacyPolicy'))
 const TermsOfService = lazyWithPreload(() => import('./pages/TermsOfService'))
-const GalleryTest = lazyWithPreload(() => import('./pages/GalleryTest'))
+
 
 // Preload components on hover
 const preloadComponent = (component: React.LazyExoticComponent<React.ComponentType<Record<string, unknown>>> & { preload: () => Promise<{ default: React.ComponentType<Record<string, unknown>> }> }) => {
@@ -232,14 +232,7 @@ const router = createBrowserRouter(
           </Suspense>
         }
       />
-      <Route
-        path="/gallery-test"
-        element={
-          <Suspense fallback={<LoadingScreen message="Loading gallery..." />}>
-            <GalleryTest />
-          </Suspense>
-        }
-      />
+
     </Route>
   ),
   {

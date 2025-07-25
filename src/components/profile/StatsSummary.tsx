@@ -12,8 +12,11 @@ import {
   Target,
   ChartLineUp,
   Star,
-  Crown
+  Crown,
+  TrendUp,
+  TrendDown
 } from '@phosphor-icons/react'
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 // Add types for StatCard props
 type Stat = {
@@ -87,6 +90,8 @@ const statStyles = {
   }
 }
 
+
+
 // Memoized StatCard for performance
 const StatCard = memo(function StatCard({ stat, style, onClick }: { stat: Stat; style: Style; onClick: () => void }) {
   return (
@@ -111,20 +116,44 @@ const StatCard = memo(function StatCard({ stat, style, onClick }: { stat: Stat; 
         {style.icon}
       </div>
       <h3 className="text-base font-bold text-zinc-900 dark:text-white mb-0.5">{stat.title}</h3>
-      <motion.p
-        className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight mb-1"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        {stat.value}
-      </motion.p>
+      <div className="flex items-baseline gap-2 mb-1">
+        <motion.p
+          className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          {stat.value}
+        </motion.p>
+        {stat.trend && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex items-center gap-1 cursor-pointer">
+                  {stat.trend.startsWith('+') ? (
+                    <TrendUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  ) : stat.trend.startsWith('-') ? (
+                    <TrendDown className="h-5 w-5 text-red-600 dark:text-red-400" />
+                  ) : null}
+                  <span className={cn(
+                    "text-xs font-medium",
+                    stat.trend.startsWith('+') ? "text-green-600 dark:text-green-400" : stat.trend.startsWith('-') ? "text-red-600 dark:text-red-400" : "text-zinc-400 dark:text-zinc-400"
+                  )}>
+                    {/* Show as percentage if possible, else value */}
+                    {stat.trend.endsWith('%') ? stat.trend : `${stat.trend}%`}
+                  </span>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6} className="text-xs">
+                Change vs previous period
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
       <p className="text-xs text-zinc-700 dark:text-white/70 mb-3">{stat.subtitle}</p>
       {/* Progress bar or other details can go here */}
-      <div className="mt-3 pt-3 text-xs border-t border-zinc-200 dark:border-white/10 text-zinc-700 dark:text-white/80">
-        {stat.trend}
-      </div>
-      {/* Placeholder for modal/drawer expansion */}
+      {/* Removed old trend section from below the stat */}
     </motion.button>
   );
 });
@@ -180,13 +209,36 @@ export function StatsSummary() {
     return achievements.filter(a => a.unlocked_at).length
   }, [achievements])
 
+
+
   const stats = [
     {
-      title: 'Total Beats',
-      value: totalBeats.toString(),
-      subtitle: `${monthlyBeats} beats this month`,
+      title: 'Beats This Day',
+      value: 0, // TODO: Fetch real daily data
+      subtitle: 'beats this day',
       type: 'beats',
-      trend: `${monthlyBeats > lastMonthBeats ? '+' : ''}${monthlyBeats - lastMonthBeats} from last month`
+      trend: '', // Will be calculated from real data
+    },
+    {
+      title: 'Beats This Week',
+      value: 0, // TODO: Fetch real weekly data
+      subtitle: 'beats this week',
+      type: 'beats',
+      trend: '', // Will be calculated from real data
+    },
+    {
+      title: 'Beats This Month',
+      value: monthlyBeats,
+      subtitle: 'beats this month',
+      type: 'beats',
+      trend: '', // Will be calculated from real data
+    },
+    {
+      title: 'Beats This Year',
+      value: 0, // TODO: Fetch real yearly data
+      subtitle: 'beats this year',
+      type: 'beats',
+      trend: '', // Will be calculated from real data
     },
     {
       title: 'Current Streak',
