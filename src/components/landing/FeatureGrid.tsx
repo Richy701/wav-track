@@ -100,11 +100,11 @@ function FeatureCard({ feature, index }: { feature: FeatureCard; index: number }
           <div className="absolute inset-0 bg-gradient-to-r from-[#8257E5]/20 to-[#B490FF]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
         
-        <div className="p-4 sm:p-6 lg:p-8">
-          <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground mb-3 group-hover:text-[#8257E5] transition-colors duration-300">
+        <div className="p-3 sm:p-4 lg:p-6 xl:p-8">
+          <h3 className="text-base sm:text-lg lg:text-xl xl:text-2xl font-semibold text-foreground mb-2 sm:mb-3 group-hover:text-[#8257E5] transition-colors duration-300">
             {feature.title}
           </h3>
-          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground leading-relaxed">
+          <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-muted-foreground leading-relaxed">
             {feature.description}
           </p>
         </div>
@@ -113,54 +113,17 @@ function FeatureCard({ feature, index }: { feature: FeatureCard; index: number }
   );
 }
 
-export default function FeatureGrid() {
+interface FeatureGridProps {
+  features?: FeatureCard[];
+  className?: string;
+}
+
+export default function FeatureGrid({ features = defaultFeatures, className }: FeatureGridProps) {
   return (
-    <section className="px-4 py-16 sm:px-6 lg:px-8 max-w-screen-xl mx-auto">
-      <motion.div 
-        className="text-center mb-12"
-        initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.3 }}
-        variants={fadeInUp}
-      >
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 text-foreground">
-          Everything You Need to{" "}
-          <span className="bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent">
-            Level Up
-          </span>
-        </h2>
-        <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto">
-          Powerful tools designed specifically for music producers to track, analyze, and improve their workflow.
-        </p>
-      </motion.div>
-
-      <motion.div 
-        className="flex flex-col space-y-8 sm:space-y-12"
-        variants={staggerContainer}
-        initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.1 }}
-      >
-        {features.map((feature, index) => (
-          <FeatureCard key={feature.title} feature={feature} index={index} />
-        ))}
-      </motion.div>
-
-      {/* Call to action */}
-      <motion.div 
-        className="text-center mt-16 sm:mt-20"
-        initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.3 }}
-        variants={fadeInUp}
-      >
-        <p className="text-muted-foreground mb-6 text-sm sm:text-base lg:text-lg">
-          Ready to transform your music production workflow?
-        </p>
-        <button className="bg-gradient-to-r from-[#8257E5] to-[#B490FF] text-white px-8 sm:px-10 py-4 rounded-xl font-medium hover:from-[#8257E5]/90 hover:to-[#B490FF]/90 transition-all duration-200 hover:shadow-lg hover:shadow-[#8257E5]/25 text-base sm:text-lg">
-          Get Started Today
-        </button>
-      </motion.div>
-    </section>
+    <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8", className)}>
+      {features.map((feature, index) => (
+        <FeatureCard key={feature.title} feature={feature} index={index} />
+      ))}
+    </div>
   );
 } 

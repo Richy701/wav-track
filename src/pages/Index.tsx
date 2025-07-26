@@ -219,10 +219,10 @@ const Index = () => {
             />
           </div>
           <div className="grid grid-cols-1 gap-6 h-fit min-w-0">
-            <div className="h-[480px] min-w-0">
+            <div className="min-h-[400px] sm:min-h-[480px] min-w-0">
               <Timer />
             </div>
-            <div className="h-[580px] min-w-0">
+            <div className="min-h-[500px] sm:min-h-[580px] min-w-0">
               <SessionsOverview />
             </div>
           </div>

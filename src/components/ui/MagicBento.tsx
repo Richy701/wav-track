@@ -562,17 +562,21 @@ const MagicBento = ({
           }
           
           .card-responsive {
+            display: grid;
             grid-template-columns: 1fr;
             width: 100%;
             max-width: 100%;
             margin: 0 auto;
             padding: 0.5rem;
+            gap: 0.5rem;
           }
           
-          @media (min-width: 600px) {
+          @media (min-width: 640px) {
             .card-responsive {
               grid-template-columns: repeat(2, 1fr);
               max-width: 1400px;
+              gap: 1rem;
+              padding: 1rem;
             }
           }
           
@@ -580,6 +584,8 @@ const MagicBento = ({
             .card-responsive {
               grid-template-columns: repeat(4, 1fr);
               max-width: 1600px;
+              gap: 1.5rem;
+              padding: 1.5rem;
             }
             
             .card-responsive .card:nth-child(3) {
@@ -659,17 +665,66 @@ const MagicBento = ({
             text-overflow: ellipsis;
           }
           
-          @media (max-width: 599px) {
+          /* Mobile optimizations */
+          @media (max-width: 639px) {
             .card-responsive {
               grid-template-columns: 1fr;
-              width: 90%;
+              width: 100%;
+              max-width: 100%;
               margin: 0 auto;
-              padding: 0.5rem;
+              padding: 0.25rem;
+              gap: 0.5rem;
             }
             
             .card-responsive .card {
               width: 100%;
-              min-height: 180px;
+              min-height: 160px;
+              max-height: 200px;
+              padding: 1rem;
+            }
+            
+            .bento-section {
+              padding: 0.5rem;
+              gap: 0.5rem;
+            }
+            
+            .card__title {
+              font-size: 0.875rem;
+              line-height: 1.25rem;
+            }
+            
+            .card__description {
+              font-size: 0.75rem;
+              line-height: 1rem;
+            }
+            
+            .card__label {
+              font-size: 0.75rem;
+            }
+          }
+          
+          /* Tablet optimizations */
+          @media (min-width: 640px) and (max-width: 1023px) {
+            .card-responsive {
+              grid-template-columns: repeat(2, 1fr);
+              gap: 0.75rem;
+              padding: 0.75rem;
+            }
+            
+            .card-responsive .card {
+              min-height: 200px;
+              max-height: 280px;
+              padding: 1.5rem;
+            }
+            
+            .card__title {
+              font-size: 1rem;
+              line-height: 1.5rem;
+            }
+            
+            .card__description {
+              font-size: 0.875rem;
+              line-height: 1.25rem;
             }
           }
         `}

@@ -1008,10 +1008,10 @@ export const getTotalBeatsInTimeRange = async (
         startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diff)
         break
       case 'month':
-        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1)
         break
       case 'year':
-        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+        startDate = new Date(now.getFullYear(), 0, 1)
         break
       default:
         startDate = new Date(0)

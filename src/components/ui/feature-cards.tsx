@@ -68,7 +68,7 @@ export function FeatureCards({ features = defaultFeatures, className }: FeatureC
   };
 
   return (
-    <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3", className)}>
+    <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4", className)}>
       {features.map((feature, index) => {
         const theme = themeStyles[feature.theme || "primary"];
         return (
@@ -80,7 +80,7 @@ export function FeatureCards({ features = defaultFeatures, className }: FeatureC
             transition={{ duration: 0.4, delay: index * 0.1 }}
             className={cn(
               // Base styles
-              "h-[140px] w-full",
+              "h-[120px] sm:h-[140px] w-full",
               "rounded-xl border",
               "bg-white/95 dark:bg-black/20",
               "backdrop-blur-sm",
