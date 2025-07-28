@@ -13,11 +13,12 @@ import { Home, Clock, Trophy, User as UserIcon, Settings as SettingsIcon, Plus }
 import CreateProjectDialog from './project/CreateProjectDialog'
 import { useProjects } from '@/hooks/useProjects'
 import ReactDOM from 'react-dom'
+import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
@@ -117,84 +118,136 @@ export default function Header() {
       )}
 
       {/* Mobile slide-over menu */}
-      {isMobileMenuOpen && ReactDOM.createPortal(
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm transition-opacity"
-            onClick={() => setIsMobileMenuOpen(false)}
-            aria-hidden="true"
-          />
-          {/* Slide-over */}
-          <div className="fixed inset-y-0 right-0 z-[9999] w-full max-w-xs bg-white/80 dark:bg-zinc-900/90 backdrop-blur-md shadow-xl flex flex-col transition-transform duration-300 ease-in-out translate-x-0 animate-slide-in">
-            {/* Close button - positioned absolutely within the slide-over */}
-            <div className="absolute top-4 right-4 z-10">
-              <button
-                type="button"
-                className="rounded-md p-2 text-gray-700 dark:text-gray-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-                onClick={() => setIsMobileMenuOpen(false)}
-                aria-label="Close menu"
-              >
-                <XMarkIcon className="h-6 w-6" />
-              </button>
-            </div>
-            {/* Content with proper padding */}
-            <div className="flex-1 px-6 py-6 pt-16">
-            {/* Mobile actions at the top */}
-            <div className="flex items-center gap-4 mb-6">
-              <ThemeSwitcher />
-              {user && <UserAvatar />}
-            </div>
-            {user && location.pathname === '/dashboard' && (
-              <Button
-                variant="default"
-                className="w-full bg-gradient-to-r from-[#8257E5] to-[#B490FF] text-white px-3 py-3 rounded-xl text-base font-semibold flex items-center gap-2 justify-center mb-4 shadow-lg hover:scale-[1.03] transition-transform"
-                onClick={() => { setIsCreateProjectOpen(true); setIsMobileMenuOpen(false); }}
-              >
-                <Plus className="h-5 w-5" />
-                New Project
-              </Button>
-            )}
-            <nav className="flex flex-col gap-2 mt-2">
-              <button
-                className="flex items-center gap-3 text-left w-full px-3 py-3 rounded-lg text-base font-semibold text-gray-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
-                onClick={() => { setIsMobileMenuOpen(false); navigate('/dashboard') }}
-              ><Home className="h-5 w-5 opacity-80" />Dashboard</button>
-              <button
-                className="flex items-center gap-3 text-left w-full px-3 py-3 rounded-lg text-base font-semibold text-gray-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
-                onClick={() => { setIsMobileMenuOpen(false); navigate('/sessions') }}
-              ><Clock className="h-5 w-5 opacity-80" />Sessions</button>
-              <button
-                className="flex items-center gap-3 text-left w-full px-3 py-3 rounded-lg text-base font-semibold text-gray-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
-                onClick={() => { setIsMobileMenuOpen(false); navigate('/achievements') }}
-              ><Trophy className="h-5 w-5 opacity-80" />Achievements</button>
-              <button
-                className="flex items-center gap-3 text-left w-full px-3 py-3 rounded-lg text-base font-semibold text-gray-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
-                onClick={() => { setIsMobileMenuOpen(false); navigate('/profile') }}
-              ><UserIcon className="h-5 w-5 opacity-80" />Profile</button>
-              <button
-                className="flex items-center gap-3 text-left w-full px-3 py-3 rounded-lg text-base font-semibold text-gray-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
-                onClick={() => { setIsMobileMenuOpen(false); navigate('/profile/settings') }}
-              ><SettingsIcon className="h-5 w-5 opacity-80" />Settings</button>
-            </nav>
-            <div className="my-6 border-t border-zinc-200 dark:border-zinc-800" />
-            {!user && (
-              <div className="flex flex-col gap-2 mt-2">
+      {isMobileMenuOpen &&
+        ReactDOM.createPortal(
+          <>
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 z-[9999] bg-black/50"
+              onClick={() => setIsMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
+            {/* Slide-over */}
+            <div className="fixed inset-y-0 right-0 z-[9999] w-80 bg-white dark:bg-zinc-900 shadow-lg">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b">
+                <h2 className="text-lg font-medium">Menu</h2>
                 <button
-                  className="flex items-center gap-3 text-left w-full px-3 py-3 rounded-lg text-base font-semibold text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900 transition"
-                  onClick={() => { setIsMobileMenuOpen(false); navigate('/login') }}
-                >Sign In</button>
-                <button
-                  className="flex items-center gap-3 text-left w-full px-3 py-3 rounded-lg text-base font-semibold text-white bg-gradient-to-r from-violet-600 to-violet-400 hover:from-violet-700 hover:to-violet-500 transition"
-                  onClick={() => { setIsMobileMenuOpen(false); navigate('/register') }}
-                >Register</button>
+                  type="button"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  aria-label="Close menu"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
               </div>
-            )}
+              
+              {/* Content */}
+              <div className="p-4 space-y-4">
+                {/* User Info */}
+                {user && (
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-zinc-800 rounded">
+                    <UserAvatar />
+                    <div>
+                      <p className="font-medium">
+                        {user.user_metadata?.name || user.email?.split('@')[0] || 'User'}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* New Project Button */}
+                {user && location.pathname === '/dashboard' && (
+                  <Button
+                    className="w-full"
+                    onClick={() => { setIsCreateProjectOpen(true); setIsMobileMenuOpen(false); }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Project
+                  </Button>
+                )}
+                
+                {/* Navigation */}
+                <div className="space-y-1">
+                  <button
+                    className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 rounded"
+                    onClick={() => { setIsMobileMenuOpen(false); navigate('/dashboard') }}
+                  >
+                    <Home className="h-4 w-4" />
+                    Dashboard
+                  </button>
+                  <button
+                    className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 rounded"
+                    onClick={() => { setIsMobileMenuOpen(false); navigate('/sessions') }}
+                  >
+                    <Clock className="h-4 w-4" />
+                    Sessions
+                  </button>
+                  <button
+                    className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 rounded"
+                    onClick={() => { setIsMobileMenuOpen(false); navigate('/achievements') }}
+                  >
+                    <Trophy className="h-4 w-4" />
+                    Achievements
+                  </button>
+                  <button
+                    className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 rounded"
+                    onClick={() => { setIsMobileMenuOpen(false); navigate('/profile') }}
+                  >
+                    <UserIcon className="h-4 w-4" />
+                    Profile
+                  </button>
+                  <button
+                    className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 rounded"
+                    onClick={() => { setIsMobileMenuOpen(false); navigate('/profile/settings') }}
+                  >
+                    <SettingsIcon className="h-4 w-4" />
+                    Settings
+                  </button>
+                </div>
+                
+                {/* Theme Switcher */}
+                <div className="pt-4 border-t">
+                  <ThemeSwitcher />
+                </div>
+                
+                {/* Auth Buttons */}
+                {!user ? (
+                  <div className="space-y-2 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => { setIsMobileMenuOpen(false); navigate('/login') }}
+                    >
+                      Sign In
+                    </Button>
+                    <Button
+                      className="w-full"
+                      onClick={() => { setIsMobileMenuOpen(false); navigate('/register') }}
+                    >
+                      Register
+                    </Button>
+                  </div>
+                ) : (
+                  <button
+                    className="w-full flex items-center gap-3 px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 rounded mt-4 border-t pt-4"
+                    onClick={() => { 
+                      setIsMobileMenuOpen(false); 
+                      setTimeout(() => logout?.(), 100);
+                    }}
+                  >
+                    <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                    Logout
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        </>,
-        document.body
-      )}
+          </>,
+          document.body
+        )}
     </header>
   )
 }

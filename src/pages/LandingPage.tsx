@@ -35,7 +35,7 @@ import { HeroSectionDemo } from "@/components/ui/hero-section-demo";
 import FeatureShowcase from "@/components/landing/FeatureShowcase";
 import FeatureShowcase2 from "@/components/landing/FeatureShowcase2";
 import FeatureShowcase3 from "@/components/landing/FeatureShowcase3";
-import { Pricing } from "@/components/ui/pricing-new";
+import { Pricing } from "@/components/ui/pricing";
 import { FAQSection } from "@/components/ui/faq-section";
 import { subscriptionPlans } from "@/lib/config/subscription-plans";
 

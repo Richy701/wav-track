@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { emailService } from '@/lib/services/email'
 import { subscriptionPlans } from '@/lib/config/subscription-plans'
 
 export interface SubscriptionPlan {
@@ -172,7 +173,20 @@ export const paymentService = {
           custom: { plan_id: planId, is_yearly: isYearly.toString() }
         })
         
-        // Note: Email functionality removed for now
+        // Send welcome email with account setup instructions
+        try {
+          await emailService.sendWelcomeEmail({
+            email: email,
+            tempPassword: tempPassword,
+            planName: planName,
+            loginUrl: `${window.location.origin}/login`
+          })
+          console.log('Welcome email sent successfully')
+        } catch (emailError) {
+          console.error('Failed to send welcome email:', emailError)
+          // Don't throw error - account creation is more important than email
+        }
+        
         console.log('New user account created successfully:', user.id)
       }
       

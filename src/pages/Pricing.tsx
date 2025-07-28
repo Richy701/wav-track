@@ -1,8 +1,8 @@
 import React from 'react';
-import { Pricing } from '@/components/ui/pricing-new';
+import { Pricing } from '@/components/ui/pricing';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 
-export default function PricingNewTest() {
+export default function PricingPage() {
 	const wavtrackPlans = [
 		{
 			name: "STARTER",

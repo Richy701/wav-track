@@ -1,239 +1,275 @@
-'use client';
-import React from 'react';
-import { Button } from '@/components/ui/button';
+"use client";
 
-import { cn } from '@/lib/utils';
-import { CheckCircleIcon, StarIcon } from 'lucide-react';
-import { motion, Transition } from 'framer-motion';
+import { buttonVariants } from "@/components/ui/button";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { Check, Star } from "lucide-react";
+import { useState, useRef } from "react";
+import confetti from "canvas-confetti";
+import NumberFlow from "@number-flow/react";
+import { usePayment } from "@/hooks/usePayment";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { SubscriptionPlan } from "@/lib/services/payment";
 
-type FREQUENCY = 'monthly' | 'yearly';
-const frequencies: FREQUENCY[] = ['monthly', 'yearly'];
-
-interface Plan {
-	name: string;
-	info: string;
-	price: {
-		monthly: number;
-		yearly: number;
-	};
-	features: {
-		text: string;
-		tooltip?: string;
-	}[];
-	btn: {
-		text: string;
-		href: string;
-	};
-	highlighted?: boolean;
+interface PricingProps {
+  plans: SubscriptionPlan[];
+  title?: string;
+  description?: string;
 }
 
-interface PricingSectionProps extends React.ComponentProps<'div'> {
-	plans: Plan[];
-	heading: string;
-	description?: string;
-}
+export function Pricing({
+  plans,
+  title = "Simple, Transparent Pricing",
+  description = "Choose the plan that works for you\nAll plans include access to our platform, lead generation tools, and dedicated support.",
+}: PricingProps) {
+  const [isMonthly, setIsMonthly] = useState(true);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const switchRef = useRef<HTMLButtonElement>(null);
+  const { user } = useAuth();
+  const { startFreeTrial, isLoading, hasActiveSubscription, trialDaysRemaining } = usePayment();
 
-export function PricingSection({
-	plans,
-	heading,
-	description,
-	...props
-}: PricingSectionProps) {
-	const [frequency, setFrequency] = React.useState<'monthly' | 'yearly'>(
-		'monthly',
-	);
+  // Debug auth state
+  console.log('Pricing component - Auth state:', {
+    user: user ? { id: user.id, email: user.email } : null,
+    isAuthenticated: !!user,
+    isLoading,
+    hasActiveSubscription
+  });
 
-	return (
-		<div
-			className={cn(
-				'flex w-full flex-col items-center justify-center space-y-5 p-4',
-				props.className,
-			)}
-			{...props}
-		>
-			<div className="mx-auto max-w-xl space-y-2">
-				<h2 className="text-center text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl">
-					{heading}
-				</h2>
-				{description && (
-					<p className="text-muted-foreground text-center text-sm md:text-base">
-						{description}
-					</p>
-				)}
-			</div>
-			<PricingFrequencyToggle
-				frequency={frequency}
-				setFrequency={setFrequency}
-			/>
-			<div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
-				{plans.map((plan) => (
-					<PricingCard plan={plan} key={plan.name} frequency={frequency} />
-				))}
-			</div>
-		</div>
-	);
-}
+  const handleToggle = (newIsMonthly: boolean) => {
+    setIsMonthly(newIsMonthly);
+    
+    // Show confetti when switching to annual (yearly)
+    if (!newIsMonthly && switchRef.current) {
+      const rect = switchRef.current.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
 
-type PricingFrequencyToggleProps = React.ComponentProps<'div'> & {
-	frequency: FREQUENCY;
-	setFrequency: React.Dispatch<React.SetStateAction<FREQUENCY>>;
-};
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: {
+          x: x / window.innerWidth,
+          y: y / window.innerHeight,
+        },
+        colors: [
+          "#8b5cf6", // purple-500
+          "#a855f7", // purple-600
+          "#9333ea", // purple-700
+          "#7c3aed", // purple-600
+          "#6d28d9", // purple-700
+        ],
+        ticks: 200,
+        gravity: 1.2,
+        decay: 0.94,
+        startVelocity: 30,
+        shapes: ["circle"],
+      });
+    }
+  };
 
-export function PricingFrequencyToggle({
-	frequency,
-	setFrequency,
-	...props
-}: PricingFrequencyToggleProps) {
-	return (
-		<div
-			className={cn(
-				'bg-purple-100/50 dark:bg-purple-950/30 mx-auto flex w-fit rounded-full border border-purple-200/50 dark:border-purple-800/50 p-1',
-				props.className,
-			)}
-			{...props}
-		>
-			{frequencies.map((freq) => (
-				<button
-					key={freq}
-					onClick={() => setFrequency(freq)}
-					className="relative px-4 py-1 text-sm capitalize transition-colors duration-200"
-				>
-					<span className={cn(
-						"relative z-20",
-						frequency === freq ? "text-white" : "text-foreground"
-					)}>
-						{freq}
-					</span>
-					{frequency === freq && (
-						<motion.span
-							layoutId="frequency"
-							transition={{ type: 'spring', duration: 0.4 }}
-							className="bg-gradient-to-r from-purple-600 to-purple-700 absolute inset-0 z-10 rounded-full shadow-sm"
-						/>
-					)}
-				</button>
-			))}
-		</div>
-	);
-}
+  const handlePlanClick = async (plan: SubscriptionPlan) => {
+    console.log('handlePlanClick called with plan:', plan.name);
+    
+    if (hasActiveSubscription) {
+      console.log('User has active subscription');
+      toast.info('You already have an active subscription', {
+        description: 'Manage your subscription in your account settings.',
+        duration: 4000
+      });
+      return;
+    }
 
-type PricingCardProps = React.ComponentProps<'div'> & {
-	plan: Plan;
-	frequency?: FREQUENCY;
-};
+    console.log('Proceeding with payment - user logged in:', !!user);
+    try {
+      console.log('Calling startFreeTrial with planId:', plan.id, 'isYearly:', !isMonthly);
+      await startFreeTrial(plan.id, !isMonthly);
+    } catch (error) {
+      console.error('Error in handlePlanClick:', error);
+      toast.error('Failed to start free trial', {
+        description: 'Please try again later.',
+        duration: 4000
+      });
+    }
+  };
 
-export function PricingCard({
-	plan,
-	className,
-	frequency = frequencies[0],
-	...props
-}: PricingCardProps) {
-	return (
-		<div
-			key={plan.name}
-			className={cn(
-				'relative flex w-full flex-col rounded-lg border',
-				plan.highlighted && 'scale-105 border-purple-500/50 shadow-xl',
-				className,
-			)}
-			{...props}
-		>
-			<div
-				className={cn(
-					'bg-muted/20 rounded-t-lg border-b p-4',
-					plan.highlighted && 'bg-gradient-to-r from-purple-500/10 to-purple-600/10 border-purple-500/20',
-				)}
-			>
-				<div className="absolute top-2 right-2 z-10 flex items-center gap-2">
-					{plan.highlighted && (
-						<p className="bg-gradient-to-r from-purple-600 to-purple-700 text-white flex items-center gap-1 rounded-md border border-purple-500/30 px-3 py-1 text-xs font-medium shadow-sm">
-							<StarIcon className="h-3 w-3 fill-current" />
-							Most Popular
-						</p>
-					)}
-					{frequency === 'yearly' && (
-						<p className="bg-primary text-primary-foreground flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs">
-							{Math.round(
-								((plan.price.monthly * 12 - plan.price.yearly) /
-									plan.price.monthly /
-									12) *
-									100,
-							)}
-							% off
-						</p>
-					)}
-				</div>
+  return (
+    <div className="flex w-full flex-col items-center justify-center p-4 py-20">
+      <div className="mx-auto max-w-xl space-y-2 mb-8">
+        <h2 className="text-center text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl">
+          {title}
+        </h2>
+        <p className="text-muted-foreground text-center text-sm md:text-base">
+          {description}
+        </p>
+        {hasActiveSubscription && (
+          <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+            <p className="text-sm text-green-700 dark:text-green-300 text-center">
+              {trialDaysRemaining > 0 
+                ? `You have ${trialDaysRemaining} days left in your free trial`
+                : 'You have an active subscription'
+              }
+            </p>
+          </div>
+        )}
+      </div>
 
-				<div className={cn(
-					"text-lg font-medium",
-					plan.highlighted && "text-purple-700 dark:text-purple-300"
-				)}>
-					{plan.name}
-				</div>
-				<p className={cn(
-					"text-muted-foreground text-sm font-normal",
-					plan.highlighted && "text-purple-600/80 dark:text-purple-400/80"
-				)}>
-					{plan.info}
-				</p>
-				<h3 className="mt-2 flex items-end gap-1">
-					<span className={cn(
-						"text-3xl font-bold",
-						plan.highlighted && "text-purple-700 dark:text-purple-300"
-					)}>
-						${plan.price[frequency]}
-					</span>
-					<span className={cn(
-						"text-muted-foreground",
-						plan.highlighted && "text-purple-600/70 dark:text-purple-400/70"
-					)}>
-						{plan.name !== 'Free'
-							? '/' + (frequency === 'monthly' ? 'month' : 'year')
-							: ''}
-					</span>
-				</h3>
-			</div>
-			<div
-				className={cn(
-					'text-muted-foreground space-y-4 px-4 py-6 text-sm',
-					plan.highlighted && 'bg-muted/10',
-				)}
-			>
-				{plan.features.map((feature, index) => (
-					<div key={index} className="flex items-start gap-3">
-						<CheckCircleIcon className="text-foreground h-4 w-4 mt-0.5 flex-shrink-0" />
-						<p className="leading-relaxed">
-							{feature.text}
-						</p>
-					</div>
-				))}
-			</div>
-			<div
-				className={cn(
-					'mt-auto w-full border-t p-3',
-					plan.highlighted && 'bg-muted/40',
-				)}
-			>
-				{plan.highlighted ? (
-					// Highlighted plan - Purple gradient button
-					<a
-						href={plan.btn.href}
-						className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-lg hover:shadow-xl"
-					>
-						{plan.btn.text}
-					</a>
-				) : (
-					// Regular plans - Purple outline with hover effects
-					<a
-						href={plan.btn.href}
-						className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 border border-purple-500/30 bg-background hover:bg-gradient-to-r hover:from-purple-600/10 hover:to-purple-700/10 hover:border-purple-500/50 text-foreground hover:text-purple-700 dark:hover:text-purple-300 shadow-sm hover:shadow-md"
-					>
-						{plan.btn.text}
-					</a>
-				)}
-			</div>
-		</div>
-	);
-}
+      <div className="flex justify-center mb-16 mt-8">
+        <div className="relative inline-flex items-center bg-muted/50 rounded-full p-1 border border-border/50">
+          <button
+            ref={switchRef as React.RefObject<HTMLButtonElement>}
+            onClick={() => handleToggle(true)}
+            className={cn(
+              "relative px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 ease-out",
+              "focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2",
+              isMonthly
+                ? "text-foreground bg-background shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => handleToggle(false)}
+            className={cn(
+              "relative px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 ease-out",
+              "focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2",
+              !isMonthly
+                ? "text-foreground bg-background shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Annual
+            <span className="ml-1 text-xs text-purple-600 dark:text-purple-400 font-medium">
+              (Save 20%)
+            </span>
+          </button>
+        </div>
+      </div>
 
- 
+      <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
+        {plans.map((plan, index) => (
+          <motion.div
+            key={index}
+            initial={{ y: 50, opacity: 1 }}
+            whileInView={
+              isDesktop
+                ? {
+                    y: plan.isPopular ? -20 : 0,
+                    opacity: 1,
+                    x: index === 2 ? -30 : index === 0 ? 30 : 0,
+                    scale: index === 0 || index === 2 ? 0.94 : 1.0,
+                  }
+                : {}
+            }
+            viewport={{ once: true }}
+            transition={{
+              duration: 1.6,
+              type: "spring",
+              stiffness: 100,
+              damping: 30,
+              delay: 0.4,
+              opacity: { duration: 0.5 },
+            }}
+            className={cn(
+              `rounded-2xl border-[1px] p-6 bg-background/80 backdrop-blur-sm text-center lg:flex lg:flex-col lg:justify-center relative shadow-lg`,
+              plan.isPopular ? "border-purple-500 border-2 shadow-xl scale-105" : "border-border",
+              "flex flex-col",
+              !plan.isPopular && "mt-5",
+              index === 0 || index === 2
+                ? "z-0 transform translate-x-0 translate-y-0 -translate-z-[50px] rotate-y-[10deg]"
+                : "z-10",
+              index === 0 && "origin-right",
+              index === 2 && "origin-left"
+            )}
+          >
+            {plan.isPopular && (
+              <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-600 to-purple-700 text-white py-1 px-3 rounded-bl-xl rounded-tr-xl flex items-center shadow-lg">
+                <Star className="text-white h-4 w-4 fill-current" />
+                <span className="text-white ml-1 font-sans font-semibold text-sm">
+                  Most Popular
+                </span>
+              </div>
+            )}
+            <div className="flex-1 flex flex-col">
+              <p className={cn(
+                "text-base font-semibold",
+                plan.isPopular ? "text-purple-700 dark:text-purple-300" : "text-muted-foreground"
+              )}>
+                {plan.name}
+              </p>
+              <div className="mt-6 flex items-center justify-center gap-x-2">
+                <span className={cn(
+                  "text-5xl font-bold tracking-tight",
+                  plan.isPopular ? "text-purple-700 dark:text-purple-300" : "text-foreground"
+                )}>
+                  <NumberFlow
+                    value={
+                      isMonthly ? plan.price : plan.yearlyPrice
+                    }
+                    format={{
+                      style: "currency",
+                      currency: "USD",
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    }}
+                    transformTiming={{
+                      duration: 500,
+                      easing: "ease-out",
+                    }}
+                    willChange
+                    className="font-variant-numeric: tabular-nums"
+                  />
+                </span>
+                {plan.period !== "Next 3 months" && (
+                  <span className={cn(
+                    "text-sm font-semibold leading-6 tracking-wide",
+                    plan.isPopular ? "text-purple-600/70 dark:text-purple-400/70" : "text-muted-foreground"
+                  )}>
+                    / {plan.period}
+                  </span>
+                )}
+              </div>
+
+              <p className={cn(
+                "text-xs leading-5",
+                plan.isPopular ? "text-purple-600/70 dark:text-purple-400/70" : "text-muted-foreground"
+              )}>
+                {isMonthly ? "billed monthly" : "billed annually"}
+              </p>
+
+              <ul className="mt-5 gap-2 flex flex-col">
+                {plan.features.map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-purple-600 dark:text-purple-400 mt-1 flex-shrink-0" />
+                    <span className="text-left text-sm">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <hr className="w-full my-4 border-border" />
+
+              <button
+                onClick={() => handlePlanClick(plan)}
+                disabled={isLoading || hasActiveSubscription}
+                className={cn(
+                  "group relative w-full gap-2 overflow-hidden text-lg font-semibold tracking-tighter rounded-md px-4 py-3 transition-all duration-300 ease-out",
+                  plan.isPopular
+                    ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    : "bg-background border border-purple-500/30 text-foreground hover:bg-gradient-to-r hover:from-purple-600/10 hover:to-purple-700/10 hover:border-purple-500/50 hover:text-purple-700 dark:hover:text-purple-300 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                )}
+              >
+                {isLoading ? 'Loading...' : hasActiveSubscription ? 'Active Subscription' : (user ? plan.buttonText : 'Start Free Trial')}
+              </button>
+              <p className="mt-6 text-xs leading-5 text-muted-foreground">
+                {plan.description}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+} 
