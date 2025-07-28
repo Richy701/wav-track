@@ -421,7 +421,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
       if (!open) setIsCalendarOpen(false)
       onOpenChange(open)
     }}>
-      <DialogContent className="sm:max-w-[900px] p-0 gap-0 overflow-visible bg-background">
+      <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-[500px] md:max-w-[700px] lg:max-w-[800px] p-0 gap-0 overflow-visible bg-background mx-2 sm:mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -430,22 +430,22 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
           className="relative"
         >
           <div className="relative">
-            <DialogHeader className="p-6 pb-0">
-              <DialogTitle className="text-2xl font-light tracking-tight bg-gradient-to-r from-primary/90 to-primary bg-clip-text text-transparent">
+            <DialogHeader className="p-3 sm:p-4 lg:p-6 pb-0">
+              <DialogTitle className="text-lg sm:text-xl lg:text-2xl font-light tracking-tight bg-gradient-to-r from-primary/90 to-primary bg-clip-text text-transparent">
                 New Project
               </DialogTitle>
-              <DialogDescription className="text-muted-foreground/80 font-light">
+              <DialogDescription className="text-muted-foreground/80 font-light text-xs sm:text-sm">
                 Add a new project to your collection
               </DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={handleCreateBeat} className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                {/* Left Column - Project Metadata */}
-                <div className="space-y-6">
+            <form onSubmit={handleCreateBeat} className="p-3 sm:p-4 lg:p-6">
+              <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8">
+                {/* Project Metadata */}
+                <div className="space-y-3 sm:space-y-4 lg:space-y-6">
                   {/* Title Input */}
-                  <div className="space-y-2">
-                    <Label htmlFor="title" className="text-sm font-light">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="title" className="text-xs sm:text-sm font-light">
                       Title
                     </Label>
                     <div className="relative group">
@@ -455,15 +455,16 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                         value={formData.title}
                         onChange={handleInputChange}
                         className={cn(
-                          'h-10 pl-9 bg-background',
+                          'h-9 sm:h-10 pl-8 sm:pl-9 bg-background',
                           'rounded-md transition-all duration-200',
                           'border-border/60 group-hover:border-primary/60',
                           'focus:border-primary focus:ring-1 focus:ring-primary/20',
-                          errors.title ? 'border-destructive' : ''
+                          errors.title ? 'border-destructive' : '',
+                          'text-sm sm:text-base'
                         )}
                         placeholder="Enter project title"
                       />
-                      <MusicalNoteIcon className="absolute left-3 top-[11px] h-4 w-4 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
+                      <MusicalNoteIcon className="absolute left-2.5 sm:left-3 top-[9px] sm:top-[11px] h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
                       {errors.title && (
                         <p className="text-xs text-destructive mt-1">{errors.title}</p>
                       )}
@@ -471,8 +472,8 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                   </div>
 
                   {/* Description Input */}
-                  <div className="space-y-2">
-                    <Label htmlFor="description" className="text-sm font-light">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="description" className="text-xs sm:text-sm font-light">
                       Description
                     </Label>
                     <div className="relative group">
@@ -481,16 +482,16 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                         name="description"
                         value={formData.description}
                         onChange={handleInputChange}
-                        className="h-10 pl-9 bg-background rounded-md border-border/60 group-hover:border-primary/60 focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-200"
+                        className="h-9 sm:h-10 pl-8 sm:pl-9 bg-background rounded-md border-border/60 group-hover:border-primary/60 focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-200 text-sm sm:text-base"
                         placeholder="Enter project description"
                       />
-                      <QueueListIcon className="absolute left-3 top-[11px] h-4 w-4 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
+                      <QueueListIcon className="absolute left-2.5 sm:left-3 top-[9px] sm:top-[11px] h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
                     </div>
                   </div>
 
                   {/* Genre Select */}
-                  <div className="space-y-2">
-                    <Label htmlFor="genre" className="text-sm font-light">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="genre" className="text-xs sm:text-sm font-light">
                       Genres
                     </Label>
                     <div className="relative group">
@@ -498,11 +499,12 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                         <SelectTrigger
                           id="genre"
                           className={cn(
-                            'h-10 pl-9 bg-background rounded-md',
+                            'h-9 sm:h-10 pl-8 sm:pl-9 bg-background rounded-md',
                             'border-border/60 group-hover:border-primary/60',
                             'focus:border-primary focus:ring-1 focus:ring-primary/20',
                             'transition-all duration-200',
-                            errors.genres ? 'border-destructive' : ''
+                            errors.genres ? 'border-destructive' : '',
+                            'text-sm sm:text-base'
                           )}
                         >
                           <SelectValue placeholder="Select genres" />
@@ -523,17 +525,17 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                           </SelectGroup>
                         </SelectContent>
                       </Select>
-                      <TagIcon className="absolute left-3 top-[11px] h-4 w-4 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
+                      <TagIcon className="absolute left-2.5 sm:left-3 top-[9px] sm:top-[11px] h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
                     </div>
 
                     {/* Selected Genres */}
                     {formData.genres.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-1.5 sm:mt-2">
                         {formData.genres.map(genre => (
                           <Badge
                             key={genre}
                             variant="secondary"
-                            className="bg-primary/10 text-primary hover:bg-primary/20 transition-colors group"
+                            className="bg-primary/10 text-primary hover:bg-primary/20 transition-colors group text-xs"
                           >
                             {genre}
                             <button
@@ -541,7 +543,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                               onClick={() => handleRemoveGenre(genre)}
                               className="ml-1 hover:text-destructive focus:outline-none"
                             >
-                              <XMarkIcon className="h-3 w-3 inline-block" />
+                              <XMarkIcon className="h-2.5 w-2.5 inline-block" />
                             </button>
                           </Badge>
                         ))}
@@ -550,11 +552,11 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                   </div>
                 </div>
 
-                {/* Right Column - Technical Details */}
-                <div className="space-y-6">
+                {/* Technical Details - Grid for larger screens */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
                   {/* BPM Input */}
-                  <div className="space-y-2">
-                    <Label htmlFor="bpm" className="text-sm font-light">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="bpm" className="text-xs sm:text-sm font-light">
                       BPM
                     </Label>
                     <div className="relative group">
@@ -566,15 +568,15 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                         onChange={handleInputChange}
                         min="20"
                         max="300"
-                        className="h-10 pl-9 bg-background rounded-md border-border/60 group-hover:border-primary/60 focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-200"
+                        className="h-9 sm:h-10 pl-8 sm:pl-9 bg-background rounded-md border-border/60 group-hover:border-primary/60 focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-200 text-sm sm:text-base"
                       />
-                      <ClockIcon className="absolute left-3 top-[11px] h-4 w-4 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
+                      <ClockIcon className="absolute left-2.5 sm:left-3 top-[9px] sm:top-[11px] h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
                     </div>
                   </div>
 
                   {/* Key Select */}
-                  <div className="space-y-2">
-                    <Label htmlFor="key" className="text-sm font-light">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="key" className="text-xs sm:text-sm font-light">
                       Key
                     </Label>
                     <div className="relative group">
@@ -583,7 +585,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                         onValueChange={value => setFormData(prev => ({ ...prev, key: value }))}
                       >
                         <SelectTrigger
-                          className="h-10 pl-9 bg-background rounded-md border-border/60 group-hover:border-primary/60 focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-200"
+                          className="h-9 sm:h-10 pl-8 sm:pl-9 bg-background rounded-md border-border/60 group-hover:border-primary/60 focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-200 text-sm sm:text-base"
                         >
                           <SelectValue placeholder="Select key" />
                         </SelectTrigger>
@@ -598,19 +600,19 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                           </SelectGroup>
                         </SelectContent>
                       </Select>
-                      <SparklesIcon className="absolute left-3 top-[11px] h-4 w-4 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
+                      <SparklesIcon className="absolute left-2.5 sm:left-3 top-[9px] sm:top-[11px] h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
                     </div>
                   </div>
 
                   {/* Status Select */}
-                  <div className="space-y-2">
-                    <Label htmlFor="status" className="text-sm font-light">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="status" className="text-xs sm:text-sm font-light">
                       Status
                     </Label>
                     <div className="relative group">
                       <Select value={formData.status} onValueChange={handleStatusChange}>
                         <SelectTrigger
-                          className="h-10 pl-9 bg-background rounded-md border-border/60 group-hover:border-primary/60 focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-200"
+                          className="h-9 sm:h-10 pl-8 sm:pl-9 bg-background rounded-md border-border/60 group-hover:border-primary/60 focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all duration-200 text-sm sm:text-base"
                         >
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
@@ -625,13 +627,13 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                           </SelectGroup>
                         </SelectContent>
                       </Select>
-                      <QueueListIcon className="absolute left-3 top-[11px] h-4 w-4 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
+                      <QueueListIcon className="absolute left-2.5 sm:left-3 top-[9px] sm:top-[11px] h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
                     </div>
                   </div>
 
                   {/* Date Picker */}
-                  <div className="space-y-2">
-                    <Label htmlFor="date" className="text-sm font-light">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="date" className="text-xs sm:text-sm font-light">
                       Date
                     </Label>
                     <div className="relative group">
@@ -640,11 +642,12 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                         role="combobox"
                         variant="outline"
                         className={cn(
-                          'w-full h-10 pl-9 justify-start text-left bg-background',
+                          'w-full h-9 sm:h-10 pl-8 sm:pl-9 justify-start text-left bg-background',
                           'rounded-md border-border/60 font-light',
                           'group-hover:border-primary/60 hover:bg-accent/50',
                           'focus:border-primary focus:ring-1 focus:ring-primary/20',
-                          'transition-all duration-200'
+                          'transition-all duration-200',
+                          'text-sm sm:text-base'
                         )}
                         onClick={() => setIsCalendarOpen(!isCalendarOpen)}
                       >
@@ -654,14 +657,16 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                             : 'Pick a date'}
                         </span>
                       </Button>
-                      <CalendarIcon className="absolute left-3 top-[11px] h-4 w-4 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
+                      <CalendarIcon className="absolute left-2.5 sm:left-3 top-[9px] sm:top-[11px] h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
                       
                       {isCalendarOpen && (
                         <div 
                           className={cn(
-                            'absolute top-[calc(100%+4px)] left-0 w-auto z-[100]',
+                            'absolute top-[calc(100%+4px)] left-0 z-[100]',
                             'bg-popover rounded-md border shadow-lg',
-                            'animate-in fade-in-0 zoom-in-95'
+                            'animate-in fade-in-0 zoom-in-95',
+                            'w-[280px] sm:w-auto',
+                            'max-w-[calc(100vw-2rem)]'
                           )}
                         >
                           <Calendar
@@ -683,18 +688,18 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
               </div>
 
               {/* Audio Upload Section */}
-              <div className="mt-8 space-y-2">
-                <Label className="text-sm font-light">Audio File</Label>
-                <div className="border border-border/60 hover:border-primary/60 rounded-md p-6 transition-all duration-200 group">
+              <div className="mt-4 sm:mt-6 lg:mt-8 space-y-1.5 sm:space-y-2">
+                <Label className="text-xs sm:text-sm font-light">Audio File</Label>
+                <div className="border border-border/60 hover:border-primary/60 rounded-md p-3 sm:p-4 lg:p-6 transition-all duration-200 group">
                   <AudioUploader onUploadComplete={handleAudioUpload} />
                   {audioUrl && (
-                    <div className="mt-4 flex items-center gap-3">
+                    <div className="mt-3 sm:mt-4 flex items-center gap-2 sm:gap-3">
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         className={cn(
-                          "h-8 px-2 rounded-md",
+                          "h-7 sm:h-8 px-2 rounded-md",
                           "bg-primary/10 hover:bg-primary/20",
                           "border-primary/20 hover:border-primary/30",
                           "text-primary",
@@ -705,49 +710,50 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                       >
                         {isPlaying ? (
                           <>
-                            <PauseIcon className="h-4 w-4" />
+                            <PauseIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             <span className="sr-only">Pause audio</span>
                           </>
                         ) : (
                           <>
-                            <PlayIcon className="h-4 w-4" />
+                            <PlayIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             <span className="sr-only">Play audio</span>
                           </>
                         )}
                       </Button>
-                      <span className="text-sm text-muted-foreground font-light">{audioFileName}</span>
+                      <span className="text-xs sm:text-sm text-muted-foreground font-light">{audioFileName}</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              <DialogFooter className="mt-8">
+              <DialogFooter className="mt-4 sm:mt-6 lg:mt-8">
                 <Button
                   type="submit"
                   disabled={isAnalyzing || isAddingProject}
                   className={cn(
-                    'w-full h-10',
+                    'w-full h-10 sm:h-11 lg:h-12',
                     'bg-primary/90 hover:bg-primary',
                     'text-primary-foreground font-light tracking-wide',
                     'rounded-md shadow-lg',
                     'transition-all duration-200',
                     'disabled:opacity-50 disabled:cursor-not-allowed',
-                    'group'
+                    'group',
+                    'text-sm sm:text-base'
                   )}
                 >
                   {isAnalyzing ? (
                     <>
-                      <ArrowPathIcon className="mr-2 h-4 w-4 animate-spin" />
+                      <ArrowPathIcon className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
                       <span className="font-light">Analyzing...</span>
                     </>
                   ) : isAddingProject ? (
                     <>
-                      <ArrowPathIcon className="mr-2 h-4 w-4 animate-spin" />
+                      <ArrowPathIcon className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
                       <span className="font-light">Creating Project...</span>
                     </>
                   ) : (
                     <>
-                      <PlusIcon className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
+                      <PlusIcon className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:scale-110 transition-transform" />
                       <span className="font-light">Create Project</span>
                     </>
                   )}

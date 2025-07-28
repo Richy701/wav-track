@@ -57,11 +57,9 @@ export function TrackDetails({ track }: TrackDetailsProps) {
       {trackDetails && (
         <div className="space-y-6 p-6">
           <div className="flex items-center space-x-6">
-            <img
-              src={trackDetails.coverArt}
-              alt={trackDetails.title}
-              className="h-32 w-32 rounded-lg object-cover"
-            />
+            <div className="h-32 w-32 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+              <Music2 className="h-12 w-12 text-primary" />
+            </div>
             <div>
               <h2 className="text-2xl font-bold text-foreground">{trackDetails.title}</h2>
               <div className="inline-flex items-baseline space-x-2 mt-1">

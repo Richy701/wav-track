@@ -85,37 +85,37 @@ const FAQ_SECTIONS: Record<ViewType, FAQSection> = {
         id: "what-is-wavtrack",
         question: "What is WavTrack?",
         answer:
-          "WavTrack is a comprehensive music production platform that combines audio analysis, session tracking, and AI-powered insights to help producers optimize their workflow and improve their music.",
+          "WavTrack is a web app designed specifically for music producers to track their daily, weekly, and long-term progress on their beats and music production. It helps you stay motivated with achievements, streaks, and goal-setting features.",
       },
       {
         id: "how-it-works",
-        question: "How does WavTrack work?",
+        question: "How does WavTrack help me with music production?",
         answer:
-          "WavTrack analyzes your audio files to extract key musical properties like BPM, key, energy, and danceability. It then tracks your production sessions and provides AI-powered suggestions to help you improve your workflow and music quality.",
+          "WavTrack tracks your music production sessions, helps you set and achieve goals, and provides visual feedback and analytics. It's designed to give you structure and motivation in your music workflow, whether you're a bedroom producer or a professional.",
       },
       {
-        id: "supported-formats",
-        question: "What audio formats does WavTrack support?",
+        id: "who-is-it-for",
+        question: "Who is WavTrack for?",
         answer:
-          "WavTrack supports all major audio formats including MP3, WAV, FLAC, AIFF, and more. We recommend using high-quality files (320kbps MP3 or lossless formats) for the best analysis results.",
+          "WavTrack is perfect for bedroom producers, hobbyists, and professionals who want structure and motivation in their music workflow. It's designed to be accessible for all skill levels and helps anyone wanting to track their progress and stay motivated in music production.",
       },
       {
-        id: "daw-integration",
-        question: "Does WavTrack integrate with my DAW?",
+        id: "tracking-beats",
+        question: "How do I track my beats and music production?",
         answer:
-          "Currently, WavTrack works as a web-based platform. You can upload your audio files for analysis and use our session tracking features. We're working on DAW plugin integrations for the future.",
+          "You can log your production sessions, track the time spent on beats, set goals for daily/weekly production targets, and monitor your progress over time. WavTrack provides visual analytics to help you see your patterns and improvements.",
       },
       {
         id: "mobile-support",
         question: "Is WavTrack available on mobile?",
         answer:
-          "Yes! WavTrack is fully responsive and works great on mobile devices. You can analyze audio, track sessions, and view insights from your phone or tablet.",
+          "Yes! WavTrack is fully responsive and works great on mobile devices. You can track your sessions, view your progress, and manage your goals from your phone or tablet.",
       },
       {
         id: "data-privacy",
-        question: "How do you handle my audio data and privacy?",
+        question: "How do you handle my data and privacy?",
         answer:
-          "Your audio files are processed securely and are not stored permanently. We only keep the analysis results to provide you with insights. Your data is never shared with third parties.",
+          "Your production data is processed securely and we only keep the information needed to provide you with progress tracking and analytics. Your personal information is never shared with third parties.",
       },
     ],
   },
@@ -123,34 +123,34 @@ const FAQ_SECTIONS: Record<ViewType, FAQSection> = {
     category: "Features",
     items: [
       {
-        id: "audio-analysis",
-        question: "What audio properties does WavTrack analyze?",
+        id: "progress-tracking",
+        question: "What can I track with WavTrack?",
         answer:
-          "WavTrack analyzes BPM (tempo), musical key, energy levels, danceability, loudness, duration, and other musical characteristics to give you comprehensive insights about your tracks.",
+          "Track your daily, weekly, and long-term music production progress, including session time, beat completion, goals achieved, and productivity patterns. Get visual feedback and analytics to see your improvement over time.",
       },
       {
-        id: "session-tracking",
-        question: "How does session tracking work?",
+        id: "achievements",
+        question: "How do achievements and streaks work?",
         answer:
-          "WavTrack tracks your production sessions using a Pomodoro-style timer. It records your productivity patterns, session goals, and progress to help you optimize your workflow.",
+          "Earn achievements for consistency, completing goals, and reaching milestones in your music production. Build streaks for daily production and unlock badges to stay motivated and celebrate your progress.",
       },
       {
-        id: "ai-coaching",
-        question: "What kind of AI suggestions does WavTrack provide?",
+        id: "goal-setting",
+        question: "Can I set goals for my music production?",
         answer:
-          "Our AI analyzes your production patterns and provides personalized suggestions for improving your workflow, setting realistic goals, and optimizing your music production process.",
+          "Yes! Set daily, weekly, and long-term goals for your music production. Track your progress towards these goals and get motivated as you achieve them. Perfect for building consistent production habits.",
       },
       {
-        id: "collaboration",
-        question: "Can I collaborate with other producers?",
+        id: "analytics",
+        question: "What kind of analytics and feedback do I get?",
         answer:
-          "Yes! WavTrack includes collaboration tools that let you share projects, compare analysis results, and work together with other producers in real-time.",
+          "Get visual feedback on your production patterns, time spent on beats, goal completion rates, and overall progress. See trends in your productivity and identify areas for improvement.",
       },
       {
-        id: "export-options",
-        question: "What export options are available?",
+        id: "motivation",
+        question: "How does WavTrack help me stay motivated?",
         answer:
-          "You can export your analysis reports as PDF, share insights via email, or integrate with other tools through our API. Premium plans include advanced export options.",
+          "Through achievements, streaks, goal tracking, and visual progress indicators, WavTrack keeps you motivated to maintain consistent music production habits. Celebrate your wins and build momentum in your creative workflow.",
       },
     ],
   },
@@ -161,13 +161,13 @@ const FAQ_SECTIONS: Record<ViewType, FAQSection> = {
         id: "free-trial",
         question: "Is there a free trial available?",
         answer:
-          "Yes! We offer a free trial for all plans so you can experience WavTrack's full features before committing. No credit card required to start your trial.",
+          "Yes! We offer a free trial for all plans so you can experience WavTrack's progress tracking and motivation features before committing. No credit card required to start your trial.",
       },
       {
         id: "plan-differences",
         question: "What's the difference between the plans?",
         answer:
-          "Starter includes basic analysis and 10 projects per month. Producer (our most popular) includes unlimited projects, advanced analysis, and AI coaching. Studio adds team features and API access.",
+          "Starter includes basic progress tracking and goal setting. Producer (our most popular) includes unlimited tracking, advanced analytics, and achievement features. Studio adds team collaboration and advanced goal management.",
       },
       {
         id: "cancel-subscription",
@@ -179,13 +179,13 @@ const FAQ_SECTIONS: Record<ViewType, FAQSection> = {
         id: "refund-policy",
         question: "What's your refund policy?",
         answer:
-          "We offer a 30-day money-back guarantee. If you're not satisfied with WavTrack, contact our support team within 30 days of your purchase for a full refund.",
+          "We offer a 30-day money-back guarantee. If you're not satisfied with WavTrack's progress tracking and motivation features, contact our support team within 30 days of your purchase for a full refund.",
       },
       {
         id: "team-plans",
-        question: "Do you offer team or enterprise plans?",
+        question: "Do you offer team or studio plans?",
         answer:
-          "Yes! Our Studio plan includes multi-user access and is perfect for teams and studios. For larger organizations, we offer custom enterprise plans with dedicated support.",
+          "Yes! Our Studio plan includes team features perfect for music studios and collaborative projects. For larger organizations, we offer custom enterprise plans with dedicated support.",
       },
     ],
   },

@@ -99,5 +99,31 @@ export function useAnalytics() {
   }
 }
 
+// Analytics event constants
+export const ANALYTICS_EVENTS = {
+  PAGE_VIEW: 'page_view',
+  USER_ACTION: 'user_action',
+  FEATURE_USAGE: 'feature_usage',
+  ERROR: 'error',
+  FEEDBACK_OPENED: 'feedback_opened',
+  LOGIN_ATTEMPT: 'login_attempt',
+  LOGIN_SUCCESS: 'login_success',
+  LOGIN_FAILURE: 'login_failure',
+  SIGNUP_ATTEMPT: 'signup_attempt',
+  SIGNUP_SUCCESS: 'signup_success',
+  SIGNUP_FAILURE: 'signup_failure',
+  SUBSCRIPTION_STARTED: 'subscription_started',
+  SUBSCRIPTION_CANCELLED: 'subscription_cancelled',
+  PAYMENT_SUCCESS: 'payment_success',
+  PAYMENT_FAILURE: 'payment_failure',
+  TRIAL_STARTED: 'trial_started',
+  TRIAL_ENDED: 'trial_ended'
+} as const
+
+// Convenience function for tracking events
+export function trackEvent(event: string, properties?: Record<string, any>) {
+  analytics.track(event, properties)
+}
+
 // Export the analytics instance for direct use
 export default analytics

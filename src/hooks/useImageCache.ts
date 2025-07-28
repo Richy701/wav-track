@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 
-// Cache size limit in MB
-const CACHE_SIZE_LIMIT = 50 * 1024 * 1024 // 50MB
-const CACHE_EXPIRY = 24 * 60 * 60 * 1000 // 24 hours
+// Cache size limit in MB (reduced from 50MB to 20MB)
+const CACHE_SIZE_LIMIT = 20 * 1024 * 1024 // 20MB
+const CACHE_EXPIRY = 12 * 60 * 60 * 1000 // Reduced from 24 hours to 12 hours
 
 // In-memory LRU cache
 const memoryCache: {

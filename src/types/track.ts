@@ -7,7 +7,7 @@ export interface Track {
   status: 'completed' | 'in_progress'
   created_at: string
   user_id: string
-  cover_art?: string
+  // cover_art removed
   notes?: string
   last_modified: string
 } 

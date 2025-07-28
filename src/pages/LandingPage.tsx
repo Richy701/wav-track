@@ -37,6 +37,7 @@ import FeatureShowcase2 from "@/components/landing/FeatureShowcase2";
 import FeatureShowcase3 from "@/components/landing/FeatureShowcase3";
 import { Pricing } from "@/components/ui/pricing-new";
 import { FAQSection } from "@/components/ui/faq-section";
+import { subscriptionPlans } from "@/lib/config/subscription-plans";
 
 const wavtrackPlans = [
   {
@@ -268,7 +269,7 @@ export default function LandingPage() {
           {/* Pricing Section */}
           <div className="relative z-10 py-16">
             <Pricing
-              plans={wavtrackPlans}
+              plans={subscriptionPlans}
               title="Plans that Scale with Your Music"
               description="Choose the plan that fits your production workflow\nAll plans include audio analysis, session tracking, and AI-powered insights."
             />

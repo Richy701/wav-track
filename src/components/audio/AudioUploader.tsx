@@ -20,62 +20,23 @@ export function AudioUploader({ onUploadComplete, projectId, className }: AudioU
   const [error, setError] = useState<string | null>(null)
   const [currentFile, setCurrentFile] = useState<string | null>(null)
 
-  const handleFileChange = async (files: File[]) => {
-    // If files is empty, it means the file was deleted
-    if (files.length === 0) {
-      if (currentFile && projectId) {
-        try {
-          // Delete from Supabase storage
-          const { error: deleteError } = await supabase.storage
-            .from('project-audio')
-            .remove([currentFile])
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
 
-          if (deleteError) {
-            console.error('Error deleting file:', deleteError)
-            toast.error('Failed to delete file', {
-              description: 'The file could not be deleted from storage.'
-            })
-            return
-          }
-
-          // Update project to remove audio URL
-          if (projectId) {
-            const { error: updateError } = await supabase
-              .from('projects')
-              .update({
-                audio_url: null,
-                audio_filename: null,
-                audio_analyzed: false,
-                audio_duration: null,
-                audio_loudness: null,
-                last_modified: new Date().toISOString(),
-              })
-              .eq('id', projectId)
-
-            if (updateError) {
-              console.error('Failed to update project:', updateError)
-              toast.error('Failed to update project', {
-                description: 'The project could not be updated.'
-              })
-              return
-            }
-          }
-
-          setCurrentFile(null)
-          onUploadComplete('', '')
-          toast.success('File deleted successfully')
-        } catch (error) {
-          console.error('Error during file deletion:', error)
-          toast.error('Failed to delete file', {
-            description: 'An unexpected error occurred.'
-          })
-        }
-      }
+    // Add file size validation (10MB limit)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+    if (file.size > MAX_FILE_SIZE) {
+      setError(`File size must be less than 10MB. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`)
       return
     }
 
-    const file = files[0]
-    if (!file) return
+    // Add file type validation
+    const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/aac', 'audio/ogg']
+    if (!allowedTypes.includes(file.type)) {
+      setError('Please select a valid audio file (MP3, WAV, AAC, or OGG)')
+      return
+    }
 
     console.log('File selected:', {
       name: file.name,

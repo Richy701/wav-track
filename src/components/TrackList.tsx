@@ -46,11 +46,9 @@ export function TrackList({ onTrackSelect }: TrackListProps) {
             onClick={() => onTrackSelect(track)}
             className="w-full flex items-center space-x-4 p-4 rounded-lg bg-card hover:bg-accent transition-colors"
           >
-            <img
-              src={track.coverArt}
-              alt={track.title}
-              className="h-12 w-12 rounded-full object-cover"
-            />
+            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+              <Music2 className="h-6 w-6 text-primary" />
+            </div>
             <div className="flex-1 text-left">
               <h3 className="font-medium text-foreground">{track.title}</h3>
               <div className="inline-flex items-baseline space-x-2">

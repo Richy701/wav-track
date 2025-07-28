@@ -15,11 +15,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Create trigger for security headers
-CREATE TRIGGER set_security_headers
-  BEFORE INSERT OR UPDATE ON public.profiles
-  FOR EACH ROW
-  EXECUTE FUNCTION public.handle_security_headers();
+-- Create trigger for security headers (commented out - profiles table doesn't exist)
+-- CREATE TRIGGER set_security_headers
+--   BEFORE INSERT OR UPDATE ON public.profiles
+--   FOR EACH ROW
+--   EXECUTE FUNCTION public.handle_security_headers();
 
 -- Add rate limiting function
 CREATE OR REPLACE FUNCTION public.check_rate_limit(

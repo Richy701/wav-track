@@ -1,23 +1,21 @@
 import React from 'react'
 import { useProjects } from '@/hooks/useProjects'
-import { useProfile } from '@/hooks/useProfile'
 import { LoadingWrapper } from '@/components/ui/loading-wrapper'
-import { ProjectList } from '@/components/ProjectList'
-import { Stats } from '@/components/Stats'
-import { Achievements } from '@/components/achievements'
+import ProjectList from '@/components/ProjectList'
+import Stats from '@/components/Stats'
 import { MotivationalQuotes } from '@/components/MotivationalQuotes'
+import { AICoach } from '@/components/ai-coach/AICoach'
 
 export function Dashboard() {
   const { projects, allProjects, isLoading: projectsLoading } = useProjects()
-  const { profile, isLoading: profileLoading } = useProfile()
 
   return (
     <div className="space-y-6">
       <LoadingWrapper
-        loadingKey="profile"
+        loadingKey="stats"
         className="h-32"
       >
-        <Stats profile={profile} />
+        <Stats sessions={[]} beatActivities={[]} />
       </LoadingWrapper>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -26,7 +24,7 @@ export function Dashboard() {
             loadingKey="projects"
             className="h-[600px]"
           >
-            <ProjectList projects={projects} />
+            <ProjectList />
           </LoadingWrapper>
         </div>
 
@@ -39,10 +37,10 @@ export function Dashboard() {
           </LoadingWrapper>
 
           <LoadingWrapper
-            loadingKey="achievements"
+            loadingKey="ai-coach"
             className="h-[480px]"
           >
-            <Achievements profile={profile} />
+            <AICoach />
           </LoadingWrapper>
         </div>
       </div>

@@ -3,21 +3,13 @@ import { useQuery } from '@tanstack/react-query'
 import { Track } from '@/types/track'
 import { analyzeUserBehavior, generateRecommendations } from '@/lib/ai-coach'
 import { AICoachCard } from './AICoachCard'
-import { Skeleton } from '../ui/skeleton'
-import { FadeIn } from '../ui/fade-in'
-import { Brain, Info, Target, BarChart, Clock, Zap, Layers } from 'lucide-react'
+import { Brain, Target, BarChart, Clock, Zap, Layers } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { useProjects } from '@/hooks/useProjects'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface AICoachProps {
-  tracks: Track[]
   className?: string
 }
 
@@ -69,38 +61,215 @@ const textStyles = {
   body: "text-sm leading-relaxed text-muted-foreground dark:text-muted-foreground/80"
 }
 
-const tooltipContent = {
-  productivity: "AI analyzes your session patterns and completion rates to provide personalized productivity tips.",
-  focus: "Based on your most productive time periods and session durations.",
-  technique: "Generated from analysis of your completed tracks and production style.",
-  goals: "Suggestions derived from your historical progress and current objectives."
-}
+
 
 export function AICoach() {
-  const { data: projects = [] } = useProjects()
+  const { allProjects: projects = [], isLoading: projectsLoading } = useProjects()
+  const { user } = useAuth()
   
-  const { data: recommendations = [] } = useQuery({
-    queryKey: ['ai-coach-recommendations', projects.length],
+  const { data: recommendations = [], isLoading: recommendationsLoading, error } = useQuery({
+    queryKey: ['ai-coach-recommendations', user?.id, projects.length],
     queryFn: () => {
+      console.log('AICoach: Generating recommendations for', projects.length, 'projects')
+      
       // Convert projects to tracks
       const tracks: Track[] = projects.map(project => ({
         id: project.id,
         title: project.title,
-        artist: project.artist || 'Unknown Artist',
+        artist: 'Unknown Artist',
         genre: project.genre || '',
-        duration: project.duration || '0:00',
+        duration: '0:00',
         status: project.status === 'completed' ? 'completed' : 'in_progress',
         created_at: project.created_at || new Date().toISOString(),
         user_id: project.user_id,
-        cover_art: project.cover_art,
-        notes: project.notes,
+        notes: '',
         last_modified: project.last_modified || project.created_at || new Date().toISOString()
       }))
       
       const behavior = analyzeUserBehavior(tracks)
-      return generateRecommendations(behavior)
-    }
+      const recommendations = generateRecommendations(behavior)
+      console.log('AICoach: Generated', recommendations.length, 'recommendations')
+      
+      // If no recommendations were generated, provide some default ones
+      if (recommendations.length === 0) {
+        return [
+          {
+            type: 'goal' as const,
+            title: 'Active Projects Status',
+            description: 'You\'re just getting started! Create your first project to begin your music production journey.',
+            priority: 'high' as const,
+            actionItems: [
+              'Create your first project',
+              'Set a realistic goal for completion',
+              'Start with a simple beat or melody'
+            ]
+          },
+          {
+            type: 'habit' as const,
+            title: 'Workflow Enhancement',
+            description: 'Establish good habits early in your production journey.',
+            priority: 'medium' as const,
+            actionItems: [
+              'Set aside dedicated time for music production',
+              'Create a comfortable workspace',
+              'Keep your projects organized'
+            ]
+          }
+        ]
+      }
+      
+      return recommendations
+    },
+    enabled: !!user && !projectsLoading,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 10, // 10 minutes
+    retry: 1
   })
+
+  console.log('AICoach Debug:', {
+    user: !!user,
+    userId: user?.id,
+    projectsLoading,
+    recommendationsLoading,
+    projectsCount: projects.length,
+    recommendationsCount: recommendations.length,
+    error: error?.message,
+    enabled: !!user && !projectsLoading
+  })
+
+  // Show loading state
+  if (projectsLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Brain className="w-6 h-6 text-primary/80" />
+            <h2 className="text-xl font-semibold text-foreground dark:text-white">AI Productivity Coach</h2>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="animate-pulse">
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Show message when not authenticated
+  if (!user) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Brain className="w-6 h-6 text-primary/80" />
+            <h2 className="text-xl font-semibold text-foreground dark:text-white">AI Productivity Coach</h2>
+          </div>
+        </div>
+        
+        <div className="p-6 text-center">
+          <p className="text-muted-foreground dark:text-muted-foreground/80">
+            Sign in to get personalized AI recommendations for your music production!
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show fallback recommendations if query is taking too long
+  if (recommendationsLoading && recommendations.length === 0) {
+    const fallbackRecommendations = [
+      {
+        type: 'goal' as const,
+        title: 'Active Projects Status',
+        description: 'You\'re just getting started! Create your first project to begin your music production journey.',
+        priority: 'high' as const,
+        actionItems: [
+          'Create your first project',
+          'Set a realistic goal for completion',
+          'Start with a simple beat or melody'
+        ]
+      },
+      {
+        type: 'habit' as const,
+        title: 'Workflow Enhancement',
+        description: 'Establish good habits early in your production journey.',
+        priority: 'medium' as const,
+        actionItems: [
+          'Set aside dedicated time for music production',
+          'Create a comfortable workspace',
+          'Keep your projects organized'
+        ]
+      }
+    ]
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Brain className="w-6 h-6 text-primary/80" />
+            <h2 className="text-xl font-semibold text-foreground dark:text-white">AI Productivity Coach</h2>
+          </div>
+        </div>
+        
+        <AnimatePresence mode="popLayout">
+          <div className="space-y-4">
+            {fallbackRecommendations.map((recommendation, index) => {
+              const category = categoryStyles[recommendation.title as keyof typeof categoryStyles] || categoryStyles['Active Projects Status']
+              const Icon = category.icon
+              
+              return (
+                <AICoachCard
+                  key={recommendation.title}
+                  title={recommendation.title}
+                  description={recommendation.description}
+                  priority={recommendation.priority}
+                  actionItems={recommendation.actionItems}
+                  icon={<Icon className="w-5 h-5" />}
+                  className={cn(
+                    cardStyles.base,
+                    cardStyles.hover,
+                    cardStyles.padding,
+                    cardStyles.accent,
+                    category.accent,
+                    category.glow,
+                    "bg-gradient-to-br",
+                    category.gradient
+                  )}
+                  onComplete={() => {
+                    console.log('Completed:', recommendation.title)
+                  }}
+                />
+              )
+            })}
+          </div>
+        </AnimatePresence>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Brain className="w-6 h-6 text-primary/80" />
+            <h2 className="text-xl font-semibold text-foreground dark:text-white">AI Productivity Coach</h2>
+          </div>
+        </div>
+        
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-red-600 dark:text-red-400 text-sm">
+            Unable to generate recommendations. Please try again later.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -113,34 +282,42 @@ export function AICoach() {
       
       <AnimatePresence mode="popLayout">
         <div className="space-y-4">
-          {recommendations.map((recommendation, index) => {
-            const category = categoryStyles[recommendation.title as keyof typeof categoryStyles] || categoryStyles['Active Projects Status']
-            const Icon = category.icon
-            
-            return (
-              <AICoachCard
-                key={recommendation.title}
-                title={recommendation.title}
-                description={recommendation.description}
-                priority={recommendation.priority}
-                actionItems={recommendation.actionItems}
-                icon={<Icon className="w-5 h-5" />}
-                className={cn(
-                  cardStyles.base,
-                  cardStyles.hover,
-                  cardStyles.padding,
-                  cardStyles.accent,
-                  category.accent,
-                  category.glow,
-                  "bg-gradient-to-br",
-                  category.gradient
-                )}
-                onComplete={() => {
-                  console.log('Completed:', recommendation.title)
-                }}
-              />
-            )
-          })}
+          {recommendations.length === 0 ? (
+            <div className="p-6 text-center">
+              <p className="text-muted-foreground dark:text-muted-foreground/80">
+                Start creating projects to get personalized AI recommendations!
+              </p>
+            </div>
+          ) : (
+            recommendations.map((recommendation, index) => {
+              const category = categoryStyles[recommendation.title as keyof typeof categoryStyles] || categoryStyles['Active Projects Status']
+              const Icon = category.icon
+              
+              return (
+                <AICoachCard
+                  key={recommendation.title}
+                  title={recommendation.title}
+                  description={recommendation.description}
+                  priority={recommendation.priority}
+                  actionItems={recommendation.actionItems}
+                  icon={<Icon className="w-5 h-5" />}
+                  className={cn(
+                    cardStyles.base,
+                    cardStyles.hover,
+                    cardStyles.padding,
+                    cardStyles.accent,
+                    category.accent,
+                    category.glow,
+                    "bg-gradient-to-br",
+                    category.gradient
+                  )}
+                  onComplete={() => {
+                    console.log('Completed:', recommendation.title)
+                  }}
+                />
+              )
+            })
+          )}
         </div>
       </AnimatePresence>
     </div>

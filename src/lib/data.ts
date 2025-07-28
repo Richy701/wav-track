@@ -152,12 +152,18 @@ export const statusToCompletion = {
 }
 
 // Get projects with caching
-export const getProjects = async (): Promise<Project[]> => {
+export const getProjects = async (userId?: string): Promise<Project[]> => {
   try {
-    // Get the current user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    // Get the current user if userId is not provided
+    let user
+    if (!userId) {
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser()
+      user = currentUser
+    } else {
+      user = { id: userId }
+    }
 
     if (!user) {
       console.error('No user found')

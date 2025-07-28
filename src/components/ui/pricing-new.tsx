@@ -10,6 +10,9 @@ import { Check, Star } from "lucide-react";
 import { useState, useRef } from "react";
 import confetti from "canvas-confetti";
 import NumberFlow from "@number-flow/react";
+import { usePayment } from "@/hooks/usePayment";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface PricingPlan {
   name: string;
@@ -37,6 +40,16 @@ export function Pricing({
   const [isMonthly, setIsMonthly] = useState(true);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const switchRef = useRef<HTMLButtonElement>(null);
+  const { user } = useAuth();
+  const { startFreeTrial, isLoading, hasActiveSubscription, trialDaysRemaining } = usePayment();
+
+  // Debug auth state
+  console.log('Pricing component - Auth state:', {
+    user: user ? { id: user.id, email: user.email } : null,
+    isAuthenticated: !!user,
+    isLoading,
+    hasActiveSubscription
+  });
 
   const handleToggle = (checked: boolean) => {
     setIsMonthly(!checked);
@@ -68,6 +81,46 @@ export function Pricing({
     }
   };
 
+  const handlePlanClick = async (plan: PricingPlan) => {
+    console.log('handlePlanClick called with plan:', plan.name);
+    
+    if (hasActiveSubscription) {
+      console.log('User has active subscription');
+      toast.info('You already have an active subscription', {
+        description: 'Manage your subscription in your account settings.',
+        duration: 4000
+      });
+      return;
+    }
+
+    console.log('Proceeding with payment - user logged in:', !!user);
+    try {
+      // Map plan name to plan ID
+      const planIdMap: { [key: string]: string } = {
+        'STARTER': 'starter',
+        'PRODUCER': 'producer',
+        'STUDIO': 'studio'
+      };
+      
+      const planId = planIdMap[plan.name];
+      console.log('Mapped plan name to ID:', plan.name, '->', planId);
+      
+      if (!planId) {
+        toast.error('Plan not found');
+        return;
+      }
+
+      console.log('Calling startFreeTrial with planId:', planId, 'isYearly:', !isMonthly);
+      await startFreeTrial(planId, !isMonthly);
+    } catch (error) {
+      console.error('Error in handlePlanClick:', error);
+      toast.error('Failed to start free trial', {
+        description: 'Please try again later.',
+        duration: 4000
+      });
+    }
+  };
+
   return (
     <div className="flex w-full flex-col items-center justify-center p-4 py-20">
       <div className="mx-auto max-w-xl space-y-2 mb-8">
@@ -77,6 +130,16 @@ export function Pricing({
         <p className="text-muted-foreground text-center text-sm md:text-base">
           {description}
         </p>
+        {hasActiveSubscription && (
+          <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+            <p className="text-sm text-green-700 dark:text-green-300 text-center">
+              {trialDaysRemaining > 0 
+                ? `You have ${trialDaysRemaining} days left in your free trial`
+                : 'You have an active subscription'
+              }
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-center mb-16 mt-8">
@@ -197,17 +260,18 @@ export function Pricing({
 
               <hr className="w-full my-4 border-border" />
 
-              <a
-                href={plan.href}
+              <button
+                onClick={() => handlePlanClick(plan)}
+                disabled={isLoading || hasActiveSubscription}
                 className={cn(
                   "group relative w-full gap-2 overflow-hidden text-lg font-semibold tracking-tighter rounded-md px-4 py-3 transition-all duration-300 ease-out",
                   plan.isPopular
-                    ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-xl"
-                    : "bg-background border border-purple-500/30 text-foreground hover:bg-gradient-to-r hover:from-purple-600/10 hover:to-purple-700/10 hover:border-purple-500/50 hover:text-purple-700 dark:hover:text-purple-300 shadow-sm hover:shadow-md"
+                    ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    : "bg-background border border-purple-500/30 text-foreground hover:bg-gradient-to-r hover:from-purple-600/10 hover:to-purple-700/10 hover:border-purple-500/50 hover:text-purple-700 dark:hover:text-purple-300 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 )}
               >
-                {plan.buttonText}
-              </a>
+                {isLoading ? 'Loading...' : hasActiveSubscription ? 'Active Subscription' : (user ? plan.buttonText : 'Start Free Trial')}
+              </button>
               <p className="mt-6 text-xs leading-5 text-muted-foreground">
                 {plan.description}
               </p>
