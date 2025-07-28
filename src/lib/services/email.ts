@@ -1,6 +1,8 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(import.meta.env.VITE_RESEND_API_KEY)
+// Initialize Resend with API key, or null if not provided
+const resendApiKey = import.meta.env.VITE_RESEND_API_KEY
+const resend = resendApiKey ? new Resend(resendApiKey) : null
 
 export interface WelcomeEmailData {
   email: string
@@ -12,6 +14,11 @@ export interface WelcomeEmailData {
 export const emailService = {
   async sendWelcomeEmail(data: WelcomeEmailData) {
     try {
+      if (!resend) {
+        console.warn('Resend API key not configured. Skipping welcome email.')
+        return null
+      }
+      
       console.log('Sending welcome email to:', data.email)
       
       const { data: result, error } = await resend.emails.send({
@@ -94,6 +101,11 @@ export const emailService = {
 
   async sendPasswordResetEmail(email: string, resetUrl: string) {
     try {
+      if (!resend) {
+        console.warn('Resend API key not configured. Skipping password reset email.')
+        return null
+      }
+      
       const { data: result, error } = await resend.emails.send({
         from: 'WavTrack <noreply@wavtrack.com>',
         to: [email],
