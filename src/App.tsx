@@ -14,6 +14,8 @@ import ProtectedRoute from './components/ProtectedRoute'
 import LoadingScreen from './components/LoadingScreen'
 import OfflineStatus from './components/OfflineStatus'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import CookieConsent from './components/CookieConsent'
+import CookieConsentDemo from './components/CookieConsentDemo'
 import { useQueryClient } from '@tanstack/react-query'
 import { prefetchDashboardData } from '@/lib/prefetch'
 import { TrackList } from './components/TrackList'
@@ -124,6 +126,7 @@ const router = createBrowserRouter(
                     </NavigationWrapper>
                     <Toaster />
                     <OfflineStatus />
+                    <CookieConsent />
                   </AuthNavigationProvider>
                 </AuthProvider>
               </div>
@@ -184,6 +187,14 @@ const router = createBrowserRouter(
               <ProfileSettings />
             </Suspense>
           </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cookie-demo"
+        element={
+          <Suspense fallback={<LoadingScreen message="Loading demo..." />}>
+            <CookieConsentDemo />
+          </Suspense>
         }
       />
       <Route
