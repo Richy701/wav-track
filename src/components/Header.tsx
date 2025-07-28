@@ -126,17 +126,20 @@ export default function Header() {
             aria-hidden="true"
           />
           {/* Slide-over */}
-          <div className="fixed inset-y-0 right-0 z-[9999] w-full max-w-xs bg-white/80 dark:bg-zinc-900/90 backdrop-blur-md shadow-xl px-6 py-6 flex flex-col transition-transform duration-300 ease-in-out translate-x-0 animate-slide-in">
-            <div className="fixed top-0 right-0 z-10 flex items-center justify-end mb-6 bg-white/80 dark:bg-zinc-900/90 backdrop-blur-md">
+          <div className="fixed inset-y-0 right-0 z-[9999] w-full max-w-xs bg-white/80 dark:bg-zinc-900/90 backdrop-blur-md shadow-xl flex flex-col transition-transform duration-300 ease-in-out translate-x-0 animate-slide-in">
+            {/* Close button - positioned absolutely within the slide-over */}
+            <div className="absolute top-4 right-4 z-10">
               <button
                 type="button"
-                className="-m-2.5 rounded-md p-2.5 text-gray-700 dark:text-gray-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                className="rounded-md p-2 text-gray-700 dark:text-gray-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                 onClick={() => setIsMobileMenuOpen(false)}
                 aria-label="Close menu"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
             </div>
+            {/* Content with proper padding */}
+            <div className="flex-1 px-6 py-6 pt-16">
             {/* Mobile actions at the top */}
             <div className="flex items-center gap-4 mb-6">
               <ThemeSwitcher />
@@ -187,6 +190,7 @@ export default function Header() {
                 >Register</button>
               </div>
             )}
+            </div>
           </div>
         </>,
         document.body

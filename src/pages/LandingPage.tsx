@@ -113,41 +113,46 @@ export default function LandingPage() {
       <main className="flex-1">
         <HeroSectionDemo />
         
-        <div className="relative rounded-2xl overflow-hidden aspect-video flex items-center justify-center">
-          <picture>
-            <source
-              type="image/avif"
-              srcSet="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&fit=crop&q=75&fm=avif 480w,
-                      https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&fit=crop&q=75&fm=avif 768w,
-                      https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&fit=crop&q=75&fm=avif 1024w,
-                      https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75&fm=avif 1920w"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 50vw"
-            />
-            <source
-              type="image/webp"
-              srcSet="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&fit=crop&q=75&fm=webp 480w,
-                      https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&fit=crop&q=75&fm=webp 768w,
-                      https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&fit=crop&q=75&fm=webp 1024w,
-                      https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75&fm=webp 1920w"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 50vw"
-            />
-            <img
-              src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1920&h=1080&q=75"
-              srcSet="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&fit=crop&q=75 480w,
-                      https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&fit=crop&q=75 768w,
-                      https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&fit=crop&q=75 1024w,
-                      https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75 1920w"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 50vw"
-              alt="Music Production Interface"
-              className="absolute inset-0 w-full h-full object-cover opacity-60 scale-100 blur-0 grayscale-0 transition-all duration-300 filter brightness-75"
-              loading="eager"
-              decoding="sync"
-              data-fetchpriority="high"
-            />
-          </picture>
-          {/* Overlayed content */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
-            <div className="text-center mb-8 bg-black/40 rounded-xl p-6 backdrop-blur-sm">
+        {/* MagicBento Section with Background */}
+        <div className="relative w-full">
+          {/* Background Image */}
+          <div className="absolute inset-0 z-0">
+            <picture>
+              <source
+                type="image/avif"
+                srcSet="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&fit=crop&q=75&fm=avif 480w,
+                        https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&fit=crop&q=75&fm=avif 768w,
+                        https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&fit=crop&q=75&fm=avif 1024w,
+                        https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75&fm=avif 1920w"
+                sizes="100vw"
+              />
+              <source
+                type="image/webp"
+                srcSet="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&fit=crop&q=75&fm=webp 480w,
+                        https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&fit=crop&q=75&fm=webp 768w,
+                        https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&fit=crop&q=75&fm=webp 1024w,
+                        https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75&fm=webp 1920w"
+                sizes="100vw"
+              />
+              <img
+                src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1920&h=1080&q=75"
+                srcSet="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&fit=crop&q=75 480w,
+                        https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&fit=crop&q=75 768w,
+                        https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&fit=crop&q=75 1024w,
+                        https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75 1920w"
+                sizes="100vw"
+                alt="Music Production Interface"
+                className="w-full h-full object-cover opacity-60 filter brightness-75"
+                loading="eager"
+                decoding="sync"
+                data-fetchpriority="high"
+              />
+            </picture>
+          </div>
+          
+          {/* Content Overlay */}
+          <div className="relative z-10 py-12 px-4">
+            <div className="text-center mb-8">
               <p className="lg:text-lg my-2 text-sm font-light uppercase tracking-widest text-muted-foreground/80">
                 EVERYTHING YOU NEED
               </p>
@@ -155,7 +160,7 @@ export default function LandingPage() {
                 Level Up Your <span className="bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent">Production</span>
               </h2>
             </div>
-            <div className="w-full max-w-4xl">
+            <div className="w-full max-w-6xl mx-auto">
               <MagicBento 
                 textAutoHide={true}
                 enableStars={false}

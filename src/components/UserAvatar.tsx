@@ -35,7 +35,12 @@ const UserAvatar = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-9 w-9 rounded-full" aria-label="User menu">
+        <Button 
+          variant="ghost" 
+          className="relative h-9 w-9 rounded-full hover:bg-accent" 
+          aria-label="User menu"
+          onClick={() => console.log('Avatar clicked')}
+        >
           <Avatar className="h-9 w-9">
             {isLoading && !error && (
               <div className="h-full w-full flex items-center justify-center bg-muted">
@@ -54,7 +59,15 @@ const UserAvatar = () => {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent 
+        className="w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg" 
+        align="end" 
+        forceMount
+        onOpenAutoFocus={(e) => {
+          console.log('Dropdown opened')
+          e.preventDefault()
+        }}
+      >
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{profile?.name}</p>
@@ -62,11 +75,17 @@ const UserAvatar = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate('/profile')}>
+        <DropdownMenuItem 
+          onClick={() => navigate('/profile')}
+          className="hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
+        >
           <UserSolid className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate('/profile/settings')}>
+        <DropdownMenuItem 
+          onClick={() => navigate('/profile/settings')}
+          className="hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
+        >
           <CogSolid className="mr-2 h-4 w-4" />
           <span>Settings</span>
         </DropdownMenuItem>

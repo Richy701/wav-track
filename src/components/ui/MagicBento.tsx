@@ -552,13 +552,15 @@ const MagicBento = ({
             --glow-y: 50%;
             --glow-intensity: 0;
             --glow-radius: 200px;
-            --glow-color: ${glowColor};
+            --glow-color: 132, 0, 255;
             --border-color: #392e4e;
             --background-dark: #060010;
             --white: hsl(0, 0%, 100%);
             --purple-primary: rgba(132, 0, 255, 1);
             --purple-glow: rgba(132, 0, 255, 0.2);
             --purple-border: rgba(132, 0, 255, 0.8);
+            width: 100%;
+            max-width: 100%;
           }
           
           .card-responsive {
@@ -571,21 +573,74 @@ const MagicBento = ({
             gap: 0.5rem;
           }
           
+          /* Mobile optimizations */
+          @media (max-width: 639px) {
+            .card-responsive .card {
+              min-height: 200px;
+              padding: 1rem;
+            }
+            
+            .card__title {
+              font-size: 0.875rem;
+              line-height: 1.25rem;
+            }
+            
+            .card__description {
+              font-size: 0.75rem;
+              line-height: 1rem;
+            }
+            
+            .card__label {
+              font-size: 0.75rem;
+            }
+          }
+          
           @media (min-width: 640px) {
             .card-responsive {
               grid-template-columns: repeat(2, 1fr);
-              max-width: 1400px;
               gap: 1rem;
               padding: 1rem;
+            }
+            
+            .card-responsive .card {
+              min-height: 250px;
+              padding: 1.5rem;
+            }
+            
+            .card__title {
+              font-size: 1rem;
+              line-height: 1.5rem;
+            }
+            
+            .card__description {
+              font-size: 0.875rem;
+              line-height: 1.25rem;
+            }
+          }
+          
+          @media (min-width: 768px) {
+            .card-responsive {
+              grid-template-columns: repeat(3, 1fr);
+              gap: 1.25rem;
+              padding: 1.25rem;
+            }
+            
+            .card-responsive .card {
+              min-height: 280px;
+              padding: 2rem;
             }
           }
           
           @media (min-width: 1024px) {
             .card-responsive {
               grid-template-columns: repeat(4, 1fr);
-              max-width: 1600px;
               gap: 1.5rem;
               padding: 1.5rem;
+            }
+            
+            .card-responsive .card {
+              min-height: 300px;
+              padding: 2rem;
             }
             
             .card-responsive .card:nth-child(3) {
@@ -602,6 +657,18 @@ const MagicBento = ({
               grid-column: 4;
               grid-row: 3;
             }
+          }
+          
+          /* Remove overflow hidden that causes cutoff */
+          .bento-section {
+            width: 100%;
+            max-width: 100%;
+          }
+          
+          .card-responsive {
+            width: 100%;
+            max-width: 100%;
+            /* Remove overflow: hidden to prevent cutoff */
           }
           
           .card--border-glow::after {
@@ -678,8 +745,7 @@ const MagicBento = ({
             
             .card-responsive .card {
               width: 100%;
-              min-height: 160px;
-              max-height: 200px;
+              min-height: 200px;
               padding: 1rem;
             }
             
@@ -712,8 +778,7 @@ const MagicBento = ({
             }
             
             .card-responsive .card {
-              min-height: 200px;
-              max-height: 280px;
+              min-height: 250px;
               padding: 1.5rem;
             }
             
@@ -741,11 +806,9 @@ const MagicBento = ({
       )}
 
       <BentoCardGrid gridRef={gridRef}>
-        <div className="card-responsive grid gap-2">
+        <div className="card-responsive">
           {cardData.map((card, index) => {
-            const baseClassName = `card flex flex-col justify-between relative aspect-[4/3] min-h-[200px] w-full max-w-full p-8 rounded-[28px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)] ${enableBorderGlow ? "card--border-glow" : ""}`;
-            // Make cards much taller
-            const cardMinHeight = 360;
+            const baseClassName = `card flex flex-col justify-between relative w-full max-w-full rounded-[28px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)] ${enableBorderGlow ? "card--border-glow" : ""}`;
             const cardStyle = {
               backgroundColor: card.color || "var(--background-dark)",
               borderColor: "var(--border-color)",
@@ -754,7 +817,6 @@ const MagicBento = ({
               "--glow-y": "50%",
               "--glow-intensity": "0",
               "--glow-radius": "200px",
-              minHeight: `${cardMinHeight}px`,
             };
 
             if (enableStars) {
@@ -770,23 +832,25 @@ const MagicBento = ({
                   clickEffect={clickEffect}
                   enableMagnetism={enableMagnetism}
                 >
-                  <div className="card__icon mb-2 flex items-center justify-center">
-                    {card.Icon && <card.Icon className="w-8 h-8 text-purple-400" />}
-                  </div>
-                  <div className="card__header flex justify-between gap-3 relative text-white">
-                    <span className="card__label text-base">{card.label}</span>
-                  </div>
-                  <div className="card__content flex flex-col relative text-white">
-                    <h3
-                      className={`card__title font-normal text-base m-0 mb-1 ${textAutoHide ? "text-clamp-1" : ""}`}
-                    >
-                      {card.name}
-                    </h3>
-                    <p
-                      className={`card__description text-xs leading-5 opacity-90 ${textAutoHide ? "text-clamp-2" : ""}`}
-                    >
-                      {card.description}
-                    </p>
+                  <div className="flex flex-col justify-between gap-y-4 h-full">
+                    <div className="card__icon flex items-center justify-center">
+                      {card.Icon && <card.Icon className="w-8 h-8 text-purple-400" />}
+                    </div>
+                    <div className="card__header flex justify-between gap-3 relative text-white">
+                      <span className="card__label text-base">{card.label}</span>
+                    </div>
+                    <div className="card__content flex flex-col relative text-white">
+                      <h3
+                        className={`card__title font-normal text-base m-0 mb-1 ${textAutoHide ? "text-clamp-1" : ""}`}
+                      >
+                        {card.name}
+                      </h3>
+                      <p
+                        className={`card__description text-xs leading-5 opacity-90 ${textAutoHide ? "text-clamp-2" : ""}`}
+                      >
+                        {card.description}
+                      </p>
+                    </div>
                   </div>
                 </ParticleCard>
               );
@@ -907,23 +971,25 @@ const MagicBento = ({
                   el.addEventListener("click", handleClick);
                 }}
               >
-                <div className="card__icon mb-2 flex items-center justify-center">
-                  {card.Icon && <card.Icon className="w-8 h-8 text-purple-400" />}
-                </div>
-                <div className="card__header flex justify-between gap-3 relative text-white">
-                  <span className="card__label text-base">{card.label}</span>
-                </div>
-                <div className="card__content flex flex-col relative text-white">
-                  <h3
-                    className={`card__title font-normal text-base m-0 mb-1 ${textAutoHide ? "text-clamp-1" : ""}`}
-                  >
-                    {card.name}
-                  </h3>
-                  <p
-                    className={`card__description text-xs leading-5 opacity-90 ${textAutoHide ? "text-clamp-2" : ""}`}
-                  >
-                    {card.description}
-                  </p>
+                <div className="flex flex-col justify-between gap-y-4 h-full">
+                  <div className="card__icon flex items-center justify-center">
+                    {card.Icon && <card.Icon className="w-8 h-8 text-purple-400" />}
+                  </div>
+                  <div className="card__header flex justify-between gap-3 relative text-white">
+                    <span className="card__label text-base">{card.label}</span>
+                  </div>
+                  <div className="card__content flex flex-col relative text-white">
+                    <h3
+                      className={`card__title font-normal text-base m-0 mb-1 ${textAutoHide ? "text-clamp-1" : ""}`}
+                    >
+                      {card.name}
+                    </h3>
+                    <p
+                      className={`card__description text-xs leading-5 opacity-90 ${textAutoHide ? "text-clamp-2" : ""}`}
+                    >
+                      {card.description}
+                    </p>
+                  </div>
                 </div>
               </div>
             );

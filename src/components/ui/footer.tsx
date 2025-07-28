@@ -51,30 +51,6 @@ export function Footer({
           >
             {logo}
           </Link>
-          <ul className="flex list-none mt-4 md:mt-0 space-x-3 flex-wrap">
-            {socialLinks.map((link, i) => (
-              <li key={i}>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className={cn(
-                    "h-8 w-8 rounded-full",
-                    "bg-white/50 dark:bg-zinc-900/50",
-                    "hover:bg-zinc-50 dark:hover:bg-zinc-800/50",
-                    "border border-zinc-200 dark:border-zinc-800",
-                    "text-zinc-800 dark:text-zinc-200",
-                    "transition-all duration-200",
-                    "hover:scale-[1.02] active:scale-[0.98]"
-                  )}
-                  asChild
-                >
-                  <a href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.label}>
-                    {link.icon}
-                  </a>
-                </Button>
-              </li>
-            ))}
-          </ul>
         </div>
         <div className="border-t border-zinc-200/50 dark:border-zinc-800/50 mt-4 pt-4 md:mt-3 md:pt-3 lg:grid lg:grid-cols-10">
           <nav className="lg:mt-0 lg:col-[4/11]">
@@ -150,6 +126,34 @@ export function Footer({
           )}>
             <div>{copyright.text}</div>
             {copyright.license && <div>{copyright.license}</div>}
+          </div>
+        </div>
+        <div className="border-t border-zinc-200/50 dark:border-zinc-800/50 mt-4 pt-4 md:mt-3 md:pt-3">
+          <div className="flex justify-center">
+            <ul className="flex list-none space-x-3">
+              {socialLinks.map((link, i) => (
+                <li key={i}>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className={cn(
+                      "h-8 w-8 rounded-full",
+                      "bg-white/50 dark:bg-zinc-900/50",
+                      "hover:bg-zinc-50 dark:hover:bg-zinc-800/50",
+                      "border border-zinc-200 dark:border-zinc-800",
+                      "text-zinc-800 dark:text-zinc-200",
+                      "transition-all duration-200",
+                      "hover:scale-[1.02] active:scale-[0.98]"
+                    )}
+                    asChild
+                  >
+                    <a href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.label}>
+                      {link.icon}
+                    </a>
+                  </Button>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
