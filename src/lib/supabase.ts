@@ -6,70 +6,82 @@ import { errorLogger } from './errorLogger'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+// Check if we're in development mode
+const isDevelopment = import.meta.env.DEV
+
 // Validate environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+  if (isDevelopment) {
+    console.warn('Missing Supabase environment variables. Using fallback configuration for development.')
+    // In development, we can continue without Supabase for now
+  } else {
+    throw new Error('Missing Supabase environment variables')
+  }
 }
 
 // Create Supabase client with enhanced security configuration
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce',
-    storage: window.localStorage,
-    // Add security headers
-    headers: {
-      'X-Client-Info': 'supabase-js/2.39.3',
-      'X-Requested-With': 'XMLHttpRequest',
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    },
-    // Add security options
-    cookieOptions: {
-      secure: true,
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-    },
-  },
-  global: {
-    headers: {
-      'X-Client-Info': 'supabase-js/2.39.3',
-      'X-Requested-With': 'XMLHttpRequest',
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    },
-  },
-  db: {
-    schema: 'public',
-    // Add query timeout
-    queryTimeout: 10000, // 10 seconds
-  },
-  // Add realtime configuration with security
-  realtime: {
-    params: {
-      eventsPerSecond: 10,
-    },
-    headers: {
-      'X-Client-Info': 'supabase-js/2.39.3',
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    },
-  },
-})
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient<Database>(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+        flowType: 'pkce',
+        storage: window.localStorage,
+        // Add security headers
+        headers: {
+          'X-Client-Info': 'supabase-js/2.39.3',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        // Add security options
+        cookieOptions: {
+          secure: true,
+          sameSite: 'strict',
+          maxAge: 60 * 60 * 24 * 7, // 1 week
+        },
+      },
+      global: {
+        headers: {
+          'X-Client-Info': 'supabase-js/2.39.3',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+      },
+      db: {
+        schema: 'public',
+        // Add query timeout
+        queryTimeout: 10000, // 10 seconds
+      },
+      // Add realtime configuration with security
+      realtime: {
+        params: {
+          eventsPerSecond: 10,
+        },
+        headers: {
+          'X-Client-Info': 'supabase-js/2.39.3',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+      },
+    })
+  : null
 
-// Add error handling middleware
-supabase.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_OUT') {
-    // Clear sensitive data on sign out
-    localStorage.removeItem('supabase.auth.token')
-    sessionStorage.clear()
-  }
-})
+// Add error handling middleware only if supabase is configured
+if (supabase) {
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT') {
+      // Clear sensitive data on sign out
+      localStorage.removeItem('supabase.auth.token')
+      sessionStorage.clear()
+    }
+  })
+}
 
 // Add request interceptor for rate limiting
 const originalFetch = window.fetch

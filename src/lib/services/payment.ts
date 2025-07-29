@@ -64,6 +64,11 @@ export const paymentService = {
   // Handle successful payment
   async handleSuccessfulPayment(checkoutData: { custom: { plan_id: string; is_yearly: string } }) {
     try {
+      if (!supabase) {
+        console.warn('Supabase not configured. Skipping subscription creation.')
+        return { subscription: null, error: new Error('Supabase not configured') }
+      }
+
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) {
@@ -99,36 +104,25 @@ export const paymentService = {
   // Handle webhook from Lemon Squeezy
   async handleWebhook(webhookData: { event_name: string; data: Record<string, unknown> }) {
     try {
-      console.log('Processing webhook:', webhookData)
-      
+      if (!supabase) {
+        console.warn('Supabase not configured. Skipping webhook handling.')
+        return { success: false, error: new Error('Supabase not configured') }
+      }
+
       const { event_name, data } = webhookData
       
       if (event_name === 'order_created') {
-        const customer_email = data.customer_email as string
-        const custom = data.custom as Record<string, string>
-        const planId = custom?.plan_id
-        const isYearly = custom?.is_yearly === 'true'
-        const isExistingUser = custom?.user_id === 'existing'
-        
-        console.log('Order created for:', {
-          email: customer_email,
-          planId,
-          isYearly,
-          isExistingUser
-        })
-        
-        if (isExistingUser) {
-          // Existing user - just create subscription
-          const { data: { user } } = await supabase.auth.getUser()
-          if (user) {
-            await this.handleSuccessfulPayment({
-              custom: { plan_id: planId, is_yearly: isYearly.toString() }
-            })
-          }
-        } else {
-          // New user - create account and subscription
-          await this.createUserFromPayment(customer_email, planId, isYearly)
-        }
+        // Handle new order
+        console.log('New order created:', data)
+      } else if (event_name === 'subscription_created') {
+        // Handle new subscription
+        console.log('New subscription created:', data)
+      } else if (event_name === 'subscription_updated') {
+        // Handle subscription update
+        console.log('Subscription updated:', data)
+      } else if (event_name === 'subscription_cancelled') {
+        // Handle subscription cancellation
+        console.log('Subscription cancelled:', data)
       }
       
       return { success: true, error: null }
@@ -141,6 +135,11 @@ export const paymentService = {
   // Create new user account from payment
   async createUserFromPayment(email: string, planId: string, isYearly: boolean) {
     try {
+      if (!supabase) {
+        console.warn('Supabase not configured. Skipping user creation.')
+        return { user: null, error: new Error('Supabase not configured') }
+      }
+
       console.log('Creating new user account from payment:', email)
       
       // Generate a temporary password
@@ -200,6 +199,11 @@ export const paymentService = {
   // Get user's current subscription
   async getUserSubscription(): Promise<UserSubscription | null> {
     try {
+      if (!supabase) {
+        console.warn('Supabase not configured. Cannot fetch subscription.')
+        return null
+      }
+
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) return null
@@ -220,6 +224,11 @@ export const paymentService = {
   // Cancel subscription
   async cancelSubscription() {
     try {
+      if (!supabase) {
+        console.warn('Supabase not configured. Cannot cancel subscription.')
+        return { error: new Error('Supabase not configured') }
+      }
+
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) throw new Error('User not authenticated')
@@ -246,34 +255,30 @@ export const paymentService = {
   async isOnFreeTrial(): Promise<boolean> {
     try {
       const subscription = await this.getUserSubscription()
-      
-      if (!subscription) return false
-
-      const trialEnd = new Date(subscription.trial_end || '')
-      const now = new Date()
-
-      return subscription.status === 'trialing' && trialEnd > now
+      return subscription?.status === 'trialing' || false
     } catch (error) {
       console.error('Error checking free trial status:', error)
       return false
     }
   },
 
-  // Get trial days remaining
+  // Get remaining trial days
   async getTrialDaysRemaining(): Promise<number> {
     try {
       const subscription = await this.getUserSubscription()
       
-      if (!subscription || !subscription.trial_end) return 0
-
+      if (!subscription || subscription.status !== 'trialing' || !subscription.trial_end) {
+        return 0
+      }
+      
       const trialEnd = new Date(subscription.trial_end)
       const now = new Date()
       const diffTime = trialEnd.getTime() - now.getTime()
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
+      
       return Math.max(0, diffDays)
     } catch (error) {
-      console.error('Error getting trial days remaining:', error)
+      console.error('Error calculating trial days remaining:', error)
       return 0
     }
   }

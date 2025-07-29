@@ -200,6 +200,18 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
 
       try {
         setIsLoading(true)
+        
+        // Check if Supabase is configured
+        if (!supabase) {
+          console.warn('[Debug] Supabase not configured. Skipping auth initialization.')
+          if (authStateRef.current.mounted) {
+            setIsLoading(false)
+            setIsInitialized(true)
+            authStateRef.current.initCompleted = true
+          }
+          return
+        }
+
         console.log('[Debug] Checking current session')
         const { data: { session }, error } = await supabase.auth.getSession()
 
@@ -275,17 +287,16 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleNewUser = async (user: User) => {
     try {
-      const defaultProfile = {
-        id: user.id,
-        email: user.email!,
-        name: user.user_metadata.name || null,
-        artist_name: null,
-        bio: null,
-        location: null,
-        website: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      } satisfies ProfileInsert
+      if (!supabase) {
+        console.warn('Supabase not configured. Cannot create profile.')
+        return null
+      }
+
+      const defaultProfile = createDefaultProfile(
+        user.id,
+        user.email!,
+        user.user_metadata.name || null
+      )
 
       const { data: newProfile, error: insertError } = await supabase
         .from('profiles')
@@ -307,237 +318,249 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfile = async (userId: string, retryCount = 0): Promise<Profile | null> => {
     try {
+      if (!supabase) {
+        console.warn('Supabase not configured. Cannot fetch profile.')
+        return null
+      }
+
+      console.log('[Debug] Fetching profile for user:', userId)
       const { data, error } = await supabase
         .from('profiles')
-        .select()
+        .select('*')
         .eq('id', userId)
         .single()
 
       if (error) {
-        // If we get a 403/404 and haven't retried too many times, wait briefly and retry
-        if ((error.code === '403' || error.code === '404') && retryCount < 3) {
+        console.error('[Debug] Profile fetch error:', error)
+        if (retryCount < 3) {
+          console.log('[Debug] Retrying profile fetch, attempt:', retryCount + 1)
           await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)))
           return fetchProfile(userId, retryCount + 1)
         }
-
-        console.error('Profile fetch error:', error)
-        toast({
-          variant: 'destructive',
-          title: 'Profile Error',
-          description: 'Failed to fetch profile data. Please try again.',
-        })
-        throw error
-      }
-
-      if (!data) {
-        console.error('[Debug] No profile found')
         return null
       }
 
-      return convertProfileFromDb(data)
+      if (data) {
+        console.log('[Debug] Profile data received:', data)
+        return convertProfileFromDb(data)
+      }
+
+      return null
     } catch (error) {
-      console.error('Profile fetch error:', error)
-      toast({
-        variant: 'destructive',
-        title: 'Profile Error',
-        description: 'Failed to fetch profile data. Please try again.',
-      })
+      console.error('[Debug] Profile fetch exception:', error)
       return null
     }
   }
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      setIsLoading(true)
+      if (!supabase) {
+        console.warn('Supabase not configured. Cannot login.')
+        showErrorToast('Login Error', 'Authentication service is not configured.')
+        return false
+      }
 
+      console.log('[Debug] Attempting login for:', email)
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Login Failed',
-          description: error.message || 'An error occurred during login',
-        })
+        console.error('[Debug] Login error:', error)
+        showErrorToast('Login Failed', error.message)
         return false
       }
 
-      if (data.user) {
-        const profileData = await fetchProfile(data.user.id)
-        const userName = profileData?.name || data.user.email?.split('@')[0] || 'there'
-
-        handleLoginSuccess(data.session)
+      if (data.user && data.session) {
+        console.log('[Debug] Login successful')
+        await handleLoginSuccess(data.session)
         return true
       }
 
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: 'No user data received',
-      })
       return false
     } catch (error) {
-      console.error('Login error:', error)
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: error instanceof Error ? error.message : 'An unexpected error occurred',
-      })
+      console.error('[Debug] Login exception:', error)
+      showErrorToast('Login Error', 'An unexpected error occurred during login.')
       return false
-    } finally {
-      setIsLoading(false)
     }
   }
 
   const loginWithGoogle = async (): Promise<boolean> => {
     try {
-      setIsLoading(true)
+      if (!supabase) {
+        console.warn('Supabase not configured. Cannot login with Google.')
+        showErrorToast('Login Error', 'Authentication service is not configured.')
+        return false
+      }
 
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('[Debug] Attempting Google login')
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
+        },
+      })
+
+      if (error) {
+        console.error('[Debug] Google login error:', error)
+        showErrorToast('Google Login Failed', error.message)
+        return false
+      }
+
+      console.log('[Debug] Google login initiated')
+      return true
+    } catch (error) {
+      console.error('[Debug] Google login exception:', error)
+      showErrorToast('Google Login Error', 'An unexpected error occurred during Google login.')
+      return false
+    }
+  }
+
+  const register = async (data: RegisterData): Promise<boolean> => {
+    try {
+      if (!supabase) {
+        console.warn('Supabase not configured. Cannot register.')
+        showErrorToast('Registration Error', 'Authentication service is not configured.')
+        return false
+      }
+
+      console.log('[Debug] Attempting registration for:', data.email)
+      const { data: authData, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            name: data.name,
+            artist_name: data.artist_name,
+            genres: data.genres,
+            daw: data.daw,
+            bio: data.bio,
+            location: data.location,
+            phone: data.phone,
+            website: data.website,
           },
         },
       })
 
       if (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Google Login Failed',
-          description: error.message || 'An error occurred during Google login',
-        })
+        console.error('[Debug] Registration error:', error)
+        showErrorToast('Registration Failed', error.message)
         return false
       }
 
-      return true
-    } catch (error) {
-      console.error('Google login error:', error)
-      toast({
-        variant: 'destructive',
-        title: 'Google Login Failed',
-        description: error instanceof Error ? error.message : 'An unexpected error occurred',
-      })
-      return false
-    } finally {
-      setIsLoading(false)
-    }
-  }
+      if (authData.user) {
+        console.log('[Debug] Registration successful')
+        showSuccessToast('Registration Successful', 'Please check your email to verify your account.')
+        return true
+      }
 
-  const register = async (data: RegisterData): Promise<boolean> => {
-    console.log('[Auth] Registration attempt blocked - direct registration is disabled')
-    toast({
-      variant: 'destructive',
-      title: 'Registration Disabled',
-      description: 'New user registration is currently by invitation only. Please use Google authentication or contact the administrator.'
-    })
-    return false
+      return false
+    } catch (error) {
+      console.error('[Debug] Registration exception:', error)
+      showErrorToast('Registration Error', 'An unexpected error occurred during registration.')
+      return false
+    }
   }
 
   const logout = async () => {
     try {
-      setIsLoading(true)
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      if (!supabase) {
+        console.warn('Supabase not configured. Cannot logout.')
+        return
+      }
 
+      console.log('[Debug] Attempting logout')
+      const { error } = await supabase.auth.signOut()
+
+      if (error) {
+        console.error('[Debug] Logout error:', error)
+        showErrorToast('Logout Error', error.message)
+        return
+      }
+
+      console.log('[Debug] Logout successful')
       setUser(null)
       setProfile(null)
-
-      showSuccessToast('Logged out successfully', 'You have been logged out successfully')
-
-      window.location.href = '/'
+      showSuccessToast('Logged Out', 'You have been successfully logged out.')
     } catch (error) {
-      console.error('Logout error:', error)
-      showErrorToast('Logout Failed', 'An error occurred while logging out')
-    } finally {
-      setIsLoading(false)
+      console.error('[Debug] Logout exception:', error)
+      showErrorToast('Logout Error', 'An unexpected error occurred during logout.')
     }
   }
 
   const updateUserProfile = async (userData: ProfileUpdateData): Promise<Profile> => {
-    if (!user || !profile) {
-      throw new Error('No user or profile found')
-    }
-
     try {
-      // Ensure social_links is properly formatted
-      const socialLinks = userData.social_links || profile.social_links
-      const formattedSocialLinks = {
-        instagram: socialLinks.instagram || null,
-        instagram_username: socialLinks.instagram_username || null,
-        twitter: socialLinks.twitter || null,
-        twitter_username: socialLinks.twitter_username || null,
-        youtube: socialLinks.youtube || null,
-        youtube_username: socialLinks.youtube_username || null,
+      if (!supabase) {
+        throw new Error('Supabase not configured')
       }
 
-      const updateData = {
-        name: userData.name ?? profile.name,
-        email: userData.email ?? profile.email,
-        artist_name: userData.artist_name ?? profile.artist_name,
-        genres: userData.genres ? JSON.stringify(userData.genres) : profile.genres,
-        daw: userData.daw ?? profile.daw,
-        bio: userData.bio ?? profile.bio,
-        location: userData.location ?? profile.location,
-        phone: userData.phone ?? profile.phone,
-        website: userData.website ?? profile.website,
-        birthday: userData.birthday ?? profile.birthday,
-        timezone: userData.timezone ?? profile.timezone,
-        social_links: formattedSocialLinks,
-        notification_preferences:
-          userData.notification_preferences ?? profile.notification_preferences,
-        updated_at: new Date().toISOString(),
-      } as DbProfileUpdate
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
 
+      console.log('[Debug] Updating profile for user:', user.id)
       const { data, error } = await supabase
         .from('profiles')
-        .update(updateData)
+        .update({
+          name: userData.name,
+          artist_name: userData.artist_name,
+          genres: userData.genres ? convertGenresToDb(userData.genres) : undefined,
+          daw: userData.daw,
+          bio: userData.bio,
+          location: userData.location,
+          phone: userData.phone,
+          website: userData.website,
+          birthday: userData.birthday,
+          timezone: userData.timezone,
+          social_links: userData.social_links,
+          notification_preferences: userData.notification_preferences,
+          updated_at: new Date().toISOString(),
+        })
         .eq('id', user.id)
         .select()
         .single()
 
       if (error) {
-        console.error('[Auth] Profile update error:', error)
-        toast({
-          variant: 'destructive',
-          title: 'Update Failed',
-          description: error.message,
-        })
+        console.error('[Debug] Profile update error:', error)
         throw error
       }
 
-      // Update local profile state with properly converted data
+      if (!data) {
+        throw new Error('Profile not found')
+      }
+
       const updatedProfile = convertProfileFromDb(data)
       setProfile(updatedProfile)
+      showSuccessToast('Profile Updated', 'Your profile has been updated successfully.')
       return updatedProfile
     } catch (error) {
-      console.error('[Auth] Profile update error:', error)
+      console.error('[Debug] Profile update exception:', error)
+      showErrorToast('Profile Update Failed', 'Failed to update profile. Please try again.')
       throw error
     }
   }
 
   const refreshProfile = async () => {
-    if (!user) return
-
     try {
-      console.log('Refreshing profile for user:', user.id)
-      const profileData = await fetchProfile(user.id)
+      if (!user) {
+        console.log('[Debug] No user to refresh profile for')
+        return
+      }
 
-      if (profileData) {
-        setProfile(profileData)
-        console.log('Profile refreshed successfully:', profileData)
-      } else {
-        console.error('No profile data found during refresh')
+      console.log('[Debug] Refreshing profile')
+      const profileData = await fetchProfile(user.id)
+      
+      if (authStateRef.current.mounted) {
+        if (profileData) {
+          console.log('[Debug] Profile refreshed successfully')
+          setProfile(profileData)
+        } else {
+          console.log('[Debug] No profile data received during refresh')
+        }
       }
     } catch (error) {
-      console.error('Error refreshing profile:', error)
-      showErrorToast('Refresh Failed', 'Failed to refresh profile')
-      throw error
+      console.error('[Debug] Profile refresh error:', error)
     }
   }
 
