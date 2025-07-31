@@ -58,9 +58,13 @@ const TestimonialCard = ({ testimonial, delay }: { testimonial: Testimonial, del
 // --- MAIN COMPONENT ---
 
 export const SignInPage: React.FC<SignInPageProps> = ({
-  title = <span className="font-light text-foreground tracking-tighter">Welcome to WavTrack</span>,
+  title = (
+    <h1 className="text-4xl sm:text-5xl font-bold tracking-tight bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent">
+      WavTrack
+    </h1>
+  ),
   description = "Track your music production journey with powerful analytics and insights",
-  heroImageSrc = "/images/studio/chuck-fortner-LFVBohYmtgc-unsplash.jpg",
+  heroImageSrc = "/images/studio/lt-ngema-bupvUu1mNxI-unsplash.jpg",
   testimonials = [],
   onSignIn,
   onGoogleSignIn,
@@ -189,15 +193,8 @@ export const SignInPage: React.FC<SignInPageProps> = ({
         
         <div className="w-full max-w-md relative z-10">
           <div className="flex flex-col gap-8">
-            {/* Logo */}
-            <div className="flex justify-center mb-8">
-              <h1 className="text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent">
-                WavTrack
-              </h1>
-            </div>
-            
             <div className="text-center">
-              <h1 className="animate-element animate-delay-100 text-4xl md:text-5xl font-bold leading-tight bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{title}</h1>
+              <div className="animate-element animate-delay-100">{title}</div>
               <p className="animate-element animate-delay-200 text-zinc-600 dark:text-zinc-400 mt-3 text-lg">{description}</p>
             </div>
 
