@@ -43,29 +43,22 @@ export default function FeatureShowcase2() {
             <div className="space-y-6">
               <h2 className="text-4xl sm:text-5xl font-semibold tracking-tight text-balance text-neutral-800 dark:text-foreground">
                 <BlurText 
-                  text="Focus Your Sessions" 
+                  text="Stay Focused with Pomodoro" 
                   delay={0.6}
                   duration={3.8}
-                  blurAmount={10}
-                  className="text-4xl sm:text-5xl font-semibold tracking-tight text-balance"
+                  blurAmount={7}
+                  className="text-neutral-800 dark:text-foreground"
                 />
               </h2>
               <p className="text-lg sm:text-xl text-pretty text-neutral-600 dark:text-muted-foreground leading-relaxed">
                 <BlurText 
-                  text="Use our built-in Pomodoro timer to maintain deep focus during your creative sessions. Perfect for writing lyrics, composing melodies, or diving deep into production work without distractions."
+                  text="Boost your productivity with our integrated Pomodoro timer. Stay focused during intense production sessions and take strategic breaks to maintain your creative flow."
                   delay={1.2}
                   duration={4.2}
-                  blurAmount={7}
+                  blurAmount={6}
                 />
               </p>
             </div>
-            
-            <Button 
-              size="lg"
-              className="h-14 px-8 bg-gradient-to-r from-[#8257E5] to-[#B490FF] hover:from-[#8257E5]/90 hover:to-[#B490FF]/90 text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/20 text-lg"
-            >
-              Start Focusing
-            </Button>
           </motion.div>
         </div>
         </div>

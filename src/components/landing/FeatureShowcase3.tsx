@@ -36,13 +36,6 @@ export default function FeatureShowcase3() {
                 />
               </p>
             </div>
-            
-                          <Button 
-                size="lg"
-                className="h-14 px-8 bg-gradient-to-r from-[#8257E5] to-[#B490FF] hover:from-[#8257E5]/90 hover:to-[#B490FF]/90 text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/20 text-lg"
-              >
-                View Projects
-              </Button>
           </motion.div>
 
           {/* Right Column - Screenshot */}
