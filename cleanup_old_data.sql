@@ -36,6 +36,19 @@ WHERE created_at < NOW() - INTERVAL '60 days';
 DELETE FROM public.category_progress 
 WHERE date < CURRENT_DATE - INTERVAL '30 days';
 
+-- 9. Clean up audio files from deleted projects
+-- Note: This requires the cleanup functions from cleanup_orphaned_audio.sql
+DO $$
+BEGIN
+  -- Check if cleanup functions exist
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'cleanup_deleted_project_audio') THEN
+    PERFORM cleanup_deleted_project_audio();
+    RAISE NOTICE 'Audio files from deleted projects cleaned up';
+  ELSE
+    RAISE NOTICE 'Audio cleanup functions not found. Run cleanup_orphaned_audio.sql first.';
+  END IF;
+END $$;
+
 -- Show cleanup results
 SELECT 
   'audit_logs' as table_name,
@@ -55,4 +68,10 @@ UNION ALL
 SELECT 
   'beat_activities' as table_name,
   COUNT(*) as remaining_records
-FROM public.beat_activities; 
+FROM public.beat_activities
+UNION ALL
+SELECT 
+  'audio_files' as table_name,
+  COUNT(*) as remaining_records
+FROM storage.objects 
+WHERE bucket_id = 'project-audio'; 
