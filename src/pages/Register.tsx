@@ -1,38 +1,28 @@
-import React from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Lock } from 'lucide-react'
+import React, { useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+import { SignInPage } from '@/components/ui/sign-in'
+import LoadingScreen from '@/components/LoadingScreen'
 
-export default function Register() {
+const Register = () => {
+  const { isAuthenticated, isLoading } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
-  return (
-    <div className="container flex flex-col items-center justify-center min-h-screen p-4">
-      <Card className="max-w-md w-full">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <Lock className="h-12 w-12 text-muted-foreground" />
-          </div>
-          <CardTitle className="text-2xl">Registration Currently Disabled</CardTitle>
-          <CardDescription className="text-base">
-            New user registration is currently by invitation only.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-center text-muted-foreground">
-            Please use Google authentication to sign in or contact the administrator for access.
-          </p>
-          <div className="flex flex-col gap-4">
-            <Button
-              onClick={() => navigate('/login')}
-              className="w-full"
-            >
-              Back to Login
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
-} 
+  const from = location.state?.from || '/dashboard'
+
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      navigate(from, { replace: true })
+    }
+  }, [isAuthenticated, isLoading, navigate, from])
+
+  if (isLoading) {
+    return <LoadingScreen message="Checking authentication..." />
+  }
+
+  // This page now shows the waitlist form (SignInPage with isWaitlist=true based on /register path)
+  return <SignInPage />
+}
+
+export default Register

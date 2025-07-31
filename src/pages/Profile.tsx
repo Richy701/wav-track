@@ -44,7 +44,7 @@ const staggerContainer = {
 }
 
 const Profile = () => {
-  const { profile, logout, refreshProfile, isLoading: authLoading, isInitialized } = useAuth()
+  const { profile, logout, refreshProfile, isLoading: authLoading, isInitialized, isLoggingOut } = useAuth()
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -240,12 +240,12 @@ const Profile = () => {
                       Edit Profile
                     </Button>
                     <Button
-                      variant="destructive"
-                      className="w-full sm:w-auto bg-red-500 text-white hover:bg-red-600"
+                      className="w-full sm:w-auto bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={handleLogout}
+                      disabled={isLoggingOut}
                     >
                       <SignOut className="h-4 w-4 mr-2" />
-                      Logout
+                      {isLoggingOut ? 'Logging out...' : 'Logout'}
                     </Button>
                   </motion.div>
                 </div>

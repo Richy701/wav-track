@@ -175,7 +175,7 @@ const YoutubeLogo = () => (
 const ProfileSettings = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { profile, updateUserProfile, logout, refreshProfile } = useAuth()
+  const { profile, updateUserProfile, logout, refreshProfile, isLoggingOut } = useAuth()
   const isNewUser = location.state?.isNewUser || false
   const returnTo = sessionStorage.getItem('returnTo') || '/'
 
@@ -313,6 +313,10 @@ const ProfileSettings = () => {
   }
 
   const handleDeleteAccount = async () => {
+    if (isLoggingOut) {
+      return // Prevent multiple logout attempts
+    }
+    
     setShowDeleteDialog(false)
     toast.success('Account deletion request submitted')
     await logout()

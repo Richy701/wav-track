@@ -59,7 +59,7 @@ const TabsContent = React.forwardRef<
 ));
 TabsContent.displayName = TabsPrimitive.Content.displayName;
 
-type ViewType = "general" | "features" | "billing";
+type ViewType = "general" | "features";
 
 interface FAQItem {
   question: string;
@@ -154,41 +154,7 @@ const FAQ_SECTIONS: Record<ViewType, FAQSection> = {
       },
     ],
   },
-  billing: {
-    category: "Billing & Plans",
-    items: [
-      {
-        id: "free-trial",
-        question: "Is there a free trial available?",
-        answer:
-          "Yes! We offer a free trial for all plans so you can experience WavTrack's progress tracking and motivation features before committing. No credit card required to start your trial.",
-      },
-      {
-        id: "plan-differences",
-        question: "What's the difference between the plans?",
-        answer:
-          "Starter includes basic progress tracking and goal setting. Producer (our most popular) includes unlimited tracking, advanced analytics, and achievement features. Studio adds team collaboration and advanced goal management.",
-      },
-      {
-        id: "cancel-subscription",
-        question: "Can I cancel my subscription anytime?",
-        answer:
-          "Absolutely! You can cancel your subscription at any time from your account settings. You'll continue to have access until the end of your current billing period.",
-      },
-      {
-        id: "refund-policy",
-        question: "What's your refund policy?",
-        answer:
-          "We offer a 30-day money-back guarantee. If you're not satisfied with WavTrack's progress tracking and motivation features, contact our support team within 30 days of your purchase for a full refund.",
-      },
-      {
-        id: "team-plans",
-        question: "Do you offer team or studio plans?",
-        answer:
-          "Yes! Our Studio plan includes team features perfect for music studios and collaborative projects. For larger organizations, we offer custom enterprise plans with dedicated support.",
-      },
-    ],
-  },
+
 };
 
 const FAQAccordion: React.FC<FAQAccordionProps> = ({ category, items }) => (
@@ -234,7 +200,7 @@ export const FAQSection = () => {
           <TabsList className="w-full justify-start h-12 p-1">
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="features">Features</TabsTrigger>
-            <TabsTrigger value="billing">Billing</TabsTrigger>
+
           </TabsList>
         </Tabs>
       </div>

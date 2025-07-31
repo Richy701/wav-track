@@ -24,15 +24,15 @@ export default function Callback() {
             email: session.user.email
           })
 
-          // Redirect to index
-          navigate('/wav-track/', { replace: true })
+          // Redirect to dashboard
+          navigate('/dashboard', { replace: true })
         } else {
           throw new Error('No session found')
         }
       } catch (error) {
         console.error('Auth callback error:', error)
         toast.error('Authentication failed. Please try again.')
-        navigate('/wav-track/login', { replace: true })
+        navigate('/login', { replace: true })
       }
     }
 

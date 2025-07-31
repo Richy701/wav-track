@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { fadeInUp } from "@/lib/animations";
 import { BlurText } from "@/components/ui/BlurText";
+import { LazyVideo } from "@/components/ui/lazy-video";
 
 export default function FeatureShowcase3() {
   return (
@@ -19,7 +20,7 @@ export default function FeatureShowcase3() {
             <div className="space-y-6">
               <h2 className="text-4xl sm:text-5xl font-semibold tracking-tight text-balance text-neutral-800 dark:text-foreground">
                 <BlurText 
-                  text="Celebrate Your Progress" 
+                  text="Track Your Recent Work" 
                   delay={0.7}
                   duration={4.0}
                   blurAmount={9}
@@ -28,7 +29,7 @@ export default function FeatureShowcase3() {
               </h2>
               <p className="text-lg sm:text-xl text-pretty text-neutral-600 dark:text-muted-foreground leading-relaxed">
                 <BlurText 
-                  text="Unlock achievements and track your music production milestones. Earn badges for consistency, creativity, and reaching your goals to stay motivated on your journey."
+                  text="Keep tabs on your latest projects and never lose track of your creative momentum. See what you've been working on recently and jump right back into your flow."
                   delay={1.4}
                   duration={4.5}
                   blurAmount={5}
@@ -40,7 +41,7 @@ export default function FeatureShowcase3() {
                 size="lg"
                 className="h-14 px-8 bg-gradient-to-r from-[#8257E5] to-[#B490FF] hover:from-[#8257E5]/90 hover:to-[#B490FF]/90 text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/20 text-lg"
               >
-                View Achievements
+                View Projects
               </Button>
           </motion.div>
 
@@ -52,13 +53,17 @@ export default function FeatureShowcase3() {
             transition={{ delay: 0.2 }}
             className="relative"
           >
-            {/* Screenshot */}
-            <div className="aspect-[4/3] relative">
-              <img
-                src="/images/features/wavtrack-screengrabs/achievement-system.png"
-                alt="WavTrack Achievement System Screenshot"
-                className="w-full h-full object-contain rounded-2xl"
-                loading="lazy"
+            {/* Video */}
+            <div className="aspect-[16/9] relative">
+              <LazyVideo
+                src="/videos/Wavtrack%20pro%20recent%20project%20.mp4"
+                className="w-full h-full object-cover rounded-2xl"
+                muted
+                loop
+                playsInline
+                preload="auto"
+                onMouseEnter={(e) => e.currentTarget.play()}
+                onMouseLeave={(e) => e.currentTarget.pause()}
               />
             </div>
           </motion.div>

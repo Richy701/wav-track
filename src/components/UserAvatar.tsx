@@ -16,7 +16,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { useImageCache } from '@/hooks/useImageCache'
 
 const UserAvatar = () => {
-  const { user, profile, logout } = useAuth()
+  const { user, profile, logout, isLoggingOut } = useAuth()
   const navigate = useNavigate()
   const { cachedImage, isLoading, error } = useImageCache(profile?.avatar_url)
 
@@ -91,11 +91,16 @@ const UserAvatar = () => {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={() => logout?.()}
-          className="text-red-600 hover:bg-red-100 focus:text-red-600 dark:text-red-400 dark:hover:bg-red-950/20 dark:focus:text-red-400"
+          onClick={async () => {
+            if (logout && !isLoggingOut) {
+              await logout();
+            }
+          }}
+          disabled={isLoggingOut}
+          className="text-red-600 hover:bg-red-100 focus:text-red-600 dark:text-red-400 dark:hover:bg-red-950/20 dark:focus:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ArrowRightSolid className="mr-2 h-4 w-4" />
-          <span>Log out</span>
+          <span>{isLoggingOut ? 'Logging out...' : 'Log out'}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

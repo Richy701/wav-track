@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { fadeInUp } from "@/lib/animations";
 import { BlurText } from "@/components/ui/BlurText";
+import { LazyVideo } from "@/components/ui/lazy-video";
 
 export default function FeatureShowcase() {
   return (
@@ -20,7 +21,7 @@ export default function FeatureShowcase() {
             <div className="space-y-6">
               <h2 className="text-4xl sm:text-5xl font-semibold tracking-tight text-balance text-neutral-800 dark:text-foreground">
                 <BlurText 
-                  text="Your Dashboard, Your Workflow" 
+                  text="Insights That Inspire" 
                   delay={0.5}
                   duration={3.5}
                   blurAmount={8}
@@ -29,7 +30,7 @@ export default function FeatureShowcase() {
               </h2>
               <p className="text-lg sm:text-xl text-pretty text-neutral-600 dark:text-muted-foreground leading-relaxed">
                 <BlurText 
-                  text="This is a screenshot of the WavTrack dashboard - your central hub for tracking sessions, monitoring progress, and staying inspired throughout your music production journey."
+                  text="Discover powerful analytics that reveal your creative patterns and productivity trends. See when you're most productive, track your session streaks, and get insights that help you optimize your music-making process."
                   delay={1.0}
                   duration={4.0}
                   blurAmount={6}
@@ -41,11 +42,11 @@ export default function FeatureShowcase() {
               size="lg"
               className="h-14 px-8 bg-gradient-to-r from-[#8257E5] to-[#B490FF] hover:from-[#8257E5]/90 hover:to-[#B490FF]/90 text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/20 text-lg"
             >
-              Get Started
+              View Analytics
             </Button>
           </motion.div>
 
-          {/* Right Column - App Mockup */}
+          {/* Right Column - Video Demo */}
           <motion.div
             initial="initial"
             animate="animate"
@@ -53,20 +54,22 @@ export default function FeatureShowcase() {
             transition={{ delay: 0.2 }}
             className="relative"
           >
-            {/* App Mockup Container */}
-            <div className="relative rounded-2xl overflow-hidden">
-                          {/* Screenshot */}
-            <div className="aspect-[4/3] relative">
-              <img
-                src="/images/features/wavtrack-screengrabs/app-overview.png"
-                alt="WavTrack Music Production Dashboard Screenshot"
-                className="w-full h-full object-contain rounded-2xl"
-                loading="lazy"
-              />
-            </div>
-            </div>
+            {/* Video Container */}
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+              <div className="aspect-[16/9] relative">
+                <LazyVideo
+                  src="/videos/Wavtrack%20pro%20Analytic.mp4"
+                  className="w-full h-full object-cover rounded-2xl"
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  onMouseEnter={(e) => e.currentTarget.play()}
+                  onMouseLeave={(e) => e.currentTarget.pause()}
+                />
 
-
+              </div>
+            </div>
           </motion.div>
         </div>
         </div>

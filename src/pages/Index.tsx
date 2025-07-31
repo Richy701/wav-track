@@ -19,7 +19,7 @@ import { SessionsOverview } from '@/components/sessions/SessionsOverview'
 
 const Index = () => {
   const { projects, isLoading, error, updateProject: updateProjectAsync } = useProjects()
-  const { user, profile, isLoading: authLoading } = useAuth()
+  const { user, profile, isLoading: authLoading, isInitialized } = useAuth()
   const navigate = useNavigate()
   const [sessions, setSessions] = useState<Session[]>([])
   const [beatActivities, setBeatActivities] = useState<BeatActivity[]>([])
@@ -27,21 +27,20 @@ const Index = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const queryClient = useQueryClient()
 
+  // Add debugging
+  console.log('[Index] Auth state:', { user: !!user, profile: !!profile, authLoading, isInitialized })
+
   useEffect(() => {
-    if (!user && !authLoading) {
-      console.log('[Index] No user found, redirecting to login page')
-      // Use setTimeout to ensure this runs after the component is mounted
-      // This helps prevent the "Object may no longer exist" error
-      setTimeout(() => {
-        navigate('/login')
-      }, 0)
+    if (isInitialized && !user) {
+      console.log('[Index] No user found after initialization, redirecting to login page')
+      navigate('/login')
       return
     }
-  }, [user, authLoading, navigate])
+  }, [user, isInitialized, navigate])
 
   // Add effect to handle initial data loading
   useEffect(() => {
-    if (!user || authLoading) return
+    if (!user || !isInitialized) return
 
     // Force a refetch of projects when component mounts
     queryClient.invalidateQueries({ 
@@ -169,7 +168,7 @@ const Index = () => {
     return () => {
       beatActivitiesSubscription.unsubscribe()
     }
-  }, [user, authLoading, queryClient])
+  }, [user, isInitialized, queryClient])
 
   const handleDragEnd = (activeId: string, overId: string) => {
     if (!projects) return

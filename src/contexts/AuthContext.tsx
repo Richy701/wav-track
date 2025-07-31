@@ -82,6 +82,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   isInitialized: boolean
+  isLoggingOut: boolean
   login: (email: string, password: string) => Promise<boolean>
   loginWithGoogle: () => Promise<boolean>
   register: (data: RegisterData) => Promise<boolean>
@@ -126,6 +127,7 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true)
   const [isInitialized, setIsInitialized] = useState(false)
   const [showWelcomeModal, setShowWelcomeModal] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const authStateRef = React.useRef<AuthStateRef>({
     mounted: true,
     initStarted: false,
@@ -142,43 +144,72 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('[Debug] Auth state changed:', { event, userId: session?.user?.id })
+      console.log('[Debug] Auth state changed:', { event, userId: session?.user?.id, hasProfile: !!profile })
       
-      if (event === 'SIGNED_IN' && session?.user) {
+      if (event === 'INITIAL_SESSION' && session?.user) {
+        console.log('[Debug] Processing initial session')
+        if (authStateRef.current.mounted) {
+          setUser(session.user)
+          
+          // Fetch profile for initial session
+          console.log('[Debug] Fetching profile for initial session')
+          const profileData = await fetchProfile(session.user.id)
+          
+          if (authStateRef.current.mounted) {
+            if (profileData) {
+              console.log('[Debug] Setting profile from initial session')
+              setProfile(profileData)
+            }
+            
+            // Ensure loading state is properly set
+            console.log('[Debug] Setting loading to false after initial session')
+            setIsLoading(false)
+            setIsInitialized(true)
+          }
+        }
+      } else if (event === 'SIGNED_IN' && session?.user) {
         console.log('[Debug] Processing sign in')
         if (authStateRef.current.mounted) {
           setUser(session.user)
           
-          // Only fetch profile if we don't have one or if it's a new user
-          if (!profile) {
-            console.log('[Debug] Fetching user profile')
-            const profileData = await fetchProfile(session.user.id)
-            
-            if (authStateRef.current.mounted) {
-              if (profileData) {
-                console.log('[Debug] Setting existing profile')
-                setProfile(profileData)
-              } else {
-                console.log('[Debug] Creating default profile')
-                // Create default profile with Google data
-                const defaultProfile = createDefaultProfile(
-                  session.user.id,
-                  session.user.email!,
-                  session.user.user_metadata?.name || session.user.email?.split('@')[0] || null
-                )
-                const newProfile = await createProfile(defaultProfile)
-                if (authStateRef.current.mounted) {
-                  setProfile(newProfile)
-                }
+          // Always fetch profile on sign in to ensure we have the latest data
+          console.log('[Debug] Fetching user profile')
+          const profileData = await fetchProfile(session.user.id)
+          
+          if (authStateRef.current.mounted) {
+            if (profileData) {
+              console.log('[Debug] Setting existing profile')
+              setProfile(profileData)
+            } else {
+              console.log('[Debug] Creating default profile')
+              // Create default profile with Google data
+              const newProfile = await handleNewUser(session.user)
+              if (authStateRef.current.mounted && newProfile) {
+                setProfile(newProfile)
               }
             }
+            
+            // Ensure loading state is properly set after profile is loaded
+            console.log('[Debug] Setting loading to false after profile loaded')
+            setIsLoading(false)
+            setIsInitialized(true)
           }
         }
       } else if (event === 'SIGNED_OUT') {
         console.log('[Debug] Processing sign out')
         if (authStateRef.current.mounted) {
+          // Clear all auth-related state
           setUser(null)
           setProfile(null)
+          
+          // Clear any cached data
+          localStorage.removeItem('supabase.auth.token')
+          sessionStorage.clear()
+          
+          // Invalidate all queries to clear cached data
+          queryClient.clear()
+          
+          console.log('[Debug] Auth state cleared successfully')
         }
       }
     })
@@ -233,16 +264,14 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
           if (currentSession?.user) {
             console.log('[Debug] Session refreshed successfully')
             setUser(currentSession.user)
-            // Only fetch profile if we don't have one
-            if (!profile) {
-              console.log('[Debug] Fetching initial profile')
-              const profileData = await fetchProfile(currentSession.user.id)
-              
-              if (authStateRef.current.mounted) {
-                if (profileData) {
-                  console.log('[Debug] Setting initial profile')
-                  setProfile(profileData)
-                }
+            // Always fetch profile to ensure we have the latest data
+            console.log('[Debug] Fetching initial profile')
+            const profileData = await fetchProfile(currentSession.user.id)
+            
+            if (authStateRef.current.mounted) {
+              if (profileData) {
+                console.log('[Debug] Setting initial profile')
+                setProfile(profileData)
               }
             }
           }
@@ -266,7 +295,7 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       authStateRef.current.mounted = false
     }
-  }, [profile])
+  }, [])
 
   const showErrorToast = (title: string, description: string) => {
     toast({
@@ -464,13 +493,31 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const logout = async () => {
+    // Prevent multiple simultaneous logout attempts
+    if (isLoggingOut) {
+      console.log('[Debug] Logout already in progress, skipping')
+      return
+    }
+
     try {
+      setIsLoggingOut(true)
+      
       if (!supabase) {
         console.warn('Supabase not configured. Cannot logout.')
         return
       }
 
       console.log('[Debug] Attempting logout')
+      
+      // Clear local state first to prevent race conditions
+      setUser(null)
+      setProfile(null)
+      
+      // Clear any cached data
+      localStorage.removeItem('supabase.auth.token')
+      sessionStorage.clear()
+      
+      // Perform the actual logout
       const { error } = await supabase.auth.signOut()
 
       if (error) {
@@ -480,12 +527,12 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       console.log('[Debug] Logout successful')
-      setUser(null)
-      setProfile(null)
       showSuccessToast('Logged Out', 'You have been successfully logged out.')
     } catch (error) {
       console.error('[Debug] Logout exception:', error)
       showErrorToast('Logout Error', 'An unexpected error occurred during logout.')
+    } finally {
+      setIsLoggingOut(false)
     }
   }
 
@@ -645,6 +692,7 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user,
         isLoading,
         isInitialized,
+        isLoggingOut,
         login,
         loginWithGoogle,
         register,
@@ -692,6 +740,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAuthenticated: false,
     isLoading: true,
     isInitialized: false,
+    isLoggingOut: false,
     login: async () => false,
     loginWithGoogle: async () => false,
     register: async () => false,

@@ -16,7 +16,7 @@ import { useAuth } from '../contexts/AuthContext'
 
 const UserMenu = () => {
   const navigate = useNavigate()
-  const { user, logout } = useAuth() // Changed from signOut to logout
+  const { user, logout, isLoggingOut } = useAuth() // Added isLoggingOut
   const isLoading = false
 
   // Get user profile data
@@ -78,10 +78,11 @@ const UserMenu = () => {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleSignOut}
-          className="text-red-600 hover:bg-red-100 focus:text-red-600 dark:text-red-400 dark:hover:bg-red-950/20 dark:focus:text-red-400"
+          disabled={isLoggingOut}
+          className="text-red-600 hover:bg-red-100 focus:text-red-600 dark:text-red-400 dark:hover:bg-red-950/20 dark:focus:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ArrowRightSolid className="mr-2 h-4 w-4" />
-          <span>Log out</span>
+          <span>{isLoggingOut ? 'Logging out...' : 'Log out'}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

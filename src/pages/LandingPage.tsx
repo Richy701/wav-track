@@ -35,9 +35,8 @@ import { HeroSectionDemo } from "@/components/ui/hero-section-demo";
 import FeatureShowcase from "@/components/landing/FeatureShowcase";
 import FeatureShowcase2 from "@/components/landing/FeatureShowcase2";
 import FeatureShowcase3 from "@/components/landing/FeatureShowcase3";
-import { Pricing } from "@/components/ui/pricing";
+import { VideoFeatureHighlights } from "@/components/features/VideoFeatureHighlights";
 import { FAQSection } from "@/components/ui/faq-section";
-import { subscriptionPlans } from "@/lib/config/subscription-plans";
 
 const wavtrackPlans = [
   {
@@ -266,17 +265,7 @@ export default function LandingPage() {
           {/* Divider */}
           <div className="relative z-10 w-full h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent my-12" />
 
-          {/* Pricing Section */}
-          <div className="relative z-10 py-16">
-            <Pricing
-              plans={subscriptionPlans}
-              title="Plans that Scale with Your Music"
-              description="Choose the plan that fits your production workflow\nAll plans include audio analysis, session tracking, and AI-powered insights."
-            />
-          </div>
-          
-          {/* Divider */}
-          <div className="relative z-10 w-full h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent my-12" />
+
           
           {/* FAQ Section */}
           <div className="relative z-10">

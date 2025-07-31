@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { fadeInUp } from "@/lib/animations";
 import { BlurText } from "@/components/ui/BlurText";
+import { LazyVideo } from "@/components/ui/lazy-video";
 
 export default function FeatureShowcase2() {
   return (
@@ -16,13 +17,17 @@ export default function FeatureShowcase2() {
             variants={fadeInUp}
             className="relative order-2 lg:order-1"
           >
-            {/* Screenshot */}
-            <div className="aspect-[4/3] relative">
-              <img
-                src="/images/features/wavtrack-screengrabs/project-tracking.png"
-                alt="WavTrack Project Management Screenshot"
-                className="w-full h-full object-contain rounded-2xl"
-                loading="lazy"
+            {/* Video */}
+            <div className="aspect-[16/9] relative">
+              <LazyVideo
+                src="/videos/Wavtrack%20Pomodora%20timer.mp4"
+                className="w-full h-full object-cover rounded-2xl"
+                muted
+                loop
+                playsInline
+                preload="auto"
+                onMouseEnter={(e) => e.currentTarget.play()}
+                onMouseLeave={(e) => e.currentTarget.pause()}
               />
             </div>
           </motion.div>
@@ -38,7 +43,7 @@ export default function FeatureShowcase2() {
             <div className="space-y-6">
               <h2 className="text-4xl sm:text-5xl font-semibold tracking-tight text-balance text-neutral-800 dark:text-foreground">
                 <BlurText 
-                  text="Track Your Projects" 
+                  text="Focus Your Sessions" 
                   delay={0.6}
                   duration={3.8}
                   blurAmount={10}
@@ -47,7 +52,7 @@ export default function FeatureShowcase2() {
               </h2>
               <p className="text-lg sm:text-xl text-pretty text-neutral-600 dark:text-muted-foreground leading-relaxed">
                 <BlurText 
-                  text="Organize your music production projects with our intuitive project management system. Keep track of your beats, sessions, and creative progress all in one place."
+                  text="Use our built-in Pomodoro timer to maintain deep focus during your creative sessions. Perfect for writing lyrics, composing melodies, or diving deep into production work without distractions."
                   delay={1.2}
                   duration={4.2}
                   blurAmount={7}
@@ -59,7 +64,7 @@ export default function FeatureShowcase2() {
               size="lg"
               className="h-14 px-8 bg-gradient-to-r from-[#8257E5] to-[#B490FF] hover:from-[#8257E5]/90 hover:to-[#B490FF]/90 text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/20 text-lg"
             >
-              Explore Projects
+              Start Focusing
             </Button>
           </motion.div>
         </div>

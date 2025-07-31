@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { SignIn1 } from '@/components/ui/modern-stunning-sign-in'
+import { SignInPage } from '@/components/ui/sign-in'
 import LoadingScreen from '@/components/LoadingScreen'
 
 const Login = () => {
@@ -21,7 +21,7 @@ const Login = () => {
     return <LoadingScreen message="Checking authentication..." />
   }
 
-  return <SignIn1 />
+  return <SignInPage />
 }
 
 export default Login

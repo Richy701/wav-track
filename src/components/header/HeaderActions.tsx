@@ -219,7 +219,7 @@ export default function HeaderActions({
             )}
             onClick={() => handleNavigate('/register')}
           >
-            Register
+            Join Waitlist
           </Button>
         </>
       )}

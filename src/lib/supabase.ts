@@ -74,13 +74,8 @@ export const supabase = supabaseUrl && supabaseAnonKey
 
 // Add error handling middleware only if supabase is configured
 if (supabase) {
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_OUT') {
-      // Clear sensitive data on sign out
-      localStorage.removeItem('supabase.auth.token')
-      sessionStorage.clear()
-    }
-  })
+  // Remove duplicate auth state change listener to prevent conflicts
+  // The auth state is handled in AuthContext.tsx
 }
 
 // Add request interceptor for rate limiting

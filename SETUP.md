@@ -10,11 +10,6 @@ VITE_SUPABASE_URL=your_supabase_url_here
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 ```
 
-### Payment Service (Lemon Squeezy)
-```
-VITE_LEMON_SQUEEZY_STORE_ID=your_lemonsqueezy_store_id_here
-```
-
 ### AI Services
 ```
 VITE_OPENAI_API_KEY=your_openai_api_key_here
@@ -58,7 +53,6 @@ This will allow the app to start without the module import errors, though some f
 
 1. **Supabase**: Create a project at https://supabase.com
 2. **OpenAI**: Get API key from https://platform.openai.com
-3. **Lemon Squeezy**: Create store at https://lemonsqueezy.com
 
 After setting up the `.env` file, restart your development server:
 
