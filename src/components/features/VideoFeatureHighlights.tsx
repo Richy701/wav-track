@@ -3,7 +3,13 @@ import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { Headphones, Waveform, Sparkle, Play } from '@phosphor-icons/react'
-import { LazyVideo } from '@/components/ui/lazy-video'
+import { AdaptiveVideo } from '@/components/ui/adaptive-video'
+
+interface VideoSource {
+  src: string
+  type: string
+  quality: 'mobile' | 'tablet' | 'desktop'
+}
 
 interface Feature {
   title: string
@@ -14,7 +20,7 @@ interface Feature {
   bgGradient: string
   hoverGradient: string
   glowColor: string
-  videoSrc?: string
+  videoSources?: VideoSource[]
   videoPoster?: string
   imageSrc?: string
 }
@@ -29,7 +35,38 @@ const features: Feature[] = [
     bgGradient: 'from-indigo-500/20 to-purple-500/20',
     hoverGradient: 'from-indigo-600 to-purple-600',
     glowColor: 'indigo',
-    videoSrc: '/videos/workflow-demo.mp4',
+    videoSources: [
+      {
+        src: '/videos/optimized/mobile/workflow-mobile.mp4',
+        type: 'video/mp4',
+        quality: 'mobile'
+      },
+      {
+        src: '/videos/optimized/mobile/workflow-mobile.webm',
+        type: 'video/webm',
+        quality: 'mobile'
+      },
+      {
+        src: '/videos/optimized/tablet/workflow-tablet.mp4',
+        type: 'video/mp4',
+        quality: 'tablet'
+      },
+      {
+        src: '/videos/optimized/tablet/workflow-tablet.webm',
+        type: 'video/webm',
+        quality: 'tablet'
+      },
+      {
+        src: '/videos/optimized/desktop/workflow-desktop.mp4',
+        type: 'video/mp4',
+        quality: 'desktop'
+      },
+      {
+        src: '/videos/optimized/desktop/workflow-desktop.webm',
+        type: 'video/webm',
+        quality: 'desktop'
+      }
+    ],
     videoPoster: '/images/features/wavtrack-screengrabs/workflow-preview.png',
   },
   {
@@ -41,7 +78,38 @@ const features: Feature[] = [
     bgGradient: 'from-violet-500/20 to-fuchsia-500/20',
     hoverGradient: 'from-violet-600 to-fuchsia-600',
     glowColor: 'violet',
-    videoSrc: '/videos/goals-demo.mp4',
+    videoSources: [
+      {
+        src: '/videos/optimized/mobile/goals-mobile.mp4',
+        type: 'video/mp4',
+        quality: 'mobile'
+      },
+      {
+        src: '/videos/optimized/mobile/goals-mobile.webm',
+        type: 'video/webm',
+        quality: 'mobile'
+      },
+      {
+        src: '/videos/optimized/tablet/goals-tablet.mp4',
+        type: 'video/mp4',
+        quality: 'tablet'
+      },
+      {
+        src: '/videos/optimized/tablet/goals-tablet.webm',
+        type: 'video/webm',
+        quality: 'tablet'
+      },
+      {
+        src: '/videos/optimized/desktop/goals-desktop.mp4',
+        type: 'video/mp4',
+        quality: 'desktop'
+      },
+      {
+        src: '/videos/optimized/desktop/goals-desktop.webm',
+        type: 'video/webm',
+        quality: 'desktop'
+      }
+    ],
     videoPoster: '/images/features/wavtrack-screengrabs/goals-preview.png',
   },
   {
@@ -53,7 +121,38 @@ const features: Feature[] = [
     bgGradient: 'from-amber-500/20 to-orange-500/20',
     hoverGradient: 'from-amber-600 to-orange-600',
     glowColor: 'amber',
-    videoSrc: '/videos/achievements-demo.mp4',
+    videoSources: [
+      {
+        src: '/videos/optimized/mobile/achievements-mobile.mp4',
+        type: 'video/mp4',
+        quality: 'mobile'
+      },
+      {
+        src: '/videos/optimized/mobile/achievements-mobile.webm',
+        type: 'video/webm',
+        quality: 'mobile'
+      },
+      {
+        src: '/videos/optimized/tablet/achievements-tablet.mp4',
+        type: 'video/mp4',
+        quality: 'tablet'
+      },
+      {
+        src: '/videos/optimized/tablet/achievements-tablet.webm',
+        type: 'video/webm',
+        quality: 'tablet'
+      },
+      {
+        src: '/videos/optimized/desktop/achievements-desktop.mp4',
+        type: 'video/mp4',
+        quality: 'desktop'
+      },
+      {
+        src: '/videos/optimized/desktop/achievements-desktop.webm',
+        type: 'video/webm',
+        quality: 'desktop'
+      }
+    ],
     videoPoster: '/images/features/wavtrack-screengrabs/achievements-preview.png',
   },
 ]
@@ -176,11 +275,11 @@ export function VideoFeatureHighlights() {
               </div>
 
               {/* Right side - Video Preview */}
-              {feature.videoSrc && (
+              {feature.videoSources && (
                 <div className="flex-1 lg:max-w-md relative z-10">
                   <div className="aspect-video relative rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                    <LazyVideo
-                      src={feature.videoSrc}
+                    <AdaptiveVideo
+                      sources={feature.videoSources}
                       poster={feature.videoPoster}
                       className="w-full h-full object-cover"
                       controls
@@ -188,6 +287,7 @@ export function VideoFeatureHighlights() {
                       loop
                       playsInline
                       preload="none"
+                      fallbackSrc="/videos/workflow-demo.mp4"
                     />
                     
                     {/* Play button overlay */}
