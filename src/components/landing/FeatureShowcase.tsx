@@ -51,16 +51,22 @@ export default function FeatureShowcase() {
             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
               <div className="aspect-[16/9] relative">
                 <LazyVideo
-                  src="/videos/Wavtrack%20pro%20Analytic.mp4"
-                  className="w-full h-full object-cover rounded-2xl"
+                  src="/videos/optimized/desktop/analytic-desktop.mp4"
+                  mobileSrc="/videos/optimized/mobile/analytic-mobile.mp4"
+                  tabletSrc="/videos/optimized/tablet/analytic-tablet.mp4"
+                  desktopSrc="/videos/optimized/desktop/analytic-desktop.mp4"
+                  mobileWebm="/videos/optimized/mobile/analytic-mobile.webm"
+                  tabletWebm="/videos/optimized/tablet/analytic-tablet.webm"
+                  desktopWebm="/videos/optimized/desktop/analytic-desktop.webm"
+                  poster="/images/features/wavtrack-screengrabs/dashboard-mockup.png"
+                  className="w-full h-full object-contain rounded-2xl"
                   muted
                   loop
                   playsInline
-                  preload="auto"
+                  preload="metadata"
                   onMouseEnter={(e) => e.currentTarget.play()}
                   onMouseLeave={(e) => e.currentTarget.pause()}
                 />
-
               </div>
             </div>
           </motion.div>

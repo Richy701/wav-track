@@ -19,16 +19,23 @@ export default function FeatureShowcase2() {
           >
             {/* Video */}
             <div className="aspect-[16/9] relative">
-              <LazyVideo
-                src="/videos/Wavtrack%20Pomodora%20timer.mp4"
-                className="w-full h-full object-cover rounded-2xl"
-                muted
-                loop
-                playsInline
-                preload="auto"
-                onMouseEnter={(e) => e.currentTarget.play()}
-                onMouseLeave={(e) => e.currentTarget.pause()}
-              />
+                              <LazyVideo
+                  src="/videos/optimized/desktop/pomodoro-desktop.mp4"
+                  mobileSrc="/videos/optimized/mobile/pomodoro-mobile.mp4"
+                  tabletSrc="/videos/optimized/tablet/pomodoro-tablet.mp4"
+                  desktopSrc="/videos/optimized/desktop/pomodoro-desktop.mp4"
+                  mobileWebm="/videos/optimized/mobile/pomodoro-mobile.webm"
+                  tabletWebm="/videos/optimized/tablet/pomodoro-tablet.webm"
+                  desktopWebm="/videos/optimized/desktop/pomodoro-desktop.webm"
+                  poster="/images/features/wavtrack-screengrabs/Pomodoro Timer component.png"
+                  className="w-full h-full object-contain rounded-2xl"
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  onMouseEnter={(e) => e.currentTarget.play()}
+                  onMouseLeave={(e) => e.currentTarget.pause()}
+                />
             </div>
           </motion.div>
 

@@ -48,16 +48,23 @@ export default function FeatureShowcase3() {
           >
             {/* Video */}
             <div className="aspect-[16/9] relative">
-              <LazyVideo
-                src="/videos/Wavtrack%20pro%20recent%20project%20.mp4"
-                className="w-full h-full object-cover rounded-2xl"
-                muted
-                loop
-                playsInline
-                preload="auto"
-                onMouseEnter={(e) => e.currentTarget.play()}
-                onMouseLeave={(e) => e.currentTarget.pause()}
-              />
+                              <LazyVideo
+                  src="/videos/optimized/desktop/project-desktop.mp4"
+                  mobileSrc="/videos/optimized/mobile/project-mobile.mp4"
+                  tabletSrc="/videos/optimized/tablet/project-tablet.mp4"
+                  desktopSrc="/videos/optimized/desktop/project-desktop.mp4"
+                  mobileWebm="/videos/optimized/mobile/project-mobile.webm"
+                  tabletWebm="/videos/optimized/tablet/project-tablet.webm"
+                  desktopWebm="/videos/optimized/desktop/project-desktop.webm"
+                  poster="/images/features/wavtrack-screengrabs/Recent project Component .png"
+                  className="w-full h-full object-contain rounded-2xl"
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  onMouseEnter={(e) => e.currentTarget.play()}
+                  onMouseLeave={(e) => e.currentTarget.pause()}
+                />
             </div>
           </motion.div>
         </div>

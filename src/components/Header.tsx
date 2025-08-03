@@ -124,13 +124,16 @@ export default function Header() {
             {/* Backdrop */}
             <div
               className="fixed inset-0 z-[9999] bg-black/50"
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMobileMenuOpen(false);
+              }}
               aria-hidden="true"
             />
             {/* Slide-over */}
-            <div className="fixed inset-y-0 right-0 z-[9999] w-80 bg-white dark:bg-zinc-900 shadow-lg">
+            <div className="fixed inset-y-0 right-0 z-[10000] w-80 bg-white dark:bg-zinc-900 shadow-lg flex flex-col">
               {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b">
+              <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
                 <h2 className="text-lg font-medium">Menu</h2>
                 <button
                   type="button"
@@ -143,7 +146,7 @@ export default function Header() {
               </div>
               
               {/* Content */}
-              <div className="p-4 space-y-4">
+              <div className="p-4 space-y-4 flex-1 overflow-y-auto">
                 {/* User Info */}
                 {user && (
                   <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-zinc-800 rounded">
@@ -217,19 +220,26 @@ export default function Header() {
                 {/* Auth Buttons */}
                 {!user ? (
                   <div className="space-y-2 pt-4 border-t">
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => { setIsMobileMenuOpen(false); navigate('/login') }}
+                    <button
+                      className="w-full flex items-center justify-center gap-3 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-zinc-800"
+                      onClick={(e) => { 
+                        e.stopPropagation();
+                        setIsMobileMenuOpen(false); 
+                        navigate('/login'); 
+                      }}
                     >
                       Sign In
-                    </Button>
-                    <Button
-                      className="w-full"
-                      onClick={() => { setIsMobileMenuOpen(false); navigate('/register') }}
+                    </button>
+                    <button
+                      className="w-full flex items-center justify-center gap-3 px-3 py-2 bg-gradient-to-r from-[#8257E5] to-[#B490FF] text-white rounded hover:from-[#8257E5]/90 hover:to-[#B490FF]/90"
+                      onClick={(e) => { 
+                        e.stopPropagation();
+                        setIsMobileMenuOpen(false); 
+                        navigate('/register'); 
+                      }}
                     >
                       Join Waitlist
-                    </Button>
+                    </button>
                   </div>
                 ) : (
                   <button
