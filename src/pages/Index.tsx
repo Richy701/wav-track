@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useSupabaseSubscription } from '@/hooks/useCleanup'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import ProjectList from '@/components/ProjectList'
@@ -16,6 +17,8 @@ import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { Clock } from '@phosphor-icons/react'
 import { SessionsOverview } from '@/components/sessions/SessionsOverview'
+import { logger } from '@/utils/logger'
+import { useDebouncedCallback } from 'use-debounce'
 
 const Index = () => {
   const { projects, isLoading, error, updateProject: updateProjectAsync } = useProjects()
@@ -23,22 +26,89 @@ const Index = () => {
   const navigate = useNavigate()
   const [sessions, setSessions] = useState<Session[]>([])
   const [beatActivities, setBeatActivities] = useState<BeatActivity[]>([])
+  
+  // Memoized data to prevent unnecessary re-renders
+  const memoizedSessions = useMemo(() => 
+    sessions.filter(session => session.user_id === user?.id), 
+    [sessions, user?.id]
+  )
+  
+  const memoizedBeatActivities = useMemo(() => 
+    beatActivities.filter(activity => activity.projectId), 
+    [beatActivities]
+  )
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const queryClient = useQueryClient()
+  const { addSubscription } = useSupabaseSubscription()
 
-  // Add debugging
-  console.log('[Index] Auth state:', { user: !!user, profile: !!profile, authLoading, isInitialized })
+  // Optimized debugging
+  logger.debug('[Index] Auth state:', { user: !!user, profile: !!profile, authLoading, isInitialized })
 
   useEffect(() => {
     if (isInitialized && !user) {
-      console.log('[Index] No user found after initialization, redirecting to login page')
+      logger.debug('[Index] No user found after initialization, redirecting to login page')
       navigate('/login')
       return
     }
   }, [user, isInitialized, navigate])
 
-  // Add effect to handle initial data loading
+  // Memoized data fetching function to prevent unnecessary re-renders
+  const fetchData = useCallback(async () => {
+    if (!user?.id) return
+    
+    try {
+      logger.performance('Fetching data for user', user.id)
+
+      // Fetch sessions and beat activities in parallel
+      const [sessionsResult, beatActivitiesResult] = await Promise.all([
+        supabase
+          .from('sessions')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('beat_activities')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('timestamp', { ascending: false })
+      ])
+
+      if (sessionsResult.error) {
+        logger.error('Supabase error:', sessionsResult.error)
+        throw sessionsResult.error
+      }
+      
+      if (beatActivitiesResult.error) {
+        logger.error('Error fetching beat activities:', beatActivitiesResult.error)
+        throw beatActivitiesResult.error
+      }
+
+      logger.debug('Fetched sessions:', sessionsResult.data?.length)
+      setSessions((sessionsResult.data || []) as Session[])
+
+      // Memoized transformation
+      const transformedBeatActivities = (beatActivitiesResult.data || []).map(activity => ({
+        id: activity.id,
+        projectId: activity.project_id,
+        date: activity.date,
+        count: activity.count,
+        timestamp: activity.timestamp,
+      }))
+
+      logger.debug('Fetched beat activities:', transformedBeatActivities.length)
+      setBeatActivities(transformedBeatActivities)
+      logger.performance('Data fetch completed', {
+        sessions: sessionsResult.data?.length || 0,
+        beatActivities: transformedBeatActivities.length
+      })
+    } catch (error) {
+      logger.error('Error fetching data:', error)
+      toast.error('Failed to load data')
+    }
+  }, [user?.id])
+
+  // Add effect to handle initial data loading - optimized
   useEffect(() => {
     if (!user || !isInitialized) return
 
@@ -47,59 +117,11 @@ const Index = () => {
       queryKey: ['projects', user.id]
     })
 
-    // Also fetch sessions and beat activities
-    const fetchData = async () => {
-      try {
-        console.log('Fetching data for user:', user.id)
-
-        // Fetch sessions
-        const { data: sessionsData, error: sessionsError } = await supabase
-          .from('sessions')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-
-        if (sessionsError) {
-          console.error('Supabase error:', sessionsError)
-          throw sessionsError
-        }
-        console.log('Fetched sessions:', sessionsData)
-        setSessions((sessionsData || []) as Session[])
-
-        // Fetch beat activities
-        const { data: beatActivitiesData, error: beatActivitiesError } = await supabase
-          .from('beat_activities')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('timestamp', { ascending: false })
-
-        if (beatActivitiesError) {
-          console.error('Error fetching beat activities:', beatActivitiesError)
-          throw beatActivitiesError
-        }
-
-        // Transform beat activities data
-        const transformedBeatActivities = (beatActivitiesData || []).map(activity => ({
-          id: activity.id,
-          projectId: activity.project_id,
-          date: activity.date,
-          count: activity.count,
-          timestamp: activity.timestamp,
-        }))
-
-        console.log('Fetched beat activities:', transformedBeatActivities)
-        setBeatActivities(transformedBeatActivities)
-      } catch (error) {
-        console.error('Error fetching data:', error)
-        toast.error('Failed to load data')
-      }
-    }
-
     fetchData()
 
-    // Set up real-time subscription for beat activities
+    // Set up real-time subscription for beat activities - optimized with cleanup
     const beatActivitiesSubscription = supabase
-      .channel('beat_activities_changes')
+      .channel(`beat_activities_${user.id}`)
       .on(
         'postgres_changes',
         {
@@ -109,10 +131,10 @@ const Index = () => {
           filter: `user_id=eq.${user.id}`,
         },
         async (payload) => {
-          console.log('Beat activity change detected:', payload)
+          logger.debug('Beat activity change detected:', payload.eventType)
           
           try {
-            // For INSERT events, add the new activity to the existing list
+            // Debounced state updates to prevent excessive re-renders
             if (payload.eventType === 'INSERT') {
               const newActivity = {
                 id: payload.new.id,
@@ -121,13 +143,17 @@ const Index = () => {
                 count: payload.new.count,
                 timestamp: payload.new.timestamp,
               }
-              setBeatActivities(prev => [newActivity, ...prev])
+              setBeatActivities(prev => {
+                // Prevent duplicate insertions
+                if (prev.some(activity => activity.id === newActivity.id)) {
+                  return prev
+                }
+                return [newActivity, ...prev]
+              })
             }
-            // For DELETE events, remove the activity
             else if (payload.eventType === 'DELETE') {
               setBeatActivities(prev => prev.filter(activity => activity.id !== payload.old.id))
             }
-            // For UPDATE events, update the existing activity
             else if (payload.eventType === 'UPDATE') {
               setBeatActivities(prev => 
                 prev.map(activity => 
@@ -142,39 +168,31 @@ const Index = () => {
               )
             }
           } catch (error) {
-            console.error('Error handling beat activity change:', error)
+            logger.error('Error handling beat activity change:', error)
             // Fallback to refetch if there's an error
-            const { data: newBeatActivities, error: fetchError } = await supabase
-              .from('beat_activities')
-              .select('*')
-              .eq('user_id', user.id)
-              .order('timestamp', { ascending: false })
-
-            if (!fetchError && newBeatActivities) {
-              const transformed = newBeatActivities.map(activity => ({
-                id: activity.id,
-                projectId: activity.project_id,
-                date: activity.date,
-                count: activity.count,
-                timestamp: activity.timestamp,
-              }))
-              setBeatActivities(transformed)
-            }
+            fetchData()
           }
         }
       )
       .subscribe()
 
-    return () => {
-      beatActivitiesSubscription.unsubscribe()
-    }
-  }, [user, isInitialized, queryClient])
+    // Use the cleanup hook to manage subscription
+    addSubscription(beatActivitiesSubscription)
 
-  const handleDragEnd = (activeId: string, overId: string) => {
+    return () => {
+      // Additional cleanup - remove all channels to prevent memory leaks
+      supabase.removeAllChannels()
+    }
+  }, [user?.id, isInitialized, fetchData])
+
+  // Memoized drag handler to prevent unnecessary re-renders
+  const handleDragEnd = useCallback((activeId: string, overId: string) => {
     if (!projects) return
 
     const oldIndex = projects.findIndex(p => p.id === activeId)
     const newIndex = projects.findIndex(p => p.id === overId)
+
+    if (oldIndex === newIndex) return // No change needed
 
     const newProjects = [...projects]
     const [movedProject] = newProjects.splice(oldIndex, 1)
@@ -187,10 +205,10 @@ const Index = () => {
     }
 
     updateProjectAsync(projectToUpdate).catch(error => {
-      console.error('Error updating project order:', error)
+      logger.error('Error updating project order:', error)
       toast.error('Failed to update project order')
     })
-  }
+  }, [projects, updateProjectAsync])
 
   if (authLoading || !user || !profile) {
     return <DashboardSkeleton />
@@ -212,9 +230,9 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10 md:mb-12 lg:items-start">
           <div className="lg:col-span-2 min-w-0">
             <Stats
-              sessions={sessions}
+              sessions={memoizedSessions}
               selectedProject={selectedProject}
-              beatActivities={beatActivities}
+              beatActivities={memoizedBeatActivities}
             />
           </div>
           <div className="grid grid-cols-1 gap-6 h-fit min-w-0">

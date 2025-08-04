@@ -9,6 +9,7 @@ import {
 } from 'react-router-dom'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from 'sonner'
+import { Analytics } from '@vercel/analytics/react'
 import { AuthProvider, AuthNavigationProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import LoadingScreen from './components/LoadingScreen'
@@ -24,29 +25,11 @@ import { Track } from './types/track'
 import { useQuery } from '@tanstack/react-query'
 import { StatCardSkeleton } from '@/components/ui/stat-card-skeleton'
 import { FadeIn } from '@/components/ui/fade-in'
-import Sessions from './pages/Sessions'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { DirectionProvider } from './components/providers/DirectionProvider'
 
-// Create a new QueryClient instance
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 2, // 2 minutes
-      gcTime: 1000 * 60 * 10, // 10 minutes
-      refetchOnWindowFocus: false,
-      retry: 1,
-      refetchOnMount: "always",
-      refetchOnReconnect: false,
-      refetchInterval: false,
-      throwOnError: true,
-    },
-    mutations: {
-      retry: 1,
-      throwOnError: true,
-    },
-  },
-})
+// Use the optimized QueryClient instance from query-client.ts
+import { queryClient } from './lib/query-client'
 
 // Custom lazy loading wrapper with preload support
 function lazyWithPreload<T extends React.ComponentType<Record<string, unknown>>>(
@@ -72,17 +55,18 @@ function NavigationWrapper({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-// Lazy load route components with preloading
-const Login = lazyWithPreload(() => import('./pages/Login'))
-const Profile = lazyWithPreload(() => import('./pages/Profile'))
-const ProfileSettings = lazyWithPreload(() => import('./pages/ProfileSettings'))
-const Index = lazyWithPreload(() => import('./pages/Index'))
-const Callback = lazyWithPreload(() => import('./pages/auth/Callback'))
-const ProjectDetail = lazyWithPreload(() => import('./pages/ProjectDetail'))
-const LandingPage = lazyWithPreload(() => import('./pages/LandingPage'))
-const Achievements = lazyWithPreload(() => import('./pages/Achievements'))
-const PrivacyPolicy = lazyWithPreload(() => import('./pages/PrivacyPolicy'))
-const TermsOfService = lazyWithPreload(() => import('./pages/TermsOfService'))
+// Lazy load route components with preloading - Optimized for bundle splitting
+const Login = lazyWithPreload(() => import(/* webpackChunkName: "auth" */ './pages/Login'))
+const Profile = lazyWithPreload(() => import(/* webpackChunkName: "profile" */ './pages/Profile'))
+const ProfileSettings = lazyWithPreload(() => import(/* webpackChunkName: "profile" */ './pages/ProfileSettings'))
+const Index = lazyWithPreload(() => import(/* webpackChunkName: "dashboard" */ './pages/Index'))
+const Sessions = lazyWithPreload(() => import(/* webpackChunkName: "sessions" */ './pages/Sessions'))
+const Callback = lazyWithPreload(() => import(/* webpackChunkName: "auth" */ './pages/auth/Callback'))
+const ProjectDetail = lazyWithPreload(() => import(/* webpackChunkName: "project" */ './pages/ProjectDetail'))
+const LandingPage = lazyWithPreload(() => import(/* webpackChunkName: "landing" */ './pages/LandingPage'))
+const Achievements = lazyWithPreload(() => import(/* webpackChunkName: "achievements" */ './pages/Achievements'))
+const PrivacyPolicy = lazyWithPreload(() => import(/* webpackChunkName: "legal" */ './pages/PrivacyPolicy'))
+const TermsOfService = lazyWithPreload(() => import(/* webpackChunkName: "legal" */ './pages/TermsOfService'))
 
 
 // Preload components on hover
@@ -127,6 +111,7 @@ const router = createBrowserRouter(
                     <Toaster />
                     <OfflineStatus />
                     <CookieConsent />
+                    <Analytics />
                   </AuthNavigationProvider>
                 </AuthProvider>
               </div>

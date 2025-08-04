@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, memo, useCallback } from 'react'
 import {
   ArrowPathIcon,
   CalendarIcon,
@@ -48,7 +48,7 @@ interface ProjectCardProps {
   isSelected?: boolean
 }
 
-export default function ProjectCard({
+const ProjectCard = memo(function ProjectCard({
   project,
   onProjectUpdated,
   onProjectDeleted,
@@ -79,16 +79,17 @@ export default function ProjectCard({
     completed: 100,
   }
 
-  const formatDate = (dateString: string) => {
+  // Memoized date formatting functions to prevent re-computation
+  const formatDate = useCallback((dateString: string) => {
     const date = new Date(dateString)
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     }).format(date)
-  }
+  }, [])
 
-  const formatTimeAgo = (dateString: string) => {
+  const formatTimeAgo = useCallback((dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
@@ -98,13 +99,13 @@ export default function ProjectCard({
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`
     if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`
     return formatDate(dateString)
-  }
+  }, [formatDate])
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     setIsDeleteDialogOpen(true)
-  }
+  }, [])
 
-  const handleMoveToNextStage = () => {
+  const handleMoveToNextStage = useCallback(() => {
     const statusOrder: Project['status'][] = [
       'idea',
       'in-progress',
@@ -139,9 +140,9 @@ export default function ProjectCard({
         })
       }
     }
-  }
+  }, [localProject, onProjectUpdated])
 
-  const handleProjectUpdated = (updatedProject: Project) => {
+  const handleProjectUpdated = useCallback((updatedProject: Project) => {
     try {
       updateProject(updatedProject)
       setLocalProject(updatedProject)
@@ -157,9 +158,9 @@ export default function ProjectCard({
         description: 'An error occurred while updating the project.',
       })
     }
-  }
+  }, [onProjectUpdated])
 
-  const handleCardClick = (e: React.MouseEvent) => {
+  const handleCardClick = useCallback((e: React.MouseEvent) => {
     // Don't trigger if clicking on buttons or menu
     if (
       e.target instanceof HTMLElement &&
@@ -168,19 +169,19 @@ export default function ProjectCard({
       return
     }
     onProjectSelect?.(project)
-  }
+  }, [onProjectSelect, project])
 
-  const handleEditClick = (e: React.MouseEvent) => {
+  const handleEditClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault() // Prevent navigation
     setIsEditDialogOpen(true)
     setMenuOpen(false) // Close the menu
-  }
+  }, [])
 
-  const handleDeleteClick = (e: React.MouseEvent) => {
+  const handleDeleteClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault() // Prevent navigation
     setIsDeleteDialogOpen(true)
     setMenuOpen(false) // Close the menu
-  }
+  }, [])
 
   // Debug log for audio URL
   useEffect(() => {
@@ -220,8 +221,8 @@ export default function ProjectCard({
     }
   }, [project.audio_url])
 
-  // Handle audio playback
-  const handlePlayPause = (e: React.MouseEvent) => {
+  // Handle audio playback - memoized to prevent re-renders
+  const handlePlayPause = useCallback((e: React.MouseEvent) => {
     e.preventDefault() // Prevent navigation
     e.stopPropagation() // Prevent card click
 
@@ -278,7 +279,7 @@ export default function ProjectCard({
       })
       setIsPlaying(true)
     }
-  }
+  }, [project.audio_url, project.title, isPlaying])
 
   return (
     <div className="project-card-container">
@@ -469,5 +470,17 @@ export default function ProjectCard({
       />
     </div>
   )
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison function for memo optimization
+  return (
+    prevProps.project.id === nextProps.project.id &&
+    prevProps.project.title === nextProps.project.title &&
+    prevProps.project.status === nextProps.project.status &&
+    prevProps.project.completionPercentage === nextProps.project.completionPercentage &&
+    prevProps.project.lastModified === nextProps.project.lastModified &&
+    prevProps.isSelected === nextProps.isSelected
+  )
+})
+
+export default ProjectCard
 

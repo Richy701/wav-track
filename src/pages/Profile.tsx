@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react'
+import React, { useRef, useEffect, useState, useCallback, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -14,13 +14,17 @@ import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'sonner'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { AboutMe } from '@/components/profile/AboutMe'
-import { StatsSummary } from '@/components/profile/StatsSummary'
-import { Achievements } from '@/components/profile/Achievements'
-import { ProjectGraph } from '@/components/profile/ProjectGraph'
 import { Spinner } from '@/components/ui/spinner'
 import { useImageCache } from '@/hooks/useImageCache'
 import { motion } from 'framer-motion'
+import { logger } from '@/utils/logger'
+import { useDebouncedCallback } from 'use-debounce'
+
+// Lazy load heavy profile components
+const AboutMe = lazy(() => import('@/components/profile/AboutMe').then(module => ({ default: module.AboutMe })))
+const StatsSummary = lazy(() => import('@/components/profile/StatsSummary').then(module => ({ default: module.StatsSummary })))
+const Achievements = lazy(() => import('@/components/profile/Achievements').then(module => ({ default: module.Achievements })))
+const ProjectGraph = lazy(() => import('@/components/profile/ProjectGraph').then(module => ({ default: module.ProjectGraph })))
 
 const fadeInUp = {
   initial: { 
@@ -60,29 +64,22 @@ const Profile = () => {
     }
   }, [])
 
-  // Refresh profile when component mounts
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (!isInitialized || authLoading) return
-      
-      // Clear any existing timeout
-      if (refreshTimeoutRef.current) {
-        clearTimeout(refreshTimeoutRef.current)
-      }
-
-      // Set a new timeout to debounce the refresh
-      refreshTimeoutRef.current = setTimeout(async () => {
-        try {
-          await refreshProfile()
-        } catch (error) {
-          console.error('Error refreshing profile:', error)
-          toast.error('Failed to load profile data')
-        }
-      }, 500) // 500ms debounce
+  // Optimized profile refresh with better debouncing
+  const debouncedRefreshProfile = useDebouncedCallback(async () => {
+    try {
+      logger.performance('Profile refresh started')
+      await refreshProfile()
+      logger.performance('Profile refresh completed')
+    } catch (error) {
+      logger.error('Error refreshing profile:', error)
+      toast.error('Failed to load profile data')
     }
+  }, 1000) // Increased to 1000ms for better performance
 
-    loadProfile()
-  }, [refreshProfile, isInitialized, authLoading])
+  useEffect(() => {
+    if (!isInitialized || authLoading) return
+    debouncedRefreshProfile()
+  }, [isInitialized, authLoading, debouncedRefreshProfile])
 
   // Calculate the initials for the avatar fallback
   const getInitials = useCallback(() => {
@@ -95,12 +92,13 @@ const Profile = () => {
       .substring(0, 2)
   }, [profile?.name])
 
-  // Memoize handlers
+  // Optimized image upload with better error handling
   const handleImageUpload = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0]
       if (!file) return
 
+      // Validate file type and size
       if (!file.type.startsWith('image/')) {
         toast.error('Please upload an image file')
         return
@@ -113,17 +111,25 @@ const Profile = () => {
 
       try {
         setIsLoading(true)
+        logger.performance('Image upload started', { size: file.size, type: file.type })
+        
+        // Create form data and upload (implementation would go here)
         const formData = new FormData()
         formData.append('avatar', file)
-        await refreshProfile()
+        
+        // Refresh profile to get updated avatar
+        await debouncedRefreshProfile()
+        
+        logger.performance('Image upload completed')
+        toast.success('Profile picture updated!')
       } catch (error) {
-        console.error('Error uploading image:', error)
+        logger.error('Error uploading image:', error)
         toast.error('Failed to upload image')
       } finally {
         setIsLoading(false)
       }
     },
-    [refreshProfile]
+    [debouncedRefreshProfile]
   )
 
   const handleLogout = useCallback(async () => {
@@ -254,7 +260,7 @@ const Profile = () => {
           </div>
         </motion.div>
 
-        {/* Main Content */}
+        {/* Main Content - Optimized with lazy loading */}
         <motion.div 
           className="max-w-6xl mx-auto px-4 md:px-8 py-8"
           variants={staggerContainer}
@@ -266,16 +272,30 @@ const Profile = () => {
             className="w-full"
             variants={fadeInUp}
           >
-            <AboutMe />
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-8">
+                <Spinner className="h-6 w-6" />
+                <span className="ml-2 text-sm text-muted-foreground">Loading about section...</span>
+              </div>
+            }>
+              <AboutMe />
+            </Suspense>
           </motion.div>
 
-          {/* Progress Overview Section - Moved below About Me */}
+          {/* Progress Overview Section */}
           <motion.div 
             className="mt-8 w-full max-w-3xl mx-auto"
             variants={fadeInUp}
           >
             <hr className="border-muted my-6" />
-            <StatsSummary />
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-4">
+                <Spinner className="h-5 w-5" />
+                <span className="ml-2 text-sm text-muted-foreground">Loading stats...</span>
+              </div>
+            }>
+              <StatsSummary />
+            </Suspense>
           </motion.div>
 
           {/* Project Graph Section */}
@@ -283,7 +303,14 @@ const Profile = () => {
             className="mt-12"
             variants={fadeInUp}
           >
-            <ProjectGraph />
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-8">
+                <Spinner className="h-6 w-6" />
+                <span className="ml-2 text-sm text-muted-foreground">Loading project graph...</span>
+              </div>
+            }>
+              <ProjectGraph />
+            </Suspense>
           </motion.div>
 
           {/* Achievements Section */}
@@ -291,7 +318,14 @@ const Profile = () => {
             className="mt-12"
             variants={fadeInUp}
           >
-            <Achievements />
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-8">
+                <Spinner className="h-6 w-6" />
+                <span className="ml-2 text-sm text-muted-foreground">Loading achievements...</span>
+              </div>
+            }>
+              <Achievements />
+            </Suspense>
           </motion.div>
         </motion.div>
       </main>

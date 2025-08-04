@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, memo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { OptimizedInputField, OptimizedTextAreaField, OptimizedGenreField } from '@/components/ui/optimized-form-field'
+import { useDebouncedCallback } from 'use-debounce'
+import { logger } from '@/utils/logger'
 import {
   Card,
   CardContent,
@@ -247,13 +250,14 @@ const ProfileSettings = () => {
     }
   }, [profile])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+  // Optimized change handler with debouncing
+  const handleChange = useDebouncedCallback((name: string, value: string) => {
+    logger.debug('Form field changed:', name, value.length)
     setFormData(prev => ({
       ...prev,
       [name]: value,
     }))
-  }
+  }, 300)
 
   const handleSocialChange = (platform: string, type: 'url' | 'username', value: string) => {
     setFormData(prev => ({
@@ -277,16 +281,20 @@ const ProfileSettings = () => {
     }))
   }
 
-  const handleGenresChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const genresArray = e.target.value
-      .split(',')
-      .map(g => g.trim())
-      .filter(Boolean)
+  // Optimized genre management
+  const handleGenreAdd = useCallback((genre: string) => {
     setFormData(prev => ({
       ...prev,
-      genres: genresArray,
+      genres: [...prev.genres, genre].sort(),
     }))
-  }
+  }, [])
+  
+  const handleGenreRemove = useCallback((genre: string) => {
+    setFormData(prev => ({
+      ...prev,
+      genres: prev.genres.filter(g => g !== genre),
+    }))
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -378,75 +386,57 @@ const ProfileSettings = () => {
               </CardHeader>
               <CardContent className="relative">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-                  <div className="space-y-2 w-full">
-                    <Label htmlFor="name" className="text-sm font-medium text-foreground/90">Name</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Your name"
-                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
-                    />
-                  </div>
-                  <div className="space-y-2 w-full">
-                    <Label htmlFor="artist_name" className="text-sm font-medium text-foreground/90">Artist Name</Label>
-                    <Input
-                      id="artist_name"
-                      name="artist_name"
-                      value={formData.artist_name}
-                      onChange={handleChange}
-                      placeholder="Your artist name"
-                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
-                    />
-                  </div>
-                  <div className="space-y-2 w-full">
-                    <Label htmlFor="email" className="text-sm font-medium text-foreground/90">Email</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="your@email.com"
-                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
-                    />
-                  </div>
-                  <div className="space-y-2 w-full">
-                    <Label htmlFor="phone" className="text-sm font-medium text-foreground/90">Phone</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="Your phone number"
-                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
-                    />
-                  </div>
-                  <div className="space-y-2 w-full">
-                    <Label htmlFor="location" className="text-sm font-medium text-foreground/90">Location</Label>
-                    <Input
-                      id="location"
-                      name="location"
-                      value={formData.location}
-                      onChange={handleChange}
-                      placeholder="Your location"
-                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
-                    />
-                  </div>
-                  <div className="space-y-2 w-full">
-                    <Label htmlFor="website" className="text-sm font-medium text-foreground/90">Website</Label>
-                    <Input
-                      id="website"
-                      name="website"
-                      type="url"
-                      value={formData.website}
-                      onChange={handleChange}
-                      placeholder="https://your-website.com"
-                      className="w-full bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition-colors focus:ring-2 ring-primary/20"
-                    />
-                  </div>
+                  <OptimizedInputField
+                    id="name"
+                    name="name"
+                    label="Name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Your name"
+                  />
+                  <OptimizedInputField
+                    id="artist_name"
+                    name="artist_name"
+                    label="Artist Name"
+                    value={formData.artist_name}
+                    onChange={handleChange}
+                    placeholder="Your artist name"
+                  />
+                  <OptimizedInputField
+                    id="email"
+                    name="email"
+                    label="Email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="your@email.com"
+                  />
+                  <OptimizedInputField
+                    id="phone"
+                    name="phone"
+                    label="Phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="Your phone number"
+                  />
+                  <OptimizedInputField
+                    id="location"
+                    name="location"
+                    label="Location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    placeholder="Your location"
+                  />
+                  <OptimizedInputField
+                    id="website"
+                    name="website"
+                    label="Website"
+                    type="url"
+                    value={formData.website}
+                    onChange={handleChange}
+                    placeholder="https://your-website.com"
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -464,17 +454,15 @@ const ProfileSettings = () => {
               </CardHeader>
               <CardContent className="relative">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-                  <div className="space-y-2 w-full md:col-span-2">
-                    <Label htmlFor="bio" className="text-sm font-medium text-foreground/90">Bio</Label>
-                    <textarea
-                      id="bio"
-                      name="bio"
-                      value={formData.bio}
-                      onChange={handleChange}
-                      placeholder="Tell others about yourself and your music..."
-                      className="w-full min-h-[100px] p-3 rounded-xl bg-white/10 dark:bg-white/5 backdrop-blur-xl text-sm hover:bg-white/20 dark:hover:bg-white/10 transition-colors resize-y focus:ring-2 ring-primary/20"
-                    />
-                  </div>
+                  <OptimizedTextAreaField
+                    id="bio"
+                    name="bio"
+                    label="Bio"
+                    value={formData.bio}
+                    onChange={handleChange}
+                    placeholder="Tell others about yourself and your music..."
+                    debounceMs={500}
+                  />
                   <div className="space-y-2 w-full">
                     <Label htmlFor="daw" className="text-sm font-medium text-foreground/90">Preferred DAW</Label>
                     <div className="relative w-full min-h-[42px]">
@@ -515,62 +503,12 @@ const ProfileSettings = () => {
                       </Select>
                     </div>
                   </div>
-                  <div className="space-y-2 w-full">
-                    <Label className="text-sm font-medium text-foreground/90">Genres</Label>
-                    <div className="relative w-full min-h-[42px]">
-                      <Select
-                        onValueChange={value => {
-                          if (!formData.genres.includes(value)) {
-                            setFormData(prev => ({
-                              ...prev,
-                              genres: [...prev.genres, value].sort(),
-                            }))
-                          }
-                        }}
-                      >
-                        <SelectTrigger className="w-full h-10 bg-white/10 dark:bg-white/5 backdrop-blur-xl text-foreground transition-colors hover:bg-white/20 dark:hover:bg-white/10">
-                          <SelectValue placeholder="Select a genre" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white/95 backdrop-blur-xl border-white/20 dark:border-white/10">
-                          {popularGenres.map(genre => (
-                            <SelectItem 
-                              key={genre} 
-                              value={genre}
-                              className="hover:bg-foreground/5"
-                            >
-                              {genre}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {formData.genres.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {formData.genres.map(genre => (
-                          <Badge
-                            key={genre}
-                            variant="secondary"
-                            className="flex items-center gap-1 px-2 py-1 bg-white/10 dark:bg-white/5 backdrop-blur-xl border border-white/20 dark:border-white/10 hover:bg-white/20 dark:hover:bg-white/10"
-                          >
-                            {genre}
-                            <button
-                              type="button"
-                              className="ml-1 hover:text-destructive"
-                              onClick={() => {
-                                setFormData(prev => ({
-                                  ...prev,
-                                  genres: prev.genres.filter(g => g !== genre),
-                                }))
-                              }}
-                              aria-label={`Remove ${genre} genre`}
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <OptimizedGenreField
+                    genres={formData.genres}
+                    availableGenres={popularGenres}
+                    onGenreAdd={handleGenreAdd}
+                    onGenreRemove={handleGenreRemove}
+                  />
                 </div>
               </CardContent>
             </Card>

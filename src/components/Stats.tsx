@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react'
 import {
   ChartLineUp,
   PencilSimple,
@@ -23,6 +23,7 @@ import { BeatsChart } from './stats/BeatsChart'
 import { BeatBarChart } from './stats/BeatBarChart'
 import { TimeRangeSelector } from './stats/TimeRangeSelector'
 import { getTotalBeatsInTimeRange, getBeatsCreatedByProject, getBeatsDataForChart, getTotalSessionTime } from '@/lib/data'
+import { getBeatsByProjectsBatch, getBeatsInTimeRangeBatch } from '@/lib/batchQueries'
 import { Project, Session, BeatActivity } from '@/lib/types'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -90,7 +91,7 @@ const getDefaultTooltip = (title: string) => {
   }
 }
 
-export default function Stats({ sessions, selectedProject, beatActivities }: StatsProps) {
+const Stats = memo(function Stats({ sessions, selectedProject, beatActivities }: StatsProps) {
   const { allProjects: projects } = useProjects()
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'year'>('week')
   const [totalBeatsCreated, setTotalBeatsCreated] = useState(0)
@@ -118,7 +119,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
     fetchSessionTime()
   }, [])
 
-  // Fetch beat counts when projects or selected project changes
+  // Optimized beat counts fetching - fixes N+1 problem
   useEffect(() => {
     const fetchBeatCounts = async () => {
       setIsLoading(true)
@@ -129,17 +130,20 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
           return
         }
 
-        // Calculate total beats across all projects or selected project
-        const periodBeats = await getTotalBeatsInTimeRange(timeRange, selectedProject?.id ?? null)
-        setTotalBeatsInPeriod(periodBeats)
+        const projectIds = selectedProject ? [selectedProject.id] : projects.map(p => p.id)
 
+        // Batch fetch beats for time range and total counts in parallel
+        const [periodData, totalBeatsData] = await Promise.all([
+          getBeatsInTimeRangeBatch(timeRange, selectedProject ? [selectedProject.id] : undefined),
+          getBeatsByProjectsBatch(projectIds)
+        ])
+
+        setTotalBeatsInPeriod(periodData.total)
+        
         if (selectedProject) {
-          const beats = await getBeatsCreatedByProject(selectedProject.id)
-          setTotalBeatsCreated(beats)
+          setTotalBeatsCreated(totalBeatsData[selectedProject.id] || 0)
         } else {
-          const beatPromises = projects.map(project => getBeatsCreatedByProject(project.id))
-          const beatCounts = await Promise.all(beatPromises)
-          const total = beatCounts.reduce((sum, count) => sum + count, 0)
+          const total = Object.values(totalBeatsData).reduce((sum, count) => sum + count, 0)
           setTotalBeatsCreated(total)
         }
       } catch (error) {
@@ -152,7 +156,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
     }
 
     fetchBeatCounts()
-  }, [projects, selectedProject, timeRange, refreshKey])
+  }, [projects.length, selectedProject?.id, timeRange, refreshKey])
 
   // Update when new beats are added or project is selected
   useEffect(() => {
@@ -304,7 +308,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
     }
   }
 
-  // Memoize the year in review data generation
+  // Optimized year in review data generation - fixes N+1 problem
   const generateYearInReview = useCallback(async () => {
     const currentYear = new Date().getFullYear()
     const yearStart = new Date(currentYear, 0, 1)
@@ -312,20 +316,21 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
     // Filter projects and sessions for current year
     const yearProjects = projects.filter(p => new Date(p.dateCreated) >= yearStart)
     const yearSessions = sessions.filter(s => new Date(s.created_at) >= yearStart)
+    const yearProjectIds = yearProjects.map(p => p.id)
 
-    // Calculate year-specific stats in parallel
-    const [yearBeats, yearCompleted, yearStudioTime, monthlyStats, topGenres] = await Promise.all([
-      // Calculate total beats
-      Promise.all(yearProjects.map(project => getBeatsCreatedByProject(project.id)))
-        .then(counts => counts.reduce((total, count) => total + count, 0)),
-      
+    // Batch fetch all beats for year projects to avoid N+1
+    const yearBeatsData = await getBeatsByProjectsBatch(yearProjectIds)
+    const yearBeats = Object.values(yearBeatsData).reduce((total, count) => total + count, 0)
+
+    // Calculate year-specific stats in parallel - optimized
+    const [yearCompleted, yearStudioTime, monthlyStats, topGenres] = await Promise.all([
       // Calculate completed projects
-      yearProjects.filter(p => p.status === 'completed').length,
+      Promise.resolve(yearProjects.filter(p => p.status === 'completed').length),
       
       // Calculate studio time (convert minutes to hours)
-      yearSessions.reduce((total, session) => total + (session.duration || 0), 0) / 60,
+      Promise.resolve(yearSessions.reduce((total, session) => total + (session.duration || 0), 0) / 60),
       
-      // Calculate monthly stats
+      // Calculate monthly stats - optimized with batch queries
       Promise.all(
         Array.from({ length: 12 }, async (_, i) => {
           const monthStart = new Date(currentYear, i, 1)
@@ -339,9 +344,10 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
             return date >= monthStart && date <= monthEnd
           })
 
-          const monthBeats = await Promise.all(
-            monthProjects.map(project => getBeatsCreatedByProject(project.id))
-          ).then(counts => counts.reduce((total, count) => total + count, 0))
+          // Use batch query for month beats
+          const monthProjectIds = monthProjects.map(p => p.id)
+          const monthBeatsData = await getBeatsByProjectsBatch(monthProjectIds)
+          const monthBeats = Object.values(monthBeatsData).reduce((total, count) => total + count, 0)
 
           return {
             month: format(monthStart, 'MMM'),
@@ -379,7 +385,7 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
       beatGoal: 100, // Default goal
       topGenre: topGenres[0] || 'Uncategorized'
     } as YearInReview
-  }, [projects, sessions])
+  }, [projects.length, sessions.length])
 
   // Pre-calculate year in review data when projects or sessions change
   useEffect(() => {
@@ -873,4 +879,13 @@ export default function Stats({ sessions, selectedProject, beatActivities }: Sta
       )}
     </div>
   )
-}
+}, (prevProps, nextProps) => {
+  // Optimize re-renders by comparing only essential props
+  return (
+    prevProps.sessions.length === nextProps.sessions.length &&
+    prevProps.beatActivities.length === nextProps.beatActivities.length &&
+    prevProps.selectedProject?.id === nextProps.selectedProject?.id
+  )
+})
+
+export default Stats
