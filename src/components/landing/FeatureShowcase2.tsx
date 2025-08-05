@@ -28,13 +28,12 @@ export default function FeatureShowcase2() {
                   tabletWebm="/videos/optimized/tablet/pomodoro-tablet.webm"
                   desktopWebm="/videos/optimized/desktop/pomodoro-desktop.webm"
                   poster="/images/features/wavtrack-screengrabs/Pomodoro Timer component.png"
-                  className="w-full h-full object-contain rounded-2xl"
+                  className="w-full h-full object-cover rounded-2xl"
                   muted
                   loop
                   playsInline
+                  autoPlay
                   preload="metadata"
-                  onMouseEnter={(e) => e.currentTarget.play()}
-                  onMouseLeave={(e) => e.currentTarget.pause()}
                 />
             </div>
           </motion.div>

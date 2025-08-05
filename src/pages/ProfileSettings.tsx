@@ -180,7 +180,7 @@ const ProfileSettings = () => {
   const location = useLocation()
   const { profile, updateUserProfile, logout, refreshProfile, isLoggingOut } = useAuth()
   const isNewUser = location.state?.isNewUser || false
-  const returnTo = sessionStorage.getItem('returnTo') || '/'
+  const returnTo = sessionStorage.getItem('returnTo') || '/profile'
 
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -302,7 +302,6 @@ const ProfileSettings = () => {
 
     try {
       await updateUserProfile(formData)
-      await refreshProfile()
       
       // Clear the return path from session storage
       sessionStorage.removeItem('returnTo')

@@ -63,229 +63,149 @@ export default function CookieConsent() {
           exit={{ opacity: 0, y: 100 }}
           transition={{ 
             type: "spring", 
-            stiffness: 300, 
-            damping: 30,
-            duration: 0.3 
+            stiffness: 400, 
+            damping: 25,
+            duration: 0.2 
           }}
           className={cn(
-            "fixed bottom-4 left-4 right-4 z-50",
-            "max-w-2xl mx-auto"
+            "fixed bottom-0 left-0 right-0 z-50",
+            "sm:bottom-4 sm:left-4 sm:right-4 sm:max-w-md sm:mx-auto"
           )}
         >
           <div className={cn(
-            "relative overflow-hidden rounded-2xl",
-            "bg-white/95 dark:bg-zinc-900/95",
-            "backdrop-blur-xl border",
+            "relative overflow-hidden",
+            "rounded-t-2xl sm:rounded-2xl",
+            "bg-white/98 dark:bg-zinc-900/98",
+            "backdrop-blur-xl border-t sm:border",
             "border-zinc-200/80 dark:border-zinc-800/80",
             "shadow-2xl",
-            "p-6"
+            "p-4 sm:p-5"
           )}>
-            {/* Background gradient */}
-            <div className={cn(
-              "absolute inset-0 rounded-2xl",
-              "bg-gradient-to-br from-violet-50/50 to-indigo-50/50",
-              "dark:from-violet-950/20 dark:to-indigo-950/20",
-              "pointer-events-none"
-            )} />
-            
-            {/* Close button */}
+            {/* Close button - hidden on mobile, visible on desktop */}
             <button
               onClick={handleClose}
               className={cn(
-                "absolute top-4 right-4 z-10",
-                "p-2 rounded-full transition-all duration-200",
+                "hidden sm:block absolute top-3 right-3 z-10",
+                "p-1.5 rounded-full transition-all duration-200",
                 "hover:bg-zinc-100 dark:hover:bg-zinc-800",
-                "text-zinc-500 dark:text-zinc-400",
-                "hover:text-zinc-700 dark:hover:text-zinc-200"
+                "text-zinc-400 dark:text-zinc-500",
+                "hover:text-zinc-600 dark:hover:text-zinc-300"
               )}
               aria-label="Close cookie consent"
             >
-              <XMarkIcon className="w-5 h-5" />
+              <XMarkIcon className="w-4 h-4" />
             </button>
 
             {/* Content */}
-            <div className="relative z-10">
+            <div className="relative">
               {/* Header */}
               <div className="flex items-start gap-3 mb-4">
                 <div className={cn(
-                  "flex-shrink-0 p-2 rounded-full",
-                  "bg-violet-100 dark:bg-violet-900/30",
+                  "flex-shrink-0 p-2 rounded-xl",
+                  "bg-violet-100 dark:bg-violet-900/40",
                   "text-violet-600 dark:text-violet-400"
                 )}>
-                  <ShieldCheckIcon className="w-6 h-6" />
+                  <ShieldCheckIcon className="w-5 h-5" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className={cn(
-                      "text-lg font-semibold",
-                      "text-zinc-900 dark:text-zinc-100"
-                    )}>
-                      We value your privacy
-                    </h3>
-                    <span className={cn(
-                      "text-sm font-bold tracking-tight",
-                      "bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent"
-                    )}>
-                      WavTrack
-                    </span>
-                  </div>
+                <div className="flex-1 min-w-0 pr-6 sm:pr-0">
+                  <h3 className={cn(
+                    "text-base font-semibold mb-1",
+                    "text-zinc-900 dark:text-zinc-100"
+                  )}>
+                    Cookie Preferences
+                  </h3>
                   <p className={cn(
                     "text-sm leading-relaxed",
                     "text-zinc-600 dark:text-zinc-400"
                   )}>
-                    We use cookies to enhance your experience, analyze usage patterns, and provide personalized content. 
-                    Your data helps us improve WavTrack and make it more useful for music producers like you.
+                    We use cookies to improve your experience and analyze usage. 
+                    <button 
+                      onClick={handleCustomize}
+                      className="text-violet-600 dark:text-violet-400 hover:underline ml-1"
+                    >
+                      Learn more
+                    </button>
                   </p>
                 </div>
               </div>
 
-              {/* Cookie types */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-                <div className={cn(
-                  "p-3 rounded-lg border",
-                  "bg-zinc-50/50 dark:bg-zinc-800/50",
-                  "border-zinc-200 dark:border-zinc-700"
-                )}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <span className={cn(
-                      "text-xs font-medium",
-                      "text-zinc-700 dark:text-zinc-300"
-                    )}>
-                      Essential
-                    </span>
-                  </div>
-                  <p className={cn(
-                    "text-xs",
-                    "text-zinc-600 dark:text-zinc-400"
-                  )}>
-                    Required for basic functionality
-                  </p>
+              {/* Cookie types - simplified for mobile */}
+              <div className="hidden sm:flex gap-2 mb-4">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                  <span className="text-xs font-medium">Essential</span>
                 </div>
-                
-                <div className={cn(
-                  "p-3 rounded-lg border",
-                  "bg-zinc-50/50 dark:bg-zinc-800/50",
-                  "border-zinc-200 dark:border-zinc-700"
-                )}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 rounded-full bg-blue-500" />
-                    <span className={cn(
-                      "text-xs font-medium",
-                      "text-zinc-700 dark:text-zinc-300"
-                    )}>
-                      Analytics
-                    </span>
-                  </div>
-                  <p className={cn(
-                    "text-xs",
-                    "text-zinc-600 dark:text-zinc-400"
-                  )}>
-                    Help us improve the app
-                  </p>
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                  <span className="text-xs font-medium">Analytics</span>
                 </div>
-                
-                <div className={cn(
-                  "p-3 rounded-lg border",
-                  "bg-zinc-50/50 dark:bg-zinc-800/50",
-                  "border-zinc-200 dark:border-zinc-700"
-                )}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 rounded-full bg-purple-500" />
-                    <span className={cn(
-                      "text-xs font-medium",
-                      "text-zinc-700 dark:text-zinc-300"
-                    )}>
-                      Personalization
-                    </span>
-                  </div>
-                  <p className={cn(
-                    "text-xs",
-                    "text-zinc-600 dark:text-zinc-400"
-                  )}>
-                    Customize your experience
-                  </p>
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400">
+                  <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  <span className="text-xs font-medium">Marketing</span>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  onClick={handleAccept}
-                  className={cn(
-                    "flex-1 sm:flex-none",
-                    "bg-gradient-to-r from-violet-600 to-indigo-600",
-                    "hover:from-violet-700 hover:to-indigo-700",
-                    "text-white font-medium",
-                    "rounded-full px-6 py-2.5",
-                    "transition-all duration-200",
-                    "hover:scale-[1.02] active:scale-[0.98]",
-                    "shadow-lg hover:shadow-xl"
-                  )}
-                >
-                  Accept All Cookies
-                </Button>
-                
-                <Button
-                  onClick={handleCustomize}
-                  variant="outline"
-                  className={cn(
-                    "flex-1 sm:flex-none",
-                    "border-zinc-300 dark:border-zinc-600",
-                    "text-zinc-700 dark:text-zinc-300",
-                    "hover:bg-zinc-50 dark:hover:bg-zinc-800",
-                    "rounded-full px-6 py-2.5",
-                    "transition-all duration-200",
-                    "hover:scale-[1.02] active:scale-[0.98]"
-                  )}
-                >
-                  <Cog6ToothIcon className="w-4 h-4 mr-2" />
-                  Customize
-                </Button>
-                
+              <div className="flex flex-col-reverse sm:flex-row gap-2">
                 <Button
                   onClick={handleDecline}
                   variant="ghost"
+                  size="sm"
                   className={cn(
-                    "flex-1 sm:flex-none",
-                    "text-zinc-500 dark:text-zinc-400",
-                    "hover:text-zinc-700 dark:hover:text-zinc-200",
+                    "flex-1 sm:flex-none h-9",
+                    "text-zinc-600 dark:text-zinc-400",
+                    "hover:text-zinc-800 dark:hover:text-zinc-200",
                     "hover:bg-zinc-100 dark:hover:bg-zinc-800",
-                    "rounded-full px-6 py-2.5",
                     "transition-all duration-200"
                   )}
                 >
                   Decline
                 </Button>
+                
+                <Button
+                  onClick={handleCustomize}
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "flex-1 sm:flex-none h-9",
+                    "border-zinc-300 dark:border-zinc-600",
+                    "text-zinc-700 dark:text-zinc-300",
+                    "hover:bg-zinc-50 dark:hover:bg-zinc-800",
+                    "transition-all duration-200"
+                  )}
+                >
+                  <Cog6ToothIcon className="w-4 h-4 mr-1.5" />
+                  Settings
+                </Button>
+                
+                <Button
+                  onClick={handleAccept}
+                  size="sm"
+                  className={cn(
+                    "flex-1 sm:flex-none h-9",
+                    "bg-violet-600 hover:bg-violet-700",
+                    "text-white font-medium",
+                    "transition-all duration-200",
+                    "shadow-sm hover:shadow-md"
+                  )}
+                >
+                  Accept All
+                </Button>
               </div>
 
-              {/* Footer text */}
+              {/* Footer text - simplified for mobile */}
               <p className={cn(
-                "text-xs mt-4 text-center",
+                "text-xs mt-3 text-center sm:text-left",
                 "text-zinc-500 dark:text-zinc-400"
               )}>
-                By continuing to use WavTrack, you agree to our{' '}
+                See{' '}
                 <a 
                   href="/privacy" 
-                  className={cn(
-                    "underline underline-offset-2",
-                    "text-violet-600 dark:text-violet-400",
-                    "hover:text-violet-700 dark:hover:text-violet-300"
-                  )}
+                  className="text-violet-600 dark:text-violet-400 hover:underline"
                 >
                   Privacy Policy
                 </a>
-                {' '}and{' '}
-                <a 
-                  href="/terms" 
-                  className={cn(
-                    "underline underline-offset-2",
-                    "text-violet-600 dark:text-violet-400",
-                    "hover:text-violet-700 dark:hover:text-violet-300"
-                  )}
-                >
-                  Terms of Service
-                </a>
+                {' '}for details
               </p>
             </div>
           </div>

@@ -27,7 +27,8 @@ import {
   Bell,
   BellOff,
   Keyboard,
-  Save
+  Save,
+  Activity
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -224,13 +225,13 @@ const Sessions = () => {
   }, [handleSaveEdit, handleCancelEdit])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
       
-      <div className="pt-20 pb-8 px-4 md:px-8">
+      <div className="flex-1 pt-20 pb-8 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
           {/* Page Header */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent mb-4">
               Focus Sessions
             </h1>
@@ -239,407 +240,564 @@ const Sessions = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* Timer Section */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-4">
               
-              {/* Timer Card */}
+              {/* Modern Timer Card */}
               <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-background/80 to-muted/30 backdrop-blur-xl shadow-xl">
-                <CardHeader className="text-center pb-4">
-                  <CardTitle className="flex items-center justify-center gap-2">
-                    <Clock className="w-5 h-5" />
-                    Pomodoro Timer
-                  </CardTitle>
-                  <CardDescription>
-                    Stay focused with timed work sessions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6 pt-0">
-                  {/* Mode Toggle using Tabs */}
+                <CardContent className="p-8">
+                  {/* Modern Mode Toggle */}
                   <div className="flex justify-center mb-8">
-                    <Tabs value={timer.state.mode} onValueChange={(value) => timer.switchMode(value as 'focus' | 'break')} className="w-fit">
-                      <TabsList className="grid w-full grid-cols-2 bg-muted/50">
-                        <TabsTrigger value="focus" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
-                          Focus
-                        </TabsTrigger>
-                        <TabsTrigger value="break" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
-                          Break
-                        </TabsTrigger>
-                      </TabsList>
-                    </Tabs>
+                    <div className="flex bg-black/10 dark:bg-black/30 rounded-full p-1 backdrop-blur-sm">
+                      <button
+                        onClick={() => timer.switchMode('focus')}
+                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                          timer.state.mode === 'focus'
+                            ? 'bg-emerald-600 text-white shadow-lg scale-105'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        Focus
+                      </button>
+                      <button
+                        onClick={() => timer.switchMode('break')}
+                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                          timer.state.mode === 'break'
+                            ? 'bg-purple-600 text-white shadow-lg scale-105'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        Break
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Optimized Timer Display */}
+                  {/* Timer Display */}
                   <div className="text-center mb-8">
-                    <OptimizedTimerDisplay
-                      progress={timer.progress}
-                      formattedTime={timer.formattedTime}
-                      mode={timer.state.mode}
-                      status={timer.state.status}
-                      size={256}
-                    />
+                    <div className="relative inline-block">
+                      <OptimizedTimerDisplay
+                        progress={timer.progress}
+                        formattedTime={timer.formattedTime}
+                        mode={timer.state.mode}
+                        status={timer.state.status}
+                        size={240}
+                      />
+                      {/* Status Indicator */}
+                      <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          timer.state.status === 'running' 
+                            ? timer.state.mode === 'focus' 
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                              : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                            : 'bg-muted/50 text-muted-foreground'
+                        }`}>
+                          {timer.state.status === 'running' ? timer.state.mode === 'focus' ? 'Focus Time' : 'Break Time' : 'Ready'}
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Timer Controls */}
-                  <div className="flex justify-center space-x-4 mb-6">
+                  {/* Modern Controls */}
+                  <div className="flex justify-center items-center space-x-3 mb-8">
                     <Button
                       onClick={timer.isActive ? timer.pause : timer.start}
                       size="lg"
-                      className={`px-8 shadow-lg hover:shadow-xl transition-all duration-200 ${
+                      className={`px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${
                         timer.state.mode === 'focus' 
-                          ? 'bg-purple-600 hover:bg-purple-700 hover:scale-105' 
-                          : 'bg-emerald-600 hover:bg-emerald-700 hover:scale-105'
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                          : 'bg-purple-600 hover:bg-purple-700 text-white'
                       }`}
                     >
-                      {timer.isActive ? <Pause className="w-5 h-5 mr-2" /> : <Play className="w-5 h-5 mr-2" />}
+                      {timer.isActive ? (
+                        <Pause className="w-5 h-5 mr-2" />
+                      ) : (
+                        <Play className="w-5 h-5 mr-2" />
+                      )}
                       {timer.isActive ? 'Pause' : timer.isPaused ? 'Resume' : 'Start'}
                     </Button>
+                    
                     <Button
                       onClick={timer.reset}
-                      variant="outline"
+                      variant="ghost"
                       size="lg"
-                      className="hover:scale-105 transition-all duration-200"
+                      className="p-3 rounded-full hover:bg-muted/50 transition-all duration-200"
                     >
-                      <RotateCcw className="w-5 h-5 mr-2" />
-                      Reset
+                      <RotateCcw className="w-5 h-5" />
                     </Button>
+                    
                     <Button
                       onClick={timer.stop}
-                      variant="outline"
+                      variant="ghost"
                       size="lg"
-                      className="hover:scale-105 transition-all duration-200"
+                      className="p-3 rounded-full hover:bg-muted/50 transition-all duration-200"
                     >
-                      <Square className="w-5 h-5 mr-2" />
-                      Stop
+                      <Square className="w-5 h-5" />
                     </Button>
                   </div>
 
-                  {/* Session Info */}
-                  <div className="flex justify-center space-x-8 text-center">
-                    <div className="flex flex-col items-center">
-                      <Badge variant="outline" className="mb-2 text-xs">
-                        Current Session
-                      </Badge>
-                      <div className="text-2xl font-bold text-foreground">
+                  {/* Compact Stats */}
+                  <div className="grid grid-cols-3 gap-4 text-center mb-6">
+                    <div className="p-3 rounded-xl bg-black/5 dark:bg-black/25 backdrop-blur-sm">
+                      <div className="text-lg font-bold text-foreground">
                         #{timer.state.completedSessions + 1}
                       </div>
+                      <div className="text-xs text-muted-foreground">
+                        Current
+                      </div>
                     </div>
-                    <Separator orientation="vertical" className="h-16" />
-                    <div className="flex flex-col items-center">
-                      <Badge variant="outline" className="mb-2 text-xs">
-                        Completed Today
-                      </Badge>
-                      <div className="text-2xl font-bold text-foreground">
+                    <div className="p-3 rounded-xl bg-black/5 dark:bg-black/25 backdrop-blur-sm">
+                      <div className="text-lg font-bold text-foreground">
                         {stats.todaysStats.completedSessions}
                       </div>
-                    </div>
-                    <Separator orientation="vertical" className="h-16" />
-                    <div className="flex flex-col items-center">
-                      <Badge variant="outline" className="mb-2 text-xs">
-                        Focus Time
-                      </Badge>
-                      <div className="text-2xl font-bold text-foreground">
-                        {Math.floor(stats.todaysStats.focusTime / 3600)}h {Math.floor((stats.todaysStats.focusTime % 3600) / 60)}m
+                      <div className="text-xs text-muted-foreground">
+                        Today
                       </div>
                     </div>
+                    <div className="p-3 rounded-xl bg-black/5 dark:bg-black/25 backdrop-blur-sm">
+                      <div className="text-lg font-bold text-foreground">
+                        {Math.floor(stats.todaysStats.focusTime / 3600)}h {Math.floor((stats.todaysStats.focusTime % 3600) / 60)}m
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Focus Time
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Settings and Shortcuts */}
+                  <div className="flex justify-center space-x-3">
+                    <Dialog open={showSettings} onOpenChange={setShowSettings}>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="text-xs px-3 py-2 rounded-full hover:bg-black/10 dark:hover:bg-black/30 transition-all duration-200">
+                          <Settings className="w-3 h-3 mr-1" />
+                          Settings
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-lg">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <Settings className="w-5 h-5" />
+                            Timer Settings
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-6 p-4">
+                          {/* Duration Settings */}
+                          <div className="space-y-4">
+                            <h4 className="font-semibold">Duration Settings</h4>
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <Label className="text-sm font-medium">
+                                  Focus Duration
+                                </Label>
+                                <Badge variant="secondary">{timer.state.settings.focusDuration} min</Badge>
+                              </div>
+                              <Slider
+                                value={[timer.state.settings.focusDuration]}
+                                onValueChange={([value]) => timer.setFocusDuration(value)}
+                                min={15}
+                                max={120}
+                                step={5}
+                                className="w-full"
+                              />
+                            </div>
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <Label className="text-sm font-medium">
+                                  Break Duration
+                                </Label>
+                                <Badge variant="secondary">{timer.state.settings.breakDuration} min</Badge>
+                              </div>
+                              <Slider
+                                value={[timer.state.settings.breakDuration]}
+                                onValueChange={([value]) => timer.setBreakDuration(value)}
+                                min={5}
+                                max={60}
+                                step={1}
+                                className="w-full"
+                              />
+                            </div>
+                          </div>
+                          
+                          <Separator />
+                          
+                          {/* Notification Settings */}
+                          <div className="space-y-4">
+                            <h4 className="font-semibold">Notifications</h4>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <Bell className="w-4 h-4" />
+                                <Label>Browser Notifications</Label>
+                              </div>
+                              <Switch 
+                                checked={timer.state.settings.notificationsEnabled}
+                                onCheckedChange={(checked) => timer.updateSettings({ notificationsEnabled: checked })}
+                              />
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <Volume2 className="w-4 h-4" />
+                                <Label>Sound Alerts</Label>
+                              </div>
+                              <Switch 
+                                checked={timer.state.settings.soundEnabled}
+                                onCheckedChange={(checked) => timer.updateSettings({ soundEnabled: checked })}
+                              />
+                            </div>
+                          </div>
+                          
+                          <Separator />
+                          
+                          {/* Auto-start Settings */}
+                          <div className="space-y-4">
+                            <h4 className="font-semibold">Auto-start</h4>
+                            <div className="flex items-center justify-between">
+                              <Label>Auto-start breaks</Label>
+                              <Switch 
+                                checked={timer.state.settings.autoStartBreaks}
+                                onCheckedChange={(checked) => timer.updateSettings({ autoStartBreaks: checked })}
+                              />
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <Label>Auto-start focus sessions</Label>
+                              <Switch 
+                                checked={timer.state.settings.autoStartFocus}
+                                onCheckedChange={(checked) => timer.updateSettings({ autoStartFocus: checked })}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    
+                    <Dialog open={showKeyboardHelp} onOpenChange={setShowKeyboardHelp}>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="text-xs px-3 py-2 rounded-full hover:bg-black/10 dark:hover:bg-black/30 transition-all duration-200">
+                          <Keyboard className="w-3 h-3 mr-1" />
+                          Shortcuts
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <Keyboard className="w-5 h-5" />
+                            Keyboard Shortcuts
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-3 p-4">
+                          {keyboardHelp.map((shortcut, index) => (
+                            <div key={index} className="flex items-center justify-between">
+                              <span className="text-sm">{shortcut.description}</span>
+                              <Badge variant="outline" className="font-mono">
+                                {shortcut.key}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Settings and Help Buttons */}
-              <div className="flex justify-center space-x-4">
-                <Dialog open={showSettings} onOpenChange={setShowSettings}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="hover:scale-105 transition-all duration-200">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Settings
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-lg">
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2">
-                        <Settings className="w-5 h-5" />
-                        Timer Settings
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-6 p-4">
-                      {/* Duration Settings */}
-                      <div className="space-y-4">
-                        <h4 className="font-semibold">Duration Settings</h4>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <Label className="text-sm font-medium">
-                              Focus Duration
-                            </Label>
-                            <Badge variant="secondary">{timer.state.settings.focusDuration} min</Badge>
-                          </div>
-                          <Slider
-                            value={[timer.state.settings.focusDuration]}
-                            onValueChange={([value]) => timer.setFocusDuration(value)}
-                            min={15}
-                            max={120}
-                            step={5}
-                            className="w-full"
-                          />
-                        </div>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <Label className="text-sm font-medium">
-                              Break Duration
-                            </Label>
-                            <Badge variant="secondary">{timer.state.settings.breakDuration} min</Badge>
-                          </div>
-                          <Slider
-                            value={[timer.state.settings.breakDuration]}
-                            onValueChange={([value]) => timer.setBreakDuration(value)}
-                            min={5}
-                            max={60}
-                            step={1}
-                            className="w-full"
-                          />
-                        </div>
+              {/* Recent Sessions */}
+              <Card className="border-0 bg-gradient-to-br from-background/80 to-muted/30 backdrop-blur-xl shadow-lg">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Activity className="w-4 h-4 text-blue-600" />
+                    Recent Sessions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-2">
+                  <div className="space-y-2">
+                    {stats.isLoading ? (
+                      <div className="text-center py-3 text-muted-foreground">
+                        <Clock className="h-5 w-5 mx-auto mb-1 opacity-50" />
+                        <p className="text-xs">Loading...</p>
                       </div>
-                      
-                      <Separator />
-                      
-                      {/* Notification Settings */}
-                      <div className="space-y-4">
-                        <h4 className="font-semibold">Notifications</h4>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <Bell className="w-4 h-4" />
-                            <Label>Browser Notifications</Label>
+                    ) : (
+                      <div className="space-y-1">
+                        {/* Show last 2 sessions */}
+                        {stats.totalSessions === 0 ? (
+                          <div className="text-center py-4 text-muted-foreground">
+                            <Clock className="h-6 w-6 mx-auto mb-1 opacity-50" />
+                            <p className="text-xs">No sessions yet</p>
                           </div>
-                          <Switch 
-                            checked={timer.state.settings.notificationsEnabled}
-                            onCheckedChange={(checked) => timer.updateSettings({ notificationsEnabled: checked })}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <Volume2 className="w-4 h-4" />
-                            <Label>Sound Alerts</Label>
-                          </div>
-                          <Switch 
-                            checked={timer.state.settings.soundEnabled}
-                            onCheckedChange={(checked) => timer.updateSettings({ soundEnabled: checked })}
-                          />
-                        </div>
+                        ) : (
+                          Array.from({ length: Math.min(2, stats.totalSessions) }, (_, i) => (
+                            <div
+                              key={i}
+                              className="flex items-center justify-between p-2 rounded-md bg-black/5 dark:bg-black/25"
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                                <div>
+                                  <p className="text-xs font-medium">Focus Session</p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs font-medium">25m</p>
+                              </div>
+                            </div>
+                          ))
+                        )}
                       </div>
-                      
-                      <Separator />
-                      
-                      {/* Auto-start Settings */}
-                      <div className="space-y-4">
-                        <h4 className="font-semibold">Auto-start</h4>
-                        <div className="flex items-center justify-between">
-                          <Label>Auto-start breaks</Label>
-                          <Switch 
-                            checked={timer.state.settings.autoStartBreaks}
-                            onCheckedChange={(checked) => timer.updateSettings({ autoStartBreaks: checked })}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <Label>Auto-start focus sessions</Label>
-                          <Switch 
-                            checked={timer.state.settings.autoStartFocus}
-                            onCheckedChange={(checked) => timer.updateSettings({ autoStartFocus: checked })}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-                
-                <Dialog open={showKeyboardHelp} onOpenChange={setShowKeyboardHelp}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="hover:scale-105 transition-all duration-200">
-                      <Keyboard className="w-4 h-4 mr-2" />
-                      Shortcuts
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2">
-                        <Keyboard className="w-5 h-5" />
-                        Keyboard Shortcuts
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-3 p-4">
-                      {keyboardHelp.map((shortcut, index) => (
-                        <div key={index} className="flex items-center justify-between">
-                          <span className="text-sm">{shortcut.description}</span>
-                          <Badge variant="outline" className="font-mono">
-                            {shortcut.key}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               
-              {/* Quick Stats */}
+              {/* Modern Progress Overview */}
               <Card className="border-0 bg-gradient-to-br from-background/80 to-muted/30 backdrop-blur-xl shadow-lg">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <TrendingUp className="w-5 h-5 text-purple-600" />
-                    Progress Overview
-                  </CardTitle>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-emerald-600" />
+                    <CardTitle className="text-base font-semibold">
+                      Progress
+                    </CardTitle>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Goals Completed</span>
-                    <Badge variant="outline" className="font-semibold">
-                      {goals.completedGoals.length}/{goals.goals.length}
-                    </Badge>
-                  </div>
-                  <Progress 
-                    value={goals.completionRate} 
-                    className="h-3 bg-muted/50" 
-                  />
-                  
-                  {goals.goals.length > 0 && (
-                    <div className="text-xs text-muted-foreground text-center">
-                      {goals.completionRate.toFixed(0)}% complete
+                  {/* Goal Progress */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Goals</span>
+                      <span className="text-xs text-muted-foreground">
+                        {goals.completedGoals.length}/{goals.goals.length}
+                      </span>
                     </div>
-                  )}
+                    <div className="relative">
+                      <div className="h-2 bg-black/10 dark:bg-black/40 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-500"
+                          style={{ width: `${goals.completionRate}%` }}
+                        />
+                      </div>
+                      {goals.goals.length > 0 && (
+                        <span className="absolute -top-5 right-0 text-xs font-medium text-emerald-600">
+                          {goals.completionRate.toFixed(0)}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
                   
-                  <Separator className="my-4" />
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <Card className="p-4 text-center border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/20">
-                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                  {/* Compact Stats */}
+                  <div className="grid grid-cols-2 gap-3 mt-4">
+                    <div className="p-3 rounded-lg bg-gradient-to-br from-emerald-50/50 to-emerald-100/30 dark:from-emerald-950/20 dark:to-emerald-900/10 border border-emerald-200/20 dark:border-emerald-800/20">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Clock className="w-3 h-3 text-emerald-600" />
+                        <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Focus</span>
+                      </div>
+                      <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
                         {stats.isLoading ? '...' : `${Math.floor(stats.todaysStats.focusTime / 3600)}h ${Math.floor((stats.todaysStats.focusTime % 3600) / 60)}m`}
                       </div>
-                      <div className="text-xs text-muted-foreground">Total Focus</div>
-                    </Card>
-                    <Card className="p-4 text-center border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20">
-                      <div className="text-2xl font-bold text-orange-500 flex items-center justify-center">
-                        <Flame className="w-5 h-5 mr-1" />
-                        {stats.isLoading ? '...' : stats.currentStreak}
+                    </div>
+                    
+                    <div className="p-3 rounded-lg bg-gradient-to-br from-orange-50/50 to-orange-100/30 dark:from-orange-950/20 dark:to-orange-900/10 border border-orange-200/20 dark:border-orange-800/20">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Flame className="w-3 h-3 text-orange-600" />
+                        <span className="text-xs font-medium text-orange-700 dark:text-orange-300">Streak</span>
                       </div>
-                      <div className="text-xs text-muted-foreground">Day Streak</div>
-                    </Card>
+                      <div className="text-lg font-bold text-orange-500 dark:text-orange-400">
+                        {stats.isLoading ? '...' : `${stats.currentStreak} days`}
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Goals */}
               <Card className="border-0 bg-gradient-to-br from-background/80 to-muted/30 backdrop-blur-xl shadow-lg">
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Target className="w-5 h-5 text-emerald-600" />
-                      Focus Goals
-                    </CardTitle>
-                    <Badge variant="outline" className="font-semibold">
+                    <div className="flex items-center gap-2">
+                      <Target className="w-4 h-4 text-emerald-600" />
+                      <CardTitle className="text-base font-semibold">
+                        Focus Goals
+                      </CardTitle>
+                    </div>
+                    <Badge variant="secondary" className="text-xs px-2 py-1">
                       {goals.completedGoals.length}/{goals.goals.length}
                     </Badge>
                   </div>
-                  <CardDescription>
-                    Set and track your focus session goals
-                  </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Add Goal */}
-                  <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-muted/30">
-                    <Input
-                      ref={newGoalInputRef}
-                      value={newGoalText}
-                      onChange={(e) => setNewGoalText(e.target.value)}
-                      placeholder="What do you want to accomplish?"
-                      onKeyDown={handleNewGoalKeyDown}
-                      className="border-muted/50 focus:border-purple-500"
-                      disabled={goals.isLoading}
-                    />
-                    <div className="flex space-x-2">
-                      <Select 
-                        value={newGoalPriority} 
-                        onValueChange={(value) => setNewGoalPriority(value as Goal['priority'])}
-                      >
-                        <SelectTrigger className="flex-1">
-                          <SelectValue placeholder="Priority" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="low">Low Priority</SelectItem>
-                          <SelectItem value="medium">Medium Priority</SelectItem>
-                          <SelectItem value="high">High Priority</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Select 
-                        value={newGoalEstimate.toString()} 
-                        onValueChange={(value) => setNewGoalEstimate(parseInt(value))}
-                      >
-                        <SelectTrigger className="w-20">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="15">15m</SelectItem>
-                          <SelectItem value="25">25m</SelectItem>
-                          <SelectItem value="30">30m</SelectItem>
-                          <SelectItem value="45">45m</SelectItem>
-                          <SelectItem value="60">60m</SelectItem>
-                          <SelectItem value="90">90m</SelectItem>
-                        </SelectContent>
-                      </Select>
+                <CardContent className="space-y-3">
+                  {/* Modern Add Goal Form */}
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <Input
+                        ref={newGoalInputRef}
+                        value={newGoalText}
+                        onChange={(e) => setNewGoalText(e.target.value)}
+                        placeholder="Add a focus goal..."
+                        onKeyDown={handleNewGoalKeyDown}
+                        className="pr-12 border-0 bg-black/5 dark:bg-black/25 focus:bg-black/10 dark:focus:bg-black/30 transition-colors"
+                        disabled={goals.isLoading}
+                      />
                       <Button 
                         onClick={handleAddGoal} 
                         disabled={!newGoalText.trim() || goals.isLoading}
-                        className="hover:scale-105 transition-all duration-200"
+                        size="sm"
+                        className="absolute right-1 top-1 h-8 w-8 p-0 bg-emerald-600 hover:bg-emerald-700"
                       >
                         <Plus className="w-4 h-4" />
                       </Button>
                     </div>
+                    
+                    {/* Compact Priority & Duration */}
+                    <div className="flex space-x-2 text-xs">
+                      <div className="flex items-center space-x-1">
+                        <span className="text-muted-foreground">Priority:</span>
+                        <button
+                          onClick={() => setNewGoalPriority('low')}
+                          className={`px-2 py-1 rounded-md transition-colors ${
+                            newGoalPriority === 'low' 
+                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' 
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          Low
+                        </button>
+                        <button
+                          onClick={() => setNewGoalPriority('medium')}
+                          className={`px-2 py-1 rounded-md transition-colors ${
+                            newGoalPriority === 'medium' 
+                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' 
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          Med
+                        </button>
+                        <button
+                          onClick={() => setNewGoalPriority('high')}
+                          className={`px-2 py-1 rounded-md transition-colors ${
+                            newGoalPriority === 'high' 
+                              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' 
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          High
+                        </button>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <span className="text-muted-foreground">Time:</span>
+                        <button
+                          onClick={() => setNewGoalEstimate(25)}
+                          className={`px-2 py-1 rounded-md transition-colors ${
+                            newGoalEstimate === 25 
+                              ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' 
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          25m
+                        </button>
+                        <button
+                          onClick={() => setNewGoalEstimate(45)}
+                          className={`px-2 py-1 rounded-md transition-colors ${
+                            newGoalEstimate === 45 
+                              ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' 
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          45m
+                        </button>
+                        <button
+                          onClick={() => setNewGoalEstimate(60)}
+                          className={`px-2 py-1 rounded-md transition-colors ${
+                            newGoalEstimate === 60 
+                              ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' 
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          60m
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Optimized Goals List with Virtualization */}
-                  <div className="max-h-80">
+                  {/* Modern Goals List */}
+                  <div className="space-y-2 max-h-72 overflow-y-auto">
                     {goals.isLoading ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        Loading goals...
+                      <div className="text-center py-6 text-muted-foreground">
+                        <div className="animate-pulse space-y-2">
+                          <div className="h-8 bg-black/10 dark:bg-black/30 rounded"></div>
+                          <div className="h-8 bg-black/5 dark:bg-black/25 rounded"></div>
+                        </div>
                       </div>
                     ) : goals.goals.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Target className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                        <p>No goals yet. Add your first goal above!</p>
+                      <div className="text-center py-6 text-muted-foreground">
+                        <Target className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">Add your first goal above</p>
                       </div>
                     ) : (
-                      <VirtualizedGoals
-                        goals={goals.goals}
-                        editingGoal={editingGoal}
-                        onToggleGoal={goals.toggleGoal}
-                        onEditGoal={handleEditGoal}
-                        onDeleteGoal={handleDeleteGoal}
-                        onSaveEdit={handleSaveEdit}
-                        onCancelEdit={handleCancelEdit}
-                        setEditingGoal={setEditingGoal}
-                        setGoalToDelete={setGoalToDelete}
-                        isLoading={goals.isLoading}
-                        height={320}
-                      />
+                      <>
+                        {goals.goals.slice(0, 6).map((goal) => (
+                          <motion.div
+                            key={goal.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`group flex items-center gap-3 p-2 rounded-lg border transition-all duration-200 hover:shadow-sm ${
+                              goal.completed 
+                                ? 'bg-black/5 dark:bg-black/20 border-zinc-200/20 dark:border-zinc-800/20 opacity-60' 
+                                : 'bg-black/3 dark:bg-black/15 border-zinc-200/15 dark:border-zinc-800/15 hover:border-zinc-200/25 dark:hover:border-zinc-800/25'
+                            }`}
+                          >
+                            <button
+                              onClick={() => goals.toggleGoal(goal.id)}
+                              className={`flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+                                goal.completed
+                                  ? 'bg-emerald-500 border-emerald-500 text-white'
+                                  : 'border-muted-foreground/30 hover:border-emerald-500'
+                              }`}
+                            >
+                              {goal.completed && <Check className="w-2.5 h-2.5" />}
+                            </button>
+                            
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm truncate ${
+                                goal.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                              }`}>
+                                {goal.text}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                  goal.priority === 'high' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
+                                  goal.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' :
+                                  'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                                }`}>
+                                  {goal.priority}
+                                </span>
+                                <span className="text-xs text-muted-foreground">{goal.estimatedMinutes}m</span>
+                              </div>
+                            </div>
+                            
+                            <button
+                              onClick={() => handleDeleteGoal(goal.id)}
+                              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/10 transition-all duration-200"
+                            >
+                              <X className="w-3 h-3 text-muted-foreground hover:text-destructive" />
+                            </button>
+                          </motion.div>
+                        ))}
+                        
+                        {/* Clear Completed */}
+                        {goals.completedGoals.length > 0 && (
+                          <button
+                            onClick={goals.clearCompleted}
+                            className="w-full mt-2 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors border-t border-dashed border-muted/30 pt-3"
+                            disabled={goals.isLoading}
+                          >
+                            Clear {goals.completedGoals.length} completed
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
-                  
-                  {/* Clear Completed Button */}
-                  {goals.completedGoals.length > 0 && (
-                    <div className="pt-3 border-t">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={goals.clearCompleted}
-                        className="w-full text-xs"
-                        disabled={goals.isLoading}
-                      >
-                        Clear {goals.completedGoals.length} completed goal{goals.completedGoals.length > 1 ? 's' : ''}
-                      </Button>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
 

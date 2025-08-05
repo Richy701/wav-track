@@ -59,13 +59,12 @@ export default function FeatureShowcase() {
                   tabletWebm="/videos/optimized/tablet/analytic-tablet.webm"
                   desktopWebm="/videos/optimized/desktop/analytic-desktop.webm"
                   poster="/images/features/wavtrack-screengrabs/dashboard-mockup.png"
-                  className="w-full h-full object-contain rounded-2xl"
+                  className="w-full h-full object-cover rounded-2xl"
                   muted
                   loop
                   playsInline
+                  autoPlay
                   preload="metadata"
-                  onMouseEnter={(e) => e.currentTarget.play()}
-                  onMouseLeave={(e) => e.currentTarget.pause()}
                 />
               </div>
             </div>

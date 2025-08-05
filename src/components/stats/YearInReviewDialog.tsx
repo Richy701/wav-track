@@ -234,7 +234,7 @@ export function YearInReviewDialog({
                       <div className="flex items-center justify-between gap-10">
                         {/* Pie Chart */}
                         <div className="relative w-44 h-44">
-                          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-violet-500/10 via-transparent to-fuchsia-500/10 animate-pulse-slow" />
+                          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-violet-500/10 via-transparent to-fuchsia-500/10" />
                           {yearInReview.monthlyStats.slice(-6).map((month, i, arr) => {
                             const total = arr.reduce((sum, m) => sum + m.beats, 0)
                             const previousAngles = arr.slice(0, i).reduce((sum, m) => sum + (m.beats / total) * 360, 0)

@@ -7,7 +7,11 @@
       "Bash(git restore:*)",
       "Bash(npm run analyze:*)",
       "Bash(npm install:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(npm i:*)",
+      "Bash(npx supabase:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }

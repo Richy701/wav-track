@@ -1,3 +1,4 @@
+import React from 'react'
 import { Card } from '@/components/ui/card'
 import { Achievement } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -239,7 +240,7 @@ const achievementIcons = {
   )
 }
 
-export function AchievementCard({ achievement, className, isLoading }: AchievementCardProps) {
+export const AchievementCard = React.memo(function AchievementCard({ achievement, className, isLoading }: AchievementCardProps) {
   const isUnlocked = !!achievement.unlocked_at
   const progress = Math.max(0, achievement.progress || 0)
   const total = achievement.total || achievement.requirement
@@ -247,7 +248,6 @@ export function AchievementCard({ achievement, className, isLoading }: Achieveme
   const tierColor = tierColors[achievement.tier as keyof typeof tierColors]
   const categoryStyle = categoryStyles[achievement.category as keyof typeof categoryStyles]
 
-  console.log('Achievement:', achievement.id, 'Unlocked:', isUnlocked, 'unlocked_at:', achievement.unlocked_at)
 
   return (
     <motion.div
@@ -305,9 +305,31 @@ export function AchievementCard({ achievement, className, isLoading }: Achieveme
 
         {/* Content */}
         <div className="flex-1">
-          <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-1">
-            {achievement.name}
-          </h3>
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-white">
+              {achievement.name}
+            </h3>
+            {(() => {
+              // Calculate rarity based on tier and category
+              const rarityMap = {
+                bronze: { text: 'Common', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-500/20', percent: '85%' },
+                silver: { text: 'Uncommon', color: 'text-zinc-600 dark:text-zinc-400', bg: 'bg-zinc-100 dark:bg-zinc-500/20', percent: '45%' },
+                gold: { text: 'Rare', color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-100 dark:bg-yellow-500/20', percent: '15%' },
+                platinum: { text: 'Epic', color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-500/20', percent: '3%' }
+              };
+              const rarity = rarityMap[achievement.tier as keyof typeof rarityMap] || rarityMap.bronze;
+              
+              return (
+                <div className={cn(
+                  "px-2 py-1 rounded-full text-xs font-medium",
+                  rarity.bg,
+                  rarity.color
+                )}>
+                  {rarity.percent}
+                </div>
+              );
+            })()}
+          </div>
           <p className="text-sm text-zinc-700 dark:text-white/70 mb-4">
             {achievement.description}
           </p>
@@ -333,23 +355,53 @@ export function AchievementCard({ achievement, className, isLoading }: Achieveme
           </div>
         </div>
 
-        {/* Unlocked Status */}
+        {/* Unlocked Status with Celebration */}
         {isUnlocked && (
-          <div className="absolute top-4 right-4">
-            <div className={cn(
-              "p-2 rounded-full",
-              achievement.category === 'production' && "bg-violet-100 text-violet-600 dark:bg-violet-800 dark:text-violet-200",
-              achievement.category === 'streak' && "bg-orange-100 text-orange-600 dark:bg-orange-800 dark:text-orange-200",
-              achievement.category === 'time' && "bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-200",
-              achievement.category === 'goals' && "bg-emerald-100 text-emerald-600 dark:bg-emerald-800 dark:text-emerald-200",
-              "border border-zinc-200 dark:border-zinc-800",
-              "shadow-sm"
-            )}>
+          <motion.div 
+            className="absolute top-4 right-4"
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ 
+              type: "spring",
+              stiffness: 260,
+              damping: 20,
+              delay: 0.3
+            }}
+          >
+            <motion.div 
+              className={cn(
+                "p-2 rounded-full",
+                achievement.category === 'production' && "bg-violet-100 text-violet-600 dark:bg-violet-800 dark:text-violet-200",
+                achievement.category === 'streak' && "bg-orange-100 text-orange-600 dark:bg-orange-800 dark:text-orange-200",
+                achievement.category === 'time' && "bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-200",
+                achievement.category === 'goals' && "bg-emerald-100 text-emerald-600 dark:bg-emerald-800 dark:text-emerald-200",
+                "border border-zinc-200 dark:border-zinc-800",
+                "shadow-sm"
+              )}
+              whileHover={{ 
+                scale: 1.2,
+                rotate: 360,
+                transition: { duration: 0.5 }
+              }}
+              whileTap={{ scale: 0.9 }}
+            >
               <Star className="w-4 h-4" weight="fill" />
-            </div>
-          </div>
+            </motion.div>
+            
+            {/* Simple glow effect instead of particles */}
+            <motion.div
+              className="absolute inset-0 pointer-events-none rounded-full"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: [0, 0.3, 0], scale: [0.8, 1.2, 0.8] }}
+              transition={{ duration: 1, delay: 0.2 }}
+              style={{
+                background: 'radial-gradient(circle, rgba(250,204,21,0.3) 0%, transparent 70%)'
+              }}
+            />
+          </motion.div>
         )}
+        
       </div>
     </motion.div>
   )
-} 
+}) 

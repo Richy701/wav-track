@@ -290,6 +290,9 @@ export const addProject = async (project: Project): Promise<Project> => {
       throw new Error('No data returned from insert')
     }
 
+    // Record beat creation for the new project
+    await recordBeatCreation(data.id, 1)
+
     // Get all projects to update profile stats
     const { data: allProjects } = await supabase.from('projects').select('*').eq('user_id', user.id)
 
@@ -371,6 +374,13 @@ export const addProject = async (project: Project): Promise<Project> => {
 // Update the updateProject function to use the new updateProfileStats function
 export const updateProject = async (updatedProject: Project): Promise<Project> => {
   try {
+    console.log('[Debug] Starting project update for:', {
+      id: updatedProject.id,
+      title: updatedProject.title,
+      status: updatedProject.status,
+      oldStatus: updatedProject.status // This might be the previous status
+    })
+
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
@@ -388,6 +398,8 @@ export const updateProject = async (updatedProject: Project): Promise<Project> =
       audio_url: updatedProject.audio_url
     }
 
+    console.log('[Debug] Project update payload:', projectToUpdate)
+
     // Update in Supabase
     const { data, error } = await supabase
       .from('projects')
@@ -398,16 +410,26 @@ export const updateProject = async (updatedProject: Project): Promise<Project> =
       .single()
 
     if (error) {
-      console.error('Error updating project:', error)
+      console.error('[Debug] Error updating project in database:', error)
       throw error
     }
 
     if (!data) {
+      console.error('[Debug] No data returned from project update')
       throw new Error('No data returned from update')
     }
 
+    console.log('[Debug] Project updated successfully in database:', {
+      id: data.id,
+      title: data.title,
+      status: data.status,
+      last_modified: data.last_modified
+    })
+
     // Update profile stats if status changed to completed
     if (data.status === 'completed') {
+      console.log('[Debug] Project marked as completed, updating profile stats')
+      
       // Get all projects to calculate stats
       const { data: allProjects } = await supabase
         .from('projects')
@@ -418,6 +440,12 @@ export const updateProject = async (updatedProject: Project): Promise<Project> =
         const totalProjects = allProjects.length
         const completedProjects = allProjects.filter(p => p.status === 'completed').length
         const completionRate = Math.round((completedProjects / totalProjects) * 100)
+
+        console.log('[Debug] Project stats calculated:', {
+          totalProjects,
+          completedProjects,
+          completionRate
+        })
 
         // Get total beats from beat activities
         const { data: beatActivities } = await supabase
@@ -444,6 +472,13 @@ export const updateProject = async (updatedProject: Project): Promise<Project> =
           totalSessions
         )
 
+        console.log('[Debug] Updating profile stats with:', {
+          total_beats: totalBeats,
+          completed_projects: completedProjects,
+          completion_rate: completionRate,
+          productivity_score: productivityScore
+        })
+
         // Update profile stats using the new function
         await updateProfileStats(user.id, {
           total_beats: totalBeats,
@@ -452,6 +487,8 @@ export const updateProject = async (updatedProject: Project): Promise<Project> =
           productivity_score: productivityScore,
           updated_at: now,
         })
+
+        console.log('[Debug] Profile stats updated successfully')
       }
     }
 
@@ -471,9 +508,17 @@ export const updateProject = async (updatedProject: Project): Promise<Project> =
       audio_url: data.audio_url || null
     }
 
+    console.log('[Debug] Returning updated project data:', {
+      id: updatedData.id,
+      title: updatedData.title,
+      status: updatedData.status,
+      completionPercentage: updatedData.completionPercentage,
+      lastModified: updatedData.lastModified
+    })
+
     return updatedData
   } catch (error) {
-    console.error('Error in updateProject:', error)
+    console.error('[Debug] Error in updateProject function:', error)
     throw error
   }
 }
@@ -786,6 +831,8 @@ export const recordBeatCreation = async (projectId: string, count: number = 1): 
     const now = new Date()
     const timestamp = now.getTime()
 
+    console.log('[Debug] Recording beat creation:', { projectId, count, userId: user.id, timestamp })
+
     // Insert the beat activity
     const { error } = await supabase.from('beat_activities').insert([
       {
@@ -802,6 +849,8 @@ export const recordBeatCreation = async (projectId: string, count: number = 1): 
       throw error
     }
 
+    console.log('[Debug] Beat activity recorded successfully')
+
     // Get total beats for the user
     const { data: totalBeatsData, error: totalBeatsError } = await supabase
       .from('beat_activities')
@@ -815,9 +864,11 @@ export const recordBeatCreation = async (projectId: string, count: number = 1): 
 
     // Calculate total beats
     const totalBeats = totalBeatsData.reduce((sum, activity) => sum + (activity.count || 0), 0)
+    console.log('[Debug] Total beats calculated:', totalBeats)
 
     // Update user achievements
     await updateUserAchievements(user.id, totalBeats)
+    console.log('[Debug] User achievements updated')
   } catch (error) {
     console.error('Error in recordBeatCreation:', error)
     throw error
@@ -1113,6 +1164,13 @@ export const getBeatsDataForChart = async (
   timeRange: 'day' | 'week' | 'month' | 'year',
   projectId?: string | null
 ): Promise<ChartData[]> => {
+  const startTime = Date.now();
+  console.log('[Debug] getBeatsDataForChart: Starting chart data fetch', {
+    timeRange,
+    projectId,
+    timestamp: new Date().toISOString()
+  });
+
   try {
     // Get the current user
     const {
@@ -1120,11 +1178,11 @@ export const getBeatsDataForChart = async (
     } = await supabase.auth.getUser()
 
     if (!user) {
-      console.log('No user found when fetching beat data, returning empty array')
+      console.log('[Debug] getBeatsDataForChart: No user found, returning empty array')
       return []
     }
 
-    console.log('Fetching beat data for chart:', {
+    console.log('[Debug] getBeatsDataForChart: User found, proceeding with data fetch', {
       timeRange,
       projectId,
       userId: user.id,
@@ -1417,16 +1475,31 @@ export const getBeatsDataForChart = async (
       data: data,
     })
 
+    const elapsedTime = Date.now() - startTime;
+    console.log('[Debug] getBeatsDataForChart: Completed successfully', {
+      timeRange,
+      projectId,
+      dataPoints: data.length,
+      elapsedTimeMs: elapsedTime,
+      hasData: data.length > 0
+    });
+
     // If no real data found, return empty array
     if (data.length === 0) {
-      console.log('No real data found, returning empty array')
+      console.log('[Debug] getBeatsDataForChart: No real data found, returning empty array')
       return []
     }
 
     return data
   } catch (error) {
-    console.error('Error in getBeatsDataForChart:', error)
-    return []
+    const elapsedTime = Date.now() - startTime;
+    console.error('[Debug] getBeatsDataForChart: Error occurred', {
+      error,
+      timeRange,
+      projectId,
+      elapsedTimeMs: elapsedTime
+    });
+    throw error; // Re-throw to let the calling component handle it
   }
 }
 
@@ -1501,6 +1574,8 @@ export const getSessions = async (): Promise<Session[]> => {
 // Helper function to update user achievements
 const updateUserAchievements = async (userId: string, totalBeats: number): Promise<void> => {
   try {
+    console.log('[Debug] Updating user achievements for user:', userId, 'Total beats:', totalBeats)
+    
     // Get all achievements
     const { data: achievements, error: achievementsError } = await supabase
       .from('achievements')
@@ -1512,12 +1587,25 @@ const updateUserAchievements = async (userId: string, totalBeats: number): Promi
       return
     }
 
-    if (!achievements) return
+    if (!achievements) {
+      console.log('[Debug] No achievements found')
+      return
+    }
+
+    console.log('[Debug] Found achievements:', achievements.map(a => ({ id: a.id, name: a.name, requirement: a.requirement })))
 
     // Update or insert user achievements
     for (const achievement of achievements) {
       const progress = Math.min(totalBeats, achievement.requirement)
       const unlocked = progress >= achievement.requirement
+
+      console.log('[Debug] Processing achievement:', {
+        id: achievement.id,
+        name: achievement.name,
+        progress,
+        requirement: achievement.requirement,
+        unlocked
+      })
 
       const { error: upsertError } = await supabase
         .from('user_achievements')
@@ -1532,7 +1620,9 @@ const updateUserAchievements = async (userId: string, totalBeats: number): Promi
         })
 
       if (upsertError) {
-        console.error('Error updating user achievement:', upsertError)
+        console.error('Error updating user achievement:', achievement.name, upsertError)
+      } else {
+        console.log('[Debug] Successfully updated achievement:', achievement.name, unlocked ? '(UNLOCKED!)' : '')
       }
     }
   } catch (error) {

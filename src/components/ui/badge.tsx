@@ -15,7 +15,7 @@ const badgeVariants = cva(
           'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:hover:bg-destructive/80',
         outline: 'text-zinc-900 dark:text-foreground border-zinc-200 dark:border-zinc-700',
         'coming-soon':
-          'border-transparent animate-gradient bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 text-white shadow-sm hover:shadow-lg hover:scale-105 dark:from-blue-500 dark:via-violet-500 dark:to-fuchsia-500',
+          'border-transparent bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 text-white shadow-sm hover:shadow-lg hover:scale-105 dark:from-blue-500 dark:via-violet-500 dark:to-fuchsia-500',
       },
     },
     defaultVariants: {

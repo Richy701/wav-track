@@ -57,13 +57,12 @@ export default function FeatureShowcase3() {
                   tabletWebm="/videos/optimized/tablet/project-tablet.webm"
                   desktopWebm="/videos/optimized/desktop/project-desktop.webm"
                   poster="/images/features/wavtrack-screengrabs/Recent project Component .png"
-                  className="w-full h-full object-contain rounded-2xl"
+                  className="w-full h-full object-cover rounded-2xl"
                   muted
                   loop
                   playsInline
+                  autoPlay
                   preload="metadata"
-                  onMouseEnter={(e) => e.currentTarget.play()}
-                  onMouseLeave={(e) => e.currentTarget.pause()}
                 />
             </div>
           </motion.div>

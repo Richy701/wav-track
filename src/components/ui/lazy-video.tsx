@@ -137,7 +137,14 @@ export function LazyVideo({
     // Video is ready to play
     setIsLoaded(true)
     setIsLoading(false)
-  }, [])
+    
+    // Auto-play if autoPlay prop is set
+    if (props.autoPlay && videoRef.current) {
+      videoRef.current.play().catch(() => {
+        // Silently handle autoplay failures (browser policy)
+      })
+    }
+  }, [props.autoPlay])
 
   return (
     <div className="relative overflow-hidden">

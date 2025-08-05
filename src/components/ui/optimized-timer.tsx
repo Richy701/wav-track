@@ -29,7 +29,7 @@ const OptimizedTimerDisplay = memo(function OptimizedTimerDisplay({
     }
   }, [progress, size])
   
-  const strokeColor = mode === 'focus' ? '#9333ea' : '#059669'
+  const strokeColor = mode === 'focus' ? '#059669' : '#9333ea'
   const center = size / 2
   
   return (
@@ -77,7 +77,7 @@ const OptimizedTimerDisplay = memo(function OptimizedTimerDisplay({
             {formattedTime}
           </div>
           <div className={`text-sm font-medium mt-2 ${
-            mode === 'focus' ? 'text-purple-600' : 'text-emerald-600'
+            mode === 'focus' ? 'text-emerald-600' : 'text-purple-600'
           }`}>
             {mode === 'focus' ? 'Focus Time' : 'Break Time'}
           </div>

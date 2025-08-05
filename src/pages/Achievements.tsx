@@ -189,9 +189,19 @@ export default function Achievements() {
   }
 
   if (error) {
+    console.error('[Debug] Achievements page error:', error)
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center">
         <p className="text-sm text-destructive">Failed to load achievements</p>
+        <p className="text-xs text-muted-foreground mt-2">
+          {error instanceof Error ? error.message : 'Unknown error occurred'}
+        </p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded"
+        >
+          Retry
+        </button>
       </div>
     )
   }
@@ -209,15 +219,15 @@ export default function Achievements() {
     })[0]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background/50 to-background">
+    <div className="min-h-screen bg-gradient-to-b from-background/50 to-background flex flex-col">
       <Header />
-      <main className="container max-w-7xl mx-auto px-4 pt-24 pb-8">
+      <main className="flex-1 container max-w-7xl mx-auto px-4 pt-24 pb-8">
         {/* Hero Section */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="flex items-center gap-3 mb-12 group"
+          className="flex items-center gap-3 mb-8 group"
         >
           <motion.div
             initial={{ scale: 0.8, rotate: -10 }}
@@ -235,8 +245,54 @@ export default function Achievements() {
           </h1>
         </motion.div>
 
-        {/* Next Achievement Banner */}
-        {nextAchievement && (() => {
+        {/* Next Achievement Banner with Stats */}
+        {(() => {
+          const unlockedCount = achievements.filter(a => a.unlocked_at).length;
+          const totalCount = achievements.length;
+          const completionRate = totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0;
+          
+          if (!nextAchievement) {
+            // Show overall progress when no next achievement
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+                className="mb-12"
+              >
+                <div className={cn(
+                  "relative p-6 rounded-3xl overflow-hidden",
+                  "bg-gradient-to-r from-purple-500/10 via-violet-500/10 to-purple-500/10",
+                  "dark:from-purple-500/20 dark:via-violet-500/20 dark:to-purple-500/20",
+                  "border border-purple-200/30 dark:border-purple-500/30",
+                  "backdrop-blur-sm"
+                )}>
+                  <div className="relative z-10 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-2xl bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400">
+                        <Trophy className="h-6 w-6" weight="fill" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
+                          All Achievements Complete!
+                        </h3>
+                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                          {unlockedCount} of {totalCount} achievements unlocked
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                        {completionRate}%
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          }
+
+          return (() => {
             const progress = nextAchievement.progress || 0;
             const total = nextAchievement.total || nextAchievement.requirement || 1;
             const percent = Math.min((progress / total) * 100, 100);
@@ -281,6 +337,24 @@ export default function Achievements() {
                   category === 'time' && 'bg-blue-600 dark:bg-blue-400',
                   category === 'goals' && 'bg-emerald-600 dark:bg-emerald-400'
                 )} />
+                {/* Stats in top right */}
+                <div className="absolute top-4 right-6 text-right">
+                  <div className="text-lg font-bold text-zinc-900 dark:text-white">
+                    {unlockedCount}/{totalCount}
+                  </div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                    {completionRate}% complete
+                  </div>
+                  {currentStreak > 0 && (
+                    <div className="flex items-center gap-1 mt-1 justify-end">
+                      <Fire className="h-3 w-3 text-orange-500" weight="fill" />
+                      <span className="text-xs text-orange-600 dark:text-orange-400">
+                        {currentStreak} streak
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
                 {/* Watermark icon */}
                 <div className="absolute right-4 bottom-2 opacity-5 pointer-events-none select-none">
                   {getAchievementIcon(nextAchievement.id)}
@@ -297,7 +371,7 @@ export default function Achievements() {
                   </ProgressRing>
                 </div>
                 {/* Content */}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 pr-24">
                   <div className="uppercase text-xs tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">Next Up</div>
                   <div className="text-2xl font-bold text-zinc-900 dark:text-white mb-1">{nextAchievement.name}</div>
                   <div className="text-base text-zinc-700 dark:text-zinc-300 mb-2">{nextAchievement.description}</div>
@@ -312,6 +386,7 @@ export default function Achievements() {
                 </div>
               </motion.div>
             );
+          })();
         })()}
 
         {/* Achievement Progress */}
@@ -378,23 +453,95 @@ export default function Achievements() {
           </TabsContent>
 
           <TabsContent value="streaks" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
-              {achievements
-                .filter((a) => a.category === 'streak')
-                .map((achievement) => (
-                  <AchievementCard key={achievement.id} achievement={achievement} isLoading={loading} />
-                ))}
-            </div>
+            {(() => {
+              const streakAchievements = achievements.filter((a) => a.category === 'streak');
+              
+              if (streakAchievements.length === 0) {
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col items-center justify-center py-16 px-8 text-center"
+                  >
+                    <div className="relative mb-6">
+                      <div className="w-20 h-20 rounded-full bg-orange-100 dark:bg-orange-500/20 flex items-center justify-center">
+                        <Fire className="w-10 h-10 text-orange-500 dark:text-orange-400" weight="fill" />
+                      </div>
+                      <motion.div
+                        animate={{ rotate: [0, -10, 10, -10, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                        className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center"
+                      >
+                        ✨
+                      </motion.div>
+                    </div>
+                    <h3 className="text-xl font-semibold text-zinc-900 dark:text-white mb-2">
+                      No Streak Achievements Yet
+                    </h3>
+                    <p className="text-zinc-600 dark:text-zinc-400 max-w-md">
+                      Keep working consistently to unlock streak achievements! Start a session to begin your journey.
+                    </p>
+                  </motion.div>
+                );
+              }
+
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+                  {streakAchievements.map((achievement) => (
+                    <AchievementCard key={achievement.id} achievement={achievement} isLoading={loading} />
+                  ))}
+                </div>
+              );
+            })()}
           </TabsContent>
 
           <TabsContent value="production" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
-              {achievements
-                .filter((a) => a.category === 'production')
-                .map((achievement) => (
-                  <AchievementCard key={achievement.id} achievement={achievement} isLoading={loading} />
-                ))}
-            </div>
+            {(() => {
+              const productionAchievements = achievements.filter((a) => a.category === 'production');
+              const collections = [
+                {
+                  name: "Beat Making Journey",
+                  description: "Master the art of beat production",
+                  achievements: productionAchievements.filter(a => ['first_beat', 'beat_builder', 'beat_machine'].includes(a.id)),
+                  color: "violet"
+                },
+                {
+                  name: "Producer Status",
+                  description: "Achieve legendary producer recognition",
+                  achievements: productionAchievements.filter(a => ['legendary_producer'].includes(a.id)),
+                  color: "purple"
+                }
+              ];
+
+              return (
+                <div className="space-y-8">
+                  {collections.map((collection) => (
+                    <div key={collection.name} className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div>
+                          <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
+                            {collection.name}
+                          </h3>
+                          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                            {collection.description}
+                          </p>
+                        </div>
+                        <div className="ml-auto">
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {collection.achievements.filter(a => a.unlocked_at).length}/{collection.achievements.length}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+                        {collection.achievements.map((achievement) => (
+                          <AchievementCard key={achievement.id} achievement={achievement} isLoading={loading} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </TabsContent>
 
           <TabsContent value="time" className="mt-8">

@@ -150,6 +150,12 @@ export function useProjects(projectsPerPage: number = 9) {
   const updateProjectMutation = useMutation({
     mutationFn: updateProject,
     onMutate: async updatedProject => {
+      console.log('[Debug] useProjects onMutate - starting optimistic update for:', {
+        id: updatedProject.id,
+        title: updatedProject.title,
+        status: updatedProject.status
+      })
+
       await Promise.all([
         queryClient.cancelQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] }),
         queryClient.cancelQueries({ queryKey: QUERY_KEYS.stats }),
@@ -168,19 +174,37 @@ export function useProjects(projectsPerPage: number = 9) {
               } 
             : project
         )
+        
+        const projectAfterUpdate = updatedProjects.find(p => p.id === updatedProject.id)
+        console.log('[Debug] useProjects onMutate - project after optimistic update:', {
+          id: projectAfterUpdate?.id,
+          title: projectAfterUpdate?.title,
+          status: projectAfterUpdate?.status
+        })
+        
         return sortProjects(updatedProjects)
       })
 
       return { previousProjects, previousStats }
     },
     onError: (err, updatedProject, context) => {
+      console.error('[Debug] useProjects onError - reverting optimistic update:', err)
       if (context) {
         queryClient.setQueryData([...QUERY_KEYS.projects, user?.id], context.previousProjects)
         queryClient.setQueryData(QUERY_KEYS.stats, context.previousStats)
       }
       console.error('Failed to update project:', err)
     },
+    onSuccess: (result, updatedProject) => {
+      console.log('[Debug] useProjects onSuccess - mutation completed successfully:', {
+        id: result.id,
+        title: result.title,
+        status: result.status,
+        inputStatus: updatedProject.status
+      })
+    },
     onSettled: async () => {
+      console.log('[Debug] useProjects onSettled - invalidating queries')
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.projects, user?.id] }),
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.stats }),

@@ -23,7 +23,7 @@ import { useDebouncedCallback } from 'use-debounce'
 // Lazy load heavy profile components
 const AboutMe = lazy(() => import('@/components/profile/AboutMe').then(module => ({ default: module.AboutMe })))
 const StatsSummary = lazy(() => import('@/components/profile/StatsSummary').then(module => ({ default: module.StatsSummary })))
-const Achievements = lazy(() => import('@/components/profile/Achievements').then(module => ({ default: module.Achievements })))
+const CreativeNotes = lazy(() => import('@/components/profile/CreativeNotes').then(module => ({ default: module.CreativeNotes })))
 const ProjectGraph = lazy(() => import('@/components/profile/ProjectGraph').then(module => ({ default: module.ProjectGraph })))
 
 const fadeInUp = {
@@ -153,9 +153,9 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background/50 to-background">
+    <div className="min-h-screen bg-gradient-to-b from-background/50 to-background flex flex-col">
       <Header />
-      <main className="min-h-screen bg-white dark:bg-background pt-20">
+      <main className="flex-1 bg-white dark:bg-background pt-20">
         {/* Profile Header */}
         <motion.div 
           className="border-b border-border/10 bg-white dark:bg-background/30 backdrop-blur-xl"
@@ -282,20 +282,43 @@ const Profile = () => {
             </Suspense>
           </motion.div>
 
-          {/* Progress Overview Section */}
+          {/* Two-Column Layout Section */}
           <motion.div 
-            className="mt-8 w-full max-w-3xl mx-auto"
+            className="mt-8 w-full"
             variants={fadeInUp}
           >
             <hr className="border-muted my-6" />
-            <Suspense fallback={
-              <div className="flex items-center justify-center py-4">
-                <Spinner className="h-5 w-5" />
-                <span className="ml-2 text-sm text-muted-foreground">Loading stats...</span>
-              </div>
-            }>
-              <StatsSummary />
-            </Suspense>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+              {/* Left Column: Production Stats */}
+              <motion.div 
+                className="w-full"
+                variants={fadeInUp}
+              >
+                <Suspense fallback={
+                  <div className="flex items-center justify-center py-8">
+                    <Spinner className="h-6 w-6" />
+                    <span className="ml-2 text-sm text-muted-foreground">Loading stats...</span>
+                  </div>
+                }>
+                  <StatsSummary />
+                </Suspense>
+              </motion.div>
+              
+              {/* Right Column: Creative Notes */}
+              <motion.div 
+                className="w-full"
+                variants={fadeInUp}
+              >
+                <Suspense fallback={
+                  <div className="flex items-center justify-center py-4">
+                    <Spinner className="h-5 w-5" />
+                    <span className="ml-2 text-sm text-muted-foreground">Loading notes...</span>
+                  </div>
+                }>
+                  <CreativeNotes />
+                </Suspense>
+              </motion.div>
+            </div>
           </motion.div>
 
           {/* Project Graph Section */}
@@ -313,20 +336,6 @@ const Profile = () => {
             </Suspense>
           </motion.div>
 
-          {/* Achievements Section */}
-          <motion.div 
-            className="mt-12"
-            variants={fadeInUp}
-          >
-            <Suspense fallback={
-              <div className="flex items-center justify-center py-8">
-                <Spinner className="h-6 w-6" />
-                <span className="ml-2 text-sm text-muted-foreground">Loading achievements...</span>
-              </div>
-            }>
-              <Achievements />
-            </Suspense>
-          </motion.div>
         </motion.div>
       </main>
       <Footer />

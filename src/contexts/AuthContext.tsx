@@ -29,8 +29,8 @@ export interface Profile {
   total_beats: number
   completed_projects: number
   completion_rate: number
-  current_streak: number
-  best_streak: number
+  current_streak?: number
+  best_streak?: number
   join_date: string | null
   updated_at: string | null
   social_links: {
@@ -546,24 +546,31 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('User not authenticated')
       }
 
-      console.log('[Debug] Updating profile for user:', user.id)
+      console.log('[Debug] Updating profile for user:', user.id, 'with data:', userData)
+      
+      // Build the update object, excluding undefined values
+      const updateObj: any = {
+        updated_at: new Date().toISOString(),
+      }
+      
+      if (userData.name !== undefined) updateObj.name = userData.name
+      if (userData.artist_name !== undefined) updateObj.artist_name = userData.artist_name
+      if (userData.genres !== undefined) updateObj.genres = userData.genres ? convertGenresToDb(userData.genres) : null
+      if (userData.daw !== undefined) updateObj.daw = userData.daw
+      if (userData.bio !== undefined) updateObj.bio = userData.bio
+      if (userData.location !== undefined) updateObj.location = userData.location
+      if (userData.phone !== undefined) updateObj.phone = userData.phone
+      if (userData.website !== undefined) updateObj.website = userData.website
+      if (userData.birthday !== undefined) updateObj.birthday = userData.birthday
+      if (userData.timezone !== undefined) updateObj.timezone = userData.timezone
+      if (userData.social_links !== undefined) updateObj.social_links = userData.social_links
+      if (userData.notification_preferences !== undefined) updateObj.notification_preferences = userData.notification_preferences
+
+      console.log('[Debug] Final update object:', updateObj)
+
       const { data, error } = await supabase
         .from('profiles')
-        .update({
-          name: userData.name,
-          artist_name: userData.artist_name,
-          genres: userData.genres ? convertGenresToDb(userData.genres) : undefined,
-          daw: userData.daw,
-          bio: userData.bio,
-          location: userData.location,
-          phone: userData.phone,
-          website: userData.website,
-          birthday: userData.birthday,
-          timezone: userData.timezone,
-          social_links: userData.social_links,
-          notification_preferences: userData.notification_preferences,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateObj)
         .eq('id', user.id)
         .select()
         .single()
@@ -579,7 +586,7 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
 
       const updatedProfile = convertProfileFromDb(data)
       setProfile(updatedProfile)
-      showSuccessToast('Profile Updated', 'Your profile has been updated successfully.')
+      console.log('[Debug] Profile updated successfully:', updatedProfile)
       return updatedProfile
     } catch (error) {
       console.error('[Debug] Profile update exception:', error)
@@ -781,7 +788,7 @@ const createDefaultProfile = (userId: string, email: string, name: string | null
   email: email,
   name: name,
   artist_name: null,
-  genres: [],
+  genres: null,
   daw: null,
   bio: null,
   location: null,
@@ -793,8 +800,6 @@ const createDefaultProfile = (userId: string, email: string, name: string | null
   total_beats: 0,
   completed_projects: 0,
   completion_rate: 0,
-  current_streak: 0,
-  best_streak: 0,
   join_date: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   social_links: {
@@ -924,13 +929,13 @@ const convertProfileFromDb = (data: Database['public']['Tables']['profiles']['Ro
     phone: data.phone,
     website: data.website,
     birthday: data.birthday,
-    timezone: data.timezone,
-    productivity_score: data.productivity_score,
-    total_beats: data.total_beats,
-    completed_projects: data.completed_projects,
-    completion_rate: data.completion_rate,
-    current_streak: data.current_streak,
-    best_streak: data.best_streak,
+    timezone: data.timezone || 'UTC',
+    productivity_score: data.productivity_score || 0,
+    total_beats: data.total_beats || 0,
+    completed_projects: data.completed_projects || 0,
+    completion_rate: data.completion_rate || 0,
+    current_streak: (data as any).current_streak || 0,
+    best_streak: (data as any).best_streak || 0,
     join_date: data.join_date,
     updated_at: data.updated_at,
     social_links: socialLinks,

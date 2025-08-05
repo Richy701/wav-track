@@ -94,17 +94,41 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
   const [chartView, setChartView] = useState<ChartView>('bar')
   const [maxValue, setMaxValue] = useState(0)
   const [yAxisMax, setYAxisMax] = useState(0)
+  const [error, setError] = useState<string | null>(null)
+  const [isTimeout, setIsTimeout] = useState(false)
 
   // Memoize data fetching function
   const fetchData = useCallback(async () => {
+    console.log('[Debug] BeatsChart: Starting data fetch for', { timeRange, projectId: selectedProject?.id });
     setIsLoading(true);
+    setError(null);
+    setIsTimeout(false);
+    
+    // Add timeout to prevent infinite loading
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        setIsTimeout(true);
+        reject(new Error('Chart data fetch timeout'));
+      }, 15000); // 15 second timeout
+    });
+
     try {
-      const data = await getBeatsDataForChart(timeRange, selectedProject?.id);
-      setBeatsData(data);
+      const dataPromise = getBeatsDataForChart(timeRange, selectedProject?.id);
+      const data = await Promise.race([dataPromise, timeoutPromise]) as any;
+      
+      console.log('[Debug] BeatsChart: Data fetched successfully', { 
+        dataLength: data?.length || 0, 
+        data: data?.slice(0, 3) // Log first 3 items
+      });
+      
+      setBeatsData(data || []);
     } catch (error) {
-      console.error('Error fetching beats data:', error);
+      console.error('[Debug] BeatsChart: Error fetching beats data:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load chart data';
+      setError(errorMessage);
       setBeatsData([]);
     } finally {
+      console.log('[Debug] BeatsChart: Setting loading to false');
       setIsLoading(false);
     }
   }, [timeRange, selectedProject?.id]);
@@ -169,10 +193,40 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
     })
   }, [isLoading, beatsData, maxValue, yAxisMax, chartData.hasValidData, chartData.cumulativeData, chartView, timeRange])
 
-  if (isLoading) {
+  // Show error state
+  if (error && !isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex flex-col items-center justify-center h-full text-muted-foreground space-y-3">
+        <p className="text-sm text-red-500">Failed to load chart data</p>
+        <p className="text-xs">{error}</p>
+        <button
+          onClick={() => fetchData()}
+          className="px-3 py-1 text-xs bg-violet-500 text-white rounded hover:bg-violet-600 transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    )
+  }
+
+  if (isLoading || isTimeout) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full space-y-3">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500" />
+        {isTimeout && (
+          <div className="text-center space-y-2">
+            <p className="text-xs text-muted-foreground">Taking longer than expected...</p>
+            <button
+              onClick={() => {
+                setIsTimeout(false);
+                fetchData();
+              }}
+              className="px-3 py-1 text-xs bg-violet-500 text-white rounded hover:bg-violet-600 transition-colors"
+            >
+              Cancel & Retry
+            </button>
+          </div>
+        )}
       </div>
     )
   }
