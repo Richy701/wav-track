@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useEffect, memo } from 'react'
-import { MusicNote, Lightning, Clock, Target, ChartLineUp, Trophy, TrendUp, TrendDown, Fire, Star, CheckCircle, Crown, Brain, Timer, Flag } from '@phosphor-icons/react'
+import React, { useMemo, useState, useEffect, memo, useCallback } from 'react'
+import { MusicNote, Clock, Target, ChartLineUp, Trophy, TrendUp, TrendDown, Fire, Star, CheckCircle } from '@phosphor-icons/react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProjects } from '@/hooks/useProjects'
 import { useAchievements } from '@/hooks/useAchievements'
@@ -195,9 +195,9 @@ const StatCard = memo(function StatCard({
   }
   
   const emphasisClasses = {
-    high: "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 shadow-lg hover:shadow-xl",
-    medium: "bg-white/80 dark:bg-zinc-900/80 border-zinc-200 dark:border-zinc-800 shadow-md hover:shadow-lg",
-    low: "bg-white/60 dark:bg-zinc-900/60 border-zinc-200/50 dark:border-zinc-800/50 shadow-sm hover:shadow-md"
+    high: "bg-black/5 dark:bg-black/30 border-zinc-200/20 dark:border-zinc-800/30 shadow-sm hover:shadow-md backdrop-blur-sm",
+    medium: "bg-black/3 dark:bg-black/25 border-zinc-200/15 dark:border-zinc-800/25 shadow-sm hover:shadow-md backdrop-blur-sm",
+    low: "bg-black/2 dark:bg-black/20 border-zinc-200/10 dark:border-zinc-800/20 shadow-sm hover:shadow-md backdrop-blur-sm"
   }
 
   const textSizeClasses = {
@@ -227,15 +227,15 @@ const StatCard = memo(function StatCard({
       initial="rest"
       animate="rest"
       className={cn(
-        "relative rounded-2xl border backdrop-blur-sm transition-all duration-300",
+        "relative rounded-xl border transition-all duration-300",
         sizeClasses[style.size],
         emphasisClasses[style.emphasis],
         "group overflow-hidden"
       )}
     >
-      {/* Gradient background overlay */}
+      {/* Subtle gradient background overlay */}
       <div className={cn(
-        "absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300",
+        "absolute inset-0 opacity-0 group-hover:opacity-[0.02] transition-opacity duration-300",
         `bg-gradient-to-br ${style.gradient}`
       )} />
       
@@ -244,9 +244,9 @@ const StatCard = memo(function StatCard({
         <motion.div 
           variants={iconVariants}
           className={cn(
-            "relative p-3 rounded-xl w-fit",
+            "relative p-2.5 rounded-lg w-fit",
             `bg-gradient-to-br ${style.gradient}`,
-            "shadow-lg"
+            "shadow-sm"
           )}
         >
           <div className="text-white">
@@ -293,23 +293,30 @@ const StatCard = memo(function StatCard({
           {stat.title}
         </h3>
         <AnimatePresence mode="wait">
-          <motion.p
-            key={stat.value}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-            variants={valueVariants}
-            className={cn(
-              "font-bold text-zinc-900 dark:text-white tracking-tight",
-              textSizeClasses[style.size]
-            )}
-          >
-            {isLoading ? (
-              <div className="h-6 w-16 animate-pulse bg-zinc-200 dark:bg-zinc-700 rounded" />
-            ) : (
-              stat.value
-            )}
-          </motion.p>
+          {isLoading ? (
+            <motion.div
+              key="loading"
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              variants={valueVariants}
+              className="h-6 w-16 animate-pulse bg-zinc-200 dark:bg-zinc-700 rounded"
+            />
+          ) : (
+            <motion.p
+              key={stat.value}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              variants={valueVariants}
+              className={cn(
+                "font-bold text-zinc-900 dark:text-white tracking-tight",
+                textSizeClasses[style.size]
+              )}
+            >
+              {stat.value}
+            </motion.p>
+          )}
         </AnimatePresence>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
           {stat.subtitle}
@@ -331,7 +338,7 @@ interface SmartInsight {
 
 
 export function StatsSummary() {
-  const { profile } = useAuth()
+  const { profile, user, isInitialized } = useAuth()
   const { allProjects } = useProjects()
   const { achievements } = useAchievements()
 
@@ -349,7 +356,9 @@ export function StatsSummary() {
     prevMonthlyBeats: 0,
     prevYearlyBeats: 0,
     totalSessionTime: 0,
-    isLoading: true
+    isLoading: true,
+    hasError: false,
+    retryCount: 0
   })
   // State for 14-day activity
   const [activity14, setActivity14] = useState<{ date: Date; count: number }[]>([])
@@ -368,8 +377,17 @@ export function StatsSummary() {
 
   // Fetch all stats data
   useEffect(() => {
+    // Don't fetch data until auth is initialized and we have a user
+    if (!isInitialized || !user) {
+      console.log('[Debug] StatsSummary: Waiting for auth initialization', { isInitialized, hasUser: !!user })
+      return
+    }
+
+    console.log('[Debug] StatsSummary: Starting data fetch', { userId: user.id })
+
     const fetchData = async () => {
       try {
+        console.log('[Debug] StatsSummary: Setting loading state')
         setStatsData(prev => ({ ...prev, isLoading: true }))
         
         // Current period calculations
@@ -440,6 +458,13 @@ export function StatsSummary() {
         }
         setActivity14(activityArr)
 
+        console.log('[Debug] StatsSummary: Data fetch completed successfully', {
+          dailyBeats,
+          weeklyBeats,
+          monthlyBeats,
+          activityCount: activityArr.length
+        })
+
         setStatsData({
           dailyBeats,
           weeklyBeats,
@@ -453,17 +478,22 @@ export function StatsSummary() {
           isLoading: false
         })
       } catch (error) {
-        console.error('Error fetching stats:', error)
-        setStatsData(prev => ({ ...prev, isLoading: false }))
+        console.error('[Debug] StatsSummary: Error fetching stats:', error)
+        setStatsData(prev => ({ 
+          ...prev, 
+          isLoading: false, 
+          hasError: true,
+          retryCount: prev.retryCount + 1
+        }))
       }
     }
-    fetchData()
-  }, [])
+    
+    // Add a small delay to ensure auth is fully initialized, with retry logic
+    const delay = statsData.retryCount > 0 ? Math.min(1000 * Math.pow(2, statsData.retryCount), 10000) : 100
+    const timeoutId = setTimeout(fetchData, delay)
+    return () => clearTimeout(timeoutId)
+  }, [isInitialized, user, statsData.retryCount])
 
-  // Calculate unlocked achievements
-  const unlockedAchievements = useMemo(() => {
-    return achievements.filter(a => a.unlocked_at).length
-  }, [achievements])
 
   // --- Monthly Progress Calculation ---
   const monthlyProgress = Math.min(statsData.monthlyBeats / MONTHLY_BEAT_GOAL, 1)
@@ -578,6 +608,17 @@ export function StatsSummary() {
     return insights.sort((a, b) => a.priority - b.priority).slice(0, 3)
   }, [statsData])
 
+  // Manual retry function
+  const handleRetry = useCallback(() => {
+    console.log('[Debug] StatsSummary: Manual retry triggered')
+    setStatsData(prev => ({ 
+      ...prev, 
+      isLoading: true, 
+      hasError: false,
+      retryCount: 0 
+    }))
+  }, [])
+
 
 
   // Helper to calculate trend string
@@ -634,9 +675,9 @@ export function StatsSummary() {
       priority: 3
     },
     {
-      title: 'Achievements',
-      value: `${unlockedAchievements}/${achievements.length}`,
-      subtitle: 'unlocked',
+      title: 'Total Projects',
+      value: totalBeats,
+      subtitle: 'beats created',
       type: 'achievements',
       trend: '',
       priority: 3
@@ -651,70 +692,33 @@ export function StatsSummary() {
     return 'bg-zinc-200 dark:bg-zinc-800'
   }
 
-  // --- Achievement Icon Mapping ---
-  function getAchievementIcon(achievementId: string) {
-    const iconMap: Record<string, React.ReactNode> = {
-      // Production achievements
-      'first_beat': <MusicNote size={16} weight="fill" />,
-      'beat_builder': <Trophy size={16} weight="fill" />,
-      'beat_machine': <Star size={16} weight="fill" />,
-      'legendary_producer': <Crown size={16} weight="fill" />,
-      
-      // Streak achievements
-      'daily_grinder': <Fire size={16} weight="fill" />,
-      'consistency_king': <Lightning size={16} weight="fill" />,
-      'on_fire': <TrendUp size={16} weight="fill" />,
-      
-      // Time achievements
-      'studio_rat': <Clock size={16} weight="fill" />,
-      'time_lord': <Timer size={16} weight="fill" />,
-      'focused_af': <Target size={16} weight="fill" />,
-      
-      // Goal achievements
-      'goal_getter': <CheckCircle size={16} weight="fill" />,
-      'finish_what_you_start': <Flag size={16} weight="fill" />,
-      'big_vision': <Brain size={16} weight="fill" />,
-      
-      // Default fallback
-      'default': <Star size={16} weight="fill" />
-    }
-    
-    return iconMap[achievementId] || iconMap['default']
-  }
 
   return (
     <motion.section 
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-50 via-white to-zinc-50 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800 border border-zinc-200/50 dark:border-zinc-700/50 p-8"
+      className="relative space-y-6"
     >
-      {/* Background pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 via-transparent to-purple-500/20" />
-      </div>
-
-      {/* Widget Header */}
-      <div className="relative mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg">
-            <Star className="h-5 w-5 text-white" weight="fill" />
-          </div>
+      {/* Header */}
+      <div className="relative">
+        <div className="flex items-start gap-2 mb-2">
+          <Star className="h-5 w-5 text-violet-600 dark:text-violet-400" weight="fill" />
           <div>
             <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
               Production Stats
             </h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
               Your music production journey
             </p>
           </div>
         </div>
       </div>
 
-      {/* Stats Grid - Premium Layout */}
+      {/* Stats Grid */}
       <motion.div 
         variants={containerVariants}
-        className="grid grid-cols-2 lg:grid-cols-3 gap-6"
+        className="grid grid-cols-2 gap-3"
       >
         {stats.map((stat) => {
           const style = statStyles[stat.type]
@@ -732,13 +736,13 @@ export function StatsSummary() {
       {/* Smart Insights Section */}
       {calculateInsights.length > 0 && (
         <motion.div 
-          className="mt-8"
+          className="space-y-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <motion.h3 
-            className="text-lg font-semibold text-zinc-900 dark:text-white mb-4"
+            className="text-lg font-semibold text-zinc-900 dark:text-white"
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.4 }}
@@ -761,10 +765,10 @@ export function StatsSummary() {
                   y: -2,
                   transition: { duration: 0.2 }
                 }}
-                className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-zinc-50 to-zinc-100 dark:from-zinc-800/50 dark:to-zinc-700/50 border border-zinc-200/50 dark:border-zinc-600/50 backdrop-blur-sm cursor-pointer group hover:shadow-lg hover:border-zinc-300/70 dark:hover:border-zinc-500/70 transition-all duration-300"
+                className="flex items-start gap-3 p-4 rounded-lg bg-black/5 dark:bg-black/20 border border-zinc-200/20 dark:border-zinc-800/20 backdrop-blur-sm cursor-pointer group hover:shadow-md hover:bg-black/10 dark:hover:bg-black/30 transition-all duration-300"
               >
                 <motion.div 
-                  className={`p-2 rounded-lg bg-white/80 dark:bg-zinc-800/80 shadow-sm ${insight.color} group-hover:shadow-md transition-shadow duration-300`}
+                  className={`p-2 rounded-lg bg-black/10 dark:bg-black/40 shadow-sm ${insight.color} group-hover:shadow-md transition-shadow duration-300`}
                   whileHover={{ 
                     scale: 1.1,
                     rotate: 5,
@@ -796,76 +800,15 @@ export function StatsSummary() {
         </motion.div>
               )}
 
-        {/* Recent Achievements Section */}
-        {achievements.filter(a => a.unlocked_at).length > 0 && (
-          <motion.div 
-            className="mt-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-          >
-            <motion.h3 
-              className="text-lg font-semibold text-zinc-900 dark:text-white mb-4"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.7 }}
-            >
-              Recent Achievements
-            </motion.h3>
-            <div className="flex flex-wrap gap-3">
-              {achievements
-                .filter(a => a.unlocked_at)
-                .slice(0, 4)
-                .map((achievement, index) => (
-                  <motion.div
-                    key={achievement.id}
-                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ 
-                      delay: 0.8 + (index * 0.1),
-                      duration: 0.4,
-                      ease: [0.25, 0.46, 0.45, 0.94]
-                    }}
-                    whileHover={{ 
-                      scale: 1.08,
-                      y: -3,
-                      rotateY: 5,
-                      transition: { duration: 0.3 }
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-2 px-3 py-2 rounded-full bg-gradient-to-r from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-700 border border-zinc-300/50 dark:border-zinc-600/50 shadow-sm cursor-pointer group hover:shadow-lg hover:border-zinc-400/70 dark:hover:border-zinc-500/70 transition-all duration-300"
-                  >
-                    <motion.div 
-                      className="text-zinc-700 dark:text-zinc-300"
-                      whileHover={{ 
-                        scale: 1.2,
-                        rotate: 10,
-                        transition: { duration: 0.2 }
-                      }}
-                    >
-                      {getAchievementIcon(achievement.id)}
-                    </motion.div>
-                    <motion.div 
-                      className="text-xs font-semibold text-zinc-900 dark:text-white"
-                      whileHover={{ x: 2 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {achievement.name}
-                    </motion.div>
-                  </motion.div>
-                ))}
-            </div>
-          </motion.div>
-        )}
 
       {/* Monthly Beat Goal Progress */}
-      <div className="mt-8">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
             Monthly Beat Goal
-          </span>
-          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-            {statsData.monthlyBeats} / {MONTHLY_BEAT_GOAL} beats
+          </h3>
+          <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+            {statsData.monthlyBeats} / {MONTHLY_BEAT_GOAL}
           </span>
         </div>
         <div className="relative w-full h-3 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
@@ -893,35 +836,70 @@ export function StatsSummary() {
       </div>
 
       {/* 14-day Activity Heatmap */}
-      <div className="mt-6">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
-            Last 14 Days
-          </span>
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">
-            Activity
-          </span>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
+            Recent Activity
+          </h3>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              Last 14 days
+            </span>
+            {statsData.hasError && (
+              <button
+                onClick={handleRetry}
+                className="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-md hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors"
+                title="Retry loading activity data"
+              >
+                Retry
+              </button>
+            )}
+          </div>
         </div>
-        <div className="flex gap-2">
-          {activity14.map((a, i) => (
-            <TooltipProvider key={i}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div
-                    className={cn(
-                      "w-6 h-6 rounded-md border border-zinc-200 dark:border-zinc-800 transition-colors duration-200",
-                      getHeatColor(a.count)
-                    )}
-                  />
-                </TooltipTrigger>
-                <TooltipContent sideOffset={4} className="text-xs">
-                  {format(a.date, 'EEE, MMM d')}: {a.count} beat{a.count === 1 ? '' : 's'}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ))}
-        </div>
+        {statsData.isLoading ? (
+          <div className="flex gap-2">
+            {Array.from({ length: 14 }).map((_, i) => (
+              <div
+                key={i}
+                className="w-6 h-6 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+              />
+            ))}
+          </div>
+        ) : statsData.hasError ? (
+          <div className="text-center py-4">
+            <p className="text-sm text-red-500 dark:text-red-400">
+              Failed to load recent activity
+            </p>
+            <button
+              onClick={handleRetry}
+              className="mt-2 text-xs px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            {activity14.map((a, i) => (
+              <TooltipProvider key={i}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={cn(
+                        "w-6 h-6 rounded-md border border-zinc-200 dark:border-zinc-800 transition-colors duration-200",
+                        getHeatColor(a.count)
+                      )}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent sideOffset={4} className="text-xs">
+                    {format(a.date, 'EEE, MMM d')}: {a.count} beat{a.count === 1 ? '' : 's'}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ))}
+          </div>
+        )}
       </div>
+
     </motion.section>
   )
 }
