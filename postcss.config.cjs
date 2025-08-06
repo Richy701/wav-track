@@ -7,18 +7,8 @@ module.exports = {
     ...(process.env.NODE_ENV === 'production'
       ? {
           cssnano: {
-            preset: ['advanced', { 
+            preset: ['default', { 
               discardComments: { removeAll: true },
-              mergeRules: true,
-              mergeLonghand: true,
-              discardDuplicates: true,
-              discardOverridden: true,
-              normalizeWhitespace: true,
-              colormin: true,
-              minifySelectors: true,
-              minifyParams: true,
-              minifyFontValues: true,
-              reduceIdents: true,
             }],
           },
         }
