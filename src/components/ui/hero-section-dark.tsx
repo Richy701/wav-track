@@ -85,10 +85,25 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
       setIsLoading(true)
 
       try {
-        const { error } = await addToWaitlist(email)
+        const { data, error } = await addToWaitlist(email)
 
-        if (error) throw error
+        if (error) {
+          // Handle specific error cases
+          if (error.code === 'DUPLICATE_EMAIL' || error.status === 409) {
+            toast.error("Already on the waitlist!", {
+              description: "This email is already registered. We'll keep you posted!",
+              className: "bg-white text-black dark:bg-zinc-900 dark:text-white border border-purple-500 shadow-lg rounded-xl px-4 py-3",
+            })
+          } else {
+            toast.error("Something went wrong", {
+              description: "Please try again later.",
+              className: "bg-white text-black dark:bg-zinc-900 dark:text-white border border-red-500 shadow-lg rounded-xl px-4 py-3",
+            })
+          }
+          return // Exit early on error
+        }
 
+        // Success case
         toast.success("You're on the waitlist!", {
           description: "We'll keep you posted as things roll out.",
           icon: <CheckCircle className="text-purple-500" />,
@@ -104,18 +119,11 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
           onWaitlistSubmit()
         }
       } catch (error: any) {
-        // Handle specific error cases
-        if (error?.code === 'DUPLICATE_EMAIL' || error?.status === 409) {
-          toast.error("Already on the waitlist!", {
-            description: "This email is already registered. We'll keep you posted!",
-            className: "bg-white text-black dark:bg-zinc-900 dark:text-white border border-purple-500 shadow-lg rounded-xl px-4 py-3",
-          })
-        } else {
-          toast.error("Something went wrong", {
-            description: "Please try again later.",
-            className: "bg-white text-black dark:bg-zinc-900 dark:text-white border border-red-500 shadow-lg rounded-xl px-4 py-3",
-          })
-        }
+        console.error('Unexpected error in waitlist submission:', error)
+        toast.error("Something went wrong", {
+          description: "Please try again later.",
+          className: "bg-white text-black dark:bg-zinc-900 dark:text-white border border-red-500 shadow-lg rounded-xl px-4 py-3",
+        })
       } finally {
         setIsLoading(false)
       }

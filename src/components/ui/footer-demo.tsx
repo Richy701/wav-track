@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "react-router-dom";
-import { DIcons } from "dicons";
+import { Twitter, Instagram, Github } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import { theme } from "@/styles/theme";

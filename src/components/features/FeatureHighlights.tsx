@@ -110,7 +110,7 @@ export function FeatureHighlights() {
                   'bg-gradient-to-b',
                   feature.gradient,
                   'opacity-60 dark:opacity-80 group-hover:opacity-100',
-                  'transition-all duration-[800ms]'
+                  'transition-all duration-700'
                 )}
               />
 

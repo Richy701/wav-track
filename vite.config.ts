@@ -47,20 +47,45 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-slot'],
+        manualChunks: (id) => {
+          // Core React libraries
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            return 'vendor'
+          }
+          // Chart/visualization libraries
+          if (id.includes('recharts') || id.includes('chart') || id.includes('d3')) {
+            return 'charts'
+          }
+          // UI component libraries
+          if (id.includes('@radix-ui') || id.includes('lucide-react')) {
+            return 'ui'
+          }
+          // Heavy utilities and third-party
+          if (id.includes('date-fns') || id.includes('clsx') || id.includes('class-variance-authority')) {
+            return 'utils'
+          }
+          // Large node_modules packages
+          if (id.includes('node_modules')) {
+            return 'vendor'
+          }
         }
       }
     },
     target: 'es2020',
-    sourcemap: true,
+    sourcemap: false, // Reduce build size
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: false,
+        drop_console: true, // Remove console logs in production
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug'],
+      },
+      mangle: {
+        safari10: true,
       },
     },
+    cssCodeSplit: true, // Enable CSS code splitting
+    chunkSizeWarningLimit: 1000, // Increase limit but still warn for large chunks
   },
   server: {
     port: 3001,

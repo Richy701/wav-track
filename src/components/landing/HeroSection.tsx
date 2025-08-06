@@ -22,11 +22,25 @@ export default function HeroSection({ onWaitlistSubmit }: HeroSectionProps) {
     setIsLoading(true);
 
     try {
-      const { error } = await addToWaitlist(email);
+      const { data, error } = await addToWaitlist(email);
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific error cases
+        if (error.code === 'DUPLICATE_EMAIL' || error.status === 409) {
+          toast.error("Already on the waitlist!", {
+            description: "This email is already registered. We'll keep you posted!",
+            className: "bg-[#FAF9F6] text-neutral-800 dark:bg-zinc-900 dark:text-white border border-yellow-200 dark:border-yellow-500 shadow-lg rounded-xl px-4 py-3",
+          });
+        } else {
+          toast.error("Something went wrong", {
+            description: "Please try again later.",
+            className: "bg-[#FAF9F6] text-neutral-800 dark:bg-zinc-900 dark:text-white border border-red-200 dark:border-red-500 shadow-lg rounded-xl px-4 py-3",
+          });
+        }
+        return; // Exit early on error
+      }
       
-      // Show toast notification with Sonner
+      // Success case - Show toast notification with Sonner
       toast.success("You're on the waitlist!", {
         description: "We'll keep you posted as things roll out.",
         icon: <CheckCircle className="text-yellow-600 dark:text-purple-500" />,
@@ -44,18 +58,11 @@ export default function HeroSection({ onWaitlistSubmit }: HeroSectionProps) {
         onWaitlistSubmit();
       }
     } catch (error: any) {
-      // Handle specific error cases
-      if (error?.code === 'DUPLICATE_EMAIL' || error?.status === 409) {
-        toast.error("Already on the waitlist!", {
-          description: "This email is already registered. We'll keep you posted!",
-          className: "bg-[#FAF9F6] text-neutral-800 dark:bg-zinc-900 dark:text-white border border-yellow-200 dark:border-yellow-500 shadow-lg rounded-xl px-4 py-3",
-        });
-      } else {
-        toast.error("Something went wrong", {
-          description: "Please try again later.",
-          className: "bg-[#FAF9F6] text-neutral-800 dark:bg-zinc-900 dark:text-white border border-red-200 dark:border-red-500 shadow-lg rounded-xl px-4 py-3",
-        });
-      }
+      console.error('Unexpected error in waitlist submission:', error);
+      toast.error("Something went wrong", {
+        description: "Please try again later.",
+        className: "bg-[#FAF9F6] text-neutral-800 dark:bg-zinc-900 dark:text-white border border-red-200 dark:border-red-500 shadow-lg rounded-xl px-4 py-3",
+      });
     } finally {
       setIsLoading(false);
     }

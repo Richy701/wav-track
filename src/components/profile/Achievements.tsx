@@ -142,15 +142,6 @@ const achievementIcons = {
       weight="fill" 
     />
   ),
-  on_fire: (isUnlocked: boolean) => (
-    <Flame 
-      className={cn(
-        "h-8 w-8",
-        isUnlocked ? "text-orange-600 dark:text-orange-400" : "text-zinc-400 dark:text-white"
-      )} 
-      weight="fill" 
-    />
-  ),
   // Time achievements
   studio_rat: (isUnlocked: boolean) => (
     <Timer 
@@ -163,15 +154,6 @@ const achievementIcons = {
   ),
   time_lord: (isUnlocked: boolean) => (
     <Hourglass 
-      className={cn(
-        "h-8 w-8",
-        isUnlocked ? "text-blue-600 dark:text-blue-400" : "text-zinc-400 dark:text-white"
-      )} 
-      weight="fill" 
-    />
-  ),
-  focused_af: (isUnlocked: boolean) => (
-    <Brain 
       className={cn(
         "h-8 w-8",
         isUnlocked ? "text-blue-600 dark:text-blue-400" : "text-zinc-400 dark:text-white"

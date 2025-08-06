@@ -45,11 +45,9 @@ const achievementIcons = {
   // Streak achievements
   daily_grinder: <Fire className="h-8 w-8 text-white" weight="fill" />,
   consistency_king: <Star className="h-8 w-8 text-white" weight="fill" />,
-  on_fire: <Fire className="h-8 w-8 text-white" weight="fill" />,
   // Time achievements
   studio_rat: <Clock className="h-8 w-8 text-white" weight="fill" />,
   time_lord: <Clock className="h-8 w-8 text-white" weight="fill" />,
-  focused_af: <Target className="h-8 w-8 text-white" weight="fill" />,
   // Goal achievements
   goal_getter: <Target className="h-8 w-8 text-white" weight="fill" />,
   finish_what_you_start: <Trophy className="h-8 w-8 text-white" weight="fill" />,

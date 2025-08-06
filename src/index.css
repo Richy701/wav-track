@@ -1,7 +1,4 @@
-/* Import fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-@import url('https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+/* Fonts are now loaded via HTML head for better performance */
 
 @import './styles/daw-logos.css';
 
@@ -327,106 +324,156 @@
   /* Mobile Optimizations */
   @media (max-width: 640px) {
     .container {
-      @apply px-4;
+      @apply px-3 sm:px-4;
+    }
+
+    /* Prevent horizontal scrolling */
+    html {
+      overflow-x: hidden;
+    }
+    
+    body {
+      overflow-x: hidden;
+      width: 100%;
+      max-width: 100vw;
     }
 
     /* Ensure content doesn't overflow on mobile */
     .overflow-x-auto {
-      @apply -mx-4 px-4;
+      @apply -mx-3 px-3 sm:-mx-4 sm:px-4;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    
+    .overflow-x-auto::-webkit-scrollbar {
+      display: none;
     }
 
-    /* Improved spacing for mobile */
-    .py-4 {
-      @apply py-3;
+    /* Fixed mobile navigation */
+    header {
+      @apply px-3 sm:px-4 !important;
     }
 
-      /* Fixed mobile navigation */
-  header {
-    @apply px-4 !important;
-  }
+    /* Ensure content doesn't overlap with fixed header */
+    main {
+      @apply pt-16 sm:pt-20;
+    }
 
-  /* Ensure content doesn't overlap with fixed header */
-  main {
-    @apply pt-20;
-  }
+    /* Improved mobile header spacing */
+    .header-container {
+      @apply gap-1 sm:gap-2;
+      min-height: 3rem;
+    }
 
-  /* Improved mobile header spacing */
-  .header-container {
-    @apply gap-2 md:gap-4;
-  }
-
-  /* Better touch targets for mobile */
-  .mobile-nav-button {
-    @apply min-h-[44px] min-w-[44px];
-  }
-
-    /* Ensure buttons are large enough for touch */
-    button,
-    a {
+    /* Better touch targets for mobile */
+    .mobile-nav-button, 
+    button:not(.text-xs):not(.h-6):not(.h-7):not(.h-8),
+    a:not(.text-xs):not(.h-6):not(.h-7):not(.h-8) {
       @apply min-h-[44px] min-w-[44px];
     }
 
+    /* Small buttons exception */
+    .h-6, .h-7, .h-8, .text-xs button, .text-xs a {
+      min-height: unset;
+      min-width: unset;
+    }
+
     /* Improved text readability on mobile */
-    p,
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-      @apply max-w-full break-words;
+    p, h1, h2, h3, h4, h5, h6 {
+      @apply max-w-full break-words hyphens-auto;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
     /* Chart optimizations for mobile */
     .recharts-wrapper {
-      @apply overflow-x-hidden;
+      @apply overflow-hidden;
+      width: 100% !important;
     }
 
     .recharts-surface {
-      @apply overflow-x-hidden;
+      @apply overflow-hidden;
+      max-width: 100% !important;
     }
 
     .recharts-cartesian-axis-tick-text {
-      @apply text-[10px];
+      @apply text-[9px] sm:text-[10px];
     }
 
     .recharts-label {
-      @apply text-[10px];
+      @apply text-[9px] sm:text-[10px];
     }
 
     /* Card optimizations for mobile */
     .card {
-      @apply p-4;
+      @apply p-3 sm:p-4;
     }
 
     /* Grid optimizations for mobile */
     .grid {
-      @apply gap-3;
-    }
-
-    /* Improved touch targets */
-    .clickable {
-      @apply min-h-[44px] min-w-[44px];
+      @apply gap-2 sm:gap-3;
     }
 
     /* Better spacing for mobile lists */
     ul, ol {
-      @apply space-y-2;
+      @apply space-y-1.5 sm:space-y-2;
     }
 
     /* Improved form elements on mobile */
     input, select, textarea {
       @apply text-base;
+      font-size: 16px; /* Prevents zoom on iOS */
     }
 
     /* Better table handling on mobile */
     table {
       @apply block overflow-x-auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    
+    table::-webkit-scrollbar {
+      display: none;
     }
 
     /* Improved modal dialogs on mobile */
-    .modal {
-      @apply mx-4;
+    .modal, [role="dialog"] {
+      @apply mx-2 sm:mx-4;
+      max-width: calc(100vw - 1rem);
+    }
+
+    /* Image responsiveness */
+    img {
+      @apply max-w-full h-auto;
+    }
+
+    /* Video responsiveness */
+    video {
+      @apply max-w-full h-auto;
+    }
+
+    /* Better flex handling on mobile */
+    .flex {
+      min-width: 0;
+    }
+
+    /* Fix layout issues with grids */
+    .lg\:grid-cols-3 {
+      @apply grid-cols-1;
+    }
+    
+    .lg\:col-span-2 {
+      @apply col-span-1;
+    }
+
+    /* Better padding for main content */
+    .max-w-7xl {
+      @apply px-3 sm:px-4;
+    }
+
+    /* Improved spacing for sections */
+    .section-padding {
+      @apply py-4 sm:py-6;
     }
   }
 
@@ -447,11 +494,11 @@
   /* Tablet Optimizations */
   @media (min-width: 641px) and (max-width: 1024px) {
     .container {
-      @apply px-6;
+      @apply px-4 sm:px-6;
     }
 
     main {
-      @apply pt-24;
+      @apply pt-20 sm:pt-24;
     }
 
     /* Chart optimizations for tablet */
@@ -465,12 +512,56 @@
 
     /* Better spacing for tablet */
     .section-padding {
-      @apply py-8;
+      @apply py-6 sm:py-8;
     }
 
     /* Improved grid layouts for tablet */
     .grid {
-      @apply gap-4;
+      @apply gap-3 sm:gap-4;
+    }
+
+    /* Better touch targets on tablet */
+    button, a {
+      @apply min-h-[40px];
+    }
+
+    /* Card spacing for tablet */
+    .card {
+      @apply p-4 sm:p-5;
+    }
+
+    /* Better modal sizing for tablet */
+    .modal, [role="dialog"] {
+      @apply mx-6;
+      max-width: calc(100vw - 3rem);
+    }
+  }
+
+  /* Large mobile/small tablet (481px to 640px) */
+  @media (min-width: 481px) and (max-width: 640px) {
+    .container {
+      @apply px-4;
+    }
+
+    header {
+      @apply px-4 !important;
+    }
+
+    main {
+      @apply pt-20;
+    }
+
+    .header-container {
+      @apply gap-2;
+    }
+
+    /* Better grid handling */
+    .grid {
+      @apply gap-3;
+    }
+
+    .card {
+      @apply p-4;
     }
   }
 
@@ -500,6 +591,13 @@
     overflow-x: hidden;
     background-color: var(--bg);
     color: var(--text);
+    
+    /* Mobile optimizations */
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
   #root {
@@ -744,6 +842,99 @@
     transform: scale(1.05);
   }
 
+  /* Mobile-first responsive utilities */
+  .mobile-full-width {
+    @apply w-full sm:w-auto;
+  }
+
+  .mobile-stack {
+    @apply flex-col sm:flex-row;
+  }
+
+  .mobile-center {
+    @apply text-center sm:text-left;
+  }
+
+  .mobile-hide {
+    @apply hidden sm:block;
+  }
+
+  .mobile-show {
+    @apply block sm:hidden;
+  }
+
+  .mobile-padding {
+    @apply px-3 sm:px-4 lg:px-6;
+  }
+
+  .mobile-margin {
+    @apply mx-3 sm:mx-4 lg:mx-6;
+  }
+
+  /* Responsive text sizes */
+  .text-responsive-sm {
+    @apply text-xs sm:text-sm;
+  }
+
+  .text-responsive-base {
+    @apply text-sm sm:text-base;
+  }
+
+  .text-responsive-lg {
+    @apply text-base sm:text-lg;
+  }
+
+  .text-responsive-xl {
+    @apply text-lg sm:text-xl;
+  }
+
+  .text-responsive-2xl {
+    @apply text-xl sm:text-2xl;
+  }
+
+  /* Touch-friendly utilities */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  .touch-target-sm {
+    @apply min-h-[36px] min-w-[36px];
+  }
+
+  /* Safe area utilities for mobile devices with notches */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Prevent zoom on form focus (iOS) */
+  .no-zoom {
+    font-size: 16px !important;
+    transform-origin: left top;
+    transform: scale(1);
+  }
+
+  /* Better scrolling */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Container queries fallback */
+  .container-responsive {
+    @apply w-full max-w-none sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-2xl;
+  }
 
   .animate-progress {
     animation: progress-indeterminate 1s linear infinite;

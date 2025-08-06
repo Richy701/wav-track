@@ -59,17 +59,17 @@ export default function Header() {
         'px-4 py-3 md:px-6 md:py-4'
       )}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 md:gap-4 header-container">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-1 sm:gap-2 md:gap-4 header-container">
         {/* Logo left */}
-        <div className="flex-shrink-0 flex items-center">
+        <div className="flex-shrink-0 flex items-center min-w-0">
           <HeaderTitle />
         </div>
         {/* Nav pill centered - hidden on mobile */}
-        <nav className="hidden md:flex flex-1 justify-center">
+        <nav className="hidden md:flex flex-1 justify-center min-w-0">
           <TubelightNavbar />
         </nav>
         {/* Actions right - only on desktop */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-1 lg:gap-2 flex-shrink-0">
           <ThemeSwitcher />
           {user ? (
             <>
@@ -77,33 +77,37 @@ export default function Header() {
               {location.pathname === '/dashboard' && (
                 <Button
                   variant="default"
-                  className="bg-gradient-to-r from-[#8257E5] to-[#B490FF] text-white px-2 py-1 h-8 rounded-full text-xs min-w-[90px] flex items-center justify-center gap-1"
+                  className="bg-gradient-to-r from-[#8257E5] to-[#B490FF] text-white px-2 py-1 h-8 rounded-full text-xs min-w-[80px] lg:min-w-[90px] flex items-center justify-center gap-1 flex-shrink-0"
                   onClick={() => setIsCreateProjectOpen(true)}
                 >
-                  <Plus className="h-4 w-4 mr-1" />
-                  <span className="hidden sm:inline">New Project</span>
+                  <Plus className="h-3 w-3 lg:h-4 lg:w-4 mr-0.5 lg:mr-1" />
+                  <span className="hidden lg:inline">New Project</span>
+                  <span className="lg:hidden">New</span>
                 </Button>
               )}
             </>
           ) : (
             <Button
               variant="default"
-              className="bg-gradient-to-r from-violet-600 to-violet-400 text-white px-4 py-2 h-9 rounded-full text-sm font-medium hover:from-violet-700 hover:to-violet-500 transition-all duration-200"
+              className="bg-gradient-to-r from-violet-600 to-violet-400 text-white px-3 lg:px-4 py-2 h-8 lg:h-9 rounded-full text-xs lg:text-sm font-medium hover:from-violet-700 hover:to-violet-500 transition-all duration-200 flex-shrink-0"
               onClick={() => navigate('/login')}
             >
               Sign In
             </Button>
           )}
         </div>
-        {/* Hamburger on mobile - right side */}
-        <div className="md:hidden flex items-center">
+        {/* Mobile actions - theme + hamburger */}
+        <div className="md:hidden flex items-center gap-1 flex-shrink-0">
+          <div className="sm:block">
+            <ThemeSwitcher />
+          </div>
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
+            className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary touch-target"
             onClick={() => setIsMobileMenuOpen(true)}
             aria-label="Open main menu"
           >
-            <Bars3Icon className="h-6 w-6" />
+            <Bars3Icon className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
       </div>
@@ -131,13 +135,13 @@ export default function Header() {
               aria-hidden="true"
             />
             {/* Slide-over */}
-            <div className="fixed inset-y-0 right-0 z-[10000] w-80 bg-white dark:bg-zinc-900 shadow-lg flex flex-col">
+            <div className="fixed inset-y-0 right-0 z-[10000] w-72 sm:w-80 bg-white dark:bg-zinc-900 shadow-lg flex flex-col max-w-[85vw]">
               {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
-                <h2 className="text-lg font-medium">Menu</h2>
+              <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0 safe-top">
+                <h2 className="text-base sm:text-lg font-medium">Menu</h2>
                 <button
                   type="button"
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded touch-target"
                   onClick={() => setIsMobileMenuOpen(false)}
                   aria-label="Close menu"
                 >

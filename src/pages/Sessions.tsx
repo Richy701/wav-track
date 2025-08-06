@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
 import OptimizedTimerDisplay from '@/components/ui/optimized-timer'
-import VirtualizedGoals from '@/components/ui/virtualized-goals'
 import { logger } from '@/utils/logger'
 import { 
   Play, 
@@ -72,8 +70,6 @@ const Sessions = () => {
   const [showSettings, setShowSettings] = useState(false)
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false)
   const [newGoalText, setNewGoalText] = useState('')
-  const [newGoalPriority, setNewGoalPriority] = useState<Goal['priority']>('medium')
-  const [newGoalEstimate, setNewGoalEstimate] = useState(25)
   const [editingGoal, setEditingGoal] = useState<EditingGoal | null>(null)
   const [goalToDelete, setGoalToDelete] = useState<string | null>(null)
   
@@ -115,15 +111,14 @@ const Sessions = () => {
     if (!newGoalText.trim()) return
     
     logger.performance('Adding goal', newGoalText)
-    const result = await goals.addGoal(newGoalText, newGoalPriority, newGoalEstimate)
+    // Use simple defaults: medium priority, 25 minutes
+    const result = await goals.addGoal(newGoalText, 'medium', 25)
     
     if (result.success) {
       setNewGoalText('')
-      setNewGoalPriority('medium')
-      setNewGoalEstimate(25)
       toast({
         title: 'Goal added! 🎯',
-        description: `Added "${newGoalText}" to your goals`,
+        description: `"${newGoalText}" added to your focus list`,
       })
     } else {
       toast({
@@ -132,7 +127,7 @@ const Sessions = () => {
         variant: 'destructive'
       })
     }
-  }, [newGoalText, newGoalPriority, newGoalEstimate])
+  }, [newGoalText, goals, toast])
   
   const handleEditGoal = useCallback((goal: Goal) => {
     setEditingGoal({
@@ -552,62 +547,87 @@ const Sessions = () => {
             {/* Sidebar */}
             <div className="space-y-4">
               
-              {/* Modern Progress Overview */}
+              {/* Enhanced Progress Overview */}
               <Card className="border-0 bg-gradient-to-br from-background/80 to-muted/30 backdrop-blur-xl shadow-lg">
                 <CardHeader className="pb-2">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-emerald-600" />
                     <CardTitle className="text-base font-semibold">
-                      Progress
+                      Today's Progress
                     </CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Goal Progress */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Goals</span>
-                      <span className="text-xs text-muted-foreground">
-                        {goals.completedGoals.length}/{goals.goals.length}
-                      </span>
-                    </div>
-                    <div className="relative">
-                      <div className="h-2 bg-black/10 dark:bg-black/40 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-500"
-                          style={{ width: `${goals.completionRate}%` }}
-                        />
+                  {/* Enhanced Stats Grid */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50/80 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20 border border-emerald-200/30 dark:border-emerald-800/30">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock className="w-4 h-4 text-emerald-600" />
+                        <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Focus Time</span>
                       </div>
-                      {goals.goals.length > 0 && (
-                        <span className="absolute -top-5 right-0 text-xs font-medium text-emerald-600">
-                          {goals.completionRate.toFixed(0)}%
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Compact Stats */}
-                  <div className="grid grid-cols-2 gap-3 mt-4">
-                    <div className="p-3 rounded-lg bg-gradient-to-br from-emerald-50/50 to-emerald-100/30 dark:from-emerald-950/20 dark:to-emerald-900/10 border border-emerald-200/20 dark:border-emerald-800/20">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Clock className="w-3 h-3 text-emerald-600" />
-                        <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Focus</span>
-                      </div>
-                      <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                      <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
                         {stats.isLoading ? '...' : `${Math.floor(stats.todaysStats.focusTime / 3600)}h ${Math.floor((stats.todaysStats.focusTime % 3600) / 60)}m`}
+                      </div>
+                      <div className="text-xs text-emerald-600/70 dark:text-emerald-300/70 mt-1">
+                        {stats.todaysStats.completedSessions} sessions
                       </div>
                     </div>
                     
-                    <div className="p-3 rounded-lg bg-gradient-to-br from-orange-50/50 to-orange-100/30 dark:from-orange-950/20 dark:to-orange-900/10 border border-orange-200/20 dark:border-orange-800/20">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Flame className="w-3 h-3 text-orange-600" />
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-orange-50/80 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 border border-orange-200/30 dark:border-orange-800/30">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Flame className="w-4 h-4 text-orange-600" />
                         <span className="text-xs font-medium text-orange-700 dark:text-orange-300">Streak</span>
                       </div>
-                      <div className="text-lg font-bold text-orange-500 dark:text-orange-400">
-                        {stats.isLoading ? '...' : `${stats.currentStreak} days`}
+                      <div className="text-xl font-bold text-orange-500 dark:text-orange-400">
+                        {stats.isLoading ? '...' : `${stats.currentStreak}`}
+                      </div>
+                      <div className="text-xs text-orange-600/70 dark:text-orange-300/70 mt-1">
+                        {stats.currentStreak === 1 ? 'day' : 'days'} strong
                       </div>
                     </div>
                   </div>
+
+                  {/* Goal Progress with Visual Enhancement */}
+                  {goals.goals.length > 0 && (
+                    <div className="space-y-3 p-4 rounded-xl bg-gradient-to-br from-blue-50/50 to-indigo-50/30 dark:from-blue-950/20 dark:to-indigo-950/15 border border-blue-200/20 dark:border-blue-800/20">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Target className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm font-medium text-blue-800 dark:text-blue-200">Goal Progress</span>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                            {Math.round(goals.completionRate)}%
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="relative">
+                        <div className="h-3 bg-blue-100/50 dark:bg-blue-900/30 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                            style={{ width: `${goals.completionRate}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between mt-1">
+                          <span className="text-xs text-blue-600/70 dark:text-blue-300/70">
+                            {goals.completedGoals.length} completed
+                          </span>
+                          <span className="text-xs text-blue-600/70 dark:text-blue-300/70">
+                            {goals.goals.length - goals.completedGoals.length} remaining
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {goals.completionRate === 100 && (
+                        <div className="text-center pt-2">
+                          <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                            🎉 All goals achieved!
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -621,178 +641,123 @@ const Sessions = () => {
                         Focus Goals
                       </CardTitle>
                     </div>
-                    <Badge variant="secondary" className="text-xs px-2 py-1">
-                      {goals.completedGoals.length}/{goals.goals.length}
-                    </Badge>
+                    {goals.goals.length > 0 && (
+                      <div className="text-right">
+                        <div className="text-sm font-bold text-emerald-600">
+                          {Math.round(goals.completionRate)}%
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {goals.completedGoals.length}/{goals.goals.length} done
+                        </div>
+                      </div>
+                    )}
                   </div>
+                  {goals.goals.length > 0 && (
+                    <div className="mt-3">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs text-muted-foreground">Progress</span>
+                        <span className="text-xs font-medium text-emerald-600">
+                          {goals.completedGoals.length} of {goals.goals.length} completed
+                        </span>
+                      </div>
+                      <div className="relative h-2 bg-black/10 dark:bg-black/40 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                          style={{ width: `${goals.completionRate}%` }}
+                        />
+                      </div>
+                      {goals.completionRate === 100 && (
+                        <div className="mt-1 text-center">
+                          <span className="text-xs text-emerald-600 font-medium">🎉 All goals completed!</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {/* Modern Add Goal Form */}
-                  <div className="space-y-2">
-                    <div className="relative">
-                      <Input
-                        ref={newGoalInputRef}
-                        value={newGoalText}
-                        onChange={(e) => setNewGoalText(e.target.value)}
-                        placeholder="Add a focus goal..."
-                        onKeyDown={handleNewGoalKeyDown}
-                        className="pr-12 border-0 bg-black/5 dark:bg-black/25 focus:bg-black/10 dark:focus:bg-black/30 transition-colors"
-                        disabled={goals.isLoading}
-                      />
-                      <Button 
-                        onClick={handleAddGoal} 
-                        disabled={!newGoalText.trim() || goals.isLoading}
-                        size="sm"
-                        className="absolute right-1 top-1 h-8 w-8 p-0 bg-emerald-600 hover:bg-emerald-700"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    
-                    {/* Compact Priority & Duration */}
-                    <div className="flex space-x-2 text-xs">
-                      <div className="flex items-center space-x-1">
-                        <span className="text-muted-foreground">Priority:</span>
-                        <button
-                          onClick={() => setNewGoalPriority('low')}
-                          className={`px-2 py-1 rounded-md transition-colors ${
-                            newGoalPriority === 'low' 
-                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' 
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          Low
-                        </button>
-                        <button
-                          onClick={() => setNewGoalPriority('medium')}
-                          className={`px-2 py-1 rounded-md transition-colors ${
-                            newGoalPriority === 'medium' 
-                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' 
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          Med
-                        </button>
-                        <button
-                          onClick={() => setNewGoalPriority('high')}
-                          className={`px-2 py-1 rounded-md transition-colors ${
-                            newGoalPriority === 'high' 
-                              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' 
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          High
-                        </button>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <span className="text-muted-foreground">Time:</span>
-                        <button
-                          onClick={() => setNewGoalEstimate(25)}
-                          className={`px-2 py-1 rounded-md transition-colors ${
-                            newGoalEstimate === 25 
-                              ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' 
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          25m
-                        </button>
-                        <button
-                          onClick={() => setNewGoalEstimate(45)}
-                          className={`px-2 py-1 rounded-md transition-colors ${
-                            newGoalEstimate === 45 
-                              ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' 
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          45m
-                        </button>
-                        <button
-                          onClick={() => setNewGoalEstimate(60)}
-                          className={`px-2 py-1 rounded-md transition-colors ${
-                            newGoalEstimate === 60 
-                              ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' 
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          60m
-                        </button>
-                      </div>
-                    </div>
+                  {/* Simplified Add Goal Form */}
+                  <div className="relative">
+                    <Input
+                      ref={newGoalInputRef}
+                      value={newGoalText}
+                      onChange={(e) => setNewGoalText(e.target.value)}
+                      placeholder="What do you want to focus on?"
+                      onKeyDown={handleNewGoalKeyDown}
+                      className="pr-12 border-0 bg-black/5 dark:bg-black/25 focus:bg-black/10 dark:focus:bg-black/30 transition-colors"
+                      disabled={goals.isLoading}
+                    />
+                    <Button 
+                      onClick={handleAddGoal} 
+                      disabled={!newGoalText.trim() || goals.isLoading}
+                      size="sm"
+                      className="absolute right-1 top-1 h-8 w-8 p-0 bg-emerald-600 hover:bg-emerald-700"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
                   </div>
 
-                  {/* Modern Goals List */}
-                  <div className="space-y-2 max-h-72 overflow-y-auto">
+                  {/* Clean Goals List */}
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
                     {goals.isLoading ? (
                       <div className="text-center py-6 text-muted-foreground">
                         <div className="animate-pulse space-y-2">
-                          <div className="h-8 bg-black/10 dark:bg-black/30 rounded"></div>
-                          <div className="h-8 bg-black/5 dark:bg-black/25 rounded"></div>
+                          <div className="h-10 bg-black/10 dark:bg-black/30 rounded"></div>
+                          <div className="h-10 bg-black/5 dark:bg-black/25 rounded"></div>
                         </div>
                       </div>
                     ) : goals.goals.length === 0 ? (
-                      <div className="text-center py-6 text-muted-foreground">
-                        <Target className="w-6 h-6 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">Add your first goal above</p>
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Target className="w-8 h-8 mx-auto mb-3 opacity-30" />
+                        <p className="text-sm font-medium mb-1">No goals yet</p>
+                        <p className="text-xs opacity-75">Add a goal above to get started</p>
                       </div>
                     ) : (
                       <>
-                        {goals.goals.slice(0, 6).map((goal) => (
-                          <motion.div
+                        {goals.goals.map((goal) => (
+                          <div
                             key={goal.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className={`group flex items-center gap-3 p-2 rounded-lg border transition-all duration-200 hover:shadow-sm ${
+                            className={`group flex items-center gap-3 p-3 rounded-lg transition-all duration-200 hover:shadow-sm ${
                               goal.completed 
-                                ? 'bg-black/5 dark:bg-black/20 border-zinc-200/20 dark:border-zinc-800/20 opacity-60' 
-                                : 'bg-black/3 dark:bg-black/15 border-zinc-200/15 dark:border-zinc-800/15 hover:border-zinc-200/25 dark:hover:border-zinc-800/25'
+                                ? 'bg-black/5 dark:bg-black/20 opacity-60' 
+                                : 'bg-black/3 dark:bg-black/15 hover:bg-black/8 dark:hover:bg-black/25'
                             }`}
                           >
                             <button
                               onClick={() => goals.toggleGoal(goal.id)}
-                              className={`flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+                              className={`flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
                                 goal.completed
-                                  ? 'bg-emerald-500 border-emerald-500 text-white'
-                                  : 'border-muted-foreground/30 hover:border-emerald-500'
+                                  ? 'bg-emerald-500 border-emerald-500 text-white scale-110'
+                                  : 'border-muted-foreground/40 hover:border-emerald-500 hover:scale-110'
                               }`}
                             >
-                              {goal.completed && <Check className="w-2.5 h-2.5" />}
+                              {goal.completed && <Check className="w-3 h-3" />}
                             </button>
                             
                             <div className="flex-1 min-w-0">
-                              <p className={`text-sm truncate ${
+                              <p className={`text-sm font-medium ${
                                 goal.completed ? 'line-through text-muted-foreground' : 'text-foreground'
                               }`}>
                                 {goal.text}
                               </p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                  goal.priority === 'high' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
-                                  goal.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' :
-                                  'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                                }`}>
-                                  {goal.priority}
-                                </span>
-                                <span className="text-xs text-muted-foreground">{goal.estimatedMinutes}m</span>
-                              </div>
                             </div>
                             
                             <button
                               onClick={() => handleDeleteGoal(goal.id)}
-                              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/10 transition-all duration-200"
+                              className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-destructive/10 transition-all duration-200"
                             >
-                              <X className="w-3 h-3 text-muted-foreground hover:text-destructive" />
+                              <X className="w-4 h-4 text-muted-foreground hover:text-destructive" />
                             </button>
-                          </motion.div>
+                          </div>
                         ))}
                         
-                        {/* Clear Completed */}
+                        {/* Simple Clear Completed */}
                         {goals.completedGoals.length > 0 && (
                           <button
                             onClick={goals.clearCompleted}
-                            className="w-full mt-2 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors border-t border-dashed border-muted/30 pt-3"
+                            className="w-full mt-3 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors border-t border-dashed border-muted/30 pt-3"
                             disabled={goals.isLoading}
                           >
-                            Clear {goals.completedGoals.length} completed
+                            Clear completed ({goals.completedGoals.length})
                           </button>
                         )}
                       </>

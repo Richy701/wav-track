@@ -1,6 +1,6 @@
 "use client";
 
-import { DIcons } from "dicons";
+import { Sun, Moon, ArrowUp } from "lucide-react";
 import { useTheme } from "next-themes";
 
 function handleScrollTop() {
@@ -20,12 +20,12 @@ const Footer = () => {
           onClick={() => setTheme("light")}
           className="bg-black mr-3 rounded-full p-2 text-white dark:bg-background dark:text-white"
         >
-          <DIcons.Sun className="h-5 w-5" strokeWidth={1} />
+          <Sun className="h-5 w-5" strokeWidth={1} />
           <span className="sr-only">Light Theme</span>
         </button>
 
         <button type="button" onClick={handleScrollTop}>
-          <DIcons.ArrowUp className="h-3 w-3" />
+          <ArrowUp className="h-3 w-3" />
           <span className="sr-only">Scroll to Top</span>
         </button>
 
@@ -33,7 +33,7 @@ const Footer = () => {
           onClick={() => setTheme("dark")}
           className="dark:bg-black ml-3 rounded-full p-2 text-black dark:text-white"
         >
-          <DIcons.Moon className="h-5 w-5" strokeWidth={1} />
+          <Moon className="h-5 w-5" strokeWidth={1} />
           <span className="sr-only">Dark Theme</span>
         </button>
       </div>

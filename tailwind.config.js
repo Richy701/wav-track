@@ -20,7 +20,10 @@ export default {
       pattern: /^(p|m)-(0|1|2|3|4|5|6|8|10|12|16|20|24|32|40|48)/,
     },
     {
-      pattern: /^(flex|grid)-(row|col)-(1|2|3|4|5|6|8|10|12)/,
+      pattern: /^(grid-cols|grid-rows)-(1|2|3|4|5|6|7|8|9|10|11|12)/,
+    },
+    {
+      pattern: /^(col-span|row-span)-(1|2|3|4|5|6|7|8|9|10|11|12|full)/,
     },
     {
       pattern: /^(gap)-(0|1|2|3|4|5|6|8|10|12|16|20|24|32|40|48)/,
@@ -107,13 +110,10 @@ export default {
       pattern: /^(scroll)-(auto|smooth)/,
     },
     {
-      pattern: /^(scrollbar)-(thin|none)/,
-    },
-    {
       pattern: /^(touch)-(auto|none|manipulation)/,
     },
     {
-      pattern: /^(user-select)-(none|text|all|auto)/,
+      pattern: /^(select)-(none|text|all|auto)/,
     },
     {
       pattern: /^(will-change)-(auto|scroll-position|contents|transform)/,
@@ -184,16 +184,34 @@ export default {
   		},
   		fontFamily: {
   			sans: [
-  				'Inter var',
   				'Inter',
+  				'-apple-system',
+  				'BlinkMacSystemFont',
+  				'Segoe UI',
+  				'Roboto',
+  				'Oxygen',
+  				'Ubuntu',
+  				'Cantarell',
   				'sans-serif'
   			],
   			display: [
   				'Clash Display',
+  				'-apple-system',
+  				'BlinkMacSystemFont',
+  				'Segoe UI',
+  				'Roboto',
+  				'Oxygen',
+  				'Ubuntu',
+  				'Cantarell',
   				'sans-serif'
   			],
   			mono: [
   				'JetBrains Mono',
+  				'Menlo',
+  				'Monaco',
+  				'Consolas',
+  				'Liberation Mono',
+  				'Courier New',
   				'monospace'
   			]
   		},
