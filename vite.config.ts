@@ -68,24 +68,38 @@ export default defineConfig({
           if (id.includes('node_modules')) {
             return 'vendor'
           }
-        }
+        },
+        // Optimize asset naming for better caching
+        assetFileNames: (assetInfo) => {
+          const info = assetInfo.name.split('.')
+          const ext = info[info.length - 1]
+          if (/\.(css)$/.test(assetInfo.name)) {
+            return `assets/css/[name]-[hash].${ext}`
+          }
+          return `assets/[name]-[hash].${ext}`
+        },
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js'
       }
     },
     target: 'es2020',
-    sourcemap: false, // Reduce build size
+    sourcemap: false,
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true, // Remove console logs in production
+        drop_console: true,
         drop_debugger: true,
         pure_funcs: ['console.log', 'console.info', 'console.debug'],
+        passes: 2, // Multiple passes for better compression
       },
       mangle: {
         safari10: true,
       },
     },
-    cssCodeSplit: true, // Enable CSS code splitting
-    chunkSizeWarningLimit: 1000, // Increase limit but still warn for large chunks
+    cssCodeSplit: true, // Split CSS by route/component
+    cssMinify: 'esbuild', // Faster CSS minification
+    chunkSizeWarningLimit: 1000,
+    reportCompressedSize: false, // Skip compressed size reporting for faster builds
   },
   server: {
     port: 3001,

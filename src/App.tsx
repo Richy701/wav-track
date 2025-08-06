@@ -27,6 +27,7 @@ import { StatCardSkeleton } from '@/components/ui/stat-card-skeleton'
 import { FadeIn } from '@/components/ui/fade-in'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { DirectionProvider } from './components/providers/DirectionProvider'
+import { injectCriticalCSS, CRITICAL_CSS, deferCSS } from './utils/cssLoader'
 
 // Use the optimized QueryClient instance from query-client.ts
 import { queryClient } from './lib/query-client'
@@ -243,14 +244,25 @@ function App() {
   const [isReady, setIsReady] = useState(false)
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null)
 
-  // Wait a short time before showing content to ensure CSS is loaded
   useEffect(() => {
-    const timer = setTimeout(() => setIsReady(true), 100)
-    return () => clearTimeout(timer)
+    // Inject critical CSS immediately for fastest render
+    injectCriticalCSS(CRITICAL_CSS)
+    
+    // Mark app as ready immediately - no artificial delay
+    setIsReady(true)
+    
+    // Defer non-critical CSS loading after initial render
+    const deferredStyles = [
+      // Add any non-critical stylesheets here if needed
+    ]
+    
+    deferredStyles.forEach(href => deferCSS(href))
   }, [])
 
   if (!isReady) {
-    return <LoadingScreen message="Initializing application..." />
+    return <div className="loading-screen">
+      <div className="loading-spinner"></div>
+    </div>
   }
 
   return <RouterProvider router={router} />

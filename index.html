@@ -58,11 +58,49 @@
       <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600&display=swap">
     </noscript>
     
-    <!-- Fallback font preload for critical text -->
+    <!-- Critical CSS inline for fastest render -->
     <style>
-      /* Critical CSS for font fallbacks */
+      /* Critical CSS for immediate render - inlined to prevent blocking */
       html {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background-color: #fafafa;
+        color: #0a0a0a;
+      }
+      .dark html {
+        background-color: #0a0a0a;
+        color: #fafafa;
+      }
+      body {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      #root {
+        min-height: 100vh;
+      }
+      /* Critical loading state */
+      .loading-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fafafa;
+        z-index: 9999;
+      }
+      .dark .loading-screen {
+        background: #0a0a0a;
+      }
+      /* Prevent layout shift for header */
+      header {
+        height: 64px;
+      }
+      @media (min-width: 640px) {
+        header {
+          height: 80px;
+        }
       }
     </style>
   </head>
