@@ -65,6 +65,7 @@
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         background-color: #fafafa;
         color: #0a0a0a;
+        scroll-behavior: smooth;
       }
       .dark html {
         background-color: #0a0a0a;
@@ -79,6 +80,8 @@
       }
       #root {
         min-height: 100vh;
+        display: flex;
+        flex-direction: column;
       }
       /* Critical loading state */
       .loading-screen {
@@ -96,17 +99,94 @@
       /* Prevent layout shift for header */
       header {
         height: 64px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 50;
+        background: rgba(250, 250, 250, 0.8);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      }
+      .dark header {
+        background: rgba(10, 10, 10, 0.8);
+        border-bottom-color: rgba(255, 255, 255, 0.1);
       }
       @media (min-width: 640px) {
         header {
           height: 80px;
         }
       }
+      /* Critical hero section layout to prevent CLS */
+      .hero-section {
+        min-height: 100vh;
+        padding-top: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      @media (min-width: 640px) {
+        .hero-section {
+          padding-top: 80px;
+        }
+      }
+      /* Basic button styles to prevent FOUC */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: none;
+        text-decoration: none;
+      }
+      .btn-primary {
+        background-color: #7c3aed;
+        color: white;
+        padding: 12px 24px;
+      }
+      .btn-primary:hover {
+        background-color: #6d28d9;
+      }
     </style>
   </head>
 
   <body>
     <div id="root"></div>
+    
+    <!-- Non-blocking CSS loader to improve LCP -->
+    <script>
+      // Load CSS asynchronously after critical rendering path
+      function loadCSS(href) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        document.head.appendChild(link);
+      }
+      
+      // Load non-critical CSS after page is interactive
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+          // Additional non-critical stylesheets can be loaded here
+        });
+      }
+      
+      // Preload critical resources
+      if ('IntersectionObserver' in window) {
+        // Preload resources for better perceived performance
+        const preloadLinks = document.querySelectorAll('link[rel="preload"]');
+        preloadLinks.forEach(link => {
+          if (link.as === 'style' && !link.href.includes('fonts')) {
+            link.onload = () => {
+              link.rel = 'stylesheet';
+            };
+          }
+        });
+      }
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -17,6 +17,7 @@ export interface UseStatsReturn {
   totalSessions: number
   totalFocusTime: number
   averageSessionLength: number
+  recentSessions: SessionData[]
   
   // Actions
   refreshStats: () => void
@@ -32,6 +33,7 @@ export const useStats = (): UseStatsReturn => {
   const [totalSessions, setTotalSessions] = useState(0)
   const [totalFocusTime, setTotalFocusTime] = useState(0)
   const [averageSessionLength, setAverageSessionLength] = useState(0)
+  const [recentSessions, setRecentSessions] = useState<SessionData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   
   const calculateAllStats = useCallback(() => {
@@ -66,6 +68,12 @@ export const useStats = (): UseStatsReturn => {
         ? totalTime / completedFocusSessions.length 
         : 0
       setAverageSessionLength(avgLength)
+      
+      // Recent sessions (last 5 completed focus sessions, sorted by most recent)
+      const recentCompletedSessions = completedFocusSessions
+        .sort((a, b) => new Date(b.endTime || b.startTime).getTime() - new Date(a.endTime || a.startTime).getTime())
+        .slice(0, 5)
+      setRecentSessions(recentCompletedSessions)
       
     } catch (error) {
       console.error('Failed to calculate stats:', error)
@@ -110,6 +118,7 @@ export const useStats = (): UseStatsReturn => {
     totalSessions,
     totalFocusTime,
     averageSessionLength,
+    recentSessions,
     refreshStats,
     isLoading
   }

@@ -19,21 +19,10 @@ export default function FeatureShowcase3() {
           >
             <div className="space-y-6">
               <h2 className="text-4xl sm:text-5xl font-semibold tracking-tight text-balance text-neutral-800 dark:text-foreground">
-                <BlurText 
-                  text="Track Your Recent Work" 
-                  delay={0.7}
-                  duration={4.0}
-                  blurAmount={9}
-                  className="text-neutral-800 dark:text-foreground"
-                />
+                Track Your Recent Work
               </h2>
               <p className="text-lg sm:text-xl text-pretty text-neutral-600 dark:text-muted-foreground leading-relaxed">
-                <BlurText 
-                  text="Keep tabs on your latest projects and never lose track of your creative momentum. See what you've been working on recently and jump right back into your flow."
-                  delay={1.4}
-                  duration={4.5}
-                  blurAmount={5}
-                />
+                Keep tabs on your latest projects and never lose track of your creative momentum. See what you've been working on recently and jump right back into your flow.
               </p>
             </div>
           </motion.div>

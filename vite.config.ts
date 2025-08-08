@@ -32,6 +32,10 @@ export default defineConfig({
       },
     }),
   ],
+  css: {
+    devSourcemap: false,
+    // Let postcss.config.cjs handle PostCSS configuration
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -74,6 +78,10 @@ export default defineConfig({
           const info = assetInfo.name.split('.')
           const ext = info[info.length - 1]
           if (/\.(css)$/.test(assetInfo.name)) {
+            // Critical CSS gets highest priority naming
+            if (assetInfo.name.includes('index') || assetInfo.name.includes('main')) {
+              return `assets/css/critical-[hash].${ext}`
+            }
             return `assets/css/[name]-[hash].${ext}`
           }
           return `assets/[name]-[hash].${ext}`
@@ -96,7 +104,7 @@ export default defineConfig({
         safari10: true,
       },
     },
-    cssCodeSplit: true, // Split CSS by route/component
+    cssCodeSplit: false, // Bundle all CSS together for better caching and fewer requests
     cssMinify: 'esbuild', // Faster CSS minification
     chunkSizeWarningLimit: 1000,
     reportCompressedSize: false, // Skip compressed size reporting for faster builds

@@ -36,16 +36,15 @@ export function useCreativeNotes() {
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.warn('Creative notes database error:', error)
-        // If table doesn't exist or any database error, fall back to localStorage
-        if (error.code === '42P01' || error.message?.includes('404') || error.status === 404) {
-          console.log('Falling back to localStorage for creative notes')
+        // If table doesn't exist or any database error, fall back to localStorage silently
+        if (error.code === '42P01' || error.message?.includes('404') || error.status === 404 || error.code === 'PGRST116') {
+          // Don't log expected 404 errors to avoid console noise
           setUseLocalStorage(true)
           const stored = localStorage.getItem(`creative-notes-${user.id}`)
           return stored ? JSON.parse(stored) : []
         }
-        // For other errors, still fall back to localStorage but log the error
-        console.error('Unexpected database error, falling back to localStorage:', error)
+        // For other unexpected errors, log them but still fall back to localStorage
+        console.warn('Database error for creative notes, falling back to localStorage:', error)
         setUseLocalStorage(true)
         const stored = localStorage.getItem(`creative-notes-${user.id}`)
         return stored ? JSON.parse(stored) : []
@@ -55,7 +54,14 @@ export function useCreativeNotes() {
     },
     enabled: !!user && isInitialized,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    retry: 2,
+    retry: (failureCount, error: any) => {
+      // Don't retry on 404 errors (table doesn't exist)
+      if (error?.code === '42P01' || error?.message?.includes('404') || error?.status === 404 || error?.code === 'PGRST116') {
+        return false
+      }
+      // Retry other errors up to 2 times
+      return failureCount < 2
+    },
     retryDelay: 1000
   })
 
@@ -94,7 +100,12 @@ export function useCreativeNotes() {
         .single()
 
       if (error) {
-        console.warn('Error adding note to database, falling back to localStorage:', error)
+        // Silently fall back to localStorage for expected database errors
+        if (error.code === '42P01' || error.message?.includes('404') || error.status === 404 || error.code === 'PGRST116') {
+          // Don't log expected errors
+        } else {
+          console.warn('Error adding note to database, falling back to localStorage:', error)
+        }
         // Fall back to localStorage for any database error
         setUseLocalStorage(true)
         const stored = localStorage.getItem(`creative-notes-${user.id}`)
@@ -143,7 +154,12 @@ export function useCreativeNotes() {
         .single()
 
       if (error) {
-        console.warn('Error updating note in database, falling back to localStorage:', error)
+        // Silently fall back to localStorage for expected database errors
+        if (error.code === '42P01' || error.message?.includes('404') || error.status === 404 || error.code === 'PGRST116') {
+          // Don't log expected errors
+        } else {
+          console.warn('Error updating note in database, falling back to localStorage:', error)
+        }
         // Fall back to localStorage for any database error
         setUseLocalStorage(true)
         const stored = localStorage.getItem(`creative-notes-${user.id}`)

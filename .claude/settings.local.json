@@ -17,7 +17,12 @@
       "Bash(mv:*)",
       "WebFetch(domain:www.wavtrack.io)",
       "WebFetch(domain:wav-track-3xlsetjz3-richy701s-projects.vercel.app)",
-      "WebFetch(domain:wavtrack.io)"
+      "WebFetch(domain:wavtrack.io)",
+      "Bash(supabase status:*)",
+      "Bash(rm:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   }

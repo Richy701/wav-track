@@ -196,24 +196,27 @@ export default function LandingPage() {
                   srcSet="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&fit=crop&q=75&fm=avif 480w,
                           https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&fit=crop&q=75&fm=avif 768w,
                           https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&fit=crop&q=75&fm=avif 1024w,
-                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75&fm=avif 1924w"
-                  sizes="100vw"
+                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1400&fit=crop&q=75&fm=avif 1400w,
+                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75&fm=avif 1920w"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, (max-width: 1400px) 80vw, 1400px"
                 />
                 <source
                   type="image/webp"
                   srcSet="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&fit=crop&q=75&fm=webp 480w,
                           https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&fit=crop&q=75&fm=webp 768w,
                           https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&fit=crop&q=75&fm=webp 1024w,
-                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75&fm=webp 1924w"
-                  sizes="100vw"
+                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1400&fit=crop&q=75&fm=webp 1400w,
+                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75&fm=webp 1920w"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, (max-width: 1400px) 80vw, 1400px"
                 />
                 <img
                   src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1920&h=1080&q=75"
                   srcSet="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&fit=crop&q=75 480w,
                           https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&fit=crop&q=75 768w,
                           https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&fit=crop&q=75 1024w,
-                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75 1924w"
-                  sizes="100vw"
+                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1400&fit=crop&q=75 1400w,
+                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75 1920w"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, (max-width: 1400px) 80vw, 1400px"
                   alt="Music Production Interface"
                   className="w-full h-full object-cover opacity-70 filter brightness-75"
                   loading="eager"

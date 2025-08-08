@@ -220,22 +220,26 @@ const Sessions = () => {
   }, [handleSaveEdit, handleCancelEdit])
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
       <Header />
       
-      <div className="flex-1 pt-20 pb-8 px-4 md:px-8">
-        <div className="max-w-6xl mx-auto">
+      <div className="flex-1 pt-20 pb-12 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto">
           {/* Page Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent mb-4">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-emerald-100/50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <Clock className="w-4 h-4" />
               Focus Sessions
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-[#8257E5] to-[#B490FF] bg-clip-text text-transparent mb-6 tracking-tight">
+              Boost Your Productivity
             </h1>
-            <p className="text-lg text-muted-foreground">
-              Stay focused and productive with focused work sessions
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Use the Pomodoro Technique to maintain focus, track your progress, and achieve your creative goals with structured work sessions.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             {/* Timer Section */}
             <div className="lg:col-span-2 space-y-4">
@@ -495,46 +499,102 @@ const Sessions = () => {
                 </CardContent>
               </Card>
 
-              {/* Recent Sessions */}
-              <Card className="border-0 bg-gradient-to-br from-background/80 to-muted/30 backdrop-blur-xl shadow-lg">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <Activity className="w-4 h-4 text-blue-600" />
-                    Recent Sessions
-                  </CardTitle>
+              {/* Recent Sessions - Enhanced */}
+              <Card className="border-0 bg-gradient-to-br from-background/80 to-muted/30 backdrop-blur-xl shadow-lg overflow-hidden">
+                <CardHeader className="pb-3 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-900/10 dark:to-indigo-900/10 border-b border-blue-100/20 dark:border-blue-800/20">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Activity className="w-4 h-4 text-blue-600" />
+                      Recent Sessions
+                    </CardTitle>
+                    {stats.recentSessions.length > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        {stats.recentSessions.length} session{stats.recentSessions.length !== 1 ? 's' : ''}
+                      </div>
+                    )}
+                  </div>
                 </CardHeader>
-                <CardContent className="pt-2">
-                  <div className="space-y-2">
+                <CardContent className="pt-4">
+                  <div className="space-y-3">
                     {stats.isLoading ? (
-                      <div className="text-center py-3 text-muted-foreground">
-                        <Clock className="h-5 w-5 mx-auto mb-1 opacity-50" />
-                        <p className="text-xs">Loading...</p>
+                      <div className="text-center py-4 text-muted-foreground">
+                        <div className="animate-pulse space-y-2">
+                          <div className="h-12 bg-black/10 dark:bg-black/20 rounded-lg"></div>
+                          <div className="h-12 bg-black/5 dark:bg-black/15 rounded-lg"></div>
+                        </div>
                       </div>
                     ) : (
-                      <div className="space-y-1">
-                        {/* Show last 2 sessions */}
-                        {stats.totalSessions === 0 ? (
-                          <div className="text-center py-4 text-muted-foreground">
-                            <Clock className="h-6 w-6 mx-auto mb-1 opacity-50" />
-                            <p className="text-xs">No sessions yet</p>
+                      <div className="space-y-2">
+                        {stats.recentSessions.length === 0 ? (
+                          <div className="text-center py-6 text-muted-foreground">
+                            <Clock className="h-8 w-8 mx-auto mb-3 opacity-30" />
+                            <p className="text-sm font-medium mb-1">No sessions yet</p>
+                            <p className="text-xs opacity-75">Complete your first focus session to see it here</p>
                           </div>
                         ) : (
-                          Array.from({ length: Math.min(2, stats.totalSessions) }, (_, i) => (
-                            <div
-                              key={i}
-                              className="flex items-center justify-between p-2 rounded-md bg-black/5 dark:bg-black/25"
-                            >
-                              <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                                <div>
-                                  <p className="text-xs font-medium">Focus Session</p>
+                          stats.recentSessions.slice(0, 3).map((session, i) => {
+                            const durationMinutes = Math.round(session.duration / 60);
+                            const sessionDate = new Date(session.endTime || session.startTime);
+                            const isToday = sessionDate.toDateString() === new Date().toDateString();
+                            const timeAgo = isToday 
+                              ? sessionDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                              : sessionDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                            
+                            return (
+                              <div
+                                key={session.id}
+                                className={`group flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:shadow-sm border ${
+                                  session.type === 'focus' 
+                                    ? 'bg-emerald-50/30 dark:bg-emerald-900/10 border-emerald-200/30 dark:border-emerald-800/20 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20' 
+                                    : 'bg-purple-50/30 dark:bg-purple-900/10 border-purple-200/30 dark:border-purple-800/20 hover:bg-purple-50/50 dark:hover:bg-purple-900/20'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                    session.type === 'focus' ? 'bg-emerald-500' : 'bg-purple-500'
+                                  }`} />
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-medium text-foreground">
+                                      {session.type === 'focus' ? 'Focus Session' : 'Break Session'}
+                                    </p>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                      <p className="text-xs text-muted-foreground">{timeAgo}</p>
+                                      <span className="text-xs text-muted-foreground">•</span>
+                                      <p className="text-xs text-muted-foreground">
+                                        {isToday ? 'Today' : sessionDate.toLocaleDateString([], { weekday: 'short' })}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="text-right">
+                                    <p className="text-sm font-semibold text-foreground">{durationMinutes}m</p>
+                                    <p className="text-xs text-muted-foreground">duration</p>
+                                  </div>
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                    session.type === 'focus' 
+                                      ? 'bg-emerald-100 dark:bg-emerald-900/30' 
+                                      : 'bg-purple-100 dark:bg-purple-900/30'
+                                  }`}>
+                                    {session.type === 'focus' ? (
+                                      <Brain className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                    ) : (
+                                      <Clock className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                              <div className="text-right">
-                                <p className="text-xs font-medium">25m</p>
-                              </div>
-                            </div>
-                          ))
+                            );
+                          })
+                        )}
+                        
+                        {/* View All Sessions Link */}
+                        {stats.recentSessions.length > 3 && (
+                          <div className="pt-2 border-t border-dashed border-muted/30">
+                            <button className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-2 rounded-md hover:bg-black/5 dark:hover:bg-black/20">
+                              View all {stats.recentSessions.length} sessions
+                            </button>
+                          </div>
                         )}
                       </div>
                     )}
@@ -545,45 +605,104 @@ const Sessions = () => {
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               
               {/* Enhanced Progress Overview */}
-              <Card className="border-0 bg-gradient-to-br from-background/80 to-muted/30 backdrop-blur-xl shadow-lg">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-emerald-600" />
-                    <CardTitle className="text-base font-semibold">
-                      Today's Progress
-                    </CardTitle>
+              <Card className="border-0 bg-gradient-to-br from-background/80 to-muted/30 backdrop-blur-xl shadow-lg overflow-hidden">
+                <CardHeader className="pb-3 bg-gradient-to-r from-emerald-50/30 to-blue-50/30 dark:from-emerald-900/10 dark:to-blue-900/10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-emerald-600" />
+                      <CardTitle className="text-base font-semibold">
+                        Today's Progress
+                      </CardTitle>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                    </div>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6 pt-4">
                   {/* Enhanced Stats Grid */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50/80 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20 border border-emerald-200/30 dark:border-emerald-800/30">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Clock className="w-4 h-4 text-emerald-600" />
-                        <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Focus Time</span>
-                      </div>
-                      <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
-                        {stats.isLoading ? '...' : `${Math.floor(stats.todaysStats.focusTime / 3600)}h ${Math.floor((stats.todaysStats.focusTime % 3600) / 60)}m`}
-                      </div>
-                      <div className="text-xs text-emerald-600/70 dark:text-emerald-300/70 mt-1">
-                        {stats.todaysStats.completedSessions} sessions
+                  <div className="grid grid-cols-1 gap-4">
+                    {/* Focus Time Card */}
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50/80 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20 border border-emerald-200/30 dark:border-emerald-800/30 relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-full -translate-y-8 translate-x-8"></div>
+                      <div className="relative">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Clock className="w-4 h-4 text-emerald-600" />
+                          <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Focus Time</span>
+                        </div>
+                        <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+                          {stats.isLoading ? '...' : `${Math.floor(stats.todaysStats.focusTime / 3600)}h ${Math.floor((stats.todaysStats.focusTime % 3600) / 60)}m`}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="text-xs text-emerald-600/70 dark:text-emerald-300/70">
+                            {stats.todaysStats.completedSessions} completed sessions
+                          </div>
+                          <div className="text-xs text-emerald-600/70 dark:text-emerald-300/70">
+                            {stats.todaysStats.completedSessions > 0 ? `~${Math.round(stats.todaysStats.focusTime / stats.todaysStats.completedSessions / 60)}m avg` : ''}
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
-                    <div className="p-4 rounded-xl bg-gradient-to-br from-orange-50/80 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 border border-orange-200/30 dark:border-orange-800/30">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Flame className="w-4 h-4 text-orange-600" />
-                        <span className="text-xs font-medium text-orange-700 dark:text-orange-300">Streak</span>
+                    {/* Streak Card */}
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-orange-50/80 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 border border-orange-200/30 dark:border-orange-800/30 relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-16 h-16 bg-orange-500/10 rounded-full -translate-y-8 translate-x-8"></div>
+                      <div className="relative">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Flame className="w-4 h-4 text-orange-600" />
+                          <span className="text-sm font-medium text-orange-700 dark:text-orange-300">Current Streak</span>
+                        </div>
+                        <div className="text-2xl font-bold text-orange-500 dark:text-orange-400 mb-1">
+                          {stats.isLoading ? '...' : `${stats.currentStreak}`}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="text-xs text-orange-600/70 dark:text-orange-300/70">
+                            {stats.currentStreak === 1 ? 'day' : 'days'} strong
+                          </div>
+                          <div className="text-xs text-orange-600/70 dark:text-orange-300/70">
+                            {stats.currentStreak >= 7 ? '🔥 On fire!' : stats.currentStreak >= 3 ? '💪 Building!' : '🌱 Growing'}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-xl font-bold text-orange-500 dark:text-orange-400">
-                        {stats.isLoading ? '...' : `${stats.currentStreak}`}
+                    </div>
+                  </div>
+                  
+                  {/* Weekly Overview */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium text-muted-foreground">This Week</h4>
+                      <div className="text-xs text-muted-foreground">
+                        {stats.weeklyStats.reduce((total, day) => total + day.focusTime, 0) > 0 
+                          ? `${Math.floor(stats.weeklyStats.reduce((total, day) => total + day.focusTime, 0) / 3600)}h total`
+                          : '0h total'
+                        }
                       </div>
-                      <div className="text-xs text-orange-600/70 dark:text-orange-300/70 mt-1">
-                        {stats.currentStreak === 1 ? 'day' : 'days'} strong
-                      </div>
+                    </div>
+                    <div className="grid grid-cols-7 gap-1">
+                      {stats.weeklyStats.map((day, i) => {
+                        const hasActivity = day.focusTime > 0;
+                        const intensity = hasActivity ? Math.min(day.focusTime / 3600, 4) / 4 : 0;
+                        return (
+                          <div key={i} className="text-center">
+                            <div 
+                              className={`w-6 h-6 rounded-sm border transition-all ${
+                                hasActivity 
+                                  ? `bg-emerald-500 border-emerald-600` 
+                                  : 'bg-muted/30 border-muted/40'
+                              }`}
+                              style={{ 
+                                opacity: hasActivity ? 0.3 + (intensity * 0.7) : 0.3 
+                              }}
+                            />
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {new Date(day.date).toLocaleDateString([], { weekday: 'narrow' })}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -766,43 +885,91 @@ const Sessions = () => {
                 </CardContent>
               </Card>
 
-              {/* AI Coach */}
-              <Alert className="border-0 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20 shadow-lg">
-                <Lightbulb className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="mt-2">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Brain className="w-5 h-5 text-blue-600" />
-                      <span className="font-semibold text-blue-900 dark:text-blue-100">AI Focus Coach</span>
+              {/* AI Focus Coach - Enhanced */}
+              <Card className="border-0 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20 shadow-lg overflow-hidden">
+                <CardHeader className="pb-3 bg-gradient-to-r from-blue-100/30 to-indigo-100/30 dark:from-blue-900/20 dark:to-indigo-900/20 border-b border-blue-200/20 dark:border-blue-800/20">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+                      <Brain className="w-4 h-4 text-blue-600" />
                     </div>
-                    
-                    <div className="bg-white/50 dark:bg-black/20 rounded-lg p-4 border border-blue-200/50 dark:border-blue-800/50">
-                      <div className="flex items-start gap-3">
-                        <Sparkles className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                        <div className="space-y-2">
-                          <p className="text-sm text-blue-800 dark:text-blue-200 italic">
-                            {timer.state.mode === 'focus' 
-                              ? goals.pendingGoals.length > 0
-                                ? `Focus on "${goals.pendingGoals[0].text}" for maximum productivity.`
-                                : "Focus on one task at a time for maximum productivity."
-                              : "Take a proper break! Step away from your screen and relax."
+                    <CardTitle className="text-base font-semibold text-blue-900 dark:text-blue-100">
+                      AI Focus Coach
+                    </CardTitle>
+                    <div className="ml-auto">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-4 space-y-4">
+                  {/* Dynamic Advice */}
+                  <div className="bg-white/60 dark:bg-black/20 rounded-lg p-4 border border-blue-200/30 dark:border-blue-800/30 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/5 rounded-full -translate-y-10 translate-x-10"></div>
+                    <div className="relative flex items-start gap-3">
+                      <Sparkles className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0 animate-pulse" />
+                      <div className="space-y-2 flex-1">
+                        <p className="text-sm text-blue-800 dark:text-blue-200 font-medium leading-relaxed">
+                          {timer.state.mode === 'focus' 
+                            ? goals.pendingGoals.length > 0
+                              ? `🎯 Focus on "${goals.pendingGoals[0].text}" for maximum productivity.`
+                              : "🎯 Focus on one task at a time for maximum productivity."
+                            : "☕ Take a proper break! Step away from your screen and relax."
+                          }
+                        </p>
+                        {stats.todaysStats.completedSessions > 0 && (
+                          <p className="text-xs text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded">
+                            🎉 Great progress! {stats.todaysStats.completedSessions} session{stats.todaysStats.completedSessions !== 1 ? 's' : ''} completed today
+                          </p>
+                        )}
+                        
+                        {/* Personalized Tips */}
+                        <div className="mt-3 pt-2 border-t border-blue-200/30 dark:border-blue-800/30">
+                          <p className="text-xs text-blue-600 dark:text-blue-300">
+                            {stats.currentStreak === 0 
+                              ? "💡 Tip: Start with a 25-minute session to build momentum"
+                              : stats.currentStreak < 3 
+                              ? "📈 Keep going! Building consistency is key"
+                              : stats.currentStreak < 7
+                              ? "🔥 You're building a great habit! Stay consistent"
+                              : "🏆 Amazing streak! You're in the zone!"
                             }
                           </p>
-                          {stats.todaysStats.completedSessions > 0 && (
-                            <p className="text-xs text-blue-600 dark:text-blue-300">
-                              🎉 Great job! You've completed {stats.todaysStats.completedSessions} focus session{stats.todaysStats.completedSessions !== 1 ? 's' : ''} today.
-                            </p>
-                          )}
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="text-xs text-blue-600 dark:text-blue-300 text-center">
-                      💡 Press <kbd className="px-1 py-0.5 bg-blue-100 dark:bg-blue-900 rounded text-xs">Space</kbd> to start/pause timer
+                  </div>
+                  
+                  {/* Quick Actions */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-center p-2 rounded-lg bg-blue-50/30 dark:bg-blue-900/10 border border-blue-200/20 dark:border-blue-800/20">
+                      <kbd className="px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded text-xs font-mono">Space</kbd>
+                      <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">Start/Pause</p>
+                    </div>
+                    <div className="text-center p-2 rounded-lg bg-blue-50/30 dark:bg-blue-900/10 border border-blue-200/20 dark:border-blue-800/20">
+                      <kbd className="px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded text-xs font-mono">R</kbd>
+                      <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">Reset</p>
                     </div>
                   </div>
-                </AlertDescription>
-              </Alert>
+                  
+                  {/* Performance Insight */}
+                  {stats.weeklyStats.length > 0 && (
+                    <div className="bg-gradient-to-r from-blue-50/40 to-indigo-50/40 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-lg p-3 border border-blue-200/20 dark:border-blue-800/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp className="w-4 h-4 text-blue-500" />
+                        <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Weekly Insight</span>
+                      </div>
+                      <p className="text-xs text-blue-600 dark:text-blue-300">
+                        {stats.weeklyStats.filter(day => day.focusTime > 0).length > 0
+                          ? `You've been productive ${stats.weeklyStats.filter(day => day.focusTime > 0).length} days this week. ${
+                              stats.weeklyStats.filter(day => day.focusTime > 0).length >= 5 ? "Excellent consistency! 🌟" : 
+                              stats.weeklyStats.filter(day => day.focusTime > 0).length >= 3 ? "Good momentum! 💪" : "Let's build consistency! 🚀"
+                            }`
+                          : "Start your first session this week! 🌱"
+                        }
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>

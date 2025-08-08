@@ -1,9 +1,8 @@
 import { memo, useState } from 'react'
-import { Music, Clock, ChevronRight, Sparkles, BarChart } from 'lucide-react'
+import { Music, Clock, ChevronRight, Sparkles, Calendar, Award } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { LiquidCard } from '@/components/ui/liquid-glass-card'
-import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 
 interface YearInReviewPreviewProps {
@@ -102,12 +101,15 @@ export const YearInReviewPreview = memo(function YearInReviewPreview({
             
             {hasNoActivity ? (
               <div className="flex flex-col items-center justify-center py-8">
-                <EmptyState
-                  title="No Activity Yet"
-                  description="Start creating beats to see your progress stats"
-                  icon={<Music className="w-12 h-12 text-violet-400" />}
-                  className="max-w-sm mx-auto"
-                />
+                <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 text-amber-500 dark:bg-amber-500/10 dark:text-amber-400">
+                  <Award className="w-8 h-8" />
+                </div>
+                <h4 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">
+                  No Activity Yet
+                </h4>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center max-w-sm">
+                  Start creating beats to see your year in review stats
+                </p>
               </div>
             ) : (
               /* Stats Grid */
@@ -184,7 +186,7 @@ export const YearInReviewPreview = memo(function YearInReviewPreview({
                 onClick={onExport}
                 className="w-full bg-white/10 hover:bg-white/20 text-white border-white/20"
               >
-                Export {title}
+                Export Year in Review
               </Button>
             </div>
           </div>

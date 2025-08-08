@@ -15,7 +15,7 @@ export default function FeatureShowcase2() {
             initial="initial"
             animate="animate"
             variants={fadeInUp}
-            className="relative order-2 lg:order-1"
+            className="relative"
           >
             {/* Video */}
             <div className="aspect-[16/9] relative">
@@ -44,25 +44,14 @@ export default function FeatureShowcase2() {
             animate="animate"
             variants={fadeInUp}
             transition={{ delay: 0.2 }}
-            className="space-y-8 order-1 lg:order-2"
+            className="space-y-8"
           >
             <div className="space-y-6">
               <h2 className="text-4xl sm:text-5xl font-semibold tracking-tight text-balance text-neutral-800 dark:text-foreground">
-                <BlurText 
-                  text="Stay Focused with Pomodoro" 
-                  delay={0.6}
-                  duration={3.8}
-                  blurAmount={7}
-                  className="text-neutral-800 dark:text-foreground"
-                />
+                Stay Focused with Pomodoro
               </h2>
               <p className="text-lg sm:text-xl text-pretty text-neutral-600 dark:text-muted-foreground leading-relaxed">
-                <BlurText 
-                  text="Boost your productivity with our integrated Pomodoro timer. Stay focused during intense production sessions and take strategic breaks to maintain your creative flow."
-                  delay={1.2}
-                  duration={4.2}
-                  blurAmount={6}
-                />
+                Boost your productivity with our integrated Pomodoro timer. Stay focused during intense production sessions and take strategic breaks to maintain your creative flow.
               </p>
             </div>
           </motion.div>

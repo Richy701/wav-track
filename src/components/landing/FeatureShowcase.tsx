@@ -20,21 +20,10 @@ export default function FeatureShowcase() {
           >
             <div className="space-y-6">
               <h2 className="text-4xl sm:text-5xl font-semibold tracking-tight text-balance text-neutral-800 dark:text-foreground">
-                <BlurText 
-                  text="Insights That Inspire" 
-                  delay={0.5}
-                  duration={3.5}
-                  blurAmount={8}
-                  className="text-neutral-800 dark:text-foreground"
-                />
+                Insights That Inspire
               </h2>
               <p className="text-lg sm:text-xl text-pretty text-neutral-600 dark:text-muted-foreground leading-relaxed">
-                <BlurText 
-                  text="Discover powerful analytics that reveal your creative patterns and productivity trends. See when you're most productive, track your session streaks, and get insights that help you optimize your music-making process."
-                  delay={1.0}
-                  duration={4.0}
-                  blurAmount={6}
-                />
+                Discover powerful analytics that reveal your creative patterns and productivity trends. See when you're most productive, track your session streaks, and get insights that help you optimize your music-making process.
               </p>
             </div>
           </motion.div>

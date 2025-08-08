@@ -185,10 +185,6 @@ export const FAQSection = () => {
         <h1 className="text-4xl font-bold tracking-tight mb-4">
           Frequently asked questions
         </h1>
-        <p className="text-xl text-muted-foreground">
-          Need help with something? Here are our most frequently asked
-          questions.
-        </p>
       </header>
 
       <div className="flex justify-center sticky top-2">
