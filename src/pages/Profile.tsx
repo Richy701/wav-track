@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState, useCallback, lazy, Suspense } from 
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { Badge } from '@/components/ui/badge'
 import {
   Gear,
@@ -163,6 +164,12 @@ const Profile = () => {
           transition={{ duration: 0.5 }}
         >
           <div className="max-w-6xl mx-auto px-4 md:px-8 py-8">
+            <Breadcrumb 
+              items={[
+                { label: 'Dashboard', href: '/dashboard' },
+                { label: 'Profile', current: true }
+              ]}
+            />
             <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
               {/* Avatar with Upload Button */}
               <motion.div 

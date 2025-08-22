@@ -214,8 +214,8 @@ const Stats = memo(function Stats({ sessions, selectedProject, beatActivities }:
         projects.length > 0
           ? format(new Date(projects[projects.length - 1].dateCreated), 'MMM yyyy')
           : null,
-      color: 'from-amber-500 to-orange-500',
-      borderColor: 'border-amber-500/20',
+      color: 'from-violet-500 to-purple-500',
+      borderColor: 'border-violet-500/20',
     },
     {
       id: 'ten_beats',
@@ -224,8 +224,8 @@ const Stats = memo(function Stats({ sessions, selectedProject, beatActivities }:
       icon: <Trophy className="h-4 w-4" weight="fill" />,
       unlocked: totalBeatsCreated >= 10,
       count: totalBeatsCreated,
-      color: 'from-indigo-500 to-violet-500',
-      borderColor: 'border-indigo-500/20',
+      color: 'from-green-500 to-emerald-500',
+      borderColor: 'border-green-500/20',
     },
     {
       id: 'five_completed',
@@ -234,8 +234,8 @@ const Stats = memo(function Stats({ sessions, selectedProject, beatActivities }:
       icon: <Target className="h-4 w-4" weight="fill" />,
       unlocked: completedProjects >= 5,
       count: completedProjects,
-      color: 'from-emerald-500 to-teal-500',
-      borderColor: 'border-emerald-500/20',
+      color: 'from-amber-500 to-orange-500',
+      borderColor: 'border-amber-500/20',
     },
   ]
 
@@ -474,8 +474,8 @@ const Stats = memo(function Stats({ sessions, selectedProject, beatActivities }:
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6 animate-fade-in">
-      <div className="rounded-lg p-3 sm:p-4 lg:p-6 lg:col-span-3 overflow-hidden flex flex-col bg-white dark:bg-[rgb(12,13,13)] border border-border shadow-lg">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-fade-in">
+      <div className="rounded-lg p-6 lg:col-span-3 overflow-hidden flex flex-col bg-white dark:bg-[rgb(12,13,13)] border border-border shadow-lg">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-8 mb-4">
           {/* Stat Block */}
           <div className="flex flex-col items-start gap-2 font-sans">
@@ -505,7 +505,7 @@ const Stats = memo(function Stats({ sessions, selectedProject, beatActivities }:
           </div>
         </div>
 
-        <div className="rounded-2xl border border-card/30 p-4 mb-6 bg-white dark:bg-[rgb(12,13,13)]">
+        <div className="rounded-2xl border border-card/30 p-6 mb-6 bg-white dark:bg-[rgb(12,13,13)]">
           <div className="flex justify-between items-center mb-3">
             {/* Chart Type Toggle */}
             <div className="flex items-center gap-2 p-1 rounded-full bg-zinc-900/80 border border-zinc-700 shadow-sm">
@@ -564,16 +564,16 @@ const Stats = memo(function Stats({ sessions, selectedProject, beatActivities }:
         </div>
 
         {/* Achievements Section */}
-        <div className="mt-4 sm:mt-6 pt-3 border-t">
-          <h4 className="font-medium text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-4">
+        <div className="mt-6 pt-6 border-t">
+          <h4 className="font-medium text-sm text-muted-foreground mb-4">
             Achievements
           </h4>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {achievements.map(achievement => (
               <div
                 key={achievement.id}
                 className={cn(
-                  'flex flex-col items-center p-2 sm:p-3 lg:p-4 rounded-lg aspect-square group relative isolate',
+                  'flex flex-col items-center p-4 rounded-lg aspect-square group relative isolate',
                   achievement.unlocked
                     ? `bg-gradient-to-br from-primary/5 via-transparent to-transparent hover:from-primary/10 hover:via-primary/5 hover:to-transparent hover:scale-[1.02] hover:shadow-lg ${achievement.borderColor}`
                     : 'bg-muted/30 opacity-50 hover:opacity-60 border border-muted-foreground/10'
@@ -593,7 +593,7 @@ const Stats = memo(function Stats({ sessions, selectedProject, beatActivities }:
                 <div className="flex-1 flex flex-col items-center justify-center w-full relative">
                   <div
                     className={cn(
-                      'p-2 sm:p-2.5 rounded-full mb-2 sm:mb-3 flex items-center justify-center duration-300',
+                      'p-2.5 rounded-full mb-3 flex items-center justify-center duration-300',
                       achievement.unlocked
                         ? `bg-gradient-to-br ${achievement.color} text-white group-hover:scale-110 group-hover:shadow-md shadow-sm`
                         : 'bg-muted text-muted-foreground'
@@ -641,9 +641,9 @@ const Stats = memo(function Stats({ sessions, selectedProject, beatActivities }:
         </div>
 
         {/* Export/Share Section */}
-        <div className="mt-4 pt-3 border-t">
-          <h4 className="font-medium text-xs text-muted-foreground mb-3">Share Your Progress</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="mt-6 pt-6 border-t">
+          <h4 className="font-medium text-sm text-muted-foreground mb-4">Share Your Progress</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <button
               onClick={handleShareStats}
               className="h-[140px] w-full rounded-xl border bg-white/5 dark:bg-black/20 backdrop-blur-[2px] overflow-hidden text-balance bg-gradient-to-b from-primary/10 via-primary/5 to-transparent border-primary/10 transition-all duration-500 hover:-translate-y-1 hover:from-primary/20 hover:via-primary/10 hover:to-transparent group relative focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 focus:ring-violet-500/40 dark:focus:ring-violet-500/40"
@@ -677,17 +677,17 @@ const Stats = memo(function Stats({ sessions, selectedProject, beatActivities }:
             <button
               onClick={handleYearInReview}
               onMouseMove={handleMouseMove}
-              className="h-[140px] w-full rounded-xl border bg-white/5 dark:bg-black/20 backdrop-blur-[2px] overflow-hidden text-balance bg-gradient-to-b from-rose-500/10 via-rose-500/5 to-transparent border-rose-500/10 transition-all duration-500 hover:-translate-y-1 hover:from-rose-500/20 hover:via-rose-500/10 hover:to-transparent group relative focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 focus:ring-violet-500/40 dark:focus:ring-violet-500/40"
+              className="h-[140px] w-full rounded-xl border bg-white/5 dark:bg-black/20 backdrop-blur-[2px] overflow-hidden text-balance bg-gradient-to-b from-green-500/10 via-green-500/5 to-transparent border-green-500/10 transition-all duration-500 hover:-translate-y-1 hover:from-green-500/20 hover:via-green-500/10 hover:to-transparent group relative focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 focus:ring-violet-500/40 dark:focus:ring-violet-500/40"
             >
               <div className="relative z-10 h-full flex flex-col items-center justify-center text-center p-3 space-y-2 sm:space-y-3">
-                <div className="rounded-lg p-2 bg-white/10 dark:bg-black/20 ring-1 ring-black/5 dark:ring-white/5 transition-transform duration-500 group-hover:scale-110 text-rose-500">
+                <div className="rounded-lg p-2 bg-white/10 dark:bg-black/20 ring-1 ring-black/5 dark:ring-white/5 transition-transform duration-500 group-hover:scale-110 text-green-500">
                   <FileXls className="h-5 w-5" />
                 </div>
                 <div className="space-y-1 max-w-[200px] min-w-0">
-                  <h3 className="text-base font-semibold leading-tight tracking-tight text-rose-900 dark:text-rose-100 truncate">
+                  <h3 className="text-base font-semibold leading-tight tracking-tight text-green-900 dark:text-green-100 truncate">
                     Year in Review
                   </h3>
-                  <p className="text-xs leading-snug text-rose-700/70 dark:text-rose-300/70 text-wrap">
+                  <p className="text-xs leading-snug text-green-700/70 dark:text-green-300/70 text-wrap">
                     Download yearly stats
                   </p>
                 </div>
@@ -707,9 +707,9 @@ const Stats = memo(function Stats({ sessions, selectedProject, beatActivities }:
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
-        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-white dark:bg-card border border-border">
-          <div className="flex justify-between items-start mb-3 sm:mb-4">
+      <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
+        <div className="rounded-xl p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-white dark:bg-card border border-border">
+          <div className="flex justify-between items-start mb-4">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -733,20 +733,20 @@ const Stats = memo(function Stats({ sessions, selectedProject, beatActivities }:
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-background flex items-center justify-center">
+            <div className="h-10 w-10 rounded-full bg-background flex items-center justify-center">
               <ChartLineUp className="w-3 h-3" />
             </div>
           </div>
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">{productivityScore}%</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Based on beats and completed projects</p>
+              <p className="text-2xl lg:text-3xl font-bold mb-2">{productivityScore}%</p>
+              <p className="text-sm text-muted-foreground">Based on beats and completed projects</p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-white dark:bg-card border border-border">
-          <div className="flex justify-between items-start mb-3 sm:mb-4">
+        <div className="rounded-xl p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-white dark:bg-card border border-border">
+          <div className="flex justify-between items-start mb-4">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -770,20 +770,20 @@ const Stats = memo(function Stats({ sessions, selectedProject, beatActivities }:
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-background flex items-center justify-center">
+            <div className="h-10 w-10 rounded-full bg-background flex items-center justify-center">
               <MusicNote className="w-3 h-3" />
             </div>
           </div>
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">{totalBeatsCreated}</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Across all projects</p>
+              <p className="text-2xl lg:text-3xl font-bold mb-2">{totalBeatsCreated}</p>
+              <p className="text-sm text-muted-foreground">Across all projects</p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-white dark:bg-card border border-border">
-          <div className="flex justify-between items-start mb-3 sm:mb-4">
+        <div className="rounded-xl p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-white dark:bg-card border border-border">
+          <div className="flex justify-between items-start mb-4">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -807,20 +807,20 @@ const Stats = memo(function Stats({ sessions, selectedProject, beatActivities }:
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-background flex items-center justify-center">
+            <div className="h-10 w-10 rounded-full bg-background flex items-center justify-center">
               <CheckCircle className="w-3 h-3" weight="fill" />
             </div>
           </div>
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">{completedProjects}</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Successfully finished</p>
+              <p className="text-2xl lg:text-3xl font-bold mb-2">{completedProjects}</p>
+              <p className="text-sm text-muted-foreground">Successfully finished</p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl p-3 sm:p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-white dark:bg-card border border-border">
-          <div className="flex justify-between items-start mb-3 sm:mb-4">
+        <div className="rounded-xl p-4 transition-all hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-primary/5 hover:bg-accent/50 bg-white dark:bg-card border border-border">
+          <div className="flex justify-between items-start mb-4">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -844,14 +844,14 @@ const Stats = memo(function Stats({ sessions, selectedProject, beatActivities }:
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-background flex items-center justify-center">
+            <div className="h-10 w-10 rounded-full bg-background flex items-center justify-center">
               <Target className="w-3 h-3" weight="fill" />
             </div>
           </div>
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">{projects.length > 0 ? Math.round((completedProjects / projects.length) * 100) : 0}%</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Projects completed</p>
+              <p className="text-2xl lg:text-3xl font-bold mb-2">{projects.length > 0 ? Math.round((completedProjects / projects.length) * 100) : 0}%</p>
+              <p className="text-sm text-muted-foreground">Projects completed</p>
             </div>
           </div>
         </div>

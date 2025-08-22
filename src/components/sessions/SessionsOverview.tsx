@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { Session, SessionStats } from '@/lib/types'
+import { COLORS } from '@/lib/constants/colors'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
@@ -301,10 +302,10 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       className={cn(
-        "relative overflow-hidden rounded-lg p-3 pb-0",
+        "relative overflow-hidden rounded-lg p-8 pb-8",
         "light:bg-white dark:bg-gradient-to-b dark:from-muted/10 dark:to-muted/20",
         "border border-border/50 shadow-lg",
-        "h-[580px]",
+        "h-[640px]",
         "hover:scale-[1.002] hover:shadow-xl transition-all duration-300 ease-in-out",
         activeSession && "border-l-4 border-l-primary/40"
       )}
@@ -349,19 +350,19 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
         {stats && (
           <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground mb-2">
             <div className="flex items-center gap-1.5 p-1 rounded-lg bg-muted/5 dark:bg-muted/10 group">
-              <Timer className="w-3 h-3 text-[#FACC15]/70 group-hover:text-[#FACC15]" />
+              <Timer className="w-3 h-3 text-violet-500/70 group-hover:text-violet-500" />
               <span>{Math.round(stats.averageDuration)}m avg</span>
             </div>
             <div className="flex items-center gap-1.5 p-1 rounded-lg bg-muted/5 dark:bg-muted/10 group">
-              <ChartLine className="w-3 h-3 text-[#60A5FA]/70 group-hover:text-[#60A5FA]" />
+              <ChartLine className="w-3 h-3 text-purple-500/70 group-hover:text-purple-500" />
               <span>{Math.round(stats.productivityScore * 100)}% productivity</span>
             </div>
             <div className="flex items-center gap-1.5 p-1 rounded-lg bg-muted/5 dark:bg-muted/10 group">
-              <Trophy className="w-3 h-3 text-[#A78BFA]/70 group-hover:text-[#A78BFA]" />
+              <Trophy className="w-3 h-3 text-amber-500/70 group-hover:text-amber-500" />
               <span>{stats.totalSessions} sessions</span>
             </div>
             <div className="flex items-center gap-1.5 p-1 rounded-lg bg-muted/5 dark:bg-muted/10 group">
-              <Target className="w-3 h-3 text-[#34D399]/70 group-hover:text-[#34D399]" />
+              <Target className="w-3 h-3 text-green-500/70 group-hover:text-green-500" />
               <span>{Math.round(stats.totalDuration)}m total</span>
             </div>
           </div>
@@ -371,7 +372,7 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
         <div className="h-px bg-border/20 mb-1" />
 
         {/* Recent Activity */}
-        <div className="flex-1 overflow-y-auto pb-1">
+        <div className="flex-1 flex flex-col overflow-y-auto pb-1">
           <div className="flex items-center justify-between mb-1">
             <h4 className="text-[10px] font-medium text-muted-foreground">Recent Activity</h4>
             {recentSessions.length > 0 && (
@@ -453,8 +454,8 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
                 })}
               </div>
             ) : (
-              <div className="flex-1 h-[calc(100%-2rem)]">
-                <EmptySessionsCard onStartSession={handleStartSession} />
+              <div className="flex-1 flex">
+                <EmptySessionsCard onStartSession={handleStartSession} className="w-full" />
               </div>
             )}
             {recentSessions.length > 3 && !showAllSessions && (
@@ -478,14 +479,14 @@ export function SessionsOverview({ onStartSession }: SessionsOverviewProps) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center justify-center p-2 mb-1 rounded-lg bg-gradient-to-r from-orange-500/10 to-red-500/10 dark:from-orange-500/20 dark:to-red-500/20 border border-orange-500/20 dark:border-orange-500/30"
+            className="flex items-center justify-center p-2 mb-1 rounded-lg bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/20 dark:border-orange-500/30"
           >
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
               <span className="text-xs font-mono font-medium text-orange-600 dark:text-orange-400">
                 {formatTimer(sessionTimer)}
               </span>
-              <span className="text-[10px] text-orange-500/70 dark:text-orange-400/70">
+              <span className="text-[10px] text-orange-600/70 dark:text-orange-400/70">
                 Recording
               </span>
             </div>

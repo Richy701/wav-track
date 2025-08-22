@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Spinner } from '@/components/ui/spinner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { AchievementCard } from '@/components/achievements/AchievementCard'
 import { AchievementProgress } from '@/components/achievements/AchievementProgress'
 import { 
@@ -237,6 +238,12 @@ export default function Achievements() {
                 <Trophy className="h-8 w-8 text-white" />
               </motion.div>
               <div>
+                <Breadcrumb 
+                  items={[
+                    { label: 'Dashboard', href: '/dashboard' },
+                    { label: 'Achievements', current: true }
+                  ]}
+                />
                 <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
                   Achievements
                 </h1>

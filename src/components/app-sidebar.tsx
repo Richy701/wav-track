@@ -67,37 +67,37 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar {...props}>
-      <SidebarHeader>
+      <SidebarHeader className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/20 rounded-b-3xl mx-2 mt-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link to="/dashboard" className="flex items-center gap-2">
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-transparent">
+            <SidebarMenuButton size="lg" asChild className="hover:bg-transparent">
+              <Link to="/dashboard" className="flex items-center gap-3 p-6">
+                <div className="flex flex-col gap-1 leading-none">
+                  <span className="text-xl font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-violet-700 bg-clip-text text-transparent">
                     WavTrack
                   </span>
-                  <span className="text-xs text-muted-foreground">Audio Production Suite</span>
+                  <span className="text-sm text-muted-foreground/80">Audio Production Suite</span>
                 </div>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent className="overflow-hidden">
+      <SidebarContent className="overflow-hidden px-2 py-4">
         <NavMain items={data.navMain} />
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarSeparator className="mb-2" />
-        <SidebarMenu className="px-2">
+      <SidebarFooter className="bg-gradient-to-t from-violet-50/50 to-transparent dark:from-violet-950/10 dark:to-transparent rounded-t-2xl mx-2 mb-2 py-1">
+        <div className="h-px bg-gradient-to-r from-transparent via-violet-200 to-transparent dark:via-violet-800 mb-1" />
+        <SidebarMenu className="px-2 space-y-1">
           {/* Theme Switcher */}
           <SidebarMenuItem className="overflow-hidden">
             <div className="px-2">
               <SidebarMenuButton
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="w-[calc(100%-8px)]"
+                className="w-[calc(100%-8px)] h-9 bg-gradient-to-r from-violet-500/10 to-purple-500/10 hover:from-violet-500/20 hover:to-purple-500/20 border border-violet-200/20 dark:border-violet-800/20"
               >
-                {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                {theme === 'dark' ? <Sun className="h-4 w-4 text-amber-500" /> : <Moon className="h-4 w-4 text-violet-600" />}
+                <span className="text-sm">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
               </SidebarMenuButton>
             </div>
           </SidebarMenuItem>
@@ -105,10 +105,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {/* Settings */}
           <SidebarMenuItem className="overflow-hidden">
             <div className="px-2">
-              <SidebarMenuButton asChild className="w-[calc(100%-8px)]">
+              <SidebarMenuButton asChild className="w-[calc(100%-8px)] h-9 hover:bg-violet-500/10">
                 <Link to="/settings">
                   <Settings className="h-4 w-4" />
-                  <span>Settings</span>
+                  <span className="text-sm">Settings</span>
                 </Link>
               </SidebarMenuButton>
             </div>
@@ -119,12 +119,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <div className="px-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <SidebarMenuButton className="w-[calc(100%-8px)]">
+                  <SidebarMenuButton className="w-[calc(100%-8px)] h-9 bg-gradient-to-r from-purple-500/10 to-violet-500/10 hover:from-purple-500/20 hover:to-violet-500/20 border border-purple-200/20 dark:border-purple-800/20">
                     <User className="h-4 w-4" />
-                    <span className="truncate">{user?.email || 'Profile'}</span>
+                    <span className="truncate text-sm">{user?.email || 'Profile'}</span>
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-56 rounded-xl border-violet-200/20 dark:border-violet-800/20">
                   <DropdownMenuItem asChild>
                     <Link to="/settings">
                       <Settings className="mr-2 h-4 w-4" />

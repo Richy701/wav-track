@@ -1,5 +1,6 @@
 import { MonthlyBreakdownPreview } from '@/components/dashboard/MonthlyBreakdownPreview'
 import { YearInReviewPreview } from '@/components/dashboard/YearInReviewPreview'
+import ResponsiveGrid from '@/components/layout/ResponsiveGrid'
 
 export default function DashboardPage() {
   // Sample data to showcase the redesigned components
@@ -14,8 +15,15 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground mt-2">Track your music production progress and insights</p>
+      </div>
+      
+      <ResponsiveGrid 
+        cols={{ default: 1, md: 2 }}
+        gap="lg"
+      >
         <MonthlyBreakdownPreview 
           monthlyData={sampleMonthlyData}
           onExport={() => alert('Exporting monthly breakdown...')}
@@ -28,19 +36,25 @@ export default function DashboardPage() {
           description="Your creative journey this year"
           onExport={() => alert('Exporting year in review...')}
         />
-      </div>
+      </ResponsiveGrid>
       
-      {/* Empty state versions */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <MonthlyBreakdownPreview 
-          monthlyData={[]}
-          onExport={() => alert('Exporting monthly breakdown...')}
-        />
-        <YearInReviewPreview 
-          totalBeats={0}
-          studioTime={0}
-          onExport={() => alert('Exporting year in review...')}
-        />
+      {/* Empty state examples */}
+      <div className="border-t pt-6">
+        <h2 className="text-xl font-semibold mb-4">Empty State Examples</h2>
+        <ResponsiveGrid 
+          cols={{ default: 1, md: 2 }}
+          gap="lg"
+        >
+          <MonthlyBreakdownPreview 
+            monthlyData={[]}
+            onExport={() => alert('Exporting monthly breakdown...')}
+          />
+          <YearInReviewPreview 
+            totalBeats={0}
+            studioTime={0}
+            onExport={() => alert('Exporting year in review...')}
+          />
+        </ResponsiveGrid>
       </div>
     </div>
   )

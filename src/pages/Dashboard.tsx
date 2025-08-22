@@ -48,14 +48,14 @@ export function Dashboard() {
   const { projects, allProjects, isLoading: projectsLoading } = useProjects()
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Page Header */}
-      <div className="mb-2">
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Primary Header Section */}
+      <header className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Track your music production progress and stay motivated</p>
-      </div>
+        <p className="text-muted-foreground mt-2">Track your music production progress and stay motivated</p>
+      </header>
 
-      {/* Stats Section with improved loading */}
+      {/* Primary Stats Section */}
       <section aria-label="Statistics" className="animate-in slide-in-from-bottom-2 duration-500">
         <Suspense fallback={<StatsLoadingSkeleton />}>
           <LoadingWrapper
@@ -69,10 +69,10 @@ export function Dashboard() {
       </section>
 
       {/* Main content grid with improved responsive layout */}
-      <div className="grid grid-cols-1 gap-8 xl:grid-cols-3 lg:grid-cols-1 md:grid-cols-1">
-        {/* Projects section - takes 2 columns on xl screens */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Secondary Main Content - Projects */}
         <section 
-          className="xl:col-span-2 animate-in slide-in-from-left-2 duration-500 delay-100" 
+          className="lg:col-span-2 animate-in slide-in-from-left-2 duration-500 delay-100" 
           aria-label="Projects"
         >
           <Suspense fallback={<ProjectListLoadingSkeleton />}>
@@ -86,25 +86,27 @@ export function Dashboard() {
           </Suspense>
         </section>
 
-        {/* Sidebar section with quotes and AI coach */}
+        {/* Secondary Sidebar - Insights and Coaching */}
         <aside 
           className="space-y-6 animate-in slide-in-from-right-2 duration-500 delay-200" 
           aria-label="Insights and Coaching"
         >
-          {/* Motivational Quotes */}
-          <div className="sticky top-6">
-            <Suspense fallback={<QuotesLoadingSkeleton />}>
-              <LoadingWrapper
-                loadingKey="quotes"
-                className="min-h-[100px] rounded-lg"
-                customLoader={<QuotesLoadingSkeleton />}
-              >
-                <MemoizedMotivationalQuotes />
-              </LoadingWrapper>
-            </Suspense>
+          <div className="sticky top-6 space-y-6">
+            {/* Tertiary - Motivational Quotes */}
+            <section aria-label="Motivation">
+              <Suspense fallback={<QuotesLoadingSkeleton />}>
+                <LoadingWrapper
+                  loadingKey="quotes"
+                  className="min-h-[100px] rounded-lg"
+                  customLoader={<QuotesLoadingSkeleton />}
+                >
+                  <MemoizedMotivationalQuotes />
+                </LoadingWrapper>
+              </Suspense>
+            </section>
 
-            {/* AI Coach */}
-            <div className="mt-6">
+            {/* Tertiary - AI Coach */}
+            <section aria-label="AI Coaching">
               <Suspense fallback={<AICoachLoadingSkeleton />}>
                 <LoadingWrapper
                   loadingKey="ai-coach"
@@ -114,7 +116,7 @@ export function Dashboard() {
                   <MemoizedAICoach />
                 </LoadingWrapper>
               </Suspense>
-            </div>
+            </section>
           </div>
         </aside>
       </div>

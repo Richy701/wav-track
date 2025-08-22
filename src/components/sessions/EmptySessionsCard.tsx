@@ -31,7 +31,7 @@ export const EmptySessionsCard = React.forwardRef<HTMLDivElement, EmptySessionsC
       <motion.div
         ref={ref}
         className={cn(
-          "relative w-full h-full overflow-hidden rounded-xl transform-gpu transition-all duration-300 ease-out",
+          "relative w-full h-full min-h-[400px] overflow-hidden rounded-xl transform-gpu transition-all duration-300 ease-out",
           "bg-gradient-to-b from-muted/5 to-muted/10 dark:from-muted/10 dark:to-muted/20",
           "border border-border/50",
           "shadow-sm hover:shadow-md",
@@ -50,7 +50,7 @@ export const EmptySessionsCard = React.forwardRef<HTMLDivElement, EmptySessionsC
         transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.5 }}
         style={{ transformStyle: "preserve-3d" }}
       >
-        <div className="flex flex-col items-center justify-center h-full py-8 text-center">
+        <div className="flex flex-col items-center justify-center h-full min-h-full py-8 text-center">
           <motion.div
             className="flex items-center justify-center"
             animate={{

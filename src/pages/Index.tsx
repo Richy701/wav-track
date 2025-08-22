@@ -234,7 +234,7 @@ const Index = () => {
           <div className="min-h-[350px] lg:min-h-[480px] min-w-0 w-full">
             <Timer />
           </div>
-          <div className="min-h-[450px] lg:min-h-[580px] min-w-0 w-full">
+          <div className="min-h-[450px] lg:min-h-[600px] min-w-0 w-full">
             <SessionsOverview />
           </div>
         </div>

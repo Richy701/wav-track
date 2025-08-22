@@ -113,13 +113,13 @@ export const YearInReviewPreview = memo(function YearInReviewPreview({
               </div>
             ) : (
               /* Stats Grid */
-              <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 w-full overflow-hidden mb-6 min-w-0">
+              <div className="grid grid-cols-2 sm:grid-cols-1 gap-3 w-full overflow-hidden mb-6 min-w-0">
                 {/* Total Beats */}
                 <motion.div 
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, delay: 0.1 }}
-                  className="flex items-center space-x-3 p-3 rounded-lg bg-white border border-zinc-200 min-w-0 truncate text-wrap overflow-hidden dark:bg-white/[0.03] dark:backdrop-blur-lg dark:border-white/[0.05]"
+                  className="flex items-center space-x-3 p-4 rounded-lg bg-white border border-zinc-200 min-w-0 truncate text-wrap overflow-hidden dark:bg-white/[0.03] dark:backdrop-blur-lg dark:border-white/[0.05]"
                 >
                   <div className="p-2 rounded-lg bg-amber-100 text-amber-500 flex-shrink-0 dark:bg-amber-500/10 dark:text-amber-400">
                     <Music className="h-4 w-4" />
@@ -137,7 +137,7 @@ export const YearInReviewPreview = memo(function YearInReviewPreview({
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, delay: 0.2 }}
-                  className="flex items-center space-x-3 p-3 rounded-lg bg-white border border-zinc-200 min-w-0 truncate text-wrap overflow-hidden dark:bg-white/[0.03] dark:backdrop-blur-lg dark:border-white/[0.05]"
+                  className="flex items-center space-x-3 p-4 rounded-lg bg-white border border-zinc-200 min-w-0 truncate text-wrap overflow-hidden dark:bg-white/[0.03] dark:backdrop-blur-lg dark:border-white/[0.05]"
                 >
                   <div className="p-2 rounded-lg bg-amber-100 text-amber-500 flex-shrink-0 dark:bg-amber-500/10 dark:text-amber-400">
                     <Clock className="h-4 w-4" />
@@ -155,7 +155,7 @@ export const YearInReviewPreview = memo(function YearInReviewPreview({
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, delay: 0.3 }}
-                  className="flex items-center space-x-3 p-3 rounded-lg bg-white border border-zinc-200 min-w-0 truncate text-wrap overflow-hidden dark:bg-white/[0.03] dark:backdrop-blur-lg dark:border-white/[0.05]"
+                  className="flex items-center space-x-3 p-4 rounded-lg bg-white border border-zinc-200 min-w-0 truncate text-wrap overflow-hidden dark:bg-white/[0.03] dark:backdrop-blur-lg dark:border-white/[0.05]"
                 >
                   <div className="p-2 rounded-lg bg-amber-100 text-amber-500 flex-shrink-0 dark:bg-amber-500/10 dark:text-amber-400">
                     <Music className="h-4 w-4" />

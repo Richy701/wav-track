@@ -33,6 +33,7 @@ import {
 // Basic shadcn UI Components
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { useToast } from '@/components/ui/use-toast'
@@ -322,11 +323,12 @@ const Sessions = () => {
         <main className="w-full">
           {/* Page Header */}
           <div className="mb-8">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-              <span>Dashboard</span>
-              <ChevronRight className="h-4 w-4" />
-              <span className="text-foreground">Focus Sessions</span>
-            </div>
+            <Breadcrumb 
+              items={[
+                { label: 'Dashboard', href: '/dashboard' },
+                { label: 'Focus Sessions', current: true }
+              ]}
+            />
             <h1 className="text-4xl font-bold tracking-tight mb-2">Focus Sessions</h1>
             <p className="text-muted-foreground">
               Use the Pomodoro Technique to boost your productivity

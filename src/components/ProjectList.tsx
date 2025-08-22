@@ -25,6 +25,7 @@ import {
 import ProjectCard from '@/components/project/ProjectCard'
 import { Project } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { getStatusClasses } from '@/lib/constants/colors'
 import { useProjects } from '@/hooks/useProjects'
 import {
   DndContext,
@@ -168,35 +169,31 @@ const ProjectList: React.FC<ProjectListProps> = ({
   }
 
   const statuses: { value: Project['status'] | 'all'; label: string; className?: string }[] = [
-    { value: 'all', label: 'All', className: 'bg-zinc-500/20 text-zinc-100' },
-    { value: 'idea', label: 'Ideas', className: 'bg-blue-500/20 text-blue-500 dark:text-blue-400' },
-    {
-      value: 'in-progress',
-      label: 'In Progress',
-      className: 'bg-amber-500/20 text-amber-500 dark:text-amber-400',
-    },
-    {
-      value: 'mixing',
-      label: 'Mixing',
-      className: 'bg-purple-500/20 text-purple-500 dark:text-purple-400',
-    },
-    {
-      value: 'mastering',
-      label: 'Mastering',
-      className: 'bg-violet-500/20 text-violet-500 dark:text-violet-400',
-    },
-    {
-      value: 'completed',
-      label: 'Completed',
-      className: 'bg-emerald-500/20 text-emerald-500 dark:text-emerald-400',
-    },
+    { value: 'all', label: 'All', className: 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-400' },
+    { value: 'idea', label: 'Ideas', className: getStatusClasses('idea') },
+    { value: 'in-progress', label: 'In Progress', className: getStatusClasses('in-progress') },
+    { value: 'mixing', label: 'Mixing', className: getStatusClasses('mixing') },
+    { value: 'mastering', label: 'Mastering', className: getStatusClasses('mastering') },
+    { value: 'completed', label: 'Completed', className: getStatusClasses('completed') },
   ]
 
   // Apply both filtering and sorting
   const filteredAndSortedProjects = useMemo(() => {
-    // First filter
-    const filtered =
-      filter === 'All' ? projects : projects.filter(project => project.status.toLowerCase() === filter.toLowerCase())
+    // First filter - map display names to actual status values
+    const getStatusValue = (filterValue: string) => {
+      switch (filterValue) {
+        case 'Ideas': return 'idea'
+        case 'In Progress': return 'in-progress'
+        case 'Mixing': return 'mixing'
+        case 'Mastering': return 'mastering'
+        case 'Completed': return 'completed'
+        default: return filterValue.toLowerCase()
+      }
+    }
+
+    const filtered = filter === 'All' 
+      ? projects 
+      : projects.filter(project => project.status === getStatusValue(filter))
 
     // Then sort
     return [...filtered].sort((a, b) => {
