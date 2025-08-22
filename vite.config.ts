@@ -53,24 +53,61 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           // Core React libraries
-          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-            return 'vendor'
+          if (id.includes('react') || id.includes('react-dom')) {
+            return 'react-core'
+          }
+          // Router
+          if (id.includes('react-router') || id.includes('@tanstack/react-router')) {
+            return 'router'
           }
           // Chart/visualization libraries
-          if (id.includes('recharts') || id.includes('chart') || id.includes('d3')) {
+          if (id.includes('recharts') || id.includes('chart.js') || id.includes('react-chartjs') || id.includes('d3')) {
             return 'charts'
           }
-          // UI component libraries
-          if (id.includes('@radix-ui') || id.includes('lucide-react')) {
-            return 'ui'
+          // Radix UI components
+          if (id.includes('@radix-ui')) {
+            return 'radix-ui'
           }
-          // Heavy utilities and third-party
-          if (id.includes('date-fns') || id.includes('clsx') || id.includes('class-variance-authority')) {
+          // Icons
+          if (id.includes('lucide-react') || id.includes('@tabler/icons') || id.includes('@heroicons') || id.includes('react-icons')) {
+            return 'icons'
+          }
+          // Supabase
+          if (id.includes('@supabase')) {
+            return 'supabase'
+          }
+          // Form libraries
+          if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
+            return 'forms'
+          }
+          // Animation libraries
+          if (id.includes('framer-motion') || id.includes('gsap') || id.includes('@dnd-kit')) {
+            return 'animation'
+          }
+          // Date utilities
+          if (id.includes('date-fns')) {
+            return 'date-utils'
+          }
+          // Other utilities
+          if (id.includes('lodash') || id.includes('uuid') || id.includes('clsx') || id.includes('class-variance-authority')) {
             return 'utils'
           }
-          // Large node_modules packages
+          // Tanstack Query
+          if (id.includes('@tanstack/react-query')) {
+            return 'query'
+          }
+          // Remaining vendor packages
           if (id.includes('node_modules')) {
-            return 'vendor'
+            // Split remaining vendor into smaller chunks
+            const packageName = id.split('node_modules/')[1]?.split('/')[0]
+            if (packageName) {
+              const hash = packageName.split('').reduce((a, b) => {
+                a = ((a << 5) - a) + b.charCodeAt(0)
+                return a & a
+              }, 0)
+              return `vendor-${Math.abs(hash) % 4}`
+            }
+            return 'vendor-misc'
           }
         },
         // Optimize asset naming for better caching

@@ -4,6 +4,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useAchievements } from '@/hooks/useAchievements'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Spinner } from '@/components/ui/spinner'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { AchievementCard } from '@/components/achievements/AchievementCard'
 import { AchievementProgress } from '@/components/achievements/AchievementProgress'
 import { 
@@ -11,17 +13,14 @@ import {
   Star, 
   Clock, 
   Target, 
-  Fire, 
-  MusicNote, 
+  Flame,
+  Music, 
   Medal,
-  Waveform,
-  Waves,
-  MusicNoteSimple
-} from '@phosphor-icons/react'
+  Activity,
+  Waves
+} from 'lucide-react'
 import { motion, Variants } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
 
 const fadeInUp: Variants = {
   initial: { opacity: 0, y: 20 },
@@ -38,20 +37,20 @@ const staggerContainer: Variants = {
 
 const achievementIcons = {
   // Production achievements
-  first_beat: <MusicNoteSimple className="h-8 w-8 text-white" weight="fill" />,
-  beat_builder: <Waveform className="h-8 w-8 text-white" weight="fill" />,
-  beat_machine: <Waves className="h-8 w-8 text-white" weight="fill" />,
-  legendary_producer: <Medal className="h-8 w-8 text-white" weight="fill" />,
+  first_beat: <Music className="h-8 w-8 text-white" />,
+  beat_builder: <Activity className="h-8 w-8 text-white" />,
+  beat_machine: <Waves className="h-8 w-8 text-white" />,
+  legendary_producer: <Medal className="h-8 w-8 text-white" />,
   // Streak achievements
-  daily_grinder: <Fire className="h-8 w-8 text-white" weight="fill" />,
-  consistency_king: <Star className="h-8 w-8 text-white" weight="fill" />,
+  daily_grinder: <Flame className="h-8 w-8 text-white" />,
+  consistency_king: <Star className="h-8 w-8 text-white" />,
   // Time achievements
-  studio_rat: <Clock className="h-8 w-8 text-white" weight="fill" />,
-  time_lord: <Clock className="h-8 w-8 text-white" weight="fill" />,
+  studio_rat: <Clock className="h-8 w-8 text-white" />,
+  time_lord: <Clock className="h-8 w-8 text-white" />,
   // Goal achievements
-  goal_getter: <Target className="h-8 w-8 text-white" weight="fill" />,
-  finish_what_you_start: <Trophy className="h-8 w-8 text-white" weight="fill" />,
-  big_vision: <Star className="h-8 w-8 text-white" weight="fill" />
+  goal_getter: <Target className="h-8 w-8 text-white" />,
+  finish_what_you_start: <Trophy className="h-8 w-8 text-white" />,
+  big_vision: <Star className="h-8 w-8 text-white" />
 }
 
 const tierColors = {
@@ -85,16 +84,16 @@ const tabItems = [
   { 
     id: 'all', 
     label: 'All Achievements', 
-    icon: <Trophy className="h-5 w-5 text-purple-500" weight="fill" />,
+    icon: <Trophy className="h-5 w-5 text-purple-500" />,
     colors: {
       hover: 'hover:bg-purple-500/20 dark:hover:bg-purple-500/20',
       active: 'bg-purple-500/20 text-zinc-900 dark:text-purple-100'
     }
   },
   { 
-    id: 'streaks', 
-    label: 'Streaks', 
-    icon: <Fire className="h-5 w-5 text-orange-500" weight="fill" />,
+    id: 'streak', 
+    label: 'Streak', 
+    icon: <Flame className="h-5 w-5 text-orange-500" />,
     colors: {
       hover: 'hover:bg-orange-500/20 dark:hover:bg-orange-500/20',
       active: 'bg-orange-500/20 text-zinc-900 dark:text-orange-100'
@@ -103,7 +102,7 @@ const tabItems = [
   { 
     id: 'production', 
     label: 'Production', 
-    icon: <Waveform className="h-5 w-5 text-violet-500" weight="fill" />,
+    icon: <Activity className="h-5 w-5 text-violet-500" />,
     colors: {
       hover: 'hover:bg-violet-500/20 dark:hover:bg-violet-500/20',
       active: 'bg-violet-500/20 text-zinc-900 dark:text-violet-100'
@@ -112,7 +111,7 @@ const tabItems = [
   { 
     id: 'time', 
     label: 'Time', 
-    icon: <Clock className="h-5 w-5 text-blue-500" weight="fill" />,
+    icon: <Clock className="h-5 w-5 text-blue-500" />,
     colors: {
       hover: 'hover:bg-blue-500/20 dark:hover:bg-blue-500/20',
       active: 'bg-blue-500/20 text-zinc-900 dark:text-blue-100'
@@ -121,7 +120,7 @@ const tabItems = [
   { 
     id: 'goals', 
     label: 'Goals', 
-    icon: <Target className="h-5 w-5 text-emerald-500" weight="fill" />,
+    icon: <Target className="h-5 w-5 text-emerald-500" />,
     colors: {
       hover: 'hover:bg-emerald-500/20 dark:hover:bg-emerald-500/20',
       active: 'bg-emerald-500/20 text-zinc-900 dark:text-emerald-100'
@@ -132,7 +131,7 @@ const tabItems = [
 // Helper function to get icon for achievement
 const getAchievementIcon = (achievementId: string) => {
   return achievementIcons[achievementId as keyof typeof achievementIcons] || 
-    <Trophy className="h-8 w-8 text-white" weight="fill" />
+    <Trophy className="h-8 w-8 text-white" />
 }
 
 // ProgressRing component (inline for this file)
@@ -217,30 +216,73 @@ export default function Achievements() {
     })[0]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background/50 to-background flex flex-col">
-      <Header />
-      <main className="flex-1 container max-w-7xl mx-auto px-4 pt-24 pb-8">
-        {/* Hero Section */}
+    <div className="">
+      <main className="w-full space-y-8">
+        {/* Hero Section with Stats */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="flex items-center gap-3 mb-8 group"
+          className="mb-8"
         >
-          <motion.div
-            initial={{ scale: 0.8, rotate: -10 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-            className="flex items-center justify-center -mt-5"
-          >
-            <Trophy 
-              className="h-7 w-7 text-primary transition-colors duration-200 group-hover:text-primary/80" 
-              weight="fill"
-            />
-          </motion.div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Achievements
-          </h1>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <motion.div
+                initial={{ scale: 0.8, rotate: -10 }}
+                animate={{ scale: 1, rotate: 0 }}
+                whileHover={{ rotate: [0, -5, 5, -5, 0] }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+                className="p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg"
+              >
+                <Trophy className="h-8 w-8 text-white" />
+              </motion.div>
+              <div>
+                <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
+                  Achievements
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  Track your progress and unlock rewards
+                </p>
+              </div>
+            </div>
+            
+            {/* Quick Stats */}
+            <div className="hidden md:flex items-center gap-6">
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-center"
+              >
+                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                  {achievements.filter(a => a.unlocked_at).length}
+                </div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Unlocked</div>
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-center"
+              >
+                <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">
+                  {profile?.current_streak || 0}
+                </div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Day Streak</div>
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-center"
+              >
+                <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                  {Math.round((achievements.filter(a => a.unlocked_at).length / achievements.length) * 100)}%
+                </div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Complete</div>
+              </motion.div>
+            </div>
+          </div>
         </motion.div>
 
         {/* Next Achievement Banner with Stats */}
@@ -259,16 +301,16 @@ export default function Achievements() {
                 className="mb-12"
               >
                 <div className={cn(
-                  "relative p-6 rounded-3xl overflow-hidden",
-                  "bg-gradient-to-r from-purple-500/10 via-violet-500/10 to-purple-500/10",
-                  "dark:from-purple-500/20 dark:via-violet-500/20 dark:to-purple-500/20",
-                  "border border-purple-200/30 dark:border-purple-500/30",
-                  "backdrop-blur-sm"
+                  "relative p-8 rounded-3xl overflow-hidden",
+                  "bg-gradient-to-br from-purple-100 via-purple-50 to-violet-100",
+                  "dark:from-purple-950/30 dark:via-purple-900/20 dark:to-violet-950/30",
+                  "border-2 border-purple-300 dark:border-purple-700",
+                  "shadow-2xl shadow-purple-500/20"
                 )}>
                   <div className="relative z-10 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="p-3 rounded-2xl bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400">
-                        <Trophy className="h-6 w-6" weight="fill" />
+                        <Trophy className="h-6 w-6" />
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
@@ -310,7 +352,7 @@ export default function Achievements() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.01, y: -2 }}
                 transition={{ 
                   duration: 0.3,
                   scale: {
@@ -321,20 +363,27 @@ export default function Achievements() {
                 }}
                 className={cn(
                   "relative flex items-center p-8 mb-8 rounded-3xl",
-                  "bg-white dark:bg-zinc-900",
-                  "border border-zinc-200 dark:border-zinc-800",
-                  "shadow-lg hover:shadow-2xl transition-all duration-300",
-                  "overflow-hidden"
+                  "bg-gradient-to-br from-white via-white to-purple-50/30",
+                  "dark:from-zinc-900 dark:via-zinc-900 dark:to-purple-950/20",
+                  "border-2 border-purple-200 dark:border-purple-800",
+                  "shadow-2xl shadow-purple-500/10 hover:shadow-purple-500/20",
+                  "transition-all duration-300",
+                  "overflow-hidden group"
                 )}
               >
-                {/* Accent bar */}
-                <div className={cn(
-                  'absolute left-0 top-0 h-full w-2 rounded-l-3xl',
-                  category === 'production' && 'bg-violet-600 dark:bg-violet-400',
-                  category === 'streak' && 'bg-orange-600 dark:bg-orange-400',
-                  category === 'time' && 'bg-blue-600 dark:bg-blue-400',
-                  category === 'goals' && 'bg-emerald-600 dark:bg-emerald-400'
-                )} />
+                {/* Animated accent bar */}
+                <motion.div 
+                  initial={{ scaleY: 0 }}
+                  animate={{ scaleY: 1 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className={cn(
+                    'absolute left-0 top-0 h-full w-3 rounded-l-3xl origin-top',
+                    category === 'production' && 'bg-gradient-to-b from-violet-500 to-violet-600',
+                    category === 'streak' && 'bg-gradient-to-b from-orange-500 to-orange-600',
+                    category === 'time' && 'bg-gradient-to-b from-blue-500 to-blue-600',
+                    category === 'goals' && 'bg-gradient-to-b from-emerald-500 to-emerald-600'
+                  )} 
+                />
                 {/* Stats in top right */}
                 <div className="absolute top-4 right-6 text-right">
                   <div className="text-lg font-bold text-zinc-900 dark:text-white">
@@ -345,7 +394,7 @@ export default function Achievements() {
                   </div>
                   {currentStreak > 0 && (
                     <div className="flex items-center gap-1 mt-1 justify-end">
-                      <Fire className="h-3 w-3 text-orange-500" weight="fill" />
+                      <Flame className="h-3 w-3 text-orange-500" />
                       <span className="text-xs text-orange-600 dark:text-orange-400">
                         {currentStreak} streak
                       </span>
@@ -353,10 +402,23 @@ export default function Achievements() {
                   )}
                 </div>
                 
-                {/* Watermark icon */}
-                <div className="absolute right-4 bottom-2 opacity-5 pointer-events-none select-none">
-                  {getAchievementIcon(nextAchievement.id)}
-                </div>
+                {/* Animated watermark icon */}
+                <motion.div 
+                  animate={{ 
+                    opacity: [0.05, 0.1, 0.05],
+                    scale: [1, 1.05, 1]
+                  }}
+                  transition={{ 
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  className="absolute right-8 bottom-4 pointer-events-none select-none text-purple-500 dark:text-purple-400"
+                >
+                  <div className="w-24 h-24 opacity-20 group-hover:opacity-30 transition-opacity [&>svg]:w-full [&>svg]:h-full">
+                    {getAchievementIcon(nextAchievement.id)}
+                  </div>
+                </motion.div>
                 {/* Icon with progress ring */}
                 <div className="relative z-10 mr-8">
                   <ProgressRing percent={percent} color={categoryColor} size={56} thickness={5}>
@@ -370,9 +432,24 @@ export default function Achievements() {
                 </div>
                 {/* Content */}
                 <div className="flex-1 min-w-0 pr-24">
-                  <div className="uppercase text-xs tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">Next Up</div>
-                  <div className="text-2xl font-bold text-zinc-900 dark:text-white mb-1">{nextAchievement.name}</div>
-                  <div className="text-base text-zinc-700 dark:text-zinc-300 mb-2">{nextAchievement.description}</div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="uppercase text-xs tracking-wider text-purple-600 dark:text-purple-400 font-semibold">Next Achievement</span>
+                    <Badge className={cn(
+                      "capitalize",
+                      nextAchievement.tier === 'bronze' && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+                      nextAchievement.tier === 'silver' && "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
+                      nextAchievement.tier === 'gold' && "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+                      nextAchievement.tier === 'platinum' && "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                    )}>
+                      {nextAchievement.tier}
+                    </Badge>
+                  </div>
+                  <div className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-1">
+                    {nextAchievement.name}
+                  </div>
+                  <div className="text-base text-zinc-600 dark:text-zinc-400 mb-3">
+                    {nextAchievement.description}
+                  </div>
                   <div className="flex items-center gap-2">
                     <div className="text-sm text-zinc-500 dark:text-zinc-400">{progress} / {total} complete</div>
                     {percent >= 75 && (
@@ -392,65 +469,92 @@ export default function Achievements() {
 
         {/* Category Tabs */}
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className={cn(
-            // Container Layout
-            "mx-auto w-fit",
-            "flex items-center",
-            "gap-2",
-            "p-2",
-            
-            // Visual Style
-            "rounded-full",
-            "bg-white/10 dark:bg-zinc-900/20",
-            "border border-white/20 dark:border-white/10",
-            "shadow-xl shadow-black/5 dark:shadow-black/20",
-            
-            // Glass Effect
-            "backdrop-blur-md",
-            "backdrop-saturate-150"
-          )}>
-            {tabItems.map((tab) => (
-              <TabsTrigger
-                key={tab.id}
-                value={tab.id}
-                className={cn(
-                  "flex items-center justify-center gap-2.5",
-                  "h-10 px-5",
-                  "rounded-full",
-                  "text-base font-medium",
-                  "text-zinc-600 dark:text-white/70",
-                  "bg-transparent",
-                  "border border-transparent",
-                  "hover:text-zinc-900 dark:hover:text-white",
-                  tab.id === 'all' && 'hover:bg-purple-100 data-[state=active]:bg-purple-100 dark:hover:bg-purple-500/20 dark:data-[state=active]:bg-purple-500/20',
-                  tab.id === 'streaks' && 'hover:bg-orange-100 data-[state=active]:bg-orange-100 dark:hover:bg-orange-500/20 dark:data-[state=active]:bg-orange-500/20',
-                  tab.id === 'production' && 'hover:bg-violet-100 data-[state=active]:bg-violet-100 dark:hover:bg-violet-500/20 dark:data-[state=active]:bg-violet-500/20',
-                  tab.id === 'time' && 'hover:bg-blue-100 data-[state=active]:bg-blue-100 dark:hover:bg-blue-500/20 dark:data-[state=active]:bg-blue-500/20',
-                  tab.id === 'goals' && 'hover:bg-emerald-100 data-[state=active]:bg-emerald-100 dark:hover:bg-emerald-500/20 dark:data-[state=active]:bg-emerald-500/20',
-                  "transition-all duration-200",
-                  "data-[state=active]:text-zinc-900 dark:data-[state=active]:text-white",
-                  "data-[state=active]:border-white/20",
-                  "data-[state=active]:shadow-lg",
-                  "data-[state=active]:shadow-black/5"
-                )}
-              >
-                <span className="text-xl">
-                  {tab.icon}
-                </span>
-                <span>{tab.label}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+            className="flex justify-center mb-8 px-4"
+          >
+            <TabsList className={cn(
+              // Container Layout
+              "inline-flex items-center justify-center",
+              "h-12 p-1",
+              "gap-1",
+              
+              // Visual Style  
+              "rounded-2xl",
+              "bg-muted/30",
+              "border border-border/50",
+              "shadow-lg shadow-black/5 dark:shadow-black/20"
+            )}>
+              {tabItems.map((tab, index) => (
+                <motion.div
+                  key={tab.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.3 + index * 0.05 }}
+                >
+                  <TabsTrigger
+                    value={tab.id}
+                    className={cn(
+                      "relative inline-flex items-center justify-center gap-2",
+                      "h-10 px-3 sm:px-4 min-w-[100px] sm:min-w-[120px]",
+                      "rounded-xl",
+                      "text-sm font-medium whitespace-nowrap",
+                      "text-muted-foreground",
+                      "transition-all duration-200",
+                      "hover:text-foreground",
+                      "data-[state=active]:text-white",
+                      "data-[state=active]:shadow-lg",
+                      "disabled:pointer-events-none disabled:opacity-50",
+                      "group"
+                    )}
+                  >
+                    {/* Active state background */}
+                    <motion.div
+                      className={cn(
+                        "absolute inset-0 rounded-xl opacity-0",
+                        "data-[state=active]:opacity-100",
+                        tab.id === 'all' && "bg-gradient-to-r from-purple-500 to-purple-600",
+                        tab.id === 'streak' && "bg-gradient-to-r from-orange-500 to-orange-600",
+                        tab.id === 'production' && "bg-gradient-to-r from-violet-500 to-violet-600",
+                        tab.id === 'time' && "bg-gradient-to-r from-blue-500 to-blue-600",
+                        tab.id === 'goals' && "bg-gradient-to-r from-emerald-500 to-emerald-600"
+                      )}
+                      layoutId="activeTab"
+                    />
+                    
+                    {/* Content */}
+                    <span className="relative z-10 transition-transform group-hover:scale-110">
+                      {tab.icon}
+                    </span>
+                    <span className="relative z-10 truncate">{tab.label}</span>
+                  </TabsTrigger>
+                </motion.div>
+              ))}
+            </TabsList>
+          </motion.div>
 
           <TabsContent value="all" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
-              {achievements.map((achievement) => (
-                <AchievementCard key={achievement.id} achievement={achievement} isLoading={loading} />
+            <motion.div 
+              initial="initial"
+              animate="animate"
+              variants={staggerContainer}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            >
+              {achievements.map((achievement, index) => (
+                <motion.div
+                  key={achievement.id}
+                  variants={fadeInUp}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  <AchievementCard achievement={achievement} isLoading={loading} />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </TabsContent>
 
-          <TabsContent value="streaks" className="mt-8">
+          <TabsContent value="streak" className="mt-8">
             {(() => {
               const streakAchievements = achievements.filter((a) => a.category === 'streak');
               
@@ -459,36 +563,63 @@ export default function Achievements() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex flex-col items-center justify-center py-16 px-8 text-center"
+                    className="flex flex-col items-center justify-center py-20 px-8 text-center rounded-3xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-2 border-dashed border-orange-300 dark:border-orange-700"
                   >
-                    <div className="relative mb-6">
-                      <div className="w-20 h-20 rounded-full bg-orange-100 dark:bg-orange-500/20 flex items-center justify-center">
-                        <Fire className="w-10 h-10 text-orange-500 dark:text-orange-400" weight="fill" />
-                      </div>
+                    <motion.div className="relative mb-8">
                       <motion.div
-                        animate={{ rotate: [0, -10, 10, -10, 0] }}
-                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                        className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center"
+                        animate={{ 
+                          scale: [1, 1.1, 1],
+                          rotate: [0, 5, -5, 0]
+                        }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                        className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center shadow-xl"
                       >
-                        ✨
+                        <Flame className="w-12 h-12 text-white" />
                       </motion.div>
-                    </div>
-                    <h3 className="text-xl font-semibold text-zinc-900 dark:text-white mb-2">
-                      No Streak Achievements Yet
+                      <motion.div
+                        animate={{ 
+                          scale: [0.8, 1.2, 0.8],
+                          opacity: [0.5, 1, 0.5]
+                        }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="absolute -top-2 -right-2 w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center text-lg"
+                      >
+                        ⚡
+                      </motion.div>
+                    </motion.div>
+                    <h3 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent mb-3">
+                      Start Your Streak Journey
                     </h3>
-                    <p className="text-zinc-600 dark:text-zinc-400 max-w-md">
-                      Keep working consistently to unlock streak achievements! Start a session to begin your journey.
+                    <p className="text-zinc-600 dark:text-zinc-400 max-w-md mb-6">
+                      Consistency is key! Complete daily sessions to build your streak and unlock amazing achievements.
                     </p>
+                    <Button 
+                      onClick={() => navigate('/sessions')}
+                      className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
+                    >
+                      Start a Session
+                    </Button>
                   </motion.div>
                 );
               }
 
               return (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
-                  {streakAchievements.map((achievement) => (
-                    <AchievementCard key={achievement.id} achievement={achievement} isLoading={loading} />
+                <motion.div 
+                  initial="initial"
+                  animate="animate"
+                  variants={staggerContainer}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                >
+                  {streakAchievements.map((achievement, index) => (
+                    <motion.div
+                      key={achievement.id}
+                      variants={fadeInUp}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                    >
+                      <AchievementCard achievement={achievement} isLoading={loading} />
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               );
             })()}
           </TabsContent>
@@ -498,44 +629,86 @@ export default function Achievements() {
               const productionAchievements = achievements.filter((a) => a.category === 'production');
               const collections = [
                 {
-                  name: "Beat Making Journey",
-                  description: "Master the art of beat production",
+                  name: "🎵 Beat Making Journey",
+                  description: "Master the art of beat production from first beat to beat machine",
                   achievements: productionAchievements.filter(a => ['first_beat', 'beat_builder', 'beat_machine'].includes(a.id)),
-                  color: "violet"
+                  color: "violet",
+                  bgColor: "from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/20",
+                  borderColor: "border-violet-200 dark:border-violet-800",
+                  icon: <Activity className="h-6 w-6 text-violet-500" />
                 },
                 {
-                  name: "Producer Status",
-                  description: "Achieve legendary producer recognition",
+                  name: "🏆 Producer Status", 
+                  description: "Achieve legendary producer recognition and master status",
                   achievements: productionAchievements.filter(a => ['legendary_producer'].includes(a.id)),
-                  color: "purple"
+                  color: "purple",
+                  bgColor: "from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20",
+                  borderColor: "border-purple-200 dark:border-purple-800",
+                  icon: <Medal className="h-6 w-6 text-purple-500" />
+                },
+                {
+                  name: "⭐ Advanced Production",
+                  description: "Additional production milestones and special recognitions", 
+                  achievements: productionAchievements.filter(a => !['first_beat', 'beat_builder', 'beat_machine', 'legendary_producer'].includes(a.id)),
+                  color: "indigo",
+                  bgColor: "from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-950/20",
+                  borderColor: "border-indigo-200 dark:border-indigo-800",
+                  icon: <Star className="h-6 w-6 text-indigo-500" />
                 }
-              ];
+              ].filter(collection => collection.achievements.length > 0);
 
               return (
-                <div className="space-y-8">
-                  {collections.map((collection) => (
-                    <div key={collection.name} className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
+                <div className="space-y-10">
+                  {collections.map((collection, collectionIndex) => (
+                    <motion.div 
+                      key={collection.name} 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: collectionIndex * 0.1 }}
+                      className="space-y-6"
+                    >
+                      <div className={`flex items-center gap-4 p-6 rounded-2xl bg-gradient-to-r ${collection.bgColor} border ${collection.borderColor} shadow-sm`}>
+                        <div className="p-3 rounded-xl bg-white dark:bg-zinc-900 shadow-md">
+                          {collection.icon}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-1">
                             {collection.name}
                           </h3>
                           <p className="text-sm text-zinc-600 dark:text-zinc-400">
                             {collection.description}
                           </p>
                         </div>
-                        <div className="ml-auto">
-                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {collection.achievements.filter(a => a.unlocked_at).length}/{collection.achievements.length}
-                          </span>
+                        <div className="text-right">
+                          <div className={`text-3xl font-bold ${
+                            collection.color === 'violet' ? 'text-violet-600 dark:text-violet-400' :
+                            collection.color === 'purple' ? 'text-purple-600 dark:text-purple-400' :
+                            'text-indigo-600 dark:text-indigo-400'
+                          }`}>
+                            {collection.achievements.filter(a => a.unlocked_at).length}
+                          </div>
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                            of {collection.achievements.length} unlocked
+                          </div>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
-                        {collection.achievements.map((achievement) => (
-                          <AchievementCard key={achievement.id} achievement={achievement} isLoading={loading} />
+                      <motion.div 
+                        initial="initial"
+                        animate="animate"
+                        variants={staggerContainer}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                      >
+                        {collection.achievements.map((achievement, index) => (
+                          <motion.div
+                            key={achievement.id}
+                            variants={fadeInUp}
+                            transition={{ duration: 0.3, delay: index * 0.05 }}
+                          >
+                            <AchievementCard achievement={achievement} isLoading={loading} />
+                          </motion.div>
                         ))}
-                      </div>
-                    </div>
+                      </motion.div>
+                    </motion.div>
                   ))}
                 </div>
               );
@@ -543,27 +716,48 @@ export default function Achievements() {
           </TabsContent>
 
           <TabsContent value="time" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+            <motion.div 
+              initial="initial"
+              animate="animate"
+              variants={staggerContainer}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            >
               {achievements
                 .filter((a) => a.category === 'time')
-                .map((achievement) => (
-                  <AchievementCard key={achievement.id} achievement={achievement} isLoading={loading} />
+                .map((achievement, index) => (
+                  <motion.div
+                    key={achievement.id}
+                    variants={fadeInUp}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                  >
+                    <AchievementCard achievement={achievement} isLoading={loading} />
+                  </motion.div>
                 ))}
-            </div>
+            </motion.div>
           </TabsContent>
 
           <TabsContent value="goals" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+            <motion.div 
+              initial="initial"
+              animate="animate"
+              variants={staggerContainer}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            >
               {achievements
                 .filter((a) => a.category === 'goals')
-                .map((achievement) => (
-                  <AchievementCard key={achievement.id} achievement={achievement} isLoading={loading} />
+                .map((achievement, index) => (
+                  <motion.div
+                    key={achievement.id}
+                    variants={fadeInUp}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                  >
+                    <AchievementCard achievement={achievement} isLoading={loading} />
+                  </motion.div>
                 ))}
-            </div>
+            </motion.div>
           </TabsContent>
         </Tabs>
       </main>
-      <Footer />
     </div>
   )
 } 

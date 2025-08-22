@@ -25,7 +25,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { getBeatsDataForChart, getBeatsCreatedByProject } from '@/lib/data'
+import { getOptimizedBeatsDataForChart, getBeatsCreatedByProject } from '@/lib/data'
 import { cn } from '@/lib/utils'
 import { Project } from '@/lib/types'
 import { BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon, TrendingUp, TrendingDown } from 'lucide-react'
@@ -102,11 +102,11 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
       setTimeout(() => {
         setIsTimeout(true);
         reject(new Error('Chart data fetch timeout'));
-      }, 15000); // 15 second timeout
+      }, 8000); // Reduced to 8 second timeout
     });
 
     try {
-      const dataPromise = getBeatsDataForChart(timeRange, selectedProject?.id);
+      const dataPromise = getOptimizedBeatsDataForChart(timeRange, selectedProject?.id);
       const data = await Promise.race([dataPromise, timeoutPromise]) as any;
       
       console.log('[Debug] BeatsChart: Data fetched successfully', { 
@@ -126,10 +126,10 @@ export function BeatsChart({ timeRange, projects, selectedProject }: BeatsChartP
     }
   }, [timeRange, selectedProject?.id]);
 
-  // Update refreshKey when projects change
+  // Only update refreshKey when selectedProject ID actually changes
   useEffect(() => {
     setRefreshKey(prev => prev + 1);
-  }, [projects, selectedProject]);
+  }, [selectedProject?.id]); // Remove projects dependency to reduce re-renders
 
   // Fetch data when dependencies change
   useEffect(() => {

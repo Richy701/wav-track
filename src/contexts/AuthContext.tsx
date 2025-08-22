@@ -141,6 +141,14 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('[Debug] Setting up auth state change listener')
     
+    // Check if Supabase is configured
+    if (!supabase) {
+      console.warn('[Debug] Supabase not configured. Setting loading to false.')
+      setIsLoading(false)
+      setIsInitialized(true)
+      return
+    }
+    
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -230,8 +238,6 @@ const AuthProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
       authStateRef.current.initStarted = true
 
       try {
-        setIsLoading(true)
-        
         // Check if Supabase is configured
         if (!supabase) {
           console.warn('[Debug] Supabase not configured. Skipping auth initialization.')

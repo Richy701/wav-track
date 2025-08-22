@@ -12,8 +12,7 @@ import {
 } from '@phosphor-icons/react'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'sonner'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Spinner } from '@/components/ui/spinner'
 import { useImageCache } from '@/hooks/useImageCache'
 import { motion } from 'framer-motion'
@@ -22,7 +21,7 @@ import { useDebouncedCallback } from 'use-debounce'
 
 // Lazy load heavy profile components
 const AboutMe = lazy(() => import('@/components/profile/AboutMe').then(module => ({ default: module.AboutMe })))
-const StatsSummary = lazy(() => import('@/components/profile/StatsSummary').then(module => ({ default: module.StatsSummary })))
+const StatsSummary = lazy(() => import('@/components/profile/StatsSummaryOptimized').then(module => ({ default: module.StatsSummaryOptimized })))
 const CreativeNotes = lazy(() => import('@/components/profile/CreativeNotes').then(module => ({ default: module.CreativeNotes })))
 const ProjectGraph = lazy(() => import('@/components/profile/ProjectGraph').then(module => ({ default: module.ProjectGraph })))
 
@@ -153,9 +152,9 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background/50 to-background flex flex-col">
-      <Header />
-      <main className="flex-1 bg-white dark:bg-background pt-20">
+    <div className="[&_.group.peer_div.duration-200.relative.h-svh.bg-transparent]:hidden">
+      <DashboardLayout>
+      <div className="w-full bg-gradient-to-b from-background/50 to-background">
         {/* Profile Header */}
         <motion.div 
           className="border-b border-border/10 bg-white dark:bg-background/30 backdrop-blur-xl"
@@ -337,8 +336,8 @@ const Profile = () => {
           </motion.div>
 
         </motion.div>
-      </main>
-      <Footer />
+      </div>
+      </DashboardLayout>
     </div>
   )
 }

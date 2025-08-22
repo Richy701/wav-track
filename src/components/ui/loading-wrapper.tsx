@@ -5,6 +5,7 @@ import { useLoading } from '@/contexts/LoadingContext'
 interface LoadingWrapperProps {
   children: React.ReactNode
   fallback?: React.ReactNode
+  customLoader?: React.ReactNode
   loadingKey: string
   className?: string
 }
@@ -12,6 +13,7 @@ interface LoadingWrapperProps {
 export function LoadingWrapper({
   children,
   fallback,
+  customLoader,
   loadingKey,
   className
 }: LoadingWrapperProps) {
@@ -27,7 +29,7 @@ export function LoadingWrapper({
     <Suspense
       fallback={
         <div className={className}>
-          {fallback || defaultFallback}
+          {customLoader || fallback || defaultFallback}
         </div>
       }
     >

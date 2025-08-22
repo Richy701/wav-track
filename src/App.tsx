@@ -12,6 +12,7 @@ import { Toaster } from 'sonner'
 import { Analytics } from '@vercel/analytics/react'
 import { AuthProvider, AuthNavigationProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import { DashboardWrapper } from './components/layout/DashboardWrapper'
 import LoadingScreen from './components/LoadingScreen'
 import OfflineStatus from './components/OfflineStatus'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -141,9 +142,11 @@ const router = createBrowserRouter(
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
-              <Index />
-            </Suspense>
+            <DashboardWrapper>
+              <Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
+                <Index />
+              </Suspense>
+            </DashboardWrapper>
           </ProtectedRoute>
         }
       />
@@ -159,9 +162,11 @@ const router = createBrowserRouter(
         path="/profile"
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingScreen message="Loading profile..." />}>
-              <Profile />
-            </Suspense>
+            <DashboardWrapper>
+              <Suspense fallback={<LoadingScreen message="Loading profile..." />}>
+                <Profile />
+              </Suspense>
+            </DashboardWrapper>
           </ProtectedRoute>
         }
       />
@@ -169,9 +174,11 @@ const router = createBrowserRouter(
         path="/profile/settings"
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingScreen message="Loading settings..." />}>
-              <ProfileSettings />
-            </Suspense>
+            <DashboardWrapper>
+              <Suspense fallback={<LoadingScreen message="Loading settings..." />}>
+                <ProfileSettings />
+              </Suspense>
+            </DashboardWrapper>
           </ProtectedRoute>
         }
       />
@@ -187,9 +194,11 @@ const router = createBrowserRouter(
         path="/sessions"
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingScreen message="Loading sessions..." />}>
-              <Sessions />
-            </Suspense>
+            <DashboardWrapper>
+              <Suspense fallback={<LoadingScreen message="Loading sessions..." />}>
+                <Sessions />
+              </Suspense>
+            </DashboardWrapper>
           </ProtectedRoute>
         }
       />
@@ -197,9 +206,11 @@ const router = createBrowserRouter(
         path="/project/:id"
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingScreen message="Loading project..." />}>
-              <ProjectDetail />
-            </Suspense>
+            <DashboardWrapper>
+              <Suspense fallback={<LoadingScreen message="Loading project..." />}>
+                <ProjectDetail />
+              </Suspense>
+            </DashboardWrapper>
           </ProtectedRoute>
         }
       />
@@ -207,9 +218,47 @@ const router = createBrowserRouter(
         path="/achievements"
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingScreen message="Loading achievements..." />}>
-              <Achievements />
-            </Suspense>
+            <DashboardWrapper>
+              <Suspense fallback={<LoadingScreen message="Loading achievements..." />}>
+                <Achievements />
+              </Suspense>
+            </DashboardWrapper>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/stats"
+        element={
+          <ProtectedRoute>
+            <DashboardWrapper>
+              <Suspense fallback={<LoadingScreen message="Loading stats..." />}>
+                <Index />
+              </Suspense>
+            </DashboardWrapper>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/goals"
+        element={
+          <ProtectedRoute>
+            <DashboardWrapper>
+              <Suspense fallback={<LoadingScreen message="Loading goals..." />}>
+                <Index />
+              </Suspense>
+            </DashboardWrapper>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <DashboardWrapper>
+              <Suspense fallback={<LoadingScreen message="Loading settings..." />}>
+                <ProfileSettings />
+              </Suspense>
+            </DashboardWrapper>
           </ProtectedRoute>
         }
       />

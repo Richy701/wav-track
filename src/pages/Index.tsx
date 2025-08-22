@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useSupabaseSubscription } from '@/hooks/useCleanup'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
 import ProjectList from '@/components/ProjectList'
 import Timer from '@/components/Timer'
 import Stats from '@/components/Stats'
@@ -223,38 +221,32 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background/50 to-background flex flex-col overflow-x-hidden">
-      <Header />
-
-      <main className="w-full max-w-7xl mx-auto mobile-padding pt-16 sm:pt-20 lg:pt-24 pb-6 sm:pb-10 flex-1">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-10 md:mb-12 lg:items-start">
-          <div className="lg:col-span-2 min-w-0 order-1 lg:order-1">
-            <Stats
-              sessions={memoizedSessions}
-              selectedProject={selectedProject}
-              beatActivities={memoizedBeatActivities}
-            />
-          </div>
-          <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:gap-6 h-fit min-w-0 order-2 lg:order-2">
-            <div className="min-h-[350px] sm:min-h-[400px] lg:min-h-[480px] min-w-0">
-              <Timer />
-            </div>
-            <div className="min-h-[450px] sm:min-h-[500px] lg:min-h-[580px] min-w-0">
-              <SessionsOverview />
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-6 sm:mb-12 overflow-x-hidden min-w-0">
-          <ProjectList
-            projectList={projects || []}
-            isLoading={isLoading}
-            onProjectSelect={setSelectedProject}
+    <div className="space-y-6 min-w-0 w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:items-start min-w-0">
+        <div className="lg:col-span-2 min-w-0 w-full">
+          <Stats
+            sessions={memoizedSessions}
+            selectedProject={selectedProject}
+            beatActivities={memoizedBeatActivities}
           />
         </div>
-      </main>
+        <div className="grid grid-cols-1 gap-6 h-fit min-w-0 w-full">
+          <div className="min-h-[350px] lg:min-h-[480px] min-w-0 w-full">
+            <Timer />
+          </div>
+          <div className="min-h-[450px] lg:min-h-[580px] min-w-0 w-full">
+            <SessionsOverview />
+          </div>
+        </div>
+      </div>
 
-      <Footer />
+      <div className="min-w-0 w-full">
+        <ProjectList
+          projectList={projects || []}
+          isLoading={isLoading}
+          onProjectSelect={setSelectedProject}
+        />
+      </div>
     </div>
   )
 }

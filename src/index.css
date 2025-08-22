@@ -34,6 +34,14 @@
 }
 
 @layer base {
+  /* Hide sidebar spacing element - try multiple selectors */
+  .group.peer.hidden.md\\:block div.duration-200.relative.h-svh.bg-transparent,
+  [data-sidebar] > div.duration-200.relative.h-svh.bg-transparent,
+  div[class*="w-[--sidebar-width]"][class*="bg-transparent"][class*="h-svh"] {
+    display: none !important;
+    width: 0 !important;
+  }
+  
   /* Allow transitions for theme-related properties */
   * {
     transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out !important;
@@ -125,14 +133,14 @@
     --ring: 0 0% 3.9%;
 
     /* Sidebar specific colors */
-    --sidebar-background: 210 40% 98%;
-    --sidebar-foreground: 222.2 47.4% 11.2%;
-    --sidebar-primary: 222.2 47.4% 11.2%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 210 40% 96.1%;
-    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
-    --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-ring: 222.2 47.4% 11.2%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
     --sidebar-hover: 210 40% 90.1%;
 
     /* Border radius */
@@ -202,14 +210,14 @@
     --input: 0 0% 14.9%;
     --ring: 0 0% 83.1%;
 
-    --sidebar-background: 270 50% 10%;
-    --sidebar-foreground: 0 0% 97%;
-    --sidebar-primary: 252 87% 67%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 270 30% 15%;
-    --sidebar-accent-foreground: 0 0% 97%;
-    --sidebar-border: 270 30% 15%;
-    --sidebar-ring: 252 87% 67%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;

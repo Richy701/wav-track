@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { fadeInUp } from "@/lib/animations";
 import { BlurText } from "@/components/ui/BlurText";
 import { LazyVideo } from "@/components/ui/lazy-video";
 
-export default function FeatureShowcase2() {
+const FeatureShowcase2 = memo(function FeatureShowcase2() {
   return (
     <section className="py-6 px-4 sm:px-6 lg:px-8 relative">
       <div className="mx-auto max-w-7xl">
@@ -60,4 +61,6 @@ export default function FeatureShowcase2() {
       </div>
     </section>
   );
-} 
+});
+
+export default FeatureShowcase2; 

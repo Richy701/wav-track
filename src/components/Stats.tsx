@@ -1,23 +1,22 @@
 import React, { useState, useEffect, useMemo, useCallback, memo } from 'react'
-import {
-  ChartLineUp,
-  PencilSimple,
-  CheckCircle,
-  MusicNote,
-  Clock,
-  Calendar,
-  Trophy,
-  Star,
-  Target,
-  Medal,
-  ShareNetwork,
-  Download,
-  Sparkle,
-  FileXls,
-  CalendarCheck,
-  ChartBar as BarChartIcon,
-  ChartLine as LineChartIcon,
-} from '@phosphor-icons/react'
+// Optimized icon imports - only import what we use
+import { ChartLineUp } from '@phosphor-icons/react/dist/icons/ChartLineUp'
+import { PencilSimple } from '@phosphor-icons/react/dist/icons/PencilSimple'
+import { CheckCircle } from '@phosphor-icons/react/dist/icons/CheckCircle'
+import { MusicNote } from '@phosphor-icons/react/dist/icons/MusicNote'
+import { Clock } from '@phosphor-icons/react/dist/icons/Clock'
+import { Calendar } from '@phosphor-icons/react/dist/icons/Calendar'
+import { Trophy } from '@phosphor-icons/react/dist/icons/Trophy'
+import { Star } from '@phosphor-icons/react/dist/icons/Star'
+import { Target } from '@phosphor-icons/react/dist/icons/Target'
+import { Medal } from '@phosphor-icons/react/dist/icons/Medal'
+import { ShareNetwork } from '@phosphor-icons/react/dist/icons/ShareNetwork'
+import { Download } from '@phosphor-icons/react/dist/icons/Download'
+import { Sparkle } from '@phosphor-icons/react/dist/icons/Sparkle'
+import { FileXls } from '@phosphor-icons/react/dist/icons/FileXls'
+import { CalendarCheck } from '@phosphor-icons/react/dist/icons/CalendarCheck'
+import { ChartBar as BarChartIcon } from '@phosphor-icons/react/dist/icons/ChartBar'
+import { ChartLine as LineChartIcon } from '@phosphor-icons/react/dist/icons/ChartLine'
 
 import { BeatsChart } from './stats/BeatsChart'
 import { BeatBarChart } from './stats/BeatBarChart'

@@ -37,8 +37,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useAuth } from '@/contexts/AuthContext'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
 import { Spinner } from '@/components/ui/spinner'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -352,10 +350,9 @@ const ProfileSettings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background/50 to-background flex flex-col">
-      <Header />
+    <div className="w-full">
 
-      <main className="w-full max-w-4xl mx-auto px-4 pt-24 pb-8 flex-1 relative">
+      <main className="w-full max-w-4xl mx-auto relative">
         <motion.div 
           initial={{ opacity: 0 }} 
           animate={{ opacity: 1 }} 
@@ -663,7 +660,6 @@ const ProfileSettings = () => {
         </DialogContent>
       </Dialog>
 
-      <Footer />
     </div>
   )
 }

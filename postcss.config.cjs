@@ -9,6 +9,17 @@ module.exports = {
           cssnano: {
             preset: ['default', { 
               discardComments: { removeAll: true },
+              normalizeWhitespace: true,
+              colormin: true,
+              minifyFontValues: true,
+              minifyGradients: true,
+              discardUnused: false,
+              discardDuplicates: true,
+              discardEmpty: true,
+              minifySelectors: true,
+              reduceIdents: false,
+              zindex: false,
+              mergeRules: true
             }],
           },
         }

@@ -2,24 +2,11 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo, lazy, Suspense } from "react";
 import { ResponsiveImage } from "@/components/ui/responsive-image";
-import { 
-  PhosphorLogo, 
-  Headphones, 
-  SpeakerHigh, 
-  Brain,
-  MusicNote,
-  Microphone,
-  WaveSquare,
-  Target,
-  Users,
-  Sliders,
-  GridFour,
-  Waveform,
-  CheckCircle,
-  Spinner
-} from "@phosphor-icons/react";
+// Optimized icon imports
+import { CheckCircle } from "@phosphor-icons/react/dist/icons/CheckCircle";
+import { Spinner } from "@phosphor-icons/react/dist/icons/Spinner";
 import { BaseLayout } from "@/components/layout/BaseLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,15 +15,17 @@ import { addToWaitlist } from "@/lib/waitlist";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import HeroSection from "@/components/landing/HeroSection";
 import { LANDING_PAGE_IMAGES } from "@/config/images";
-import MagicBento from "@/components/ui/MagicBento";
 import { HeroSectionDemo } from "@/components/ui/hero-section-demo";
-import FeatureShowcase from "@/components/landing/FeatureShowcase";
-import FeatureShowcase2 from "@/components/landing/FeatureShowcase2";
-import FeatureShowcase3 from "@/components/landing/FeatureShowcase3";
-import { VideoFeatureHighlights } from "@/components/features/VideoFeatureHighlights";
-import { FAQSection } from "@/components/ui/faq-section";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Lazy load heavy components for better performance
+const MagicBento = lazy(() => import("@/components/ui/MagicBento"));
+const FeatureShowcase = lazy(() => import("@/components/landing/FeatureShowcase"));
+const FeatureShowcase2 = lazy(() => import("@/components/landing/FeatureShowcase2"));
+const FeatureShowcase3 = lazy(() => import("@/components/landing/FeatureShowcase3"));
+const VideoFeatureHighlights = lazy(() => import("@/components/features/VideoFeatureHighlights").then(module => ({ default: module.VideoFeatureHighlights })));
+const FAQSection = lazy(() => import("@/components/ui/faq-section").then(module => ({ default: module.FAQSection })));
 
 const wavtrackPlans = [
   {
@@ -102,7 +91,47 @@ const fadeInUp: Variants = {
   animate: { opacity: 1, y: 0, transition: { duration: 0.5 } }
 };
 
-export default function LandingPage() {
+// Loading skeleton components
+const MagicBentoSkeleton = memo(() => (
+  <div className="w-full max-w-6xl mx-auto">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[...Array(6)].map((_, i) => (
+        <Skeleton key={i} className="h-64 rounded-xl" />
+      ))}
+    </div>
+  </div>
+));
+
+const FeatureShowcaseSkeleton = memo(() => (
+  <div className="container mx-auto px-4 py-16">
+    <div className="space-y-8">
+      <Skeleton className="h-12 w-64 mx-auto" />
+      <Skeleton className="h-6 w-96 mx-auto" />
+      <div className="grid md:grid-cols-2 gap-8 items-center">
+        <Skeleton className="h-64 rounded-xl" />
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+        </div>
+      </div>
+    </div>
+  </div>
+));
+
+const FAQSkeleton = memo(() => (
+  <div className="container mx-auto px-4 py-16">
+    <Skeleton className="h-12 w-64 mx-auto mb-8" />
+    <div className="space-y-4 max-w-3xl mx-auto">
+      {[...Array(5)].map((_, i) => (
+        <Skeleton key={i} className="h-16 rounded-lg" />
+      ))}
+    </div>
+  </div>
+));
+
+// Memoized LandingPage component
+const LandingPage = memo(function LandingPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -188,45 +217,38 @@ export default function LandingPage() {
           
           {/* MagicBento Section */}
           <div className="relative z-10">
-            {/* Background Image Overlay */}
+            {/* Optimized Background Image - Lazy loaded */}
             <div className="absolute inset-0 z-0">
               <picture>
                 <source
                   type="image/avif"
-                  srcSet="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&fit=crop&q=75&fm=avif 480w,
-                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&fit=crop&q=75&fm=avif 768w,
-                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&fit=crop&q=75&fm=avif 1024w,
-                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1400&fit=crop&q=75&fm=avif 1400w,
-                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75&fm=avif 1920w"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, (max-width: 1400px) 80vw, 1400px"
+                  srcSet="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&fit=crop&q=60&fm=avif 480w,
+                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&fit=crop&q=60&fm=avif 768w,
+                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&fit=crop&q=60&fm=avif 1024w"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, 1024px"
                 />
                 <source
                   type="image/webp"
-                  srcSet="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&fit=crop&q=75&fm=webp 480w,
-                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&fit=crop&q=75&fm=webp 768w,
-                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&fit=crop&q=75&fm=webp 1024w,
-                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1400&fit=crop&q=75&fm=webp 1400w,
-                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75&fm=webp 1920w"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, (max-width: 1400px) 80vw, 1400px"
+                  srcSet="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&fit=crop&q=60&fm=webp 480w,
+                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&fit=crop&q=60&fm=webp 768w,
+                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&fit=crop&q=60&fm=webp 1024w"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, 1024px"
                 />
                 <img
-                  src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1920&h=1080&q=75"
-                  srcSet="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&fit=crop&q=75 480w,
-                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&fit=crop&q=75 768w,
-                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&fit=crop&q=75 1024w,
-                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1400&fit=crop&q=75 1400w,
-                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1920&fit=crop&q=75 1920w"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, (max-width: 1400px) 80vw, 1400px"
+                  src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1024&h=600&q=60"
+                  srcSet="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=480&fit=crop&q=60 480w,
+                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=768&fit=crop&q=60 768w,
+                          https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1024&fit=crop&q=60 1024w"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, 1024px"
                   alt="Music Production Interface"
                   className="w-full h-full object-cover opacity-70 filter brightness-75"
-                  loading="eager"
-                  decoding="sync"
-                  data-fetchpriority="high"
+                  loading="lazy"
+                  decoding="async"
                 />
               </picture>
             </div>
             
-            {/* MagicBento Content */}
+            {/* MagicBento Content - Optimized for performance */}
             <div className="relative z-10 py-12 px-4">
               <div className="text-center mb-8">
                 <p className="lg:text-lg my-2 text-sm font-light uppercase tracking-widest text-muted-foreground/80">
@@ -237,18 +259,20 @@ export default function LandingPage() {
                 </h2>
               </div>
               <div className="w-full max-w-6xl mx-auto">
-                <MagicBento 
-                  textAutoHide={true}
-                  enableStars={false}
-                  enableSpotlight={true}
-                  enableBorderGlow={true}
-                  enableTilt={true}
-                  enableMagnetism={true}
-                  clickEffect={true}
-                  spotlightRadius={300}
-                  particleCount={12}
-                  glowColor="132, 0, 255"
-                />
+                <Suspense fallback={<MagicBentoSkeleton />}>
+                  <MagicBento 
+                    textAutoHide={true}
+                    enableStars={false}
+                    enableSpotlight={false}
+                    enableBorderGlow={true}
+                    enableTilt={false}
+                    enableMagnetism={false}
+                    clickEffect={false}
+                    spotlightRadius={200}
+                    particleCount={6}
+                    glowColor="132, 0, 255"
+                  />
+                </Suspense>
               </div>
             </div>
           </div>
@@ -256,33 +280,41 @@ export default function LandingPage() {
           {/* Divider */}
           <div className="relative z-10 w-full h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent my-8" />
           
-          {/* Feature Showcases */}
+          {/* Feature Showcases - Lazy loaded with skeletons */}
           <div className="relative z-10">
-            <FeatureShowcase />
+            <Suspense fallback={<FeatureShowcaseSkeleton />}>
+              <FeatureShowcase />
+            </Suspense>
             
             {/* Divider */}
             <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent my-8" />
             
-            <FeatureShowcase2 />
+            <Suspense fallback={<FeatureShowcaseSkeleton />}>
+              <FeatureShowcase2 />
+            </Suspense>
             
             {/* Divider */}
             <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent my-8" />
             
-            <FeatureShowcase3 />
+            <Suspense fallback={<FeatureShowcaseSkeleton />}>
+              <FeatureShowcase3 />
+            </Suspense>
           </div>
 
           {/* Divider */}
           <div className="relative z-10 w-full h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent my-12" />
 
-
-          
-          {/* FAQ Section */}
+          {/* FAQ Section - Lazy loaded */}
           <div className="relative z-10">
-            <FAQSection />
+            <Suspense fallback={<FAQSkeleton />}>
+              <FAQSection />
+            </Suspense>
           </div>
         </div>
       </main>
       <Footer />
     </div>
   );
-} 
+});
+
+export default LandingPage; 

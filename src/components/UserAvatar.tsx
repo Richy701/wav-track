@@ -21,13 +21,28 @@ const UserAvatar = () => {
   const { cachedImage, isLoading, error } = useImageCache(profile?.avatar_url)
 
   const getInitials = () => {
-    if (!profile?.name) return 'U'
-    return profile.name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2)
+    // Try to use name first
+    if (profile?.name) {
+      return profile.name
+        .split(' ')
+        .map(part => part[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2)
+    }
+    
+    // Fall back to email if no name
+    if (profile?.email) {
+      return profile.email[0].toUpperCase()
+    }
+    
+    // Fall back to user email if profile email is not available
+    if (user?.email) {
+      return user.email[0].toUpperCase()
+    }
+    
+    // Default fallback
+    return 'U'
   }
 
   if (!user) return null
@@ -70,8 +85,12 @@ const UserAvatar = () => {
       >
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{profile?.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">{profile?.email}</p>
+            <p className="text-sm font-medium leading-none">
+              {profile?.name || profile?.email || user?.email || 'User'}
+            </p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {profile?.email || user?.email}
+            </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

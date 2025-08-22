@@ -20,8 +20,8 @@ export function AudioUploader({ onUploadComplete, projectId, className }: AudioU
   const [error, setError] = useState<string | null>(null)
   const [currentFile, setCurrentFile] = useState<string | null>(null)
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+  const handleFileChange = async (files: File[]) => {
+    const file = files?.[0]
     if (!file) return
 
     // Add file size validation (10MB limit)

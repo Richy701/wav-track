@@ -37,8 +37,13 @@ export function useCreativeNotes() {
 
       if (error) {
         // If table doesn't exist or any database error, fall back to localStorage silently
-        if (error.code === '42P01' || error.message?.includes('404') || error.status === 404 || error.code === 'PGRST116') {
-          // Don't log expected 404 errors to avoid console noise
+        if (error.code === '42P01' || 
+            error.message?.includes('404') || 
+            error.status === 404 || 
+            error.code === 'PGRST116' ||
+            error.message?.includes('relation "public.creative_notes" does not exist') ||
+            error.message?.includes('creative_notes')) {
+          // Silently handle expected errors - table doesn't exist yet
           setUseLocalStorage(true)
           const stored = localStorage.getItem(`creative-notes-${user.id}`)
           return stored ? JSON.parse(stored) : []
@@ -55,8 +60,13 @@ export function useCreativeNotes() {
     enabled: !!user && isInitialized,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     retry: (failureCount, error: any) => {
-      // Don't retry on 404 errors (table doesn't exist)
-      if (error?.code === '42P01' || error?.message?.includes('404') || error?.status === 404 || error?.code === 'PGRST116') {
+      // Don't retry on expected errors (table doesn't exist)
+      if (error?.code === '42P01' || 
+          error?.message?.includes('404') || 
+          error?.status === 404 || 
+          error?.code === 'PGRST116' ||
+          error?.message?.includes('relation "public.creative_notes" does not exist') ||
+          error?.message?.includes('creative_notes')) {
         return false
       }
       // Retry other errors up to 2 times
