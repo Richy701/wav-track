@@ -109,27 +109,36 @@ export const CSS_VARIABLES = {
 } as const
 
 // Helper functions for consistent color application
-export const getStatusColor = (status: 'idea' | 'in-progress' | 'mixing' | 'mastering' | 'completed', isDark = false) => {
-  const statusMap = {
-    'idea': COLORS.workflow.idea,
-    'in-progress': COLORS.workflow.inProgress,
-    'mixing': COLORS.workflow.mixing,
-    'mastering': COLORS.workflow.mastering,
-    'completed': COLORS.workflow.completed,
+export function getStatusColor(status: 'idea' | 'in-progress' | 'mixing' | 'mastering' | 'completed', isDark = false) {
+  switch (status) {
+    case 'idea':
+      return isDark ? 'rgb(167 139 250)' : 'rgb(139 92 246)'  // violet-400 : violet-500
+    case 'in-progress':
+      return isDark ? 'rgb(251 191 36)' : 'rgb(245 158 11)'   // amber-400 : amber-500
+    case 'mixing':
+      return isDark ? 'rgb(147 51 234)' : 'rgb(124 58 237)'   // purple-500 : purple-600
+    case 'mastering':
+      return isDark ? 'rgb(124 58 237)' : 'rgb(109 40 217)'   // purple-600 : purple-700
+    case 'completed':
+      return isDark ? 'rgb(74 222 128)' : 'rgb(34 197 94)'    // green-400 : green-500
+    default:
+      return isDark ? 'rgb(156 163 175)' : 'rgb(107 114 128)'
   }
-  
-  const colors = statusMap[status]
-  return isDark ? colors.dark : colors.light
 }
 
-export const getStatusClasses = (status: 'idea' | 'in-progress' | 'mixing' | 'mastering' | 'completed') => {
-  const classMap = {
-    'idea': 'bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400',
-    'in-progress': 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
-    'mixing': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-    'mastering': 'bg-purple-200 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300',
-    'completed': 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+export function getStatusClasses(status: 'idea' | 'in-progress' | 'mixing' | 'mastering' | 'completed') {
+  switch (status) {
+    case 'idea':
+      return 'bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'
+    case 'in-progress':
+      return 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
+    case 'mixing':
+      return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+    case 'mastering':
+      return 'bg-purple-200 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300'
+    case 'completed':
+      return 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+    default:
+      return 'bg-gray-100 text-gray-600 dark:bg-gray-900/30 dark:text-gray-400'
   }
-  
-  return classMap[status]
 }
