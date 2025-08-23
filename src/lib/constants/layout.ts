@@ -52,14 +52,14 @@ export const LAYOUT_CONSTANTS = {
 export const DASHBOARD_LAYOUT = {
   MAIN_GRID: {
     cols: { default: 1, lg: 4 },
-    gap: 'lg' as keyof typeof LAYOUT_CONSTANTS.SPACING,
+    gap: 'lg',
   },
   CONTENT_GRID: {
     cols: { default: 1, lg: 3 },
-    gap: 'lg' as keyof typeof LAYOUT_CONSTANTS.SPACING,
+    gap: 'lg',
   },
   STATS_GRID: {
     cols: { default: 2, lg: 1 },
-    gap: 'md' as keyof typeof LAYOUT_CONSTANTS.SPACING,
+    gap: 'md',
   },
 } as const

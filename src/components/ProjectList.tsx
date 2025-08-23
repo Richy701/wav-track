@@ -162,7 +162,8 @@ const ProjectList: React.FC<ProjectListProps> = ({
     if (isLoadingMore) return
     setIsLoadingMore(true)
     try {
-      await loadMore()
+      // Trigger a refetch to load more projects
+      await queryClient.invalidateQueries({ queryKey: ['projects'] })
     } finally {
       setIsLoadingMore(false)
     }
