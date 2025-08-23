@@ -205,10 +205,20 @@ const LandingPage = memo(function LandingPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      <Suspense fallback={
+        <div className="header-fallback h-16 bg-background/95 backdrop-blur border-b border-border/50" />
+      }>
+        <Header />
+      </Suspense>
       <main className="flex-1">
         {/* Hero Section */}
-        <HeroSectionDemo />
+        <Suspense fallback={
+          <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        }>
+          <HeroSectionDemo />
+        </Suspense>
         
         {/* Main Content Section with Seamless Background */}
         <div className="relative w-full">

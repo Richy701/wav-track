@@ -177,4 +177,35 @@ export const CRITICAL_CSS = `
     white-space: nowrap;
     border: 0;
   }
+  
+  /* Header fallback styles to prevent invisible header */
+  header, [data-header], .header-fallback {
+    min-height: 64px;
+    background-color: rgba(9, 9, 11, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Ensure components are visible during loading */
+  .component-loading {
+    opacity: 1;
+    visibility: visible;
+  }
 `
+
+/**
+ * Inject critical CSS immediately - called synchronously
+ */
+export function injectCriticalCSSSync(): void {
+  if (typeof document === 'undefined') return
+  
+  // Check if already injected
+  if (document.querySelector('style[data-critical="true"]')) {
+    return
+  }
+  
+  const style = document.createElement('style')
+  style.textContent = CRITICAL_CSS
+  style.setAttribute('data-critical', 'true')
+  document.head.appendChild(style)
+}

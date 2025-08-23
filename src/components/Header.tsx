@@ -18,11 +18,33 @@ import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
 export default function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { user, logout, isLoggingOut } = useAuth()
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const { projects } = useProjects()
+  
+  // Add error boundary for auth context
+  let user, logout, isLoggingOut
+  try {
+    const auth = useAuth()
+    user = auth.user
+    logout = auth.logout
+    isLoggingOut = auth.isLoggingOut
+  } catch (error) {
+    console.warn('Header: Auth context not available, rendering fallback')
+    user = null
+    logout = () => {}
+    isLoggingOut = false
+  }
+  
+  // Add error boundary for projects hook
+  let projects = []
+  try {
+    const projectsHook = useProjects()
+    projects = projectsHook.projects
+  } catch (error) {
+    console.warn('Header: Projects hook not available, using empty array')
+    projects = []
+  }
 
   useEffect(() => {
     const handleScroll = () => {

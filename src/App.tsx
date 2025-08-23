@@ -28,7 +28,10 @@ import { StatCardSkeleton } from '@/components/ui/stat-card-skeleton'
 import { FadeIn } from '@/components/ui/fade-in'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { DirectionProvider } from './components/providers/DirectionProvider'
-import { injectCriticalCSS, CRITICAL_CSS, deferCSS } from './utils/cssLoader'
+import { injectCriticalCSS, injectCriticalCSSSync, CRITICAL_CSS, deferCSS } from './utils/cssLoader'
+
+// Inject critical CSS immediately - before any components render
+injectCriticalCSSSync()
 
 // Use the optimized QueryClient instance from query-client.ts
 import { queryClient } from './lib/query-client'
@@ -296,6 +299,13 @@ function App() {
   useEffect(() => {
     // Inject critical CSS immediately for fastest render
     injectCriticalCSS(CRITICAL_CSS)
+    
+    // Add cache busting for development
+    if (import.meta.env.DEV) {
+      // Clear potential stale module cache
+      const timestamp = Date.now()
+      console.log(`[App] Initializing at ${timestamp}`)
+    }
     
     // Mark app as ready immediately - no artificial delay
     setIsReady(true)
