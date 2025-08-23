@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
 import { Database } from '../integrations/supabase/types'
-import { errorLogger } from './errorLogger'
 
 // Get environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -90,36 +89,6 @@ if (supabase) {
   // The auth state is handled in AuthContext.tsx
 }
 
-// Add request interceptor for rate limiting
-const originalFetch = window.fetch
-window.fetch = async (input, init) => {
-  try {
-    // Add security headers to all requests
-    const headers = new Headers(init?.headers)
-    headers.set('X-Requested-With', 'XMLHttpRequest')
-    headers.set('X-Client-Info', 'supabase-js/2.39.3')
-
-    const response = await originalFetch(input, {
-      ...init,
-      headers,
-    })
-
-    // Log errors
-    if (!response.ok) {
-      errorLogger.logError('API Error', {
-        status: response.status,
-        statusText: response.statusText,
-        url: response.url,
-      })
-    }
-
-    return response
-  } catch (error) {
-    errorLogger.logError('Fetch Error', error)
-    throw error
-  }
-}
-
 // Add retry logic for rate-limited requests
 const MAX_RETRIES = 3
 const RETRY_DELAY = 1000 // 1 second
@@ -139,5 +108,4 @@ export const withRetry = async <T>(
   }
 }
 
-// Initialize error monitoring
-errorLogger.monitorSupabaseErrors()
+// Error monitoring will be initialized separately to avoid circular dependencies

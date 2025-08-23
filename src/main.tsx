@@ -8,6 +8,15 @@ import { injectSpeedInsights } from '@vercel/speed-insights'
 // Initialize error logging
 errorLogger.init()
 
+// Initialize Supabase error monitoring after both modules are loaded
+// This avoids the circular dependency issue
+if (typeof window !== 'undefined') {
+  // Wait for next tick to ensure all modules are initialized
+  setTimeout(() => {
+    errorLogger.monitorSupabaseErrors()
+  }, 0)
+}
+
 // Initialize Speed Insights
 injectSpeedInsights()
 

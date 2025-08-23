@@ -1,7 +1,5 @@
 // Error logger utility for debugging Supabase issues
 
-import { supabase } from './supabase'
-
 // Error object type
 interface ErrorLogItem {
   timestamp: number
