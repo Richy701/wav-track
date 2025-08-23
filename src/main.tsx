@@ -65,7 +65,27 @@ const removeLoadingScreen = () => {
   }
 }
 
-root.render(<App />)
-
-// Remove loading screen after a short delay
-setTimeout(removeLoadingScreen, 500)
+try {
+  root.render(<App />)
+  // Remove loading screen after a short delay
+  setTimeout(removeLoadingScreen, 500)
+} catch (error) {
+  console.error('Failed to initialize app:', error)
+  
+  // Show error message instead of loading screen
+  const errorScreen = document.createElement('div')
+  errorScreen.innerHTML = `
+    <div class="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <div class="text-center space-y-4">
+        <h1 class="text-2xl font-bold text-destructive">Application Error</h1>
+        <p class="text-muted-foreground">Failed to load the application. Please refresh the page.</p>
+        <button onclick="window.location.reload()" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
+          Refresh Page
+        </button>
+      </div>
+    </div>
+  `
+  
+  removeLoadingScreen()
+  document.body.appendChild(errorScreen)
+}

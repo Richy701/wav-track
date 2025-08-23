@@ -128,11 +128,11 @@ export default defineConfig({
       }
     },
     target: 'es2020',
-    sourcemap: false,
+    sourcemap: true, // Enable for debugging production issues
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true,
+        drop_console: false, // Keep console statements for debugging
         drop_debugger: true,
         pure_funcs: ['console.log', 'console.info', 'console.debug'],
         passes: 2, // Multiple passes for better compression

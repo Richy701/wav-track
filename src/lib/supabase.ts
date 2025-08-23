@@ -9,13 +9,25 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 // Check if we're in development mode
 const isDevelopment = import.meta.env.DEV
 
+// Debug: Log environment check (will be visible in production for debugging)
+console.log('Environment check:', {
+  hasUrl: !!supabaseUrl,
+  hasKey: !!supabaseAnonKey,
+  isDev: isDevelopment,
+  mode: import.meta.env.MODE
+})
+
 // Validate environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
   if (isDevelopment) {
     console.warn('Missing Supabase environment variables. Using fallback configuration for development.')
     // In development, we can continue without Supabase for now
   } else {
-    throw new Error('Missing Supabase environment variables')
+    console.error('Missing Supabase environment variables in production:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseAnonKey
+    })
+    // Don't throw in production - let the app render with null client
   }
 }
 
