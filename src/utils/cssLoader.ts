@@ -121,13 +121,44 @@ export const CRITICAL_CSS = `
     box-sizing: border-box;
   }
   
+  /* Prevent white flash - set initial dark background */
+  html {
+    background-color: #09090b;
+  }
+  
+  body {
+    margin: 0;
+    background-color: #09090b;
+  }
+  
+  .dark {
+    background-color: #09090b;
+    color: #fafafa;
+  }
+  
+  .min-h-screen {
+    min-height: 100vh;
+  }
+  
+  .bg-background {
+    background-color: #09090b;
+  }
+  
+  .loading-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #09090b;
+  }
+  
   .loading-spinner {
     display: inline-block;
     width: 20px;
     height: 20px;
-    border: 2px solid rgba(0,0,0,0.1);
+    border: 2px solid rgba(255,255,255,0.1);
     border-radius: 50%;
-    border-top: 2px solid #000;
+    border-top: 2px solid #fff;
     animation: spin 1s linear infinite;
   }
   
