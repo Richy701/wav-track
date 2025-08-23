@@ -9,6 +9,14 @@ export default function Callback() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        // Check if Supabase is available
+        if (!supabase) {
+          console.error('Supabase not configured')
+          toast.error('Authentication service not available. Please try again later.')
+          navigate('/login', { replace: true })
+          return
+        }
+
         // Get the session from the URL hash
         const { data: { session }, error } = await supabase.auth.getSession()
 

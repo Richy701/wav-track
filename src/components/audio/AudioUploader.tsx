@@ -69,6 +69,11 @@ export function AudioUploader({ onUploadComplete, projectId, className }: AudioU
       setIsUploading(true)
       setError(null)
 
+      // Check if Supabase is available
+      if (!supabase) {
+        throw new Error('Storage service not available. Please try again later.')
+      }
+
       // Get the current user's ID
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {

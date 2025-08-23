@@ -154,6 +154,12 @@ export const statusToCompletion = {
 // Get projects with caching
 export const getProjects = async (userId?: string): Promise<Project[]> => {
   try {
+    // Check if Supabase is available
+    if (!supabase) {
+      console.error('Supabase not configured - returning empty projects array')
+      return []
+    }
+
     // Get the current user if userId is not provided
     let user
     if (!userId) {
@@ -255,6 +261,10 @@ const updateProfileStats = async (
 // Update the addProject function to use the new updateProfileStats function
 export const addProject = async (project: Project): Promise<Project> => {
   try {
+    if (!supabase) {
+      throw new Error('Database service not available')
+    }
+
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
